@@ -1,0 +1,39 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stats {
+  font-size: 14px;
+  color: #718096;
+  background: #edf2f7;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .title {
+    color: #f7fafc;
+  }
+
+  .stats {
+    background: #2d3748;
+    color: #a0aec0;
+  }
+}

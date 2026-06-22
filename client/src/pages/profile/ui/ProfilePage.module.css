@@ -1,0 +1,117 @@
+/* === Профиль === */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f7fafc;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Область контента */
+.contentArea {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Строка с фильтрами и управлением */
+.tabsRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #667eea;
+}
+
+.filterButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Кнопка добавления поста */
+.addButton {
+  padding: 6px 12px;
+  background: #2d3748;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.addButton:hover {
+  background: #4a5568;
+}
+
+/* Адаптивность */
+@media screen and (max-width: 768px) {
+  .profile {
+    padding: 12px;
+  }
+  .contentArea {
+    padding: 12px;
+  }
+  .tabsRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .rightControls {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .profile {
+    padding: 8px;
+    gap: 12px;
+  }
+  .contentArea {
+    padding: 8px;
+  }
+  .filterButtons {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .filterButtons button {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 13px;
+  }
+}
+
+/* Тёмная тема (основывается на системных настройках) */
+@media (prefers-color-scheme: dark) {
+  .profile {
+    background-color: #1a202c;
+  }
+  .contentArea {
+    background: #2d3748;
+  }
+  .tabsRow {
+    border-bottom-color: #667eea;
+  }
+  .addButton {
+    background: #4a5568;
+  }
+  .addButton:hover {
+    background: #718096;
+  }
+}

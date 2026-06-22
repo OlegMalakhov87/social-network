@@ -1,0 +1,33 @@
+/* Список постов */
+.postsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px;
+  color: #a0aec0;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 2px dashed #e2e8f0;
+}
+
+.emptyWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+  .emptyState {
+    background: #4a5568;
+  }
+  .emptyWrapper {
+    color: #a0aec0;
+  }
+}

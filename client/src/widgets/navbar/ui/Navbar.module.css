@@ -1,0 +1,177 @@
+.navbar {
+  height: 100%;
+  background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+  border-radius: 8px 0 0 8px;
+  padding: 24px 0;
+  overflow-y: auto;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navItem {
+  width: 100%;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-left-color: #667eea;
+}
+
+.navLink.active {
+  background: rgba(102, 126, 234, 0.15);
+  color: white;
+  border-left-color: #667eea;
+}
+
+.navIcon {
+  font-size: 20px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.navLabel {
+  flex: 1;
+}
+
+/* Адаптивность для планшета */
+@media screen and (max-width: 1024px) {
+  .navLink {
+    padding: 10px 16px;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .navIcon {
+    font-size: 18px;
+    min-width: 20px;
+  }
+}
+
+/* Адаптивность для мобильных (когда навбар сверху) */
+@media screen and (max-width: 768px) {
+  .navbar {
+    border-radius: 8px;
+    padding: 12px 0;
+  }
+
+  .navList {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .navItem {
+    width: auto;
+  }
+
+  .navLink {
+    padding: 8px 16px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 8px;
+    gap: 6px;
+  }
+
+  .navLink:hover {
+    border-left-color: transparent;
+    border-bottom-color: #667eea;
+  }
+
+  .navLink.active {
+    border-left-color: transparent;
+    border-bottom-color: #667eea;
+  }
+
+  .navIcon {
+    font-size: 16px;
+    min-width: auto;
+  }
+
+  .navLabel {
+    font-size: 13px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media screen and (max-width: 480px) {
+  .navLink {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+
+  .navIcon {
+    font-size: 14px;
+  }
+
+  .navLabel {
+    font-size: 12px;
+  }
+}
+
+/* Компактный режим для боковой панели (когда мало места) */
+@media screen and (max-width: 576px) and (min-width: 769px) {
+  .navLabel {
+    display: none;
+  }
+
+  .navLink {
+    justify-content: center;
+    padding: 12px 0;
+  }
+
+  .navIcon {
+    font-size: 22px;
+  }
+
+  .navLink:hover .navLabel,
+  .navLink.active .navLabel {
+    display: none;
+  }
+}
+
+/* Скрываем текст, показываем только иконки при наведении (опционально) */
+.navLink:hover .navLabel,
+.navLink.active .navLabel {
+  color: white;
+}
+
+/* Кастомный скролл для навбара */
+.navbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.navbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

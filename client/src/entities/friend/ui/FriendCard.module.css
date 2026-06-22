@@ -1,0 +1,352 @@
+.friendCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.friendCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 10px;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+  object-fit: cover;
+  background: white;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+.cardBody {
+  padding: 16px;
+  flex: 1;
+}
+
+.friendName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.friendName:hover {
+  color: #667eea;
+  text-decoration: underline;
+}
+
+.friendNickname {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.onlineStatus {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #48bb78;
+  margin-left: 8px;
+}
+
+.offlineStatus {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a0aec0;
+  margin-left: 8px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #4a5568;
+  line-height: 1.5;
+}
+
+.detailIcon {
+  min-width: 20px;
+  color: #667eea;
+}
+
+.detailLabel {
+  min-width: 70px;
+  color: #718096;
+}
+
+.detailValue {
+  flex: 1;
+  color: #2d3748;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-align: center;
+  width: 100%;
+}
+
+.statusBadge.accepted {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.statusBadge.incoming {
+  background: #fee2e2;
+  color: #742a2a;
+}
+
+.statusBadge.outgoing {
+  background: #fed7aa;
+  color: #744210;
+}
+
+.statusBadge.blockedByMeBadge {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.statusBadge.blockedMeBadge {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.actionButton {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonText {
+  white-space: nowrap;
+}
+
+.actionButton.friend {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.actionButton.friend:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
+.actionButton.accept {
+  background: #edf2f7;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.actionButton.accept:hover {
+  background: #38a169;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.actionButton.requestSent {
+  background: #edf2f7;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.actionButton.requestSent:hover {
+  background: #e53e3e;
+  color: white;
+  border-color: #e53e3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
+.actionButton.follow {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.actionButton.follow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.actionButton.blockedByMe {
+  background: #e2e8f0;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.actionButton.blockedByMe:hover {
+  background: #e53e3e;
+  color: white;
+  border-color: #e53e3e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
+.actionButton.blockedMe {
+  background: #edf2f7;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.actionButton.blockedMe:hover {
+  background: #48bb78;
+  color: white;
+  border-color: #48bb78;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+  .friendCard {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .friendName {
+    color: #f7fafc;
+  }
+
+  .friendName:hover {
+    color: #9f7aea;
+  }
+
+  .friendNickname {
+    color: #a0aec0;
+  }
+
+  .detailRow {
+    color: #cbd5e0;
+  }
+
+  .detailLabel {
+    color: #a0aec0;
+  }
+
+  .detailValue {
+    color: #e2e8f0;
+  }
+
+  .statusBadge.accepted {
+    background: #2c4a2c;
+    color: #a0e0a0;
+  }
+
+  .statusBadge.incoming {
+    background: #5a2a2a;
+    color: #fbb;
+  }
+
+  .statusBadge.outgoing {
+    background: #5a4a2a;
+    color: #fed;
+  }
+
+  .statusBadge.blockedByMeBadge {
+    background: #5a2a2a;
+    color: #cbd5e0;
+  }
+
+  .statusBadge.blockedMeBadge {
+    background: #5a2a2a;
+    color: #cbd5e0;
+  }
+
+  .actionButton.accept {
+    background: #4a5568;
+    color: #e2e8f0;
+    border-color: #718096;
+  }
+
+  .actionButton.accept:hover {
+    background: #38a169;
+  }
+
+  .actionButton.requestSent {
+    background: #38a169;
+    color: #e2e8f0;
+    border-color: #48bb78;
+  }
+
+  .actionButton.requestSent:hover {
+    background: #e53e3e;
+  }
+
+  .actionButton.blockedByMe {
+    background: #4a5568;
+    color: #e2e8f0;
+    border-color: #718096;
+  }
+
+  .actionButton.blockedByMe:hover {
+    background: #e53e3e;
+  }
+
+  .actionButton.blockedMe {
+    background: #e53e3e;
+    color: #e2e8f0;
+    border-color: #e53e3e;
+  }
+
+  .actionButton.blockedMe:hover {
+    background: #48bb78;
+  }
+}

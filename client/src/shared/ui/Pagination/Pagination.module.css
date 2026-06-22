@@ -1,0 +1,60 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.pageButton {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #4a5568;
+  cursor: pointer;
+  min-width: 36px;
+  text-align: center;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  font-weight: 600;
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+  .pageButton {
+    border-color: #4a5568;
+    color: #cbd5e0;
+  }
+
+  .pageButton:hover:not(:disabled) {
+    background: #374151;
+    border-color: #718096;
+  }
+
+  .active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+  }
+}

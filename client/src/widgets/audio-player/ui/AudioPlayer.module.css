@@ -1,0 +1,412 @@
+/* AudioPlayer.module.css */
+
+.playerBar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 1200px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Левая секция */
+.playerInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+  flex: 1;
+}
+
+.playerCover {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.trackDetails {
+  overflow: hidden;
+  flex: 1;
+}
+
+.playerTrack {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a202c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playerArtist {
+  font-size: 11px;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loadingText {
+  font-size: 10px;
+  color: #667eea;
+  margin-left: 6px;
+}
+
+/* Центральная секция */
+.playerControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 2;
+  min-width: 160px;
+}
+
+.controlButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.controlButtons button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #4a5568;
+}
+
+.controlButtons button:hover {
+  background-color: #edf2f7;
+  transform: scale(1.05);
+}
+
+.controlButtons button:active {
+  transform: scale(0.98);
+}
+
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.timeCurrent,
+.timeTotal {
+  font-size: 11px;
+  color: #718096;
+  min-width: 36px;
+  text-align: center;
+}
+
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.progressBar:hover {
+  background-color: #cbd5e0;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* Правая секция */
+.playerVolume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 120px;
+}
+
+.playerVolume button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #4a5568;
+}
+
+.playerVolume button:hover {
+  background-color: #edf2f7;
+}
+
+.volumeSlider {
+  width: 70px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.extraControls {
+  display: flex;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.extraButton {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #718096;
+}
+
+.extraButton:hover {
+  background-color: #edf2f7;
+  color: #667eea;
+}
+
+.extraButton.active {
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.errorToast {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fed7d7;
+  color: #742a2a;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Адаптивность */
+@media (max-width: 780px) {
+  .playerBar {
+    padding: 6px 12px;
+    gap: 8px;
+    left: 4px;
+    right: 4px;
+    width: auto;
+  }
+  .playerInfo {
+    min-width: 130px;
+  }
+  .playerCover {
+    width: 36px;
+    height: 36px;
+  }
+  .controlButtons button {
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+  }
+  .progressContainer {
+    max-width: 300px;
+  }
+  .playerVolume {
+    min-width: 100px;
+  }
+  .volumeSlider {
+    width: 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .playerBar {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 12px;
+    gap: 6px;
+    left: 4px;
+    right: 4px;
+    width: auto;
+  }
+  .playerInfo {
+    order: 1;
+    flex: none;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    min-width: auto;
+  }
+  .trackDetails {
+    text-align: left;
+  }
+  .playerControls {
+    order: 3;
+    width: 100%;
+    flex: none;
+    min-width: auto;
+  }
+  .progressContainer {
+    max-width: 100%;
+  }
+  .playerVolume {
+    order: 2;
+    flex: none;
+    width: auto;
+    justify-content: center;
+    min-width: auto;
+  }
+  .extraControls {
+    order: 4;
+    justify-content: center;
+    margin-top: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .playerBar {
+    left: 2px;
+    right: 2px;
+    padding: 4px 8px;
+  }
+
+  .playerCover {
+    width: 32px;
+    height: 32px;
+  }
+  .playerTrack {
+    font-size: 12px;
+  }
+  .playerArtist {
+    font-size: 10px;
+  }
+  .controlButtons button {
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+  }
+  .timeCurrent,
+  .timeTotal {
+    font-size: 10px;
+    min-width: 32px;
+  }
+  .playerVolume button {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  .extraButton {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  .volumeSlider {
+    width: 50px;
+  }
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+  .playerBar {
+    background-color: #2d3748;
+    border-top-color: #4a5568;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+  .playerTrack {
+    color: #f7fafc;
+  }
+  .playerArtist {
+    color: #cbd5e0;
+  }
+  .controlButtons button {
+    color: #cbd5e0;
+  }
+  .controlButtons button:hover {
+    background-color: #4a5568;
+  }
+  .timeCurrent,
+  .timeTotal {
+    color: #a0aec0;
+  }
+  .progressBar {
+    background-color: #4a5568;
+  }
+  .progressBar:hover {
+    background-color: #718096;
+  }
+  .progress {
+    background: linear-gradient(90deg, #9f7aea, #b794f4);
+  }
+  .playerVolume button {
+    color: #cbd5e0;
+  }
+  .playerVolume button:hover {
+    background-color: #4a5568;
+  }
+  .volumeSlider {
+    background: #4a5568;
+  }
+  .volumeSlider::-webkit-slider-thumb {
+    background: #9f7aea;
+  }
+  .extraButton {
+    color: #cbd5e0;
+  }
+  .extraButton:hover {
+    background-color: #4a5568;
+  }
+  .extraButton.active {
+    color: #9f7aea;
+    background-color: rgba(159, 122, 234, 0.2);
+  }
+  .errorToast {
+    background-color: #742a2a;
+    color: #fed7d7;
+  }
+}

@@ -1,0 +1,99 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.triggerButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.triggerButton:hover {
+  border-color: #cbd5e0;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.icon {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.iconOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  z-index: 20;
+}
+
+.menuItem {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menuItem:hover {
+  background: #edf2f7;
+}
+
+.menuItemActive {
+  background: #eef2ff;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+  .triggerButton {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .triggerButton:hover {
+    border-color: #718096;
+  }
+
+  .menu {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .menuItem {
+    color: #cbd5e0;
+  }
+
+  .menuItem:hover {
+    background: #374151;
+  }
+
+  .menuItemActive {
+    background: #1a202c;
+    color: #667eea;
+  }
+}

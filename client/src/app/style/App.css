@@ -1,0 +1,130 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.app_wrapper {
+  display: grid;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+  gap: 2px;
+  grid-template-columns: 200px 1fr 250px;
+  grid-template-rows: 60px 1fr auto;
+  grid-template-areas:
+    'h h h'
+    'n m i'
+    'f f f';
+}
+
+/* Десктоп (по умолчанию) */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  grid-area: h;
+  color: white;
+  border-radius: 4px;
+  padding: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+  background-color: #2d3748;
+  grid-area: n;
+  color: #e2e8f0;
+  border-radius: 8px 0 0 8px;
+  padding: 5px;
+  overflow-y: auto;
+}
+
+.main {
+  grid-area: m;
+  background-color: #4a5568;
+  min-height: calc(100vh - 120px);
+  padding: 5px;
+  overflow-y: auto;
+}
+
+.info {
+  background-color: #4a5568;
+  grid-area: i;
+  padding: 5px;
+  border-radius: 0 8px 8px 0;
+  overflow-y: auto;
+}
+
+.footer {
+  grid-area: f;
+  background: #2d3748;
+  color: #a0aec0;
+  padding: 5px;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Планшет (768px - 1024px) */
+@media screen and (max-width: 1024px) {
+  .app_wrapper {
+    grid-template-columns: 180px 1fr 220px;
+  }
+}
+
+/* Планшет (до 768px) */
+@media screen and (max-width: 768px) {
+  .app_wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: 60px auto auto auto auto;
+    grid-template-areas:
+      'h'
+      'n'
+      'm'
+      'i'
+      'f';
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .navbar,
+  .info {
+    border-radius: 8px;
+  }
+
+  .main {
+    min-height: auto;
+    padding: 16px;
+  }
+}
+
+/* Мобильные (до 480px) */
+@media screen and (max-width: 480px) {
+  .app_wrapper {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .header {
+    height: 50px;
+  }
+
+  .main {
+    padding: 12px;
+  }
+
+  .info {
+    padding: 12px;
+  }
+
+  .footer {
+    padding: 12px;
+    font-size: 14px;
+  }
+}

@@ -1,0 +1,25 @@
+/* Сетка видео */
+.videosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Обёртка для пустого состояния */
+.emptyWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Тёмная тема (при необходимости можно добавить фон для всей сетки) */
+@media (prefers-color-scheme: dark) {
+  /* Фон страницы наследуется, дополнительно не переопределяем */
+}
+
+/* Адаптив */
+@media (max-width: 480px) {
+  .videosGrid {
+    gap: 12px;
+  }
+}
