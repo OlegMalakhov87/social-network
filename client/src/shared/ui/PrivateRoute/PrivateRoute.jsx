@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Loading } from '../../ui';
+import { PageLoader } from '..';
 
 export const PrivateRoute = ({ children }) => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -11,7 +11,7 @@ export const PrivateRoute = ({ children }) => {
   }
 
   if (!user) {
-    return <Loading fullPage message="Загружаем данные пользователя..." />;
+    return <PageLoader message="Загружаем данные пользователя..." />;
   }
 
   return children;

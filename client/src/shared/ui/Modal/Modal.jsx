@@ -1,0 +1,77 @@
+import { useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useEscapeKey, useOutsideClick, useLockBodyScroll } from '../../hooks';
+import { classNames } from '../../lib';
+import { Button } from '..';
+import styles from './Modal.module.css';
+
+/**
+ * Универсальное модальное окно.
+ *
+ * @param {Object} props
+ * @param {boolean} props.isOpen
+ * @param {Function} props.onClose
+ * @param {React.ReactNode} props.children
+ * @param {string} [props.title]
+ * @param {'sm'|'md'|'lg'|'xl'} [props.size='md']
+ * @param {boolean} [props.closeOnOverlay=true]
+ * @param {boolean} [props.closeOnEscape=true]
+ * @param {React.ReactNode} [props.footer]
+ */
+export const Modal = ({
+  isOpen,
+  onClose,
+  children,
+  title,
+  size = 'md',
+  closeOnOverlay = true,
+  footer,
+}) => {
+  const modalRef = useRef(null);
+
+  // Закрытие при клике вне компонента
+  useOutsideClick(modalRef, onClose);
+
+  // Закрытие по Escape
+  useEscapeKey(onClose);
+
+  // Блокировка скролла
+  useLockBodyScroll();
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      className={styles.overlay}
+      onClick={closeOnOverlay ? onClose : undefined}
+    >
+      <div
+        ref={modalRef}
+        className={classNames(styles.modal, styles[size])}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {(title || onClose) && (
+          <header className={styles.header}>
+            {title && <h2 className={styles.title}>{title}</h2>}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              aria-label="Закрыть окно"
+            >
+              ✕
+            </Button>
+          </header>
+        )}
+
+        <div className={styles.content}>{children}</div>
+
+        {footer && <footer className={styles.footer}>{footer}</footer>}
+      </div>
+    </div>,
+    document.body
+  );
+};

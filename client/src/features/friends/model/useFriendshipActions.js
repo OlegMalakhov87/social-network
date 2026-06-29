@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import {
   sendFriendRequest,
   acceptFriendRequest,
@@ -13,19 +13,18 @@ import {
  * @returns {Object} функции-обработчики, возвращающие функции для stopPropagation
  */
 export const useFriendshipActions = () => {
-  const currentUserId = useSelector((state) => state.auth?.user?.id);
-
+  const currentUser = selectUser();
   const makeHandler = useCallback(
     (apiFunc, successMessage) => (targetUserId) => async (e) => {
       e?.stopPropagation?.();
-      if (!currentUserId) return;
+      if (!currentUser) return;
       try {
         await apiFunc(targetUserId);
       } catch (error) {
         console.error(error);
       }
     },
-    [currentUserId]
+    [currentUser]
   );
 
   return {
@@ -34,6 +33,6 @@ export const useFriendshipActions = () => {
     handleAccept: makeHandler(acceptFriendRequest),
     handleUnlock: makeHandler(deleteFriend),
     handleBlock: makeHandler(blockUser),
-    currentUserId,
+    currentUser,
   };
 };

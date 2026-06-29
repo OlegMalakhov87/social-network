@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import style from './TracksTab.module.css';
 import { TrackCard } from '../../../../../entities/track';
-import { EmptyState, Pagination, Loading } from '../../../../../shared/ui';
+import {
+  ComtentEmptyState,
+  Pagination,
+  PageLoader,
+} from '../../../../../shared/ui';
 
 /**
  * Вкладка с сеткой треков.
@@ -55,7 +59,8 @@ export const TracksTab = ({
 
     onTrackStart((track) => {
       const currentTrackInList = items.find((item) => item.id === track.id);
-      const profileLibraryId = currentTrackInList?.profileLibraryId || track.profileLibraryId;
+      const profileLibraryId =
+        currentTrackInList?.profileLibraryId || track.profileLibraryId;
 
       const playCount = currentTrackInList?.playCount ?? track.playCount;
       const newPlayCount = (playCount ?? 0) + 1;
@@ -77,22 +82,20 @@ export const TracksTab = ({
 
   // Состояние загрузки вкладки с треками
   if (isLoadingTracks) {
-    return <Loading fullPage message="Загружаем треки..." size="large" />;
+    return <PageLoader message="Загружаем треки..." />;
   }
 
   if (!items?.length) {
     return (
-      <div className={style.emptyWrapper}>
-        <EmptyState
-          icon="🎵"
-          title="Нет треков"
-          description={
-            currentUser?.id === items?.[0]?.uploadedBy
-              ? 'Добавьте первые треки в свой профиль!'
-              : 'У пользователя пока нет публичных треков'
-          }
-        />
-      </div>
+      <ComtentEmptyState
+        icon="🎵"
+        title="Нет треков"
+        description={
+          isProfileOwner
+            ? 'Добавьте первые треки в свой профиль!'
+            : 'У пользователя пока нет публичных треков'
+        }
+      />
     );
   }
 

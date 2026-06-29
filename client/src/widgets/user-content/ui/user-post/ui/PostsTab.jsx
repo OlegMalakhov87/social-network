@@ -1,57 +1,53 @@
 import style from './PostsTab.module.css';
 import { PostCard } from '../../../../../entities/post';
-import { EmptyState, Loading } from '../../../../../shared/ui';
+import { ContentState } from '../../../../../shared/ui';
 
 /**
  * Вкладка с сеткой постов.
  * @param {Object} props
- * @param {Array} props.items - массив постов
+ * @param {Array} props.posts - массив постов
  * @param {Object} props.currentUser - текущий пользователь
  * @param {Object} props.targetUser - выбранный пользователь
+ * @param {boolean} props.isProfileOwner - владелец профиля(да или нет)
  * @param {Function} props.onClickVideo - воспроизведение видео
  * @param {Function} props.toggleLikePost - лайк/дизлайк
  * @param {Function} props.onDeletePost - удалить пост
  * @param {Function} props.onToggleComments - открыть комментарии
  * @param {boolean} props.isLoadingPosts - загружен пост или нет
- * @param {string} errorPosts - ошибка
+ * @param {string|null} props.errorPosts - ошибка
+ * @param {Function} props.onRetry - повторить загрузку
  */
 
 export const PostsTab = ({
-  items,
+  posts,
   currentUser,
   targetUser,
+  isProfileOwner,
   onClickVideo,
   toggleLikePost,
   onDeletePost,
   onToggleComments,
   isLoadingPosts,
   errorPosts,
+  onRetry,
 }) => {
-  // Состояние загрузки вкладки с постами
-  if (isLoadingPosts || !(currentUser || targetUser)) {
-    return <Loading fullPage message="Загружаем посты..." size="large" />;
-  }
-
-  if (!items?.length) {
-    return (
-      <div className={style.emptyWrapper}>
-        <EmptyState
-          icon="📝"
-          title="Нет постов"
-          description={
-            currentUser?.id === items?.[0]?.userId
-              ? 'Поделитесь своими мыслями с друзьями!'
-              : 'У пользователя пока нет публичных постов'
-          }
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className={style.postsList}>
-      {items.map((post) => {
-        return (
+    <ContentState
+      loading={isLoadingPosts || (!currentUser && !targetUser)}
+      error={errorPosts}
+      isEmpty={!posts?.length}
+      loadingMessage="Загружаем посты..."
+      emptyIcon="📝"
+      emptyTitle="Нет постов"
+      emptyDescription={
+        isProfileOwner
+          ? 'Опубликуйте свой первый пост.'
+          : 'Пользователь пока ничего не публиковал.'
+      }
+      onRetry={onRetry}
+    >
+      <div className={style.postsList}>
+        {posts.map((post) => (
           <PostCard
             key={post.id}
             post={post}
@@ -62,8 +58,8 @@ export const PostsTab = ({
             onDelete={onDeletePost}
             toggleComments={onToggleComments}
           />
-        );
-      })}
-    </div>
+        ))}
+      </div>
+    </ContentState>
   );
 };

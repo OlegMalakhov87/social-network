@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const userController = {
   // ==================== GET запросы ====================
 
-  // 1. Поиск пользователя
+  /** 1. Поиск пользователя*/
   searchUsers: async (req, res) => {
     try {
       const { q, page = 1, limit = 30 } = req.query;
@@ -45,7 +45,7 @@ const userController = {
     }
   },
 
-  // 2. Все пользователи (с пагинацией)
+  /** 2. Получение всех пользователей (с пагинацией) */
   getAllUsers: async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -59,7 +59,9 @@ const userController = {
         order: [['createdAt', 'DESC']],
       });
 
-      res.json({
+      res.status(201).json({
+        success: true,
+        message: 'Пользователи успешно получены',
         users,
         pagination: {
           totalUsers: count,
@@ -74,10 +76,11 @@ const userController = {
     }
   },
 
-  // 3. Получить пользователя по ID
+  /** 3. Получить одного пользователя по ID */
   getUserById: async (req, res) => {
     try {
       const { userId } = req.params;
+
       const user = await User.findByPk(userId, {
         attributes: { exclude: ['passwordHash'] },
       });
@@ -86,24 +89,43 @@ const userController = {
         return res.status(404).json({ error: 'Пользователь не найден' });
       }
 
-      res.json(user);
+      res.status(201).json({
+        success: true,
+        message: 'Пользователь успешно получен',
+        user,
+      });
     } catch (error) {
       console.error('GET /:userId error:', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
 
-  // 4. Получение статуса пользователей в сети по ID
+  /**  4. Проверка статуса пользователей на нахождения в сети по ID (онлайн или нет)*/
   checkOnlineBulk: async (req, res) => {
-    const { userIds } = req.body;
-    if (!Array.isArray(userIds)) return res.status(400).json({ error: 'Массив обязателен' });
-    const result = userIds.map((id) => ({ userId: id, online: clients.has(id) }));
-    res.json({ users: result });
-  },
+    try {
+      const { userIds } = req.body;
 
+      if (!Array.isArray(userIds))
+        return res.status(400).json({ error: 'Массив обязателен' });
+
+      const result = userIds.map((id) => ({
+        userId: id,
+        online: clients.has(id),
+      }));
+
+      res.status(201).json({
+        success: true,
+        message: 'Получение статуса прошло успешно',
+        users: result,
+      });
+    } catch (error) {
+      console.error('PUT /profile//online-status error:', error);
+      res.status(500).json({ error: 'Ошибка сервера' });
+    }
+  },
   // ==================== POST запросы ====================
 
-  // 5. Создать пользователя
+  /** 5. Создание нового пользователя */
   createUser: async (req, res) => {
     try {
       const { name, age, email, passwordHash } = req.body;
@@ -130,7 +152,11 @@ const userController = {
         createdAt: user.createdAt,
       };
 
-      res.status(201).json(userResponse);
+      res.status(201).json({
+        success: true,
+        message: 'Новый пользователь успешно добавлен',
+        userResponse,
+      });
     } catch (error) {
       console.error('POST /profile error:', error);
 
@@ -144,7 +170,7 @@ const userController = {
 
   // ==================== PUT запросы ====================
 
-  // 7. Обновить пользователя
+  /**  7. Обновить текущего пользователя */
   updateUser: async (req, res) => {
     try {
       const userId = req.user.id; // берем из токена
@@ -166,45 +192,27 @@ const userController = {
         attributes: { exclude: ['passwordHash'] },
       });
 
-      res.json(updatedUser);
-    } catch (error) {
-      console.error('PUT /profile/:userId error:', error);
-      res.status(500).json({ error: 'Ошибка сервера' });
-    }
-  },
-
-  // ==================== DELETE запросы ====================
-
-  // 8. Удалить пользователя
-  deleteUser: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await User.findByPk(userId);
-
-      if (!user) {
-        return res.status(404).json({ error: 'Пользователь не найден' });
-      }
-
-      await user.destroy();
-
-      res.json({
+      res.status(201).json({
         success: true,
-        message: 'Пользователь удален',
-        userId: userId,
+        message: 'Пользователь успешно обновлен',
+        updatedUser,
       });
     } catch (error) {
-      console.error('DELETE /profile/:userId error:', error);
+      console.error('PUT /profile/update error:', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
 
+  /** 8. Обновить пароль текущего пользователя */
   changePassword: async (req, res) => {
     try {
       const { currentPassword, newPassword } = req.body;
       const user = await User.findByPk(req.user.id);
 
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ error: 'Текущий и новый пароль обязательны' });
+        return res
+          .status(400)
+          .json({ error: 'Текущий и новый пароль обязательны' });
       }
 
       //Сравниваем пароль
@@ -217,9 +225,38 @@ const userController = {
       const passwordHash = await bcrypt.hash(newPassword, salt);
       await user.update({ passwordHash });
 
-      res.json({ success: true });
+      res.status(201).json({
+        success: true,
+        message: 'Пароль успешно обновлен',
+        userId: user.id,
+      });
     } catch (error) {
-      console.error('Change password error:', error);
+      console.error('PUT /profile/change-password error:', error);
+      res.status(500).json({ error: 'Ошибка сервера' });
+    }
+  },
+
+  // ==================== DELETE запросы ====================
+
+  /** 9. Удалить текущего пользователя */
+  deleteUser: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await User.findByPk(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'Пользователь не найден' });
+      }
+
+      await user.destroy();
+
+      res.status(201).json({
+        success: true,
+        message: 'Пользователь успешно удален',
+        userId: userId,
+      });
+    } catch (error) {
+      console.error('DELETE /profile/delete error:', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },

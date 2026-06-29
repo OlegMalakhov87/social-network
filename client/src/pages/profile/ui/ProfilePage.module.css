@@ -2,19 +2,14 @@
 .profile {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  background-color: #f7fafc;
+  gap: var(--space-4);
+  padding: var(--space-4);
   min-height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Область контента */
 .contentArea {
-  background: white;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: var(--space-4);
 }
 
 /* Строка с фильтрами и управлением */
@@ -23,53 +18,37 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #667eea;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .filterButtons {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .rightControls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-left: auto;
-}
-
-/* Кнопка добавления поста */
-.addButton {
-  padding: 6px 12px;
-  background: #2d3748;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.addButton:hover {
-  background: #4a5568;
 }
 
 /* Адаптивность */
 @media screen and (max-width: 768px) {
   .profile {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .contentArea {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .tabsRow {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--space-2);
   }
   .rightControls {
     margin-left: 0;
@@ -79,11 +58,11 @@
 
 @media screen and (max-width: 480px) {
   .profile {
-    padding: 8px;
-    gap: 12px;
+    padding: var(--space-2);
+    gap: var(--space-3);
   }
   .contentArea {
-    padding: 8px;
+    padding: var(--space-2);
   }
   .filterButtons {
     width: 100%;
@@ -92,26 +71,7 @@
   .filterButtons button {
     flex: 1;
     text-align: center;
-    padding: 6px 4px;
-    font-size: 13px;
-  }
-}
-
-/* Тёмная тема (основывается на системных настройках) */
-@media (prefers-color-scheme: dark) {
-  .profile {
-    background-color: #1a202c;
-  }
-  .contentArea {
-    background: #2d3748;
-  }
-  .tabsRow {
-    border-bottom-color: #667eea;
-  }
-  .addButton {
-    background: #4a5568;
-  }
-  .addButton:hover {
-    background: #718096;
+    padding: var(--space-2) var(--space-1);
+    font-size: var(--font-sm);
   }
 }

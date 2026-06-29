@@ -10,5 +10,5 @@
 } from './model/friendsSlice';*/
 export * from './api/friendApi';
 export { FriendCard } from './ui/FriendCard';
-export { getButtonProps } from './lib/getButtonProps';
+export { useFriendshipButton } from './hook/useFriendshipButton';
 export { normalizeFriend } from './lib/normalizeFriend';

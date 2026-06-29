@@ -1,4 +1,5 @@
 import style from './Pagination.module.css';
+import { Button } from '..';
 
 /**
  * Пагинация (постраничная навигация).
@@ -39,37 +40,50 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
     return pages;
   };
 
+  const pages = getPageNumbers();
+
   return (
     <nav className={style.pagination} aria-label="Пагинация">
-      <button
+      <Button
+        variant="ghost"
+        size="small"
         className={style.pageButton}
         onClick={() => onPageChange(safePage - 1)}
         disabled={safePage === 1}
         aria-label="Предыдущая страница"
       >
         ←
-      </button>
+      </Button>
 
-      {getPageNumbers().map((pageNum, idx) => (
-        <button
-          key={pageNum === '...' ? `dots-${idx}` : pageNum}
-          className={`${style.pageButton} ${safePage === pageNum ? style.active : ''}`}
-          onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
-          disabled={pageNum === '...'}
-          aria-current={safePage === pageNum ? 'page' : undefined}
-        >
-          {pageNum}
-        </button>
-      ))}
+      {pages.map((pageNum, idx) => {
+        const isDots = pageNum === '...';
+        const isActive = safePage === pageNum;
 
-      <button
+        return (
+          <Button
+            key={isDots ? `dots-${idx}` : pageNum}
+            variant={isActive ? 'primary' : isDots ? 'ghost' : 'secondary'}
+            size="small"
+            className={style.pageButton}
+            onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
+            disabled={isDots || isActive}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            {pageNum}
+          </Button>
+        );
+      })}
+
+      <Button
+        variant="ghost"
+        size="small"
         className={style.pageButton}
         onClick={() => onPageChange(safePage + 1)}
         disabled={safePage === safeTotal}
         aria-label="Следующая страница"
       >
         →
-      </button>
+      </Button>
     </nav>
   );
 };

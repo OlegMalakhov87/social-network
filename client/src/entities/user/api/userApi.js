@@ -11,12 +11,9 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
  * @param {number} userId
  * @returns {Promise<Object>}
  */
-export async function fetchUserById(userId) {
+export async function fetchUserById(userId, config = {}) {
   const url = new URL(`${BASE_URL}/profile/${userId}`);
-  const response = await apiFetch(url.toString());
-  if (!response.ok) {
-    throw new Error(`Ошибка загрузки пользователя: ${response.status}`);
-  }
+  const response = await apiFetch(url.toString(), config);
   return response.json();
 }
 

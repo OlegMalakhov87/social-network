@@ -9,6 +9,7 @@ import style from './Loading.module.css';
  * @param {string} [props.className] - дополнительный CSS-класс
  */
 export const Loading = ({
+  children,
   message = 'Загрузка...',
   size = 'medium',
   fullPage = false,
@@ -16,10 +17,20 @@ export const Loading = ({
 }) => {
   const wrapperClass = `${fullPage ? style.fullPage : ''} ${className}`.trim();
 
+  const spinnerClass = `
+    ${style.spinner}
+    ${style[size]}
+`.trim();
+
   return (
-    <div className={wrapperClass} role="status" aria-live="polite">
-      <div className={`${style.spinner} ${style[size]}`} />
-      {message && <p className={style.message}>{message}</p>}
+    <div
+      className={wrapperClass}
+      role="status"
+      aria-live="polite"
+      aria-label={message}
+    >
+      <div className={spinnerClass} />
+      {message && <p className={style.message}>{children ?? message}</p>}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import styles from './EmptyState.module.css';
+import { Button } from '..';
 
 /**
  * Заглушка для пустого состояния (нет данных, ничего не найдено).
@@ -9,7 +10,13 @@ import styles from './EmptyState.module.css';
  * @param {string} [props.actionLabel] - текст кнопки действия (если нужно предложить действие)
  * @param {Function} [props.onAction] - обработчик клика по кнопке
  */
-export const EmptyState = ({ icon, title, description, actionLabel, onAction }) => {
+export const EmptyState = ({
+  icon,
+  title,
+  description,
+  actionLabel,
+  onAction,
+}) => {
   return (
     <div className={styles.emptyContent} role="status">
       <div className={styles.emptyIcon} aria-hidden="true">
@@ -18,9 +25,9 @@ export const EmptyState = ({ icon, title, description, actionLabel, onAction }) 
       <div className={styles.emptyTitle}>{title}</div>
       {description && <div className={styles.emptyText}>{description}</div>}
       {actionLabel && onAction && (
-        <button className={styles.actionButton} onClick={onAction}>
+        <Button size="small" onClick={onAction}>
           {actionLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

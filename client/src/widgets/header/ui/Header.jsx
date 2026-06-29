@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../../app/providers/slices/authSlice';
-import { SearchInput } from '../../../shared/ui';
+import { SearchField, Button } from '../../../shared/ui';
+import { classNames } from '../../../shared/lib';
 import style from './Header.module.css';
+import { ImageWithFallback } from '../../../shared/hooks';
 
 /**
  * Шапка приложения с логотипом, навигацией и поиском.
@@ -11,26 +13,27 @@ import style from './Header.module.css';
  * @param {Function} props.onSearchChange - колбэк при изменении поискового запроса
  */
 export const Header = ({ onSearchChange }) => {
-  const [searchQuery, setSearchQueryLocal] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
-    setSearchQueryLocal(value);
+    setSearchValue(value);
     onSearchChange?.(value);
   };
 
   const handleSearchSubmit = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+    if (e.key === 'Enter' && searchValue.trim()) {
       e.preventDefault();
       navigate('/friends');
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout()).unwrap();
+
     navigate('/login');
   };
 
@@ -38,7 +41,14 @@ export const Header = ({ onSearchChange }) => {
     <header className={style.header}>
       <div className={style.logo}>
         <NavLink to="/profile">
-          <img src="/revivo-50.png" alt="Logo" className={style.logoImage} />
+          <ImageWithFallback
+            src="/revivo-50.png"
+            fallback="/revivo-50.png"
+            alt="Revivo"
+            loading="lazy"
+            decoding="async"
+            className={style.logoImage}
+          />
         </NavLink>
       </div>
 
@@ -46,7 +56,7 @@ export const Header = ({ onSearchChange }) => {
         <NavLink
           to="/profile"
           className={({ isActive }) =>
-            isActive ? `${style.navLink} ${style.active}` : style.navLink
+            classNames(style.navLink, isActive && style.active)
           }
         >
           Главная страница
@@ -54,24 +64,26 @@ export const Header = ({ onSearchChange }) => {
       </nav>
 
       <div className={style.search}>
-        <SearchInput
-          value={searchQuery}
+        <SearchField
+          type="search"
+          value={searchValue}
           onChange={handleSearchChange}
           onKeyDown={handleSearchSubmit}
           placeholder="Поиск пользователей..."
+          aria-label="Поиск пользователей"
         />
       </div>
 
       <div className={style.auth}>
         {isAuthenticated ? (
-          <button onClick={handleLogout} className={style.authLink}>
+          <Button variant="secondary" onClick={handleLogout}>
             Выйти
-          </button>
+          </Button>
         ) : (
           <NavLink
             to="/login"
             className={({ isActive }) =>
-              isActive ? `${style.authLink} ${style.active}` : style.authLink
+              classNames(style.navLink, isActive && style.active)
             }
           >
             Войти

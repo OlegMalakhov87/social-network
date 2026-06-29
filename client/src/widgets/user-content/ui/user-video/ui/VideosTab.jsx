@@ -1,6 +1,10 @@
 import style from './VideosTab.module.css';
 import { VideoCard } from '../../../../../entities/video';
-import { EmptyState, Pagination, Loading } from '../../../../../shared/ui';
+import {
+  ContentEmptyState,
+  Pagination,
+  PageLoader,
+} from '../../../../../shared/ui';
 
 /**
  * Вкладка с сеткой видео.
@@ -41,22 +45,20 @@ export const VideosTab = ({
 }) => {
   // Состояние загрузки вкладки с видео
   if (isLoadingVideos) {
-    return <Loading fullPage message="Загружаем видео..." size="large" />;
+    return <PageLoader message="Загружаем видео..." />;
   }
 
   if (!items?.length) {
     return (
-      <div className={style.emptyWrapper}>
-        <EmptyState
-          icon="🎬"
-          title="Нет видео"
-          description={
-            currentUser?.id === items?.[0]?.uploadedBy
-              ? 'Загрузите первые видео в свой профиль!'
-              : 'У пользователя пока нет публичных видео'
-          }
-        />
-      </div>
+      <ContentEmptyState
+        icon="🎬"
+        title="Нет видео"
+        description={
+          isProfileOwner
+            ? 'Загрузите первые видео в свой профиль!'
+            : 'У пользователя пока нет публичных видео'
+        }
+      />
     );
   }
 

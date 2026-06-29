@@ -1,18 +1,33 @@
-import { useState, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import style from './UserProfileCard.module.css';
-import { getButtonProps } from '../../../entities/friend';
-import { ImageWithFallback } from '../../../shared/lib';
-import { Loading } from '../../../shared/ui';
+import { useFriendshipButton } from '../../../entities/friend';
+import { getProfileFields } from '../../../entities/user';
+import {
+  PageLoader,
+  Avatar,
+  Button,
+  StatusBadge,
+  ProfileInfoList,
+} from '../../../shared/ui';
+
 /**
  * Карточка профиля пользователя.
+ *
  * @param {Object} props
- * @param {Object} props.targetUser - пользователь, чей профиль открыт
- * @param {Object} props.currentUser - текущий авторизованный
- * @param {string} props.friendshipStatus - статус дружбы
- * @param {string} props.friendshipDirection - направление заявки
- * @param {Object} props.friendshipActions - экшены для дружбы
+ * @param {Object|null} props.targetUser
+ * @param {Object|null} props.currentUser
+ * @param {string|null} props.friendshipStatus
+ * @param {string|null} props.friendshipDirection
+ * @param {number|null} props.friendshipId
+ * @param {boolean} props.userOnline
+ * @param {(userId:number)=>void} props.onFollow
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow
+ * @param {(friendshipId:number,userId:number)=>void} props.onAccept
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnlock
+ * @param {(userId:number)=>void} props.onBlock
  */
+
 export const UserProfileCard = ({
   targetUser,
   currentUser,
@@ -29,98 +44,73 @@ export const UserProfileCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
-  // Кнопка действий дружбы
-  const buttonProps = useMemo(() => {
-    if (!targetUser?.id || currentUser?.id === targetUser?.id) return null;
+  // Владелец профиля
+  const isOwnProfile = currentUser?.id === targetUser?.id;
 
-    return getButtonProps({
-      friendshipStatus,
-      friendshipDirection,
-      onFollow: () => onFollow(targetUser?.id),
-      onUnfollow: () => onUnfollow(friendshipId, targetUser?.id),
-      onAccept: () => onAccept(friendshipId, targetUser?.id),
-      onUnlock: () => onUnlock(friendshipId, targetUser?.id),
-      onBlock: () => onBlock(targetUser?.id),
-    });
-  }, [
-    targetUser?.id,
-    currentUser?.id,
+  // Отображения полей с данными пользователя
+  const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
+
+  // Кнопка действий дружбы
+  const friendshipButton = useFriendshipButton({
+    targetUser,
+    currentUser,
     friendshipStatus,
     friendshipDirection,
+    friendshipId,
     onFollow,
     onUnfollow,
     onAccept,
     onUnlock,
     onBlock,
-    friendshipId,
-  ]);
+  });
 
-  const handleSendMessage = (e) => {
-    e?.preventDefault?.();
-    if (currentUser?.id && targetUser?.id) {
-      navigate(`/messages/${targetUser?.id}`);
-    }
-  };
-
-  // Поля для отображения
-  const infoFields = [
-    { label: 'Никнейм:', value: targetUser?.nickname },
-    { label: 'Имя:', value: targetUser?.name },
-    { label: 'Возраст:', value: targetUser?.age },
-    { label: 'Email:', value: targetUser?.email },
-    { label: 'Город:', value: targetUser?.address },
-    { label: 'Работа:', value: targetUser?.job },
-    { label: 'Статус:', value: targetUser?.status },
-    { label: 'Телефон:', value: targetUser?.phone },
-  ];
+  // Обработчик перхода на страницу диалогов
+  const handleSendMessage = useCallback(
+    (e) => {
+      e?.preventDefault?.();
+      if (currentUser?.id && targetUser?.id) {
+        navigate(`/messages/${targetUser?.id}`);
+      }
+    },
+    [currentUser?.id, targetUser?.id, navigate]
+  );
 
   if (!targetUser?.id) {
-    return <Loading fullPage message="Загрузка профиля..." size="large" />;
+    return <PageLoader message="Загрузка профиля..." />;
   }
 
   return (
     <div className={style.profileInfo}>
       <div className={style.avatarSection}>
-        <div className={style.avatar}>
-          <ImageWithFallback src={targetUser.photoUrl} fallback="/avatar.jpg" alt="Фото" />
-        </div>
+        <Avatar
+          size="xl"
+          src={targetUser.photoUrl}
+          fallback="/avatar.jpg"
+          alt={targetUser.name || targetUser.nickname}
+        />
 
-        {currentUser?.id !== targetUser.id && buttonProps && (
-          <>
-            <button
-              className={`${style.actionButton} ${style[buttonProps.className]}`}
-              onClick={buttonProps.action}
-              disabled={!buttonProps.action}
+        {!isOwnProfile && friendshipButton && (
+          <div className={style.actions}>
+            <Button
+              fullWidth
+              buttonVariant={friendshipButton.variant}
+              onClick={friendshipButton.onClick}
+              disabled={friendshipButton.disabled}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
-              aria-label={buttonProps.text}
             >
-              <span className={style.buttonText}>
-                {isHovered && buttonProps.hoverText !== buttonProps.text
-                  ? buttonProps.hoverText
-                  : buttonProps.text}
-              </span>
-            </button>
-
-            <button
-              onClick={handleSendMessage}
-              className={style.messageButton}
-              aria-label="Написать сообщение"
-            >
+              {isHovered ? friendshipButton.hoverText : friendshipButton.text}
+            </Button>
+            <Button variant="secondary" fullWidth onClick={handleSendMessage}>
               Написать сообщение
-            </button>
-            {userOnline ? '🟢 В сети' : '⚫ Не в сети'}
-          </>
-        )}
-      </div>
-
-      <div className={style.info}>
-        {infoFields.map((field, index) => (
-          <div key={index} className={style.infoRow}>
-            <span className={style.infoLabel}>{field.label}</span>
-            <span className={style.infoValue}>{field.value || '—'}</span>
+            </Button>
+            <StatusBadge
+              status={userOnline ? 'online' : 'offline'}
+              label={userOnline ? 'В сети' : 'Не в сети'}
+            />
           </div>
-        ))}
+        )}
+        <ProfileInfoList items={infoFields} />
       </div>
     </div>
   );

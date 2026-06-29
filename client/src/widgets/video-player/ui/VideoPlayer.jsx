@@ -1,114 +1,107 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
 import style from './VideoPlayer.module.css';
+
+import { Modal } from '../../../shared/ui';
 import { useAudioPlayer } from '../../audio-player';
+
 import { formatFileSize, formatViews } from '../../../shared/lib';
 
 /**
- * Модальный видеоплеер с нативным управлением.
- * При открытии ставит аудио на паузу, при закрытии – возобновляет.
+ * Модальный видеоплеер.
+ *
+ * При открытии ставит аудиоплеер на паузу,
+ * при закрытии восстанавливает воспроизведение.
+ *
  * @param {Object} props
- * @param {Object} props.video - объект видео
- * @param {Function} props.onClose - закрыть плеер
+ * @param {Object} props.video
+ * @param {Function} props.onClose
  */
-
 export const VideoPlayer = ({ video, onClose }) => {
-  const modalRef = useRef(null);
-  const { pause: pauseAudio, play: playAudio, isPlaying } = useAudioPlayer();
-  const isPlayingRef = useRef(isPlaying);
-  isPlayingRef.current = isPlaying;
+  const { pause, play, isPlaying } = useAudioPlayer();
+
+  const wasAudioPlaying = useRef(false);
 
   useEffect(() => {
-    if (isPlayingRef.current) pauseAudio();
+    wasAudioPlaying.current = isPlaying;
 
-    const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
-    };
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEsc);
-    document.body.style.overflow = 'hidden';
+    if (isPlaying) {
+      pause();
+    }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'auto';
-      if (isPlayingRef.current) playAudio();
+      if (wasAudioPlaying.current) {
+        play();
+      }
     };
-  }, [pauseAudio, playAudio, onClose]);
+  }, [pause, play, isPlaying]);
 
-  const effectiveUrl = video.videoUrl || video.mediaUrl;
-  if (!effectiveUrl) {
-    return (
-      <div className={style.videoModal}>
-        <div className={style.modalContent} ref={modalRef}>
-          <p>Видео недоступно</p>
-          <button onClick={onClose}>Закрыть</button>
-        </div>
-      </div>
-    );
-  }
+  const videoUrl = video.videoUrl || video.mediaUrl;
 
   return (
-    <div className={style.videoModal}>
-      <div className={style.modalContent} ref={modalRef}>
-        <div className={style.modalHeader}>
-          <h2 className={style.modalTitle}>{video.title}</h2>
+    <Modal onClose={onClose}>
+      {!videoUrl ? (
+        <div className={style.empty}>
+          <p>Видео недоступно</p>
+
           <button className={style.closeButton} onClick={onClose}>
-            ✕
+            Закрыть
           </button>
         </div>
-        <div className={style.videoPlayer}>
-          <video
-            src={effectiveUrl}
-            controls
-            autoPlay
-            style={{ width: '100%', maxHeight: '70vh', background: '#000' }}
-          />
-        </div>
-        <div className={style.videoDescription}>
-          <div className={style.descriptionMeta}>
-            <div className={style.stats}>
-              {video.size ? (
-                <div className={style.statItem}>
-                  <span className={style.statIcon}>📁</span>
-                  <span className={style.statValue}>{formatFileSize(video.size)}</span>
-                </div>
-              ) : (
-                ''
-              )}
-              {video.viewCount ? (
-                <div className={style.statItem}>
-                  <span className={style.statIcon}>👁️</span>
-                  <span className={style.statValue}>
-                    {formatViews(video.viewCount ?? 0)} просмотров
-                  </span>
-                </div>
-              ) : null}
+      ) : (
+        <>
+          <header className={style.header}>
+            <h2 className={style.title}>{video.title}</h2>
 
-              <div className={style.statItem}>
-                <span className={style.statIcon}>📅</span>
-                <span className={style.statValue}>
-                  {new Date(video.date || video.createdAt).toLocaleDateString('ru-RU')}
+            <button
+              className={style.iconButton}
+              onClick={onClose}
+              aria-label="Закрыть"
+            >
+              ✕
+            </button>
+          </header>
+
+          <div className={style.player}>
+            <video src={videoUrl} controls autoPlay />
+          </div>
+
+          <section className={style.description}>
+            <div className={style.meta}>
+              <div className={style.stats}>
+                {!!video.size && (
+                  <span className={style.chip}>
+                    📁 {formatFileSize(video.size)}
+                  </span>
+                )}
+
+                <span className={style.chip}>
+                  👁 {formatViews(video.viewCount ?? 0)}
+                </span>
+
+                <span className={style.chip}>
+                  📅{' '}
+                  {new Date(video.date || video.createdAt).toLocaleDateString(
+                    'ru-RU'
+                  )}
+                </span>
+
+                <span className={style.chip}>
+                  💬 {video.commentsCount ?? 0}
+                </span>
+
+                <span className={style.chip}>
+                  {video.isLiked ? '❤️' : '🤍'} {video.likesCount ?? 0}
                 </span>
               </div>
             </div>
-            <span className={style.actionChip}>{video.commentsCount ?? 0} 💬 </span>
-            <span className={style.actionChip}>
-              {video.isLiked ? '❤️' : '🤍'} {video.likesCount ?? 0}
-            </span>
-          </div>
-          <div className={style.descriptionText}>
-            {video.description || video.message ? (
-              <p>{video.description || video.message}</p>
-            ) : (
-              'Описание отсутствует'
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+
+            <div className={style.text}>
+              {video.description || video.message || 'Описание отсутствует'}
+            </div>
+          </section>
+        </>
+      )}
+    </Modal>
   );
 };

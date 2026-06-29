@@ -31,7 +31,7 @@ export function useOnline(userIds) {
         const map = new Map(data.users.map((u) => [u.userId, u.online]));
         setStatusMap(map);
       } catch (err) {
-        console.error('Ошибка получения онлайн-статусов:', err);
+        setStatusMap(new Map());
       }
     };
 

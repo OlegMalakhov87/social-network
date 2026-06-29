@@ -1,439 +1,55 @@
-/* Профиль информация */
 .profileInfo {
   display: grid;
-  grid-template-columns: 150px 1fr;
-  gap: 24px;
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  grid-template-columns: 180px 1fr;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Секция аватарки с кнопкой */
 .avatarSection {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
-.avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  transition: transform 0.2s;
-}
-
-.avatar:hover {
-  transform: scale(1.05);
-}
-
-.avatar img {
+.actions {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Базовый стиль кнопки */
-.actionButton {
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 40px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.actionButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  pointer-events: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.messageButton {
-  width: 80%;
-  padding: 10px 16px;
-  border-radius: 40px;
-  font-size: 14px;
-  background: #4a5568;
-  border: 1px solid #cbd5e0;
-}
-
-.actionButton,
-.messageButton:hover {
-  transform: scale(1.05);
-}
-
-.buttonText {
-  transition: all 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-/* принятая заявка - мой друг*/
-.actionButton.friend {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-}
-
-.actionButton.friend:active {
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-  transform: scale(0.97);
-  box-shadow: 0 3px 6px rgba(229, 62, 62, 0.4);
-}
-
-/*входящая заявка */
-.actionButton.accept {
-  background: #edf2f7;
-  color: #4a5568;
-  border: 1px solid #cbd5e0;
-}
-
-.actionButton.accept:active {
-  background: #38a169;
-  color: white;
-  border-color: #38a169;
-  transform: scale(0.97);
-  box-shadow: 0 3px 6px rgba(72, 187, 120, 0.4);
-}
-
-/* исходящая заявка) */
-.actionButton.requestSent {
-  background: #edf2f7;
-  color: #4a5568;
-  border: 1px solid #cbd5e0;
-}
-
-.actionButton.requestSent:active {
-  background: #e53e3e;
-  color: white;
-  border-color: #e53e3e;
-  transform: scale(0.97);
-  box-shadow: 0 3px 6px rgba(229, 62, 62, 0.4);
-}
-
-/* добавить в друзя */
-.actionButton.follow {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-}
-
-.actionButton.follow:active {
-  transform: scale(0.97);
-  box-shadow: 0 3px 6px rgba(102, 126, 234, 0.4);
-  opacity: 0.9;
-}
-
-/* Заблокирован вами  */
-.actionButton.blockedByMe {
-  background: #e2e8f0;
-  color: #4a5568;
-  border: 1px solid #cbd5e0;
-}
-
-.actionButton.blockedByMe:active {
-  background: #48bb78;
-  color: white;
-  border-color: #48bb78;
-  transform: scale(0.97);
-  box-shadow: 0 3px 6px rgba(72, 187, 120, 0.4);
-}
-
-/* Информация */
-.info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-2);
 }
 
-.infoRow {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #f7fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  transition: background 0.2s;
-}
-
-.infoRow:hover {
-  background: #edf2f7;
-}
-
-.infoLabel {
-  font-weight: 600;
-  color: #4a5568;
-  min-width: 80px;
-  font-size: 14px;
-}
-
-.infoValue {
-  color: #2d3748;
-  font-size: 14px;
-  flex: 1;
-}
-
-/* Адаптивность для планшетов */
 @media screen and (max-width: 768px) {
   .profileInfo {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 16px;
-    padding: 20px;
+    gap: var(--space-4);
+    padding: var(--space-5);
   }
 
   .avatarSection {
     flex-direction: column;
     align-items: center;
   }
-
-  .avatar {
-    width: 120px;
-    height: 120px;
-    margin: 0 auto;
-  }
-
-  .actionButton {
-    width: auto;
-    min-width: 200px;
-    padding: 12px 24px;
-    font-size: 14px;
-    white-space: nowrap;
-  }
-
-  .buttonText {
-    white-space: nowrap;
-  }
-
-  .infoRow {
-    flex-direction: column;
-    gap: 4px;
-    align-items: center;
-    text-align: center;
-  }
-
-  .infoLabel {
-    min-width: auto;
-  }
 }
 
-/* Адаптивность для мобильных */
 @media screen and (max-width: 576px) {
   .profileInfo {
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .avatar {
-    width: 100px;
-    height: 100px;
-  }
-
-  .actionButton {
-    min-width: 180px;
-    padding: 10px 16px;
-    font-size: 13px;
-    border-radius: 30px;
-  }
-
-  .buttonText {
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .infoRow {
-    padding: 8px 12px;
-  }
-
-  .infoLabel,
-  .infoValue {
-    font-size: 13px;
+    padding: var(--space-4);
+    gap: var(--space-3);
   }
 }
 
-/* Для очень маленьких экранов (до 400px) */
 @media screen and (max-width: 400px) {
   .profileInfo {
-    padding: 12px;
-  }
-
-  .avatar {
-    width: 80px;
-    height: 80px;
-    border-width: 3px;
+    padding: var(--space-3);
   }
 
   .avatarSection {
-    gap: 12px;
-  }
-
-  .actionButton {
-    min-width: 160px;
-    padding: 8px 12px;
-    font-size: 12px;
-    border-radius: 24px;
-  }
-
-  .buttonText {
-    font-size: 12px;
-  }
-
-  .infoRow {
-    padding: 6px 10px;
-  }
-
-  .infoLabel,
-  .infoValue {
-    font-size: 12px;
-  }
-}
-
-/* Отключаем проблемные :hover эффекты на сенсорных устройствах */
-@media (hover: none) and (pointer: coarse) {
-  .actionButton:hover {
-    transform: none !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Усиливаем обратную связь при нажатии */
-  .actionButton:active {
-    transition:
-      transform 0.08s ease,
-      background 0.08s ease;
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .actionButton:hover {
-    transform: none !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  .actionButton:active {
-    transition:
-      transform 0.08s ease,
-      background 0.08s ease;
-  }
-}
-
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-  .profileInfo {
-    background: #2d3748;
-  }
-
-  .infoRow {
-    background: #1a202c;
-    border-color: #4a5568;
-  }
-
-  .infoRow:hover {
-    background: #374151;
-  }
-
-  .infoLabel {
-    color: #a0aec0;
-  }
-
-  .infoValue {
-    color: #e2e8f0;
-  }
-}
-/* ========== ТЕМНАЯ ТЕМА ========== */
-@media (prefers-color-scheme: dark) {
-  .profileInfo {
-    background: #1a202c;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .avatar {
-    border-color: #4a5568;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-
-  .infoRow {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-
-  .infoRow:hover {
-    background: #374151;
-  }
-
-  .infoLabel {
-    color: #a0aec0;
-  }
-
-  .infoValue {
-    color: #e2e8f0;
-  }
-
-  /* Темная тема для кнопок */
-  .actionButton.accept {
-    background: #2d3748;
-    color: #cbd5e0;
-    border-color: #4a5568;
-  }
-
-  .actionButton.accept:active {
-    background: #38a169;
-    color: white;
-  }
-
-  .actionButton.requestSent {
-    background: #2d3748;
-    color: #cbd5e0;
-    border-color: #4a5568;
-  }
-
-  .actionButton.requestSent:active {
-    background: #e53e3e;
-    color: white;
-  }
-
-  .actionButton.blockedByMe {
-    background: #2d3748;
-    color: #cbd5e0;
-    border-color: #4a5568;
-  }
-
-  .actionButton.blockedByMe:active {
-    background: #38a169;
-    color: white;
-  }
-
-  .actionButton.blockedMe {
-    background: #2d3748;
-    color: #cbd5e0;
-    border-color: #4a5568;
-  }
-
-  .actionButton.blockedMe:active {
-    background: #e53e3e;
-    color: white;
-  }
-
-  .actionButton.friend,
-  .actionButton.follow {
-    background: linear-gradient(135deg, #7f9cf5 0%, #b794f4 100%);
+    gap: var(--space-3);
   }
 }

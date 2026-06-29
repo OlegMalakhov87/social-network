@@ -1,14 +1,18 @@
-/** Сохраняем ссылку на Redux Store.
-Это позволяет apiFetch получать токен без необходимости передавать store в каждую функцию API.
- * @param {Object} store
-*/
+/**
+ * Сохраняет Redux Store для доступа к JWT внутри apiFetch.
+ *
+ * @param {import('@reduxjs/toolkit').EnhancedStore} store
+ */
 let _store = null;
 export function setStoreForApiFetch(store) {
   _store = store;
 }
 
 /**
- * Выполнить fetch с автоматической подстановкой токена.
+ * /**
+ * Выполняет HTTP-запрос через Fetch API.
+ * Автоматически добавляет Authorization Bearer Token, если пользователь авторизован.
+ *
  * @param {string} url
  * @param {Object} options
  * @returns {Promise<Response>}
@@ -25,14 +29,20 @@ export async function apiFetch(url, options = {}) {
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(url, {
+    credentials: 'include',
+    ...options,
+    headers,
+  });
 
   if (!response.ok) {
     let message = response.statusText;
     try {
       const data = await response.json();
       message = data.error || data.message || message;
-    } catch {}
+    } catch {
+      /**Тело ответа отсутствует */
+    }
     throw new Error(`Ошибка ${response.status}:${message}`);
   }
   return response;

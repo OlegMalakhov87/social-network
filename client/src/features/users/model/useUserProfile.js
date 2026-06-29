@@ -15,37 +15,34 @@ export function useUserProfile(userId) {
     //Строгая валидация: только целое положительное число
     const isValidId = Number.isInteger(userId) && userId > 0;
     if (!isValidId) {
-      if (userId != null) {
-        return;
-      }
       setUser(null);
+      setError(null);
       setIsLoading(false);
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
+
     setIsLoading(true);
     setError(null);
 
-    fetchUserById(userId)
+    fetchUserById(userId, { signal: controller.signal })
       .then((data) => {
-        if (!cancelled) {
-          setUser(data);
-        }
+        setUser(data);
       })
       .catch((err) => {
-        if (!cancelled) {
-          setError(err.message);
-          setUser(null);
-        }
+        if (err.code === 'ERR_CANCELED') return;
+
+        setError(err.message);
+        setUser(null);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [userId]);
 
   return { user, isLoading, error };

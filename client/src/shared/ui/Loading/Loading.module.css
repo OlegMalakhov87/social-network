@@ -1,12 +1,11 @@
 .spinner {
   border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: #667eea;
+  border-style: solid;
+  border-color: var(--color-border);
+  border-top-color: var(--color-primary);
   animation: spin 0.8s linear infinite;
-  margin: 0 auto;
 }
 
-/* размеры */
 .small {
   width: 20px;
   height: 20px;
@@ -16,6 +15,7 @@
 .medium {
   width: 36px;
   height: 36px;
+  border-width: 3px;
 }
 
 .large {
@@ -29,26 +29,32 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  padding: var(--space-8);
+  min-height: 50vh;
   width: 100%;
 }
 
 .message {
-  margin-top: 12px;
-  font-size: 14px;
-  color: #666;
+  margin-top: var(--space-4);
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
   text-align: center;
+}
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Тёмная тема */
-@media (prefers-color-scheme: dark) {
-  .message {
-    color: #a0aec0;
   }
 }

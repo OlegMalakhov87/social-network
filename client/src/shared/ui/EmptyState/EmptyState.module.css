@@ -3,74 +3,31 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: var(--space-6) var(--space-4);
   text-align: center;
-  border-radius: 12px;
-  background: #f7fafc;
-  border: 2px dashed #e2e8f0;
-  min-height: 160px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-secondary);
+  border: 2px dashed var(--color-border);
+  min-height: var(--empty-state-height);
 }
 
 .emptyIcon {
-  font-size: 40px;
-  margin-bottom: 12px;
+  font-size: var(--font-4xl);
+  margin-bottom: var(--space-3);
   opacity: 0.6;
 }
 
 .emptyTitle {
-  font-size: 16px;
+  font-size: var(--font-lg);
   font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 6px;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
 }
 
 .emptyText {
-  font-size: 14px;
-  color: #718096;
-  margin-bottom: 16px;
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
   max-width: 260px;
   line-height: 1.4;
-}
-
-.actionButton {
-  padding: 6px 16px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    transform 0.2s;
-}
-
-.actionButton:hover {
-  background: #5a67d8;
-  transform: translateY(-1px);
-}
-
-/* Тёмная тема */
-@media (prefers-color-scheme: dark) {
-  .emptyContent {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-
-  .emptyTitle {
-    color: #e2e8f0;
-  }
-
-  .emptyText {
-    color: #a0aec0;
-  }
-
-  .actionButton {
-    background: #667eea;
-  }
-
-  .actionButton:hover {
-    background: #5a67d8;
-  }
 }

@@ -4,3 +4,6 @@
 export * from './api/postApi';
 export { normalizePost } from './lib/normalizePost';
 export { PostCard } from './ui/PostCard';
+export { PostHeader } from './ui/PostHeader';
+export { PostContent } from './ui/PostContent';
+export { PostActions } from './ui/PostActions';
