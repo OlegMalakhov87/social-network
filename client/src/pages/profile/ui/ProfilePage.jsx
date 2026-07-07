@@ -1,36 +1,33 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import style from './ProfilePage.module.css';
-import { VideoPlayer } from '../../../widgets/video-player';
-import { CommentsSection } from '../../../widgets/comments-list';
-import { useAudioPlayer } from '../../../widgets/audio-player';
-import { UserProfileCard } from '../../../widgets/user-profile';
-import { UserContentTabs } from '../../../widgets/user-content/ui/UserContentTabs';
-import { PostForm } from '../../../features/posts';
-import {
-  useUserContentFilter,
-  useOnline,
-  ProfileTabs,
-} from '../../../features/users';
-import { useFriendshipStatus } from '../../../features/friends';
+import { PROFILE_TABS_MAP, getProfileTabContent } from '../../../entities/user';
 import { useCommentsPanel } from '../../../features/comments';
-import { PROFILE_TABS } from '../../../entities/user';
+import { useFriendshipStatus } from '../../../features/friends';
+import { PostForm } from '../../../features/posts';
+import { useOnline, useUserContentFilter } from '../../../features/users';
+import { SORT_OPTIONS } from '../../../shared/config';
 import {
-  PageLoader,
-  Dropdown,
   Button,
+  Dropdown,
   PageLayout,
+  PageLoader,
+  ProfileToolbar,
   SectionCard,
 } from '../../../shared/ui';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
+import { useAudioPlayer } from '../../../widgets/audio-player';
+import { CommentsSection } from '../../../widgets/comments-list';
+import { UserProfileCard } from '../../../widgets/user-profile';
+import { VideoPlayer } from '../../../widgets/video-player';
+import style from './ProfilePage.module.css';
 
 /**
  * Страница профиля пользователя.
  * Отображает карточку пользователя, вкладки с контентом (посты, фото, треки, видео),
  * форму создания поста, комментарии и модальный видеоплеер.
  */
+
 export const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('Post');
+  const [activeTab, setActiveTab] = useState('posts');
   const [sortKey, setSortKey] = useState('dateDesc');
   const [showPostForm, setShowPostForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -77,69 +74,29 @@ export const ProfilePage = () => {
     sortKey,
     userIdParam,
   });
+  /** Проверка, является ли текущий пользователь владельцем профиля */
+  const isProfileOwner = currentUser?.id === targetUser?.id;
 
   /** Получение статуса пользователя (в сети или нет) */
   const onlineMap = useOnline(targetUser?.id);
   const userOnline = onlineMap.get(targetUser?.id) ?? false;
 
-  // Получение статуса дружбы
+  // Получение статуса дружбы с текущим пользователем + экшены для управления статусом дружбы
   const {
     status: friendshipStatus,
     direction: friendshipDirection,
     friendshipId,
-    follow,
-    unfollow,
-    accept,
-    block,
-    unlock,
+    followUser,
+    unfollowUser,
+    acceptUser,
+    blockUser,
+    unlockUser,
   } = useFriendshipStatus({
     targetUserId: targetUser?.id,
     currentUserId: currentUser?.id,
   });
 
-  /** Момоизированная пагинация открытой вкладки */
-  const currentPagination = useMemo(() => {
-    switch (activeTab) {
-      case 'Post':
-      case 'Photo':
-        return paginationPosts;
-
-      case 'Music':
-        return paginationTracks;
-
-      case 'Video':
-        return paginationVideos;
-
-      default:
-        return null;
-    }
-  }, [activeTab, paginationPosts, paginationTracks, paginationVideos]);
-
-  // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
-  const commentTargetType = activeTab === 'Photo' ? 'Post' : activeTab;
-  const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel(commentTargetType, currentPagination?.currentPage);
-
-  /** Обработчик для подсчета количеста комментариев */
-  const handleCommentChange = useCallback(
-    (delta) => {
-      if (activeTab === 'Post' || activeTab === 'Photo')
-        updateCommentCountPost(commentTarget.id, delta);
-      else if (activeTab === 'Music')
-        updateCommentCountTrack(commentTarget.id, delta);
-      else if (activeTab === 'Video')
-        updateCommentCountVideo(commentTarget.id, delta);
-    },
-    [
-      activeTab,
-      commentTarget?.id,
-      updateCommentCountPost,
-      updateCommentCountTrack,
-      updateCommentCountVideo,
-    ]
-  );
-
-  // Экшены для управления аудиоплеером
+  // Экшены для управления аудиоплеером + состояние аудиоплеера
   const { playTrack, setOnTrackStart, isPlaying, currentTrack, togglePlay } =
     useAudioPlayer();
 
@@ -148,115 +105,93 @@ export const ProfilePage = () => {
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
-  /**  Мемоизированный рендер выбранной вкладки */
-  const renderContent = useMemo(() => {
-    const commonProps = {
-      currentUser,
-      targetUser,
-      items,
-      onToggleComments,
-    };
+  /** Получение текущей пагинации открытой вкладки */
+  const currentPagination = {
+    posts: paginationPosts,
+    photos: paginationPosts,
+    tracks: paginationTracks,
+    videos: paginationVideos,
+  }[activeTab];
 
-    switch (activeTab) {
-      case 'Post':
-        return (
-          <UserContentTabs.Posts
-            {...commonProps}
-            isProfileOwner={currentUser?.id === targetUser?.id}
-            onClickVideo={handleClickVideo}
-            toggleLikePost={toggleLikePost}
-            onAddPost={handleAddPost}
-            onDeletePost={handleDeletePost}
-            isLoadingPosts={isLoadingPosts}
-            errorPosts={errorPosts}
-          />
-        );
-      case 'Photo':
-        return (
-          <UserContentTabs.Photos
-            {...commonProps}
-            isProfileOwner={currentUser?.id === targetUser?.id}
-            toggleLikePhoto={toggleLikePost}
-            onDeletePhoto={handleDeletePost}
-            isLoadingPhoto={isLoadingPosts}
-            errorPosts={errorPosts}
-          />
-        );
-      case 'Music':
-        return (
-          <UserContentTabs.Tracks
-            {...commonProps}
-            mode="profile"
-            isProfileOwner={currentUser?.id === targetUser?.id}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            onPlayTrack={playTrack}
-            togglePlay={togglePlay}
-            onTrackStart={setOnTrackStart}
-            isLoadingTracks={isLoadingTracks}
-            errorTracks={errorTracks}
-            onAddToLibrary={addTrackOptimistic}
-            onRemoveFromLibrary={removeTrackOptimistic}
-            toggleLikeTrack={toggleLikeTrack}
-            updatePlayCount={updatePlayCount}
-            toggleFavoriteTrack={toggleFavoriteTrack}
-          />
-        );
-      case 'Video':
-        return (
-          <UserContentTabs.Videos
-            {...commonProps}
-            mode="profile"
-            isProfileOwner={currentUser?.id === targetUser?.id}
-            onClickVideo={handleClickVideo}
-            toggleLikeVideo={toggleLikeVideo}
-            isLoadingVideos={isLoadingVideos}
-            errorVideos={errorVideos}
-            onAddToLibrary={addVideoOptimistic}
-            onRemoveFromLibrary={removeVideoOptimistic}
-            updateViewCount={updateViewCount}
-            toggleFavoriteVideo={toggleFavoriteVideo}
-          />
-        );
-      default:
-        return null;
-    }
-  }, [
-    activeTab,
-    items,
+  // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
+  const commentTargetType = activeTab === 'photos' ? 'posts' : activeTab;
+  const { commentTarget, handleCloseComments, onToggleComments } =
+    useCommentsPanel(commentTargetType, currentPagination?.currentPage);
+
+  /** Получение функций для обновления количества комментариев */
+  const updateCommentCount = {
+    posts: updateCommentCountPost,
+    photos: updateCommentCountPost,
+    tracks: updateCommentCountTrack,
+    videos: updateCommentCountVideo,
+  }[activeTab];
+
+  /** Получение функции для обновления количества комментариев открытой вкладки */
+  const handleCommentChange = useCallback(
+    (delta) => {
+      updateCommentCount(commentTarget?.id, delta);
+    },
+    [commentTarget?.id, updateCommentCount]
+  );
+
+  /**  Получение пропсов для выбранной вкладки */
+  const tab = PROFILE_TABS_MAP.find(({ id }) => id === activeTab);
+  if (!tab) return null;
+
+  /**  Получение пропсов для выбранной вкладки */
+  const tabProps = tab?.getProps({
     currentUser,
     targetUser,
-    // Посты
-    isLoadingPosts,
-    errorPosts,
-    toggleLikePost,
-    handleAddPost,
-    handleDeletePost,
-    // Треки
-    isLoadingTracks,
-    errorTracks,
-    currentTrack,
-    isPlaying,
-    playTrack,
-    togglePlay,
-    setOnTrackStart,
-    toggleLikeTrack,
-    updatePlayCount,
-    toggleFavoriteTrack,
-    addTrackOptimistic,
-    removeTrackOptimistic,
-    // Видео
-    isLoadingVideos,
-    errorVideos,
-    toggleLikeVideo,
-    addVideoOptimistic,
-    removeVideoOptimistic,
-    updateViewCount,
-    toggleFavoriteVideo,
-    handleClickVideo,
-    // Коментарии
-    onToggleComments,
-  ]);
+    toggleComments: onToggleComments,
+    isProfileOwner,
+    posts: {
+      items,
+      isLoading: isLoadingPosts,
+      error: errorPosts,
+      onPlayVideo: handleClickVideo,
+      toggleLike: toggleLikePost,
+      deletePost: handleDeletePost,
+    },
+    tracks: {
+      items,
+      isLoading: isLoadingTracks,
+      error: errorTracks,
+      mode: 'profile',
+      toggleLike: toggleLikeTrack,
+      addOptimistic: addTrackOptimistic,
+      removeOptimistic: removeTrackOptimistic,
+      updatePlayCount: updatePlayCount,
+      toggleFavorite: toggleFavoriteTrack,
+      updateCommentCount: updateCommentCountTrack,
+      currentTrack: currentTrack,
+      isPlaying: isPlaying,
+      onPlay: playTrack,
+      onTrackStart: setOnTrackStart,
+      togglePlay: togglePlay,
+    },
+    videos: {
+      items,
+      isLoading: isLoadingVideos,
+      error: errorVideos,
+      mode: 'profile',
+      toggleLike: toggleLikeVideo,
+      addOptimistic: addVideoOptimistic,
+      removeOptimistic: removeVideoOptimistic,
+      updateViewCount: updateViewCount,
+      onPlayVideo: handleClickVideo,
+      toggleFavorite: toggleFavoriteVideo,
+    },
+    photos: {
+      items,
+      isLoading: isLoadingPosts,
+      error: errorPosts,
+      toggleLike: toggleLikePost,
+      deletePhoto: handleDeletePost,
+    },
+  });
+
+  /**  Рендер выбранной вкладки */
+  const tabContent = getProfileTabContent({ activeTab, tabProps });
 
   /**  Состояние загрузки всей страницы */
   if (isLoadingProfile || (userIdParam && !targetUser)) {
@@ -269,51 +204,46 @@ export const ProfilePage = () => {
       <UserProfileCard
         targetUser={targetUser}
         currentUser={currentUser}
-        onFollow={follow}
-        onUnfollow={unfollow}
-        onAccept={accept}
-        onUnlock={unlock}
-        onBlock={block}
+        onFollow={followUser}
+        onUnfollow={unfollowUser}
+        onAccept={acceptUser}
+        onUnlock={unlockUser}
+        onBlock={blockUser}
         friendshipStatus={friendshipStatus}
         friendshipDirection={friendshipDirection}
         friendshipId={friendshipId}
-        userError={userError}
-        userOnline={userOnline}
+        error={userError}
+        online={userOnline}
       />
 
       {/* Вкладки с контентом */}
-      <SectionCard className={style.contentArea}>
-        <div className={style.tabsRow}>
-          <div className={style.filterButtons}>
-            <ProfileTabs
-              tabs={PROFILE_TABS}
-              activeTab={activeTab}
-              onChange={setActiveTab}
-            />
-          </div>
+      <SectionCard>
+        <ProfileToolbar
+          tabs={PROFILE_TABS_MAP}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          rightSlot={
+            <>
+              <Dropdown
+                options={SORT_OPTIONS}
+                currentSort={sortKey}
+                onChange={setSortKey}
+              />
 
-          <div className={style.rightControls}>
-            {/* Кнопка сортировки контента по дате и поппулярности */}
-            <Dropdown
-              options={SORT_OPTIONS}
-              currentSort={sortKey}
-              onChange={setSortKey}
-            />
-            {/* Кнопка добавления поста видна только на своей странице и при активной вкладке "Post" */}
-            {currentUser?.id === targetUser?.id && activeTab === 'Post' && (
-              <Button
-                variant="primary"
-                size="small"
-                onClick={() => setShowPostForm((prev) => !prev)}
-                aria-label={showPostForm ? 'Скрыть форму' : 'Добавить пост'}
-              >
-                Добавить пост
-              </Button>
-            )}
-          </div>
-        </div>
+              {isProfileOwner && activeTab === 'posts' && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShowPostForm((prev) => !prev)}
+                  aria-label={showPostForm ? 'Скрыть форму' : 'Добавить пост'}
+                >
+                  Добавить пост
+                </Button>
+              )}
+            </>
+          }
+        />
 
-        {/* Форма создания поста */}
         {showPostForm && currentUser && (
           <PostForm
             currentUser={currentUser}
@@ -324,11 +254,9 @@ export const ProfilePage = () => {
           />
         )}
 
-        {/* Контент выбранной вкладки */}
-        <div>{renderContent}</div>
+        {tabContent}
       </SectionCard>
 
-      {/* Панель комментариев */}
       {commentTarget && currentUser && (
         <CommentsSection
           targetType={commentTarget?.type}
@@ -339,7 +267,6 @@ export const ProfilePage = () => {
         />
       )}
 
-      {/* Модальный видеоплеер */}
       {selectedVideo && (
         <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
       )}

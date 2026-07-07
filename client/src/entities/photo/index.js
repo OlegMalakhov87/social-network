@@ -1,4 +1,4 @@
-export { PhotoCard } from './ui/PhotoCard';
-export { PhotoActions } from './ui/PhotoActions';
-export { PhotoContent } from './ui/PhotoContent';
-export { PhotoHeader } from './ui/PhotoHeader';
+// Вспоиогательные функции
+export { getPhotoActions } from './lib/getPhotoActions';
+// Ui компоненты
+export { Photo } from './ui/Photo';

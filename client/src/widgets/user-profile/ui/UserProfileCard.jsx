@@ -1,14 +1,14 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import style from './UserProfileCard.module.css';
 import { useFriendshipButton } from '../../../entities/friend';
-import { getProfileFields } from '../../../entities/user';
+import { getProfileActions, getProfileFields } from '../../../entities/user';
 import {
-  PageLoader,
   Avatar,
-  Button,
-  StatusBadge,
+  BaseCard,
+  ProfileActions,
+  ProfileIdentity,
   ProfileInfoList,
+  StatusBadge,
 } from '../../../shared/ui';
 
 /**
@@ -33,24 +33,24 @@ export const UserProfileCard = ({
   currentUser,
   friendshipStatus,
   friendshipDirection,
+  friendshipId,
+  userOnline,
   onFollow,
   onUnfollow,
   onAccept,
   onUnlock,
   onBlock,
-  friendshipId,
-  userOnline,
+
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
-  // Владелец профиля
+  /** Владелец профиля */
   const isOwnProfile = currentUser?.id === targetUser?.id;
 
-  // Отображения полей с данными пользователя
+  /** Отображения полей с данными пользователя */
   const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
 
-  // Кнопка действий дружбы
+  /** Кнопка действий дружбы */
   const friendshipButton = useFriendshipButton({
     targetUser,
     currentUser,
@@ -64,7 +64,7 @@ export const UserProfileCard = ({
     onBlock,
   });
 
-  // Обработчик перхода на страницу диалогов
+  /** Обработчик перхода на страницу диалогов */
   const handleSendMessage = useCallback(
     (e) => {
       e?.preventDefault?.();
@@ -75,43 +75,41 @@ export const UserProfileCard = ({
     [currentUser?.id, targetUser?.id, navigate]
   );
 
+  /** Действия профиля */
+  const actions = getProfileActions({
+    isOwnProfile,
+    friendshipButton,
+    onMessage: handleSendMessage,
+  });
+
   if (!targetUser?.id) {
-    return <PageLoader message="Загрузка профиля..." />;
+    return null;
   }
 
   return (
-    <div className={style.profileInfo}>
-      <div className={style.avatarSection}>
-        <Avatar
-          size="xl"
-          src={targetUser.photoUrl}
-          fallback="/avatar.jpg"
-          alt={targetUser.name || targetUser.nickname}
-        />
+    <BaseCard
+      content={
+        <>
+          <ProfileIdentity>
+          <Avatar
+            size="xl"
+            src={targetUser?.photoUrl}
+            fallback="/avatar.jpg"
+            alt={targetUser?.name || targetUser?.nickname}
+          />
+  {!isOwnProfile && (
+          <>
+          <StatusBadge
+            status={userOnline ? 'online' : 'offline'}
+            label={userOnline ? 'В сети' : 'Не в сети'}
+          />
 
-        {!isOwnProfile && friendshipButton && (
-          <div className={style.actions}>
-            <Button
-              fullWidth
-              buttonVariant={friendshipButton.variant}
-              onClick={friendshipButton.onClick}
-              disabled={friendshipButton.disabled}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              {isHovered ? friendshipButton.hoverText : friendshipButton.text}
-            </Button>
-            <Button variant="secondary" fullWidth onClick={handleSendMessage}>
-              Написать сообщение
-            </Button>
-            <StatusBadge
-              status={userOnline ? 'online' : 'offline'}
-              label={userOnline ? 'В сети' : 'Не в сети'}
-            />
-          </div>
-        )}
-        <ProfileInfoList items={infoFields} />
-      </div>
-    </div>
+          <ProfileActions actions={actions} />
+          </>)}
+          </ProfileIdentity>
+          <ProfileInfoList items={infoFields} />
+        </>
+      }
+    />
   );
 };

@@ -1,27 +1,31 @@
+import { Image } from '..';
+import { classNames, handleKeyboardClick } from '../../lib';
 import styles from './MediaPreview.module.css';
-import { Image } from '../Image/Image';
 
 /**
  * Универсальное превью медиа.
  *
  * @param {Object} props
- * @param {'image'|'video'} props.type
+ * @param {Object} props.item
  * @param {string} props.src
  * @param {string} props.alt
  * @param {Function} props.onClick
  * @param {boolean} props.clickable
  */
 export const MediaPreview = ({
-  type = 'image',
+  item = {},
   src,
   alt,
   onClick,
-  clickable = false,
+  clickable = item.type === 'video',
 }) => {
   return (
     <div
-      className={`${styles.wrapper} ${clickable ? styles.clickable : ''}`}
-      onClick={onClick}
+      className={classNames(styles.wrapper, clickable && styles.clickable)}
+      onClick={clickable ? onClick : undefined}
+      onKeyDown={clickable ? (e) => handleKeyboardClick(e, onClick) : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
     >
       <Image
         src={src}
@@ -30,7 +34,7 @@ export const MediaPreview = ({
         className={styles.image}
       />
 
-      {type === 'video' && (
+      {clickable && (
         <div className={styles.overlay}>
           <span className={styles.play}>▶</span>
         </div>

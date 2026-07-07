@@ -1,0 +1,22 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-sm);
+}
+
+.value {
+  color: var(--color-text-primary);
+  font-size: var(--font-sm);
+  text-align: right;
+}

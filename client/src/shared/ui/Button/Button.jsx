@@ -46,10 +46,7 @@ export const Button = ({
       type={type}
       className={classes}
       disabled={disabled || loading}
-      onClick={(e) => {
-        e?.stopPropagation();
-        onClick();
-      }}
+      onClick={onClick}
     >
       {loading && <span className={styles.spinner} />}
 

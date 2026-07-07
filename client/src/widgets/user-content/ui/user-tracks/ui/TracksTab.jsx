@@ -1,139 +1,117 @@
 import { useEffect } from 'react';
+import { Track } from '../../../../../entities/track';
+import { ContentState } from '../../../../../shared/ui';
 import style from './TracksTab.module.css';
-import { TrackCard } from '../../../../../entities/track';
-import {
-  ComtentEmptyState,
-  Pagination,
-  PageLoader,
-} from '../../../../../shared/ui';
 
 /**
  * Вкладка с сеткой треков.
  * @param {Object} props
- * @param {Array} props.items - массив треков
- * @param {Object} props.pagination - данные пагинации
+ * @param {Array} props.tracks - массив треков
+ * @param {string} props.mode - режим отображения (library/global)
+ * @param {Object} props.currentUser - текущий пользователь
+ * @param {Object} props.targetUser - выбранный пользователь
+ * @param {boolean} props.isProfileOwner - владелец профиля
+ * @param {boolean} props.isLoading - загружен трек или нет
+ * @param {string} props.error - ошибка
  * @param {Object} props.currentTrack - текущий воспроизводимый трек
  * @param {boolean} props.isPlaying - сейчас трек играет или нет
- * @param {Function} props.onPlayTrack - воспоризведение трека
+ * @param {Function} props.onPlay - воспоризведение трека
  * @param {Function} props.togglePlay - переключение трека (пауза/плей)
  * @param {Function} props.onTrackStart - увеличение счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере
- * @param {boolean} props.isLoadingTracks - загружен трек или нет
- * @param {string} errorTracks - ошибка
- * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isProfileOwner - владелец профиля
- * @param {Function} props.onAddToLibrary - добавить в библиотеку
- * @param {Function} props.onRemoveFromLibrary - удалить из библиотеки
- * @param {Function} props.toggleLikeTrack - лайк/дизлайк
+ * @param {Function} props.addOptimistic - добавить оптимистический трек
+ * @param {Function} props.removeOptimistic - удалить оптимистический трек
  * @param {Function} props.updatePlayCount - обновить личный счетчик прослушиваний
- *@param {Function} props.updateGlobalPlayCount - обновить глобальный счетчик прослушиваний
- * @param {Function} props.toggleFavoriteTrack - удалить/добавить в избранное
- * @param {Function} props.onDeleteTrack - удалить трек
+ * @param {Function} props.updateGlobalPlayCount - обновить глобальный счетчик прослушиваний
+ * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.onToggleComments - открыть комментарии
-
- 
+ * @param {Function} props.onRetry - повторить загрузку
  */
 export const TracksTab = ({
-  items = [],
+  tracks = [],
   mode,
-  pagination,
+  currentUser,
+  targetUser,
+  isProfileOwner,
+  isLoading,
+  error,
   currentTrack,
   isPlaying,
-  onPlayTrack,
-  togglePlay,
+  onPlay,
   onTrackStart,
-  isLoadingTracks,
-  errorTracks,
-  currentUser,
-  isProfileOwner,
-  onAddToLibrary,
-  onRemoveFromLibrary,
-  toggleLikeTrack,
+  togglePlay,
+  toggleLike,
+  addOptimistic,
+  removeOptimistic,
   updatePlayCount,
   updateGlobalPlayCount,
-  toggleFavoriteTrack,
-  onDeleteTrack,
+  toggleFavorite,
   onToggleComments,
+  onRetry,
 }) => {
+  /** Обработчик для увеличения счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере */
   useEffect(() => {
     if (typeof onTrackStart !== 'function') return;
 
     onTrackStart((track) => {
-      const currentTrackInList = items.find((item) => item.id === track.id);
+      const currentTrackInList = tracks.find((item) => item.id === track?.id);
       const profileLibraryId =
         currentTrackInList?.profileLibraryId || track.profileLibraryId;
 
-      const playCount = currentTrackInList?.playCount ?? track.playCount;
+      const playCount = currentTrackInList?.playCount ?? track?.playCount;
       const newPlayCount = (playCount ?? 0) + 1;
 
       if (profileLibraryId) {
         updatePlayCount?.(
-          track.id,
+          track?.id,
           profileLibraryId,
-          currentTrackInList?.isFavorite ?? track.isFavorite,
+          currentTrackInList?.isFavorite ?? track?.isFavorite,
           newPlayCount
         );
       } else {
-        updateGlobalPlayCount?.(track.id);
+        updateGlobalPlayCount?.(track?.id);
       }
     });
 
     return () => onTrackStart(null);
-  }, [onTrackStart, updatePlayCount, updateGlobalPlayCount, items]);
-
-  // Состояние загрузки вкладки с треками
-  if (isLoadingTracks) {
-    return <PageLoader message="Загружаем треки..." />;
-  }
-
-  if (!items?.length) {
-    return (
-      <ComtentEmptyState
-        icon="🎵"
-        title="Нет треков"
-        description={
-          isProfileOwner
-            ? 'Добавьте первые треки в свой профиль!'
-            : 'У пользователя пока нет публичных треков'
-        }
-      />
-    );
-  }
+  }, [onTrackStart, updatePlayCount, updateGlobalPlayCount, tracks]);
 
   return (
-    <>
+    <ContentState
+      loading={isLoading || (!currentUser && !targetUser)}
+      error={error}
+      isEmpty={!tracks?.length}
+      loadingMessage="Загружаем треки..."
+      emptyIcon="🎵"
+      emptyTitle="Нет треков"
+      emptyDescription={
+        isProfileOwner
+          ? 'Добавьте свои первые треки.'
+          : 'У пользователя пока нет публичных треков.'
+      }
+      onRetry={onRetry}
+    >
       <div className={style.tracksGrid}>
-        {items.map((track) => {
-          const isOwn = track.uploadedBy === currentUser?.id;
-          return (
-            <TrackCard
-              key={track.id}
-              track={track}
-              isPlaying={isPlaying}
-              currentTrack={currentTrack}
-              onPlay={onPlayTrack}
-              toggle={togglePlay}
-              allTracks={items}
-              currentUser={currentUser}
-              isOwn={isOwn}
-              isProfileOwner={isProfileOwner}
-              mode={mode}
-              addToLibrary={onAddToLibrary}
-              removeFromLibrary={onRemoveFromLibrary}
-              toggleLike={toggleLikeTrack}
-              onDelete={onDeleteTrack}
-              toggleComments={onToggleComments}
-              toggleFavorite={toggleFavoriteTrack}
-            />
-          );
-        })}
+        {tracks.map((track) => (
+          <Track
+            key={track.id}
+            track={track}
+            isPlaying={isPlaying}
+            currentTrack={currentTrack}
+            onPlay={onPlay}
+            togglePlay={togglePlay}
+            allTracks={tracks}
+            currentUser={currentUser}
+            isProfileOwner={isProfileOwner}
+            mode={mode}
+            addToLibrary={addOptimistic}
+            removeFromLibrary={removeOptimistic}
+            toggleLike={toggleLike}
+            onDelete={removeOptimistic}
+            toggleComments={onToggleComments}
+            toggleFavorite={toggleFavorite}
+          />
+        ))}
       </div>
-      {pagination?.totalPages > 1 && (
-        <Pagination
-          totalPages={pagination.totalPages}
-          page={pagination.currentPage}
-          onPageChange={pagination.goToPage}
-        />
-      )}
-    </>
+    </ContentState>
   );
 };

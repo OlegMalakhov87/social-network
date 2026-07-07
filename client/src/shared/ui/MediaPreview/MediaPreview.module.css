@@ -20,7 +20,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--overlay-primary);
   transition: opacity 0.2s;
 }
 
@@ -38,5 +38,5 @@
 }
 
 .clickable:hover .overlay {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--overlay-secondary);
 }

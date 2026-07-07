@@ -1,5 +1,5 @@
-import styles from './PostActionsBar.module.css';
 import { Button } from '..';
+import styles from './PostActionsBar.module.css';
 
 /**
  * Панель действий карточки.
@@ -18,7 +18,7 @@ export const PostActionsBar = ({ actions = [] }) => {
             size="sm"
             onClick={action.onClick}
             disabled={action.disabled}
-            startIcon={action.icon}
+            leftIcon={action.icon}
           >
             {action.label}
           </Button>

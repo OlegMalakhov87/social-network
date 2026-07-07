@@ -1,6 +1,6 @@
-import styles from './Avatar.module.css';
-import { classNames } from '../../lib';
 import { Image } from '..';
+import { classNames, handleKeyboardClick } from '../../lib';
+import styles from './Avatar.module.css';
 
 /**
  * Универсальный компонент аватара пользователя.
@@ -23,7 +23,7 @@ export const Avatar = ({
   size = 'md',
   variant = 'circle',
   status = null,
-  clickable = false,
+  clickable,
   onClick,
   className = '',
 }) => {
@@ -36,7 +36,10 @@ export const Avatar = ({
         clickable && styles.clickable,
         className
       )}
-      onClick={onClick}
+      onClick={clickable ? onClick : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => handleKeyboardClick(e, onClick) : undefined}
     >
       <Image
         src={src}

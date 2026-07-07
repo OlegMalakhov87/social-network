@@ -89,9 +89,14 @@
   --font-xl: 22px;
 
   /* ===========================
+     OVERLAY
+  ============================ */
+  --overlay-primary: rgba(0, 0, 0, 0.25);
+
+  --overlay-secondary: rgba(0, 0, 0, 0.35);
+  /* ===========================
      LAYOUT
   ============================ */
-
   --container-width: 1200px;
 
   --header-height: 60px;

@@ -28,6 +28,7 @@ export const Loading = ({
       role="status"
       aria-live="polite"
       aria-label={message}
+      aria-busy="true"
     >
       <div className={spinnerClass} />
       {message && <p className={style.message}>{children ?? message}</p>}

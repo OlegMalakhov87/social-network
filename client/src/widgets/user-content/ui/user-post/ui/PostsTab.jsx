@@ -1,6 +1,6 @@
-import style from './PostsTab.module.css';
-import { PostCard } from '../../../../../entities/post';
+import { Post } from '../../../../../entities/post';
 import { ContentState } from '../../../../../shared/ui';
+import style from './PostsTab.module.css';
 
 /**
  * Вкладка с сеткой постов.
@@ -9,32 +9,32 @@ import { ContentState } from '../../../../../shared/ui';
  * @param {Object} props.currentUser - текущий пользователь
  * @param {Object} props.targetUser - выбранный пользователь
  * @param {boolean} props.isProfileOwner - владелец профиля(да или нет)
- * @param {Function} props.onClickVideo - воспроизведение видео
- * @param {Function} props.toggleLikePost - лайк/дизлайк
- * @param {Function} props.onDeletePost - удалить пост
- * @param {Function} props.onToggleComments - открыть комментарии
- * @param {boolean} props.isLoadingPosts - загружен пост или нет
- * @param {string|null} props.errorPosts - ошибка
+ * @param {boolean} props.isLoading - загружен пост или нет
+ * @param {string|null} props.error - ошибка
+ * @param {Function} props.onPlayVideo - воспроизведение видео
+ * @param {Function} props.toggleLike - лайк/дизлайк
+ * @param {Function} props.deletePost - удалить пост
+ * @param {Function} props.toggleComments - открыть комментарии / закрыть комментарии
  * @param {Function} props.onRetry - повторить загрузку
  */
 
 export const PostsTab = ({
-  posts,
+  posts = [],
   currentUser,
   targetUser,
   isProfileOwner,
-  onClickVideo,
-  toggleLikePost,
-  onDeletePost,
-  onToggleComments,
-  isLoadingPosts,
-  errorPosts,
+  isLoading,
+  error,
+  onPlayVideo,
+  toggleLike,
+  deletePost,
+  toggleComments,
   onRetry,
 }) => {
   return (
     <ContentState
-      loading={isLoadingPosts || (!currentUser && !targetUser)}
-      error={errorPosts}
+      loading={isLoading || (!currentUser && !targetUser)}
+      error={error}
       isEmpty={!posts?.length}
       loadingMessage="Загружаем посты..."
       emptyIcon="📝"
@@ -42,21 +42,21 @@ export const PostsTab = ({
       emptyDescription={
         isProfileOwner
           ? 'Опубликуйте свой первый пост.'
-          : 'Пользователь пока ничего не публиковал.'
+          : 'У пользователя пока нет публичных постов.'
       }
       onRetry={onRetry}
     >
       <div className={style.postsList}>
         {posts.map((post) => (
-          <PostCard
+          <Post
             key={post.id}
             post={post}
             targetUser={targetUser}
             currentUser={currentUser}
-            onPlay={onClickVideo}
-            toggleLike={toggleLikePost}
-            onDelete={onDeletePost}
-            toggleComments={onToggleComments}
+            onPlay={onPlayVideo}
+            toggleLike={toggleLike}
+            onDelete={deletePost}
+            toggleComments={toggleComments}
           />
         ))}
       </div>

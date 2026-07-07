@@ -1,0 +1,17 @@
+.cover {
+  position: relative;
+  cursor: pointer;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: var(--space-3);
+}
+
+.play {
+  font-size: 2rem;
+}

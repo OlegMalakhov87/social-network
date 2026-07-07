@@ -1,49 +1,43 @@
 import PropTypes from 'prop-types';
+import { classNames } from '../../lib';
 import styles from './Card.module.css';
 
 /**
- * Универсальная карточка приложения.
+* Базовый контейнер карточки.
+
+* Отвечает только за внешний вид: фон, границы, скругления, тени, hover и внутренние отступы.
+ *
+ * Вся структура карточки (Header, Content, Actions и т.д.)
+ * строится внутри BaseCard.
  *
  * @param {Object} props
  * @param {React.ReactNode} props.children - Содержимое карточки.
- * @param {React.ReactNode} [props.header] - Верхняя часть карточки.
- * @param {React.ReactNode} [props.footer] - Нижняя часть карточки.
  * @param {boolean} [props.hover=false] - Добавляет эффект при наведении.
  * @param {boolean} [props.padding=true] - Внутренние отступы.
  * @param {string} [props.className=''] - Дополнительный CSS класс.
  */
 export const Card = ({
   children,
-  header,
-  footer,
   hover = false,
   padding = true,
   className = '',
 }) => {
   return (
     <section
-      className={[
+      className={classNames(
         styles.card,
         hover && styles.hover,
         padding && styles.padding,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+        className
+      )}
     >
-      {header && <header className={styles.header}>{header}</header>}
-
-      <div className={styles.body}>{children}</div>
-
-      {footer && <footer className={styles.footer}>{footer}</footer>}
+      {children}
     </section>
   );
 };
 
 Card.propTypes = {
   children: PropTypes.node.isRequired,
-  header: PropTypes.node,
-  footer: PropTypes.node,
   hover: PropTypes.bool,
   padding: PropTypes.bool,
   className: PropTypes.string,

@@ -1,0 +1,49 @@
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  border: none;
+  cursor: pointer;
+
+  transition: 0.2s;
+
+  border-radius: var(--radius-full);
+
+  background: var(--surface-overlay);
+
+  color: var(--text-primary);
+
+  backdrop-filter: blur(6px);
+}
+
+.button:hover {
+  transform: scale(1.05);
+}
+
+.sm {
+  width: 28px;
+  height: 28px;
+}
+
+.md {
+  width: 36px;
+  height: 36px;
+}
+
+.lg {
+  width: 44px;
+  height: 44px;
+}
+
+.default {
+}
+
+.danger:hover {
+  background: var(--color-danger);
+  color: white;
+}
+
+.warning {
+  color: gold;
+}

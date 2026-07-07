@@ -1,4 +1,3 @@
-/* === Профиль === */
 .profile {
   display: flex;
   flex-direction: column;
@@ -7,71 +6,15 @@
   min-height: 100%;
 }
 
-/* Область контента */
-.contentArea {
-  padding: var(--space-4);
-}
-
-/* Строка с фильтрами и управлением */
-.tabsRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-2);
-  border-bottom: 2px solid var(--color-primary);
-}
-
-.filterButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rightControls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-left: auto;
-}
-
-/* Адаптивность */
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
   .profile {
     padding: var(--space-3);
   }
-  .contentArea {
-    padding: var(--space-3);
-  }
-  .tabsRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
-  }
-  .rightControls {
-    margin-left: 0;
-    align-self: flex-end;
-  }
 }
 
-@media screen and (max-width: 480px) {
+@media (max-width: 480px) {
   .profile {
     padding: var(--space-2);
     gap: var(--space-3);
-  }
-  .contentArea {
-    padding: var(--space-2);
-  }
-  .filterButtons {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .filterButtons button {
-    flex: 1;
-    text-align: center;
-    padding: var(--space-2) var(--space-1);
-    font-size: var(--font-sm);
   }
 }

@@ -1,101 +1,109 @@
+import { useEffect } from 'react';
+import { Video } from '../../../../../entities/video';
+import { ContentState } from '../../../../../shared/ui';
 import style from './VideosTab.module.css';
-import { VideoCard } from '../../../../../entities/video';
-import {
-  ContentEmptyState,
-  Pagination,
-  PageLoader,
-} from '../../../../../shared/ui';
 
 /**
  * Вкладка с сеткой видео.
  * @param {Object} props
- * @param {Array} props.items - массив видео
- * @param {Object} props.pagination - данные пагинации
- * @param {Function} props.onClickVideo - воспроизведение видео
- * @param {boolean} props.isLoadingVideos - загружено видео или нет
- * @param {string} errorVideos - ошибка
+ * @param {Array} props.videos - массив видео
  * @param {Object} props.currentUser - текущий пользователь
+ * @param {Object} props.targetUser - выбранный пользователь
  * @param {boolean} props.isProfileOwner - владелец профиля
- * @param {Function} props.onAddToLibrary - добавить в библиотеку
- * @param {Function} props.onRemoveFromLibrary - удалить из библиотеки
- * @param {Function} props.toggleLikeVideo - лайк/дизлайкч
- * @param {Function} props.updateViewCount - обновить личный  счетчик просмотров
+ * @param {boolean} props.isLoading - загружено видео или нет
+ * @param {string} props.error - ошибка
+ * @param {string} props.mode - режим отображения
+ * @param {Function} props.toggleLikes - лайк/дизлайк
+ * @param {Function} props.addOptimistic - добавить оптимистический в библиотеку для видео
+ * @param {Function} props.removeOptimistic - удалить оптимистический из библиотеки для видео
+ * @param {Function} props.updateViewCount - обновить счетчик просмотров
  * @param {Function} props.updateGlobalViewCount - обновить глобальный счетчик просмотров
- * @param {Function} props.toggleFavoriteVideo - удалить/добавить в избранное
- * @param {Function} props.onDeleteVideo - удалить видео
- * @param {Function} props.onToggleComments - открыть комментарии
+ * @param {Function} props.onPlayVideo - воспроизведение видео
+ * @param {Function} props.deleteVideo - удалить видео
+ * @param {Function} props.toggleFavorite - удалить/добавить в избранное
+ * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
+ * @param {Function} props.onRetry - повторить загрузку
  */
 export const VideosTab = ({
-  items = [],
-  mode,
-  pagination,
-  onClickVideo,
-  isLoadingVideos,
-  errorVideos,
+  videos = [],
   currentUser,
+  targetUser,
   isProfileOwner,
-  onAddToLibrary,
-  onRemoveFromLibrary,
-  toggleLikeVideo,
+  isLoading,
+  error,
+  mode,
+  toggleLikes,
+  addOptimistic,
+  removeOptimistic,
   updateViewCount,
   updateGlobalViewCount,
-  toggleFavoriteVideo,
-  onDeleteVideo,
-  onToggleComments,
+  onPlayVideo,
+  deleteVideo,
+  toggleFavorite,
+  toggleComments,
+  onRetry,
 }) => {
-  // Состояние загрузки вкладки с видео
-  if (isLoadingVideos) {
-    return <PageLoader message="Загружаем видео..." />;
-  }
+  /** Обработчик для увеличения счетчика просмотров при воспроизведении видео */
+  useEffect(() => {
+    if (typeof onPlayVideo !== 'function') return;
 
-  if (!items?.length) {
-    return (
-      <ContentEmptyState
-        icon="🎬"
-        title="Нет видео"
-        description={
-          isProfileOwner
-            ? 'Загрузите первые видео в свой профиль!'
-            : 'У пользователя пока нет публичных видео'
-        }
-      />
-    );
-  }
+    onPlayVideo((video) => {
+      const currentVideo = videos.find((item) => item.id === video?.id);
+      const profileLibraryId =
+        currentVideo?.profileLibraryId || video.profileLibraryId;
+
+      const viewCount = currentVideo?.viewCount ?? video?.viewCount;
+      const newViewCount = (viewCount ?? 0) + 1;
+
+      if (profileLibraryId) {
+        updateViewCount?.(
+          video?.id ?? 0,
+          profileLibraryId,
+          currentVideo?.isFavorite ?? video?.isFavorite,
+          newViewCount ?? 0
+        );
+      } else {
+        updateGlobalViewCount?.(video?.id ?? 0);
+      }
+    });
+    return () => onPlayVideo(null);
+  }, [onPlayVideo, updateViewCount, updateGlobalViewCount, videos]);
 
   return (
-    <>
+    <ContentState
+      loading={isLoading || (!currentUser && !targetUser)}
+      isEmpty={!videos?.length}
+      error={error}
+      loadingMessage="Загружаем видео..."
+      emptyIcon="🎬"
+      emptyTitle="Нет видео"
+      emptyDescription={
+        isProfileOwner
+          ? 'Добавьте свои первые видео.'
+          : 'У пользователя пока нет публичных видео.'
+      }
+      onRetry={onRetry}
+    >
       <div className={style.videosGrid}>
-        {items.map((video) => {
-          const isOwn = video.uploadedBy === currentUser?.id;
-          return (
-            <VideoCard
-              key={video.id}
-              video={video}
-              currentUser={currentUser}
-              isOwn={isOwn}
-              isProfileOwner={isProfileOwner}
-              mode={mode}
-              onPlay={onClickVideo}
-              addToLibrary={onAddToLibrary}
-              removeFromLibrary={onRemoveFromLibrary}
-              toggleLike={toggleLikeVideo}
-              onDelete={onDeleteVideo}
-              toggleComments={onToggleComments}
-              updateViewCount={updateViewCount}
-              updateGlobalViewCount={updateGlobalViewCount}
-              toggleFavorite={toggleFavoriteVideo}
-            />
-          );
-        })}
+        {videos.map((video) => (
+          <Video
+            key={video.id}
+            video={video}
+            currentUser={currentUser}
+            isProfileOwner={isProfileOwner}
+            mode={mode}
+            onPlay={onPlayVideo}
+            addToLibrary={addOptimistic}
+            removeFromLibrary={removeOptimistic}
+            toggleLike={toggleLikes}
+            onDelete={deleteVideo}
+            toggleComments={toggleComments}
+            updateViewCount={updateViewCount}
+            updateGlobalViewCount={updateGlobalViewCount}
+            toggleFavorite={toggleFavorite}
+          />
+        ))}
       </div>
-
-      {pagination?.totalPages > 1 && (
-        <Pagination
-          totalPages={pagination.totalPages}
-          page={pagination.currentPage}
-          onPageChange={pagination.goToPage}
-        />
-      )}
-    </>
+    </ContentState>
   );
 };
