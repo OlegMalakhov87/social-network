@@ -22,6 +22,6 @@ export const getTracksTabProps = (ctx) => ({
   addOptimistic: ctx.addOptimistic,
   removeOptimistic: ctx.removeOptimistic,
   updatePlayCount: ctx.updatePlayCount,
-  updateGlobalPlayCount: ctx.updateGlobalPlayCount,
   toggleFavorite: ctx.toggleFavorite,
+  toggleComments: ctx.toggleComments,
 });

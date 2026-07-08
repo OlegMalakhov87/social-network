@@ -1,20 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchUserById } from '../../../entities/user';
 
 /**
  * Хук для получения данных пользователя с сервера.
- * @param {number} userId - ID пользователя
+ * @param {number} profileUserId - ID пользователя
  * @returns {{ user: Object|null, isLoading: boolean, error: string|null }}
  */
-export function useUserProfile(userId) {
+export function useUserProfile(profileUserId) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  /**
+   * Получение данных пользователя с сервера.
+   */
   useEffect(() => {
-    //Строгая валидация: только целое положительное число
-    const isValidId = Number.isInteger(userId) && userId > 0;
-    if (!isValidId) {
+    if (!profileUserId || profileUserId <= 0) {
       setUser(null);
       setError(null);
       setIsLoading(false);
@@ -26,7 +27,7 @@ export function useUserProfile(userId) {
     setIsLoading(true);
     setError(null);
 
-    fetchUserById(userId, { signal: controller.signal })
+    fetchUserById(profileUserId, { signal: controller.signal })
       .then((data) => {
         setUser(data);
       })
@@ -43,7 +44,10 @@ export function useUserProfile(userId) {
       });
 
     return () => controller.abort();
-  }, [userId]);
+  }, [profileUserId]);
 
+  /**
+   * Возвращаем объект с данными о пользователе.
+   */
   return { user, isLoading, error };
 }

@@ -40,35 +40,28 @@ export const ProfilePage = () => {
     targetUser,
     userError,
     items,
-    // Посты
     isLoadingProfile,
+    toggleLikeItem,
+    removeItemOptimistic,
+    addItemOptimistic,
+    updateItemCount,
+    toggleFavorite,
+    updateCommentCount,
+    // Посты
     isLoadingPosts,
     paginationPosts,
     errorPosts,
-    toggleLikePost,
     handleAddPost,
     handleDeletePost,
-    updateCommentCountPost,
+    handleEditPost,
     // Треки
     isLoadingTracks,
     paginationTracks,
     errorTracks,
-    toggleLikeTrack,
-    addTrackOptimistic,
-    removeTrackOptimistic,
-    updatePlayCount,
-    toggleFavoriteTrack,
-    updateCommentCountTrack,
     // Видео
     isLoadingVideos,
     paginationVideos,
     errorVideos,
-    toggleLikeVideo,
-    addVideoOptimistic,
-    removeVideoOptimistic,
-    updateViewCount,
-    toggleFavoriteVideo,
-    updateCommentCountVideo,
   } = useUserContentFilter({
     activeTab,
     sortKey,
@@ -118,14 +111,6 @@ export const ProfilePage = () => {
   const { commentTarget, handleCloseComments, onToggleComments } =
     useCommentsPanel(commentTargetType, currentPagination?.currentPage);
 
-  /** Получение функций для обновления количества комментариев */
-  const updateCommentCount = {
-    posts: updateCommentCountPost,
-    photos: updateCommentCountPost,
-    tracks: updateCommentCountTrack,
-    videos: updateCommentCountVideo,
-  }[activeTab];
-
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
     (delta) => {
@@ -144,48 +129,45 @@ export const ProfilePage = () => {
     targetUser,
     toggleComments: onToggleComments,
     isProfileOwner,
+    toggleLike: toggleLikeItem,
     posts: {
       items,
       isLoading: isLoadingPosts,
       error: errorPosts,
       onPlayVideo: handleClickVideo,
-      toggleLike: toggleLikePost,
       deletePost: handleDeletePost,
+      editPost: handleEditPost,
     },
     tracks: {
       items,
       isLoading: isLoadingTracks,
       error: errorTracks,
       mode: 'profile',
-      toggleLike: toggleLikeTrack,
-      addOptimistic: addTrackOptimistic,
-      removeOptimistic: removeTrackOptimistic,
-      updatePlayCount: updatePlayCount,
-      toggleFavorite: toggleFavoriteTrack,
-      updateCommentCount: updateCommentCountTrack,
       currentTrack: currentTrack,
       isPlaying: isPlaying,
       onPlay: playTrack,
       onTrackStart: setOnTrackStart,
       togglePlay: togglePlay,
+      addOptimistic: addItemOptimistic,
+      removeOptimistic: removeItemOptimistic,
+      updatePlayCount: updateItemCount,
+      toggleFavorite: toggleFavorite,
     },
     videos: {
       items,
       isLoading: isLoadingVideos,
       error: errorVideos,
       mode: 'profile',
-      toggleLike: toggleLikeVideo,
-      addOptimistic: addVideoOptimistic,
-      removeOptimistic: removeVideoOptimistic,
-      updateViewCount: updateViewCount,
       onPlayVideo: handleClickVideo,
-      toggleFavorite: toggleFavoriteVideo,
+      addOptimistic: addItemOptimistic,
+      removeOptimistic: removeItemOptimistic,
+      updateViewCount: updateItemCount,
+      toggleFavorite: toggleFavorite,
     },
     photos: {
       items,
       isLoading: isLoadingPosts,
       error: errorPosts,
-      toggleLike: toggleLikePost,
       deletePhoto: handleDeletePost,
     },
   });
@@ -246,11 +228,9 @@ export const ProfilePage = () => {
 
         {showPostForm && currentUser && (
           <PostForm
-            currentUser={currentUser}
             isLoading={isLoadingPosts}
             onAddPost={handleAddPost}
             onClose={() => setShowPostForm(false)}
-            errorPosts={errorPosts}
           />
         )}
 

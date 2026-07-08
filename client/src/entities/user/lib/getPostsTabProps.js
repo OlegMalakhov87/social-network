@@ -15,5 +15,6 @@ export const getPostsTabProps = (ctx) => ({
   onPlayVideo: ctx.onPlayVideo,
   toggleLike: ctx.toggleLike,
   deletePost: ctx.deletePost,
+  editPost: ctx.editPost,
   toggleComments: ctx.toggleComments,
 });

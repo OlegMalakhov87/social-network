@@ -1,30 +1,30 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  normalizePost,
   addPostApi,
-  fetchUserPosts,
-  editPostApi,
   deletePostApi,
+  editPostApi,
+  fetchUserPosts,
+  normalizePost,
 } from '../../../entities/post';
-import { addLike, deleteLike } from '../../../entities/like';
 
 /**
  * Хук для получения постов пользователя.
- * @param {number} userId
- * @param {Object} filters – { page, limit, visibility }
- * @returns {{ posts: Array, pagination: Object|null, isLoading: boolean, error: string|null, refetch: Function }}
+ * @param {number|null} profileUserId - ID пользователя
+ * @param {number|null} currentUserId - ID текущего пользователя
+ * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля
+ * @returns {{ posts: Array, pagination: Object|null, isLoading: boolean, error: string|null, refetch: Function, setRawPosts: Function, handleAddPost: Function, handleEditPost: Function, handleDeletePost: Function }}
  */
-export function useUserPosts(userId) {
+export function useUserPosts(profileUserId, currentUserId, isOwnProfile) {
   const [rawPosts, setRawPosts] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const currentUserId = useSelector((state) => state.auth.user?.id);
-
+  /**
+   * Получение постов пользователя.
+   */
   const fetchPosts = useCallback(async () => {
-    if (!userId || userId <= 0) {
+    if (!profileUserId || profileUserId <= 0) {
       setRawPosts([]);
       setPagination(null);
       return;
@@ -33,7 +33,10 @@ export function useUserPosts(userId) {
     setError(null);
 
     try {
-      const data = await fetchUserPosts(userId, { page: 1, limit: 30 });
+      const data = await fetchUserPosts(
+        isOwnProfile ? currentUserId : profileUserId,
+        { page: 1, limit: 30 }
+      );
       const posts = Array.isArray(data?.posts) ? data.posts : [];
       const postsWithCount = posts.map((post) => ({
         ...post,
@@ -48,7 +51,7 @@ export function useUserPosts(userId) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, [profileUserId, currentUserId, isOwnProfile]);
 
   useEffect(() => {
     fetchPosts();
@@ -60,58 +63,9 @@ export function useUserPosts(userId) {
   }, [rawPosts, currentUserId]);
 
   /**
-   * Оптимистичный лайк / дизлайк
-   * @param {number} postId
-   * @param {boolean} currentlyLiked — текущее состояние (лайкнут или нет)
+   * Добавление поста.
+   * @param {Object} formData - данные поста.
    */
-  const toggleLikePost = useCallback(
-    async (postId, currentlyLiked) => {
-      setRawPosts((prev) =>
-        prev.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                likesCount: currentlyLiked
-                  ? (post.likesCount ?? 1) - 1
-                  : (post.likesCount ?? 0) + 1,
-                isLiked: !currentlyLiked,
-                likes: currentlyLiked
-                  ? (post.likes || []).filter((like) => like.userId !== currentUserId)
-                  : [...(post.likes || []), { userId: currentUserId }],
-              }
-            : post
-        )
-      );
-
-      try {
-        if (currentlyLiked) {
-          await deleteLike('Post', postId);
-        } else {
-          await addLike('Post', postId);
-        }
-      } catch (err) {
-        setRawPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  likesCount: currentlyLiked
-                    ? (post.likesCount ?? 1) + 1
-                    : (post.likesCount ?? 0) - 1,
-                  isLiked: currentlyLiked,
-                  likes: currentlyLiked
-                    ? [...(post.likes || []), { userId: currentUserId }]
-                    : (post.likes || []).filter((like) => like.userId !== currentUserId),
-                }
-              : post
-          )
-        );
-        console.error('Ошибка лайка:', err);
-      }
-    },
-    [currentUserId]
-  );
-
   const handleAddPost = useCallback(
     async (formData) => {
       if (!currentUserId || !formData) return;
@@ -120,11 +74,20 @@ export function useUserPosts(userId) {
         fetchPosts();
       } catch (error) {
         console.error('Ошибка добавления поста', error);
+        return false;
       }
     },
     [currentUserId, fetchPosts]
   );
 
+  /**
+   * Редактирование поста.
+   * @param {number} postId - ID поста.
+   * @param {string} message - текст поста.
+   * @param {string} visibility - видимость поста.
+   * @param {string} postType - тип поста.
+   * @param {string} mediaUrl - URL медиа файла.
+   */
   const handleEditPost = useCallback(
     async (postId, message, visibility, postType, mediaUrl) => {
       if (!currentUserId) return false;
@@ -140,6 +103,10 @@ export function useUserPosts(userId) {
     [currentUserId, fetchPosts]
   );
 
+  /**
+   * Удаление поста.
+   * @param {number} postId - ID поста.
+   */
   const handleDeletePost = useCallback(
     async (postId) => {
       if (!currentUserId || !postId) return false;
@@ -155,24 +122,18 @@ export function useUserPosts(userId) {
     [currentUserId, fetchPosts]
   );
 
-  const updateCommentCount = useCallback((postId, delta) => {
-    setRawPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId ? { ...post, commentsCount: (post.commentsCount ?? 0) + delta } : post
-      )
-    );
-  }, []);
-
+  /**
+   * Возвращаем объект с данными о постах пользователя.
+   */
   return {
     posts,
     pagination,
     isLoading,
     error,
-    toggleLikePost,
+    setRawPosts,
     handleAddPost,
     handleEditPost,
     handleDeletePost,
-    updateCommentCount,
     refetch: fetchPosts,
   };
 }

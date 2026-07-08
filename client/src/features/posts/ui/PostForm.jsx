@@ -35,6 +35,8 @@ export const PostForm = ({ isLoading, onAddPost, onClose }) => {
     },
   });
 
+  const postType = form.register('postType');
+
   return (
     <BaseCard
       content={
@@ -42,8 +44,11 @@ export const PostForm = ({ isLoading, onAddPost, onClose }) => {
           {/* Выбор типа поста */}
           <SegmentedControl
             options={POST_TYPES}
-            value={form.values.postType}
-            {...form.register('postType')}
+            {...postType}
+            onChange={(value) => {
+              postType.onChange(value);
+              form.setValue('mediaUrl', '');
+            }}
           />
 
           {/* Поле ввода сообщения */}
@@ -77,18 +82,16 @@ export const PostForm = ({ isLoading, onAddPost, onClose }) => {
           <ButtonGroup>
             <Button
               variant="secondary"
-              onClick={() => onClose?.()}
+              onClick={() => {
+                form.reset();
+                onClose?.();
+              }}
               disabled={isLoading}
             >
               Отмена
             </Button>
 
-            <Button
-              type="submit"
-              disabled={
-                !form.values.message.trim() || !form.isValid || isLoading
-              }
-            >
+            <Button type="submit" disabled={isLoading}>
               Опубликовать
             </Button>
           </ButtonGroup>

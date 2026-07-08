@@ -57,19 +57,22 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
    * Обработчик отправки формы
    * @returns {Promise<boolean>} - результат отправки формы
    */
-  const handleSubmit = useCallback(async (e) => {
-    e?.preventDefault();
-    const valid = validation.validate();
+  const handleSubmit = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      const valid = validation.validate();
 
-    if (!valid) return false;
+      if (!valid) return false;
 
-    await onSubmit?.(form.values);
+      await onSubmit?.(form.values);
 
-    form.reset();
-    validation.resetErrors();
+      form.reset();
+      validation.resetErrors();
 
-    return true;
-  }, [form, validation, onSubmit]);
+      return true;
+    },
+    [form, validation, onSubmit]
+  );
 
   /**
    * Регистрация поля формы
@@ -77,11 +80,13 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
    * @returns {Object} - объект с значением, ошибкой и обработчиками изменения и фокуса
    */
   const register = useCallback(
-    (name) => ({
+    (name, extra = {}) => ({
+      name,
       value: form.values[name],
       error: validation.errors[name],
       onChange: (value) => handleChange(name, value),
       onBlur: () => handleBlur(name),
+      ...extra,
     }),
     [form.values, validation.errors, handleChange, handleBlur]
   );
@@ -99,9 +104,8 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
       form.reset();
       validation.resetErrors();
     },
-    
+
     validate: validation.validate,
     validateField: validation.validateField,
-   
   };
 };
