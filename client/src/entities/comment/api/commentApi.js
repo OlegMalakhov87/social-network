@@ -6,31 +6,28 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
  * Получить комментарии для конкретной сущности.
  * @param {string} targetType – 'Post' | 'Music' | 'Video' | 'News'
  * @param {number} targetId
+ * @param {number} [page=1] - номер страницы
  * @returns {Promise<Object>} { comments, pagination }
  */
-export async function fetchComments(targetType, targetId) {
-  const response = await apiFetch(`${BASE_URL}/comments/${targetType}/${targetId}`);
-  if (!response.ok) {
-    throw new Error(`Ошибка загрузки комментариев: ${response.status}`);
-  }
+export async function fetchComments(targetType, targetId, page = 1) {
+  const response = await apiFetch(
+    `${BASE_URL}/comments/${targetType}/${targetId}?page=${page}`
+  );
   return response.json();
 }
 
 /**
- * Добавить комментарии для конкретной сущности.
- * @param {string} targetType – 'Post' | 'Music' | 'Video' | 'News'
+ * Добавить комментарий.
+ * @param {string} targetType
  * @param {number} targetId
  * @param {string} content
- * @returns {Promise<Object>} { comment}
+ * @returns {Promise<Object>} { comment }
  */
 export async function addCommentApi(targetType, targetId, content) {
   const response = await apiFetch(`${BASE_URL}/comments/`, {
     method: 'POST',
     body: JSON.stringify({ targetType, targetId, content }),
   });
-  if (!response.ok) {
-    throw new Error(`Ошибка добавления комментария: ${response.status}`);
-  }
   return response.json();
 }
 
@@ -40,30 +37,39 @@ export async function addCommentApi(targetType, targetId, content) {
  * @param {string} newContent
  * @param {string} targetType
  * @param {number} targetId
- * @returns {Promise<Object>}
+ * @returns {Promise<Object>} { comment }
  */
-export async function editCommentApi(commentId, newContent, targetType, targetId) {
+export async function editCommentApi(
+  commentId,
+  newContent,
+  targetType,
+  targetId
+) {
   const response = await apiFetch(`${BASE_URL}/comments/${commentId}`, {
     method: 'PUT',
     body: JSON.stringify({ content: newContent, targetType, targetId }),
   });
-  if (!response.ok) {
-    throw new Error(`Ошибка изменения комментария: ${response.status}`);
-  }
   return response.json();
 }
 
 /**
- * Удалить комментарии по ID
+ * Удалить комментарий по ID
  * @param {number} commentId
- * @returns {Promise<number} {commentId}
+ * @returns {Promise<number>}{ commentId }
  */
 export async function deleteCommentApi(commentId) {
   const response = await apiFetch(`${BASE_URL}/comments/${commentId}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error(`Ошибка удаления комментария: ${response.status}`);
-  }
+  return response.json();
+}
+
+/**
+ * Получить комментарий по ID (для кнопки поделиться).
+ * @param {number} commentId
+ * @returns {Promise<Object>} { comment }
+ */
+export async function fetchCommentById(commentId) {
+  const response = await apiFetch(`${BASE_URL}/comments/${commentId}/shared`);
   return response.json();
 }

@@ -1,93 +1,81 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchMyVideoLibrary,
   fetchUserVideoLibrary,
   normalizeVideo,
 } from '../../../entities/video';
+import { apiFetchItems } from '../../../shared/api';
+import {
+  useInfiniteScroll,
+  useNormalizedData,
+  useNotify,
+} from '../../../shared/hooks';
 
 /**
  * Хук для получения видео библиотеки пользователя.
  * @param {number|null} profileUserId - ID пользователя
  * @param {number|null} currentUserId - ID текущего пользователя
  * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля
- * @returns {{ videos: Array, pagination: Object|null, isLoading: boolean, error: string|null, refetch: Function, setRawVideos: Function }}
+ * @param {string} sortKey - ключ сортировки
+ * @returns {{ videos: Array, isLoading: boolean, error: string|null, refetch: Function, setRawVideos: Function, loadMore: Function }}
  */
 export function useUserVideoLibrary(
   profileUserId,
   currentUserId,
-  isOwnProfile
+  isOwnProfile,
+  sortKey
 ) {
-  const [rawVideos, setRawVideos] = useState([]);
-  const [pagination, setPagination] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const notify = useNotify('videos');
 
   /**
    * Получение видео библиотеки пользователя.
    */
-  const fetchVideos = useCallback(async () => {
-    if (!profileUserId || profileUserId <= 0) {
-      setRawVideos([]);
-      setPagination(null);
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      let data;
-      //  Выбираем эндпоинт в зависимости от профиля
-      if (isOwnProfile) {
-        // Свой профиль: запрашиваем МОЮ библиотеку
-        data = await fetchMyVideoLibrary({ page: 1, limit: 30 });
-      } else {
-        // Чужой профиль: запрашиваем ЕГО библиотеку + статус для моей кнопки
-        data = await fetchUserVideoLibrary(profileUserId, {
-          page: 1,
-          limit: 30,
-        });
+  const {
+    items: videosItems,
+    setItems: setVideosItems,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+  } = useInfiniteScroll({
+    fetchFn: ({ page, limit, signal }) => {
+      if (!profileUserId || profileUserId <= 0) {
+        return { items: [], hasMore: false };
       }
+      return apiFetchItems(
+        isOwnProfile ? fetchMyVideoLibrary : fetchUserVideoLibrary,
+        {
+          params: { userId: profileUserId, page, limit },
+          signal,
+        }
+      );
+    },
+    deps: [profileUserId, sortKey],
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
+  });
 
-      const videos = Array.isArray(data?.videos) ? data.videos : [];
-      const videoWithCount = videos.map((video) => ({
-        ...video,
-        commentsCount: video.comments?.length ?? 0,
-      }));
-      setRawVideos(videoWithCount || []);
-      setPagination(data.pagination || null);
-    } catch (err) {
-      setError(err.message);
-      setRawVideos([]);
-      setPagination(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [profileUserId, isOwnProfile]);
-
-  /**
-   * Загрузка видео библиотеки пользователя при монтировании компонента.
-   */
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
-  /**
-   * Нормализация видео библиотеки пользователя.
-   */
-  const videos = useMemo(() => {
-    if (!Array.isArray(rawVideos)) return [];
-    return rawVideos.map((entry) => normalizeVideo(entry, currentUserId));
-  }, [rawVideos, currentUserId]);
+  /** Нормализация и сортировка новостей. */
+  const videos = useNormalizedData({
+    items: videosItems,
+    entityType: 'videos',
+    sortKey,
+    normalizeFn: normalizeVideo,
+    userId: currentUserId,
+  });
 
   /**
    * Возвращаем объект с данными о видео библиотеке пользователя.
    */
   return {
     videos,
-    pagination,
+    hasMore,
     isLoading,
+    loadMore,
+    isLoadingMore,
     error,
-    setRawVideos,
-    refetcsetRawVideosh: fetchVideos,
+    refetch,
+    setVideosItems,
   };
 }

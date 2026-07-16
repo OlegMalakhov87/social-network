@@ -1,13 +1,28 @@
 //export { default as commentsReducer } from './model/commentsSlice';
 //export * from './model/commentsSelectors';
-export {
+/**export {
   addComment,
   updateNewCommentText,
   editComment,
   deleteComment,
-} from './model/commentsSlice';
-export { CommentsList } from './ui/CommentsList';
-export { CommentCard } from './ui/CommentCard';
-export { CommentForm } from './ui/CommentForm';
+} from './model/commentsSlice';**/
+
+/**
+ * Вспомогательные функции для комментариев.
+ */
+export { getCommentActions } from './lib/getCommentActions';
 export { normalizeComment } from './lib/normalizeComment';
-export { fetchComments, addCommentApi, editCommentApi, deleteCommentApi } from './api/commentApi';
+/**
+ * Компоненты для комментариев.
+ */
+export { Comment } from './ui/Comment';
+/**
+ * API для комментариев.
+ */
+export {
+  addCommentApi,
+  deleteCommentApi,
+  editCommentApi,
+  fetchComments,
+  fetchCommentById,
+} from './api/commentApi';

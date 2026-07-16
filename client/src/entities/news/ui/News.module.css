@@ -1,0 +1,17 @@
+.text {
+  font-size: var(--font-md);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text.expanded {
+  -webkit-line-clamp: unset;
+  line-clamp: none;
+  display: block;
+  white-space: normal;
+}

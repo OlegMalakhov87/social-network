@@ -8,13 +8,13 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 40px;
+  min-height: var(--space-10);
   padding: 0 var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   font-size: var(--font-xs);
-  color: var(--color-text);
+  color: var(--text-primary);
   cursor: pointer;
   transition:
     background-color var(--transition-fast),
@@ -24,18 +24,18 @@
 }
 
 .triggerButton:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-primary);
+  background: var(--surface-card-hover);
+  border-color: var(--border-focus);
 }
 
 .triggerButton:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
 .label {
   font-size: var(--font-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .icon {
@@ -52,8 +52,8 @@
   top: calc(100% + var(--space-2));
   right: 0;
   min-width: 180px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   list-style: none;
@@ -65,7 +65,7 @@
 .menuItem {
   padding: var(--space-3) var(--space-4);
   font-size: var(--font-sm);
-  color: var(--color-text);
+  color: var(--text-primary);
   cursor: pointer;
   transition:
     background-color var(--transition-fast),
@@ -73,11 +73,12 @@
 }
 
 .menuItem:hover {
-  background: var(--color-surface-hover);
+  background: var(--surface-card-hover);
 }
 
 .menuItemActive {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: 600;
+  background: var(--color-primary-active);
+  color: var(--color-white);
+  border-color: var(--border-focus);
+  font-weight: var(--font-weight-medium);
 }

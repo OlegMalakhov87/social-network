@@ -5,25 +5,16 @@ import style from './EntityMeta.module.css';
 /**
  * Универсальный блок информации о сущности.
  *
- * Используется для:
+ * Используется для: User, Post, Photo, Track, Video, Friend, News
  *
- * User
- * Post
- * Photo
- * Track
- * Video
- * Playlist
- * Album
- * Friend
- *
- * внутри BaseCard или EntityHeader.
+ * Используется внутри BaseCard или EntityHeader.
  *
  * @param {Object} props
- * @param {string} [props.avatar]
- * @param {string} props.title
- * @param {string} [props.subtitle]
- * @param {string} [props.badge]
- * @param {string} [props.className]
+ * @param {string} [props.avatar] - изображение аватара
+ * @param {string} props.title - заголовок
+ * @param {string} [props.subtitle] - подзаголовок
+ * @param {string} [props.badge] - бейдж
+ * @param {string} [props.className] - класс
  */
 
 export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {
@@ -31,7 +22,7 @@ export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {
     <div className={classNames(style.meta, className)}>
       {avatar && (
         <div className={style.avatar}>
-          <Avatar src={avatar} size="md" />
+          {typeof avatar === 'string' ? <Avatar src={avatar} /> : avatar}
         </div>
       )}
 

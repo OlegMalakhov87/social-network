@@ -3,12 +3,12 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
-  background: var(--surface-primary);
+  background: var(--surface-secondary);
   color: var(--text-primary);
   transition: var(--transition-fast);
 }
 
 .select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--border-focus);
 }

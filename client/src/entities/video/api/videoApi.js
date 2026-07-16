@@ -22,25 +22,6 @@ export async function fetchVideos({ page = 1, limit = 30, category, q } = {}) {
 }
 
 /**
- * Получить видео для вкладки "Видео" на странице просматриваемого профиля.
- * @param {number} profileUserId - ID профиля, который просматриваем
- * @param {Object} [filters]
- * @returns {Promise<Object>}
- */
-export async function fetchUserVideoLibrary(
-  profileUserId,
-  { page = 1, limit = 30, visibility } = {}
-) {
-  const response = await apiAxios(`/videos/profile/${profileUserId}`, {
-    params: {
-      page,
-      limit,
-    },
-  });
-  return response.data;
-}
-
-/**
  * Получить одно видео по ID (нереализовано, возможно в будущем)
  * @param {number} videoId
  * @returns {Promise<Object>}

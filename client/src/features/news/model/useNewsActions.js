@@ -1,79 +1,172 @@
-import { useDispatch, useSelector } from 'react-redux';
 import { useCallback } from 'react';
-import { addLike, deleteLike } from '../../../app/providers/slices/likesSlice';
-import { addNews, deleteNews } from '../../../entities/news';
+
+import { addLike, deleteLike } from '../../../entities/like';
+
+import {
+  createNewsApi,
+  deleteNewsApi,
+  editNewsApi,
+  incrementNewsView,
+} from '../../../entities/news';
+
+import {
+  useOptimisticField,
+  useOptimisticMutation,
+} from '../../../shared/hooks';
 
 /**
- *  Хук для действий с новостями
- * @returns {Object}
- * @property {Function} handleAddNews - Добавить новость
- * @property {Function} handleDeleteNews - Убрать новость
- * @property {Function} handleLike - Поставить лайк видео
- * @property {Function} handleUnlike - Убрать лайк с видео
+ * CRUD + optimistic update новостей.
+ *
+ * Не занимается загрузкой данных.
+ * Работает только с уже полученным списком.
+ *
+ * @param {Object} params
+ * @param {Function} params.setRawNews
+ * @param {number} params.userId
  */
+export const useNewsActions = ({ setRawNews, userId }) => {
+  const { addItem, removeItem, updateItem, patchItem } =
+    useOptimisticMutation(setRawNews);
 
-export const useNewsActions = () => {
-  const dispatch = useDispatch();
-  const currentUser = useSelector((state) => state.auth?.user);
+  const { incrementField, decrementField, updateField } =
+    useOptimisticField(setRawNews);
 
-  const handleLike = useCallback(
-    (newsId) => {
-      if (!currentUser?.id || !newsId) return;
-      dispatch(
-        addLike({
-          currentUserId: currentUser.id,
-          targetId: newsId,
-          targetType: 'News',
-        })
-      );
-    },
-    [dispatch, currentUser?.id]
-  );
-
-  const handleUnlike = useCallback(
-    (newsId) => {
-      if (!currentUser?.id || !newsId) return;
-      dispatch(
-        deleteLike({
-          currentUserId: currentUser.id,
-          targetId: newsId,
-          targetType: 'News',
-        })
-      );
-    },
-    [dispatch, currentUser?.id]
-  );
-
+  /**
+   * Добавление новости
+   */
   const handleAddNews = useCallback(
-    (formData) => {
-      if (!currentUser?.id || !formData) return;
-      dispatch(
-        addNews({
-          currentUserId: currentUser.id,
-          formData,
-        })
-      );
+    async (newsData) => {
+      if (!userId || !newsData) return false;
+
+      try {
+        const news = await createNewsApi(newsData);
+
+        addItem(news);
+
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
     },
-    [dispatch, currentUser?.id]
+    [userId, addItem]
   );
 
+  /**
+   * Удаление новости
+   */
   const handleDeleteNews = useCallback(
-    (newsId) => {
-      if (!currentUser?.id || !newsId) return;
-      dispatch(
-        deleteNews({
-          currentUser,
-          newsId,
-        })
-      );
+    async (newsId) => {
+      if (!newsId) return false;
+
+      try {
+        await deleteNewsApi(newsId);
+
+        removeItem(newsId);
+
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
     },
-    [dispatch, currentUser]
+    [removeItem]
   );
+
+  /**
+   * Обновление новости
+   */
+  const handleEditNews = useCallback(
+    async (newsId, newsData) => {
+      if (!newsId || !newsData) return false;
+
+      try {
+        await editNewsApi(newsId, newsData);
+
+        updateItem(newsId, newsData);
+
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
+    },
+    [updateItem]
+  );
+
+  /**
+   * Лайк
+   */
+  const toggleLikeNews = useCallback(
+    async (newsId, currentlyLiked) => {
+      if (!userId) return;
+
+      updateField(newsId, 'likes', (likes = []) => {
+        if (currentlyLiked) {
+          return likes.filter((like) => like.userId !== userId);
+        }
+
+        return [...likes, { userId }];
+      });
+
+      try {
+        if (currentlyLiked) {
+          await deleteLike('News', newsId);
+        } else {
+          await addLike('News', newsId);
+        }
+      } catch (err) {
+        updateField(newsId, 'likes', (likes = []) => {
+          if (currentlyLiked) {
+            return [...likes, { userId }];
+          }
+
+          return likes.filter((like) => like.userId !== userId);
+        });
+
+        console.error(err);
+      }
+    },
+    [userId, updateField]
+  );
+
+  /**
+   * Просмотры
+   */
+  const incrementViewCount = useCallback(
+    async (newsId) => {
+      incrementField(newsId, 'viewCount');
+
+      try {
+        await incrementNewsView(newsId);
+      } catch (err) {
+        decrementField(newsId, 'viewCount');
+        console.error(err);
+      }
+    },
+    [incrementField, decrementField]
+  );
+
+  /**
+   * Комментарии
+   */
+  const updateCommentCount = useCallback(
+    (newsId, delta) => {
+      if (delta > 0) {
+        incrementField(newsId, 'commentsCount', delta);
+      } else {
+        decrementField(newsId, 'commentsCount', Math.abs(delta));
+      }
+    },
+    [incrementField, decrementField]
+  );
+
   return {
     handleAddNews,
     handleDeleteNews,
-    handleLike,
-    handleUnlike,
-    currentUser,
+    handleEditNews,
+    toggleLikeNews,
+    incrementViewCount,
+    updateCommentCount,
   };
 };

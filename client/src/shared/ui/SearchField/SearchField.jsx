@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { Input } from '..';
 
 /**
@@ -12,15 +11,8 @@ export const SearchField = (props) => {
     <Input
       {...props}
       type="search"
+      leftIcon="🔍"
       placeholder={props.placeholder ?? 'Поиск...'}
     />
   );
-};
-
-SearchField.propTypes = {
-  placeholder: PropTypes.string,
-};
-
-SearchField.defaultProps = {
-  placeholder: 'Поиск...',
 };

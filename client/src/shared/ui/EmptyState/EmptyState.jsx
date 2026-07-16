@@ -1,5 +1,5 @@
-import styles from './EmptyState.module.css';
 import { Button } from '..';
+import styles from './EmptyState.module.css';
 
 /**
  * Заглушка для пустого состояния (нет данных, ничего не найдено).
@@ -25,7 +25,7 @@ export const EmptyState = ({
       <div className={styles.emptyTitle}>{title}</div>
       {description && <div className={styles.emptyText}>{description}</div>}
       {actionLabel && onAction && (
-        <Button size="small" onClick={onAction}>
+        <Button size="sm" onClick={onAction}>
           {actionLabel}
         </Button>
       )}

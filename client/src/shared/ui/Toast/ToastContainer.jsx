@@ -1,10 +1,14 @@
-import PropTypes from 'prop-types';
 import { Toast } from './Toast';
 import styles from './Toast.module.css';
 
 /**
  * Контейнер уведомлений.
+ *
+ * @param {Object} props
+ * @param {Array<{id:string,message:string,type:string}>} props.toasts
+ * @param {Function} props.removeToast
  */
+
 export const ToastContainer = ({ toasts, removeToast }) => {
   return (
     <div className={styles.container}>
@@ -17,9 +21,4 @@ export const ToastContainer = ({ toasts, removeToast }) => {
       ))}
     </div>
   );
-};
-
-ToastContainer.propTypes = {
-  toasts: PropTypes.array.isRequired,
-  removeToast: PropTypes.func.isRequired,
 };

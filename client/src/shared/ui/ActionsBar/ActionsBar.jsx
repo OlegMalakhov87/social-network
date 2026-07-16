@@ -1,12 +1,12 @@
 import { Button } from '..';
-import styles from './PostActionsBar.module.css';
+import styles from './ActionsBar.module.css';
 
 /**
  * Панель действий карточки.
  *
- * @param {Object[]} actions
+ * @param {Object[]} actions - массив действий
  */
-export const PostActionsBar = ({ actions = [] }) => {
+export const ActionsBar = ({ actions = [] }) => {
   return (
     <div className={styles.root}>
       {actions

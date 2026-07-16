@@ -15,22 +15,24 @@ import {
  * Карточка профиля пользователя.
  *
  * @param {Object} props
- * @param {Object|null} props.targetUser
- * @param {Object|null} props.currentUser
- * @param {string|null} props.friendshipStatus
- * @param {string|null} props.friendshipDirection
- * @param {number|null} props.friendshipId
- * @param {boolean} props.userOnline
- * @param {(userId:number)=>void} props.onFollow
- * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow
- * @param {(friendshipId:number,userId:number)=>void} props.onAccept
- * @param {(friendshipId:number,userId:number)=>void} props.onUnlock
- * @param {(userId:number)=>void} props.onBlock
+ * @param {Object|null} props.targetUser - Пользователь, профиль которого отображается.
+ * @param {Object|null} props.currentUser - Текущий пользователь.
+ * @param {boolean} props.isOwnProfile - Флаг владельца профиля.
+ * @param {string|null} props.friendshipStatus - Статус дружбы.
+ * @param {string|null} props.friendshipDirection - Направление дружбы.
+ * @param {number|null} props.friendshipId - ID дружбы.
+ * @param {boolean} props.userOnline - Флаг онлайн/офлайн пользователя.
+ * @param {(userId:number)=>void} props.onFollow - Функция для подписания на пользователя.
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow - Функция для отписки от пользователя.
+ * @param {(friendshipId:number,userId:number)=>void} props.onAccept - Функция для принятия запроса на дружбу.
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnlock - Функция для разблокировки пользователя.
+ * @param {(userId:number)=>void} props.onBlock - Функция для блокировки пользователя.
  */
 
 export const UserProfileCard = ({
   targetUser,
   currentUser,
+  isOwnProfile,
   friendshipStatus,
   friendshipDirection,
   friendshipId,
@@ -40,12 +42,8 @@ export const UserProfileCard = ({
   onAccept,
   onUnlock,
   onBlock,
-
 }) => {
   const navigate = useNavigate();
-
-  /** Владелец профиля */
-  const isOwnProfile = currentUser?.id === targetUser?.id;
 
   /** Отображения полей с данными пользователя */
   const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
@@ -91,21 +89,21 @@ export const UserProfileCard = ({
       content={
         <>
           <ProfileIdentity>
-          <Avatar
-            size="xl"
-            src={targetUser?.photoUrl}
-            fallback="/avatar.jpg"
-            alt={targetUser?.name || targetUser?.nickname}
-          />
-  {!isOwnProfile && (
-          <>
-          <StatusBadge
-            status={userOnline ? 'online' : 'offline'}
-            label={userOnline ? 'В сети' : 'Не в сети'}
-          />
+            <Avatar
+              size="xl"
+              src={targetUser?.photoUrl}
+              alt={targetUser?.name}
+            />
+            {!isOwnProfile && (
+              <>
+                <StatusBadge
+                  status={userOnline ? 'online' : 'offline'}
+                  label={userOnline ? 'В сети' : 'Не в сети'}
+                />
 
-          <ProfileActions actions={actions} />
-          </>)}
+                <ProfileActions actions={actions} />
+              </>
+            )}
           </ProfileIdentity>
           <ProfileInfoList items={infoFields} />
         </>

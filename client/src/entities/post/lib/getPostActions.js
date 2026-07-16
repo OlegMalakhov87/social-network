@@ -4,14 +4,14 @@
  * Каждый объект описывает одну кнопку EntityActions.
  *
  * @param {Object} params
- * @param {Object} params.post
- * @param {Object} params.currentUser
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike
- * @param {(id:number)=>void} params.toggleComments
- * @param {(id:number)=>void} params.onDelete
- * @param {Function} params.onShare
- *
- * @returns {Array}
+ * @param {Object} params.post - данные поста
+ * @param {Object} params.currentUser - текущий пользователь
+ * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка поста (id: номер поста, isLiked: boolean)
+ * @param {(id:number)=>void} params.toggleComments - функция для открытия комментариев поста (id: номер поста)
+ * @param {(id:number)=>void} params.onDelete - функция для удаления поста (id: номер поста)
+ * @param {Function} params.onShare - переход на страницу сообщений для передачи поста
+ * @param {(id:number)=>void} params.onUpdate - функция для обновления поста (id: номер поста)
+ * @returns {Array<Object>} - массив действий карточки поста
  */
 export const getPostActions = ({
   post,
@@ -20,8 +20,11 @@ export const getPostActions = ({
   toggleComments,
   onDelete,
   onShare,
+  onUpdate,
 }) => {
   if (!post) return [];
+
+  const isAuthor = currentUser?.id === post.userId;
 
   const actions = [
     {
@@ -47,14 +50,24 @@ export const getPostActions = ({
     actions.push({
       key: 'share',
       icon: '↗️',
-      label: String(post.sharedCount ?? 0),
+      label: 'Поделиться',
       ariaLabel: 'Поделиться',
 
       onClick: () => onShare?.(),
     });
   }
 
-  if (currentUser?.id === post.userId) {
+  if (isAuthor) {
+    actions.push({
+      key: 'update',
+      icon: '✏️',
+      label: 'Обновить',
+      ariaLabel: 'Обновить пост',
+
+      onClick: () => onUpdate?.(post),
+    });
+  }
+  if (isAuthor) {
     actions.push({
       key: 'delete',
       icon: '🗑️',
@@ -64,6 +77,5 @@ export const getPostActions = ({
       onClick: () => onDelete?.(post.id),
     });
   }
-
   return actions;
 };

@@ -6,9 +6,9 @@
   padding: var(--space-6) var(--space-4);
   text-align: center;
   border-radius: var(--radius-lg);
-  background: var(--color-surface-secondary);
-  border: 2px dashed var(--color-border);
-  min-height: var(--empty-state-height);
+  background: var(--surface-secondary);
+  border: 2px dashed var(--border-primary);
+  min-height: var(--space-18);
 }
 
 .emptyIcon {
@@ -19,14 +19,14 @@
 
 .emptyTitle {
   font-size: var(--font-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   margin-bottom: var(--space-2);
 }
 
 .emptyText {
   font-size: var(--font-sm);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   margin-bottom: var(--space-4);
   max-width: 260px;
   line-height: 1.4;

@@ -1,10 +1,9 @@
 .filterButton {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition:
     background-color var(--transition-fast),
@@ -15,22 +14,22 @@
 }
 
 .filterButton:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-primary);
+  background: var(--surface-card-hover);
+  border-color: var(--border-focus);
 }
 
 .filterButton:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
 .active {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-primary);
-  font-weight: 500;
+  background: var(--color-primary-active);
+  color: var(--color-white);
+  border-color: var(--border-focus);
+  font-weight: var(--font-weight-medium);
 }
 
 .active:hover {
-  border-color: var(--color-primary);
+  border-color: var(--border-focus);
 }

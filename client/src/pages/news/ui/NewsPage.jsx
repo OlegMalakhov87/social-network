@@ -1,39 +1,58 @@
-import { useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import style from './NewsPage.module.css';
-import { CommentsSection } from '../../../widgets/comments-list';
-import { NewsForm, useNews } from '../../../features/news';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { NEWS_TABS_MAP } from '../../../entities/news';
 import { useCommentsPanel } from '../../../features/comments';
-import { NewsCard } from '../../../entities/news';
+import { NewsForm, useNews } from '../../../features/news';
+import { SORT_OPTIONS } from '../../../shared/config';
+import { useFilterControls } from '../../../shared/hooks';
 import {
-  EmptyState,
-  FilterButton,
-  SortDropdown,
-  Pagination,
-  Loading,
-  SearchInput,
+  Dropdown,
+  ErrorBoundary,
+  IconButton,
+  PageLayout,
+  SearchField,
+  SectionCard,
+  Toolbar,
 } from '../../../shared/ui';
-import { usePagination } from '../../../shared/lib';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
+import { CommentsSection } from '../../../widgets/comments-list';
+import { NewsGrid } from '../../../widgets/news-list';
+import { VideoPlayer } from '../../../widgets/video-player';
 
 /**
  * Страница новостей – отображает каталог новостей с фильтрацией, поиском и сортировкой.
  */
 
 export const NewsPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('All');
-  const [sortKey, setSortKey] = useState('dateDesc');
-  const [showNewsForm, setShowNewsForm] = useState(false);
+  const [showNewsForm, setShowNewsForm] = useState(null);
+  const [newsVideo, setNewsVideo] = useState(null);
+  const commentsSectionRef = useRef(null);
 
-  const currentUser = useSelector((state) => state.auth?.user);
+  /** Управление фильтрацией и сортировкой */
+  const {
+    filter,
+    searchQuery,
+    setSearchQuery,
+    sortKey,
+    setSortKey,
+    handleFilterChange,
+  } = useFilterControls({
+    initialFilter: 'all',
+    initialSort: 'dateDesc',
+  });
 
+  /** Получение данных о новостях */
   const {
     news,
-    paginationNews,
-    isLoadingNews,
-    errorNews,
-    toggleLikeNews,
+    currentUser,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    loadMore,
+    refetch,
+    addNews,
+    deleteNews,
+    updateNews,
+    toggleLike,
     incrementViewCount,
     updateCommentCount,
   } = useNews({
@@ -42,126 +61,131 @@ export const NewsPage = () => {
     sortKey,
   });
 
-  const pagination = usePagination(news, 12, 1);
-  const items = pagination.paginatedItems;
+  // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
+  const { commentTarget, handleCloseComments, onToggleComments } =
+    useCommentsPanel('news', sortKey, filter);
 
-  const { commentTarget, handleCloseComments, onToggleComments } = useCommentsPanel(
-    'News',
-    filter,
-    pagination.currentPage
-  );
-
+  /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
     (delta) => {
-      updateCommentCount(commentTarget.id, delta);
+      updateCommentCount(commentTarget?.id, delta);
     },
     [commentTarget?.id, updateCommentCount]
   );
 
-  const CATEGORIES = [
-    { id: 'All', name: 'Все' },
-    { id: 'Technology', name: 'Технологии' },
-    { id: 'Sports', name: 'Спорт' },
-    { id: 'Culture', name: 'Культура' },
-    { id: 'Economy', name: 'Политика' },
-    { id: 'Health', name: 'Здоровье' },
-  ];
+  /** Обработчик для открытия модального окна с видео*/
+  const handleOpenVideo = useCallback((video) => setNewsVideo(video), []);
+  /** Обработчик для закрытия модального окна с видео*/
+  const handleCloseVideo = useCallback(() => setNewsVideo(null), []);
 
-  /**  Состояние загрузки всей страницы */
-  if (isLoadingNews && news.length === 0) {
-    return <Loading fullPage message="Загружаем новости..." size="large" />;
-  }
+  /** Обработчик для отправки формы */
+  const handleFormSubmit = useCallback(
+    async (values, isEdit, newsId) => {
+      if (isEdit && newsId) {
+        await updateNews?.(newsId, values);
+      } else {
+        await addNews?.(values);
+      }
+      setShowNewsForm(null);
+    },
+    [addNews, updateNews]
+  );
+
+  /** Обработчик для закрытия формы */
+  const handleCloseForm = useCallback(() => {
+    setShowNewsForm(null);
+  }, []);
+
+  /** Скролл к секции комментариев при открытии панели */
+  useEffect(() => {
+    if (!commentTarget?.id || !commentTarget?.type) return;
+    commentsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [commentTarget?.id, commentTarget?.type]);
 
   return (
-    <div className={style.news}>
-      {/* Шапка с поиском и фильтрами */}
-      <div className={style.header}>
-        <h1 className={style.title}>Новости</h1>
-        <div className={style.search}>
-          <SearchInput
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск новостей ..."
+    <ErrorBoundary>
+      <PageLayout
+        title="Новости"
+        actions={
+          currentUser && (
+            <IconButton
+              icon="➕"
+              variant="primary"
+              size="md"
+              onClick={() => setShowNewsForm('create')}
+              ariaLabel="Добавить новость"
+            />
+          )
+        }
+      >
+        {/* Панель фильтров и поиска */}
+        <SectionCard>
+          <Toolbar
+            tabs={NEWS_TABS_MAP}
+            activeTab={filter}
+            onTabChange={handleFilterChange}
+            rightSlot={
+              <>
+                <SearchField
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Поиск новостей..."
+                />
+                <Dropdown
+                  options={SORT_OPTIONS}
+                  currentSort={sortKey}
+                  onChange={setSortKey}
+                />
+              </>
+            }
           />
-        </div>
-        <div className={style.filters}>
-          {CATEGORIES.map((cat) => (
-            <FilterButton
-              key={cat.id}
-              cat={cat}
-              filter={filter}
-              onChangeButtonFilter={(id) => {
-                setFilter(id);
-                setSearchQuery('');
-                setSortKey('dateDesc');
-              }}
-            />
-          ))}
-          {currentUser && (
-            <button
-              className={style.addButton}
-              onClick={(e) => {
-                e?.stopPropagation();
-                setShowNewsForm((prev) => !prev);
-              }}
-              aria-label="Добавить новость"
-            >
-              ➕
-            </button>
-          )}
-        </div>
-        <SortDropdown options={SORT_OPTIONS} currentSort={sortKey} onChange={setSortKey} />
-      </div>
-      {/* Сетка новостей */}
-      {news.length > 0 ? (
-        <>
-          <div className={style.newsGrid}>
-            {items.map((newsItem) => (
-              <NewsCard
-                key={newsItem.id}
-                news={newsItem}
-                currentUser={currentUser}
-                onToggleLike={toggleLikeNews}
-                onReadMore={incrementViewCount}
-                toggleComments={onToggleComments}
-                error={errorNews}
-              />
-            ))}
-          </div>
-          {pagination.totalPages > 1 && (
-            <Pagination
-              totalPages={pagination.totalPages}
-              page={pagination.currentPage}
-              onPageChange={pagination.goToPage}
+
+          {showNewsForm && currentUser && (
+            <NewsForm
+              key={
+                showNewsForm === 'create' ? 'create' : `edit-${showNewsForm.id}`
+              }
+              initialData={showNewsForm === 'create' ? null : showNewsForm}
+              userName={currentUser?.name}
+              onClose={handleCloseForm}
+              onSubmit={handleFormSubmit}
             />
           )}
-        </>
-      ) : (
-        <EmptyState
-          icon="📰"
-          title="Новости не найдены"
-          description="Попробуйте изменить параметры поиска или выберите другую категорию"
-        />
-      )}
+          <NewsGrid
+            news={news}
+            currentUser={currentUser}
+            hasMore={hasMore}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            error={error}
+            loadMore={loadMore}
+            onPlayVideo={handleOpenVideo}
+            toggleLike={toggleLike}
+            onReadMore={incrementViewCount}
+            toggleComments={onToggleComments}
+            deleteNews={deleteNews}
+            updateNews={setShowNewsForm}
+            onRetry={refetch}
+          />
+        </SectionCard>
 
-      {showNewsForm && currentUser && (
-        <NewsForm
-          onClose={(e) => {
-            e?.stopPropagation();
-            setShowNewsForm(false);
-          }}
-        />
-      )}
-
-      {commentTarget && (
-        <CommentsSection
-          targetType={commentTarget?.type}
-          targetId={commentTarget?.id}
-          currentUser={currentUser}
-          updateCommentCount={handleCommentChange}
-          closeComments={handleCloseComments}
-        />
-      )}
-    </div>
+        {commentTarget && currentUser && (
+          <CommentsSection
+            targetType={commentTarget?.type}
+            targetId={commentTarget?.id}
+            currentUser={currentUser}
+            onChange={handleCommentChange}
+            onCloseComments={handleCloseComments}
+            commentsSectionRef={commentsSectionRef}
+          />
+        )}
+        {newsVideo && (
+          <VideoPlayer video={newsVideo} onClose={handleCloseVideo} />
+        )}
+      </PageLayout>
+    </ErrorBoundary>
   );
 };

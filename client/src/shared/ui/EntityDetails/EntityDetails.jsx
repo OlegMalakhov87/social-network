@@ -1,4 +1,4 @@
-import { ProfileInfoList } from '..';
+import { EntityInfoList } from '..';
 
 /**
  * Универсальный блок характеристик сущности.
@@ -16,5 +16,5 @@ import { ProfileInfoList } from '..';
 export const EntityDetails = ({ items = [] }) => {
   if (!items.length) return null;
 
-  return <ProfileInfoList items={items} />;
+  return <EntityInfoList items={items} />;
 };

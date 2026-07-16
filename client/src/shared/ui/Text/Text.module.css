@@ -4,3 +4,13 @@
   word-break: break-word;
   white-space: pre-wrap;
 }
+
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+}

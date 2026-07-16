@@ -1,6 +1,6 @@
 import { getTrackMeta } from '..';
-import { formatViews } from '../../../../shared/lib';
-import { EntityDates, EntityDetails, EntityStats } from '../../../../shared/ui';
+import { formatViews } from '../../../shared/lib';
+import { EntityDates, EntityDetails, EntityStats } from '../../../shared/ui';
 import style from './TrackMeta.module.css';
 
 /**

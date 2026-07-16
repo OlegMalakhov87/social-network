@@ -1,4 +1,9 @@
-/* Функция для форматирования времени (реализовано для видео) */
+/**
+ * Функция для форматирования времени (реализовано для видео).
+ *
+ * @param {number} seconds - время в секундах.
+ * @returns {string} - форматированное время.
+ */
 
 export const formatDuration = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00';

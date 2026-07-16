@@ -21,24 +21,7 @@ export async function fetchTracks({ page = 1, limit = 30, genre, q } = {}) {
   return response.data;
 }
 
-/**
- * Получить треки для вкладки "Треки" на странице просматриваемого профиля.
- * @param {number} profileUserId - ID профиля, который просматриваем
- * @param {Object} [filters]
- * @returns {Promise<Object>}
- */
-export async function fetchUserMusicLibrary(
-  profileUserId,
-  { page = 1, limit = 30, visibility } = {}
-) {
-  const response = await apiAxios(`/music/profile/${profileUserId}`, {
-    params: {
-      page,
-      limit,
-    },
-  });
-  return response.data;
-}
+
 
 /**
  * Получить один трек по ID (нереализовано, возможно в будущем)

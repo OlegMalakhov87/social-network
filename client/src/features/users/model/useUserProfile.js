@@ -1,53 +1,37 @@
-import { useEffect, useState } from 'react';
 import { fetchUserById } from '../../../entities/user';
+import { useAbortableRequest, useNotify } from '../../../shared/hooks';
 
 /**
- * Хук для получения данных пользователя с сервера.
+ * Хук для получения данных пользователя с сервера
  * @param {number} profileUserId - ID пользователя
- * @returns {{ user: Object|null, isLoading: boolean, error: string|null }}
+ * @returns {{ user: Object|null, isLoading: boolean, error: string|null, refetchUser: Function }}
  */
+
 export function useUserProfile(profileUserId) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
+  const notify = useNotify();
   /**
-   * Получение данных пользователя с сервера.
+   * Запрос данных пользователя с сервера
+   * @param {AbortSignal} signal - сигнал отмены запроса
    */
-  useEffect(() => {
-    if (!profileUserId || profileUserId <= 0) {
-      setUser(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    setIsLoading(true);
-    setError(null);
-
-    fetchUserById(profileUserId, { signal: controller.signal })
-      .then((data) => {
-        setUser(data);
-      })
-      .catch((err) => {
-        if (err.code === 'ERR_CANCELED') return;
-
-        setError(err.message);
-        setUser(null);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => controller.abort();
-  }, [profileUserId]);
-
-  /**
-   * Возвращаем объект с данными о пользователе.
-   */
-  return { user, isLoading, error };
+  const {
+    data,
+    isLoading,
+    error,
+    execute: fetchUser,
+  } = useAbortableRequest({
+    fetcher: (signal) => {
+      if (!profileUserId || profileUserId <= 0) {
+        return null;
+      }
+      return fetchUserById({ userId: profileUserId, signal });
+    },
+    deps: [profileUserId],
+    options: {
+      autoFetch: true,
+      initialData: null,
+      onSuccess: () => notify.success('load'),
+      onError: () => notify.error('load'),
+    },
+  });
+  return { user: data, isLoading, error, refetch: fetchUser };
 }

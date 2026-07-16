@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import { classNames } from '../../lib';
 import styles from './Button.module.css';
 
 /**
@@ -17,6 +17,7 @@ import styles from './Button.module.css';
  * @param {Function} [props.onClick] - Обработчик нажатия.
  * @param {string} [props.className=''] - Дополнительный CSS класс.
  */
+
 export const Button = ({
   children,
   type = 'button',
@@ -30,21 +31,19 @@ export const Button = ({
   className = '',
   onClick,
 }) => {
-  const classes = [
+  const buttonClassName = classNames(
     styles.button,
     styles[variant],
     styles[size],
     fullWidth && styles.fullWidth,
     loading && styles.loading,
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+    className
+  );
 
   return (
     <button
       type={type}
-      className={classes}
+      className={buttonClassName}
       disabled={disabled || loading}
       onClick={onClick}
     >
@@ -59,25 +58,4 @@ export const Button = ({
       )}
     </button>
   );
-};
-
-Button.propTypes = {
-  children: PropTypes.node.isRequired,
-  type: PropTypes.oneOf(['button', 'submit', 'reset']),
-  variant: PropTypes.oneOf([
-    'primary',
-    'secondary',
-    'outline',
-    'ghost',
-    'danger',
-    'success',
-  ]),
-  size: PropTypes.oneOf(['sm', 'md', 'lg']),
-  fullWidth: PropTypes.bool,
-  loading: PropTypes.bool,
-  disabled: PropTypes.bool,
-  leftIcon: PropTypes.node,
-  rightIcon: PropTypes.node,
-  onClick: PropTypes.func,
-  className: PropTypes.string,
 };

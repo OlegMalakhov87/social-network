@@ -9,8 +9,8 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   transition:
     background-color var(--transition-fast),
@@ -18,21 +18,21 @@
 }
 
 .row:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-primary-hover);
 }
 
 .label {
   flex-shrink: 0;
   width: 110px;
   font-size: var(--font-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
 }
 
 .value {
   flex: 1;
   margin: 0;
-  color: var(--color-text);
+  color: var(--text-primary);
   font-size: var(--font-sm);
   line-height: 1.5;
   word-break: break-word;

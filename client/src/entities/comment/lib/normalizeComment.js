@@ -8,7 +8,7 @@ export function normalizeComment(raw, currentUserId) {
   const author = raw.author || {
     id: raw.userId,
     name: 'Пользователь',
-    photoUrl: '/userPhoto.jpg',
+    photoUrl: '/user.png',
     isVerified: false,
   };
 
@@ -21,7 +21,8 @@ export function normalizeComment(raw, currentUserId) {
       content: raw.content,
       date: raw.createdAt,
       likesCount: raw.likes?.length ?? 0,
-      isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+      isLiked:
+        raw.likes?.some((like) => like.userId === currentUserId) ?? false,
     },
     author,
   };

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Video } from '../../../../../entities/video';
-import { ContentState } from '../../../../../shared/ui';
+import { ContentState, ErrorBanner, InfiniteScrollFooter } from '../../../../../shared/ui';
 import style from './VideosTab.module.css';
 
 /**
@@ -8,28 +8,30 @@ import style from './VideosTab.module.css';
  * @param {Object} props
  * @param {Array} props.videos - массив видео
  * @param {Object} props.currentUser - текущий пользователь
- * @param {Object} props.targetUser - выбранный пользователь
- * @param {boolean} props.isProfileOwner - владелец профиля
- * @param {boolean} props.isLoading - загружено видео или нет
+ * @param {boolean} props.isOwnProfile - владелец профиля
+ * @param {boolean} props.isLoading - флаг общей загрузки видео
+ * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы видео
  * @param {string} props.error - ошибка
  * @param {string} props.mode - режим отображения
  * @param {Function} props.toggleLikes - лайк/дизлайк
- * @param {Function} props.addOptimistic - добавить оптимистический в библиотеку для видео
- * @param {Function} props.removeOptimistic - удалить оптимистический из библиотеки для видео
+ * @param {Function} props.addOptimistic - добавить видео в библиотеку 
+ * @param {Function} props.removeOptimistic - удалить видео из библиотеки 
  * @param {Function} props.updateViewCount - обновить счетчик просмотров
  * @param {Function} props.updateGlobalViewCount - обновить глобальный счетчик просмотров
  * @param {Function} props.onPlayVideo - воспроизведение видео
- * @param {Function} props.deleteVideo - удалить видео
+ * @param {Function} props.deleteOptimistic - удалить  видео
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
  * @param {Function} props.onRetry - повторить загрузку
+ * @param {boolean} props.hasMore - флаг наличия следующей страницы видео
+ * @param {Function} props.loadMore - функция для загрузки следующей страницы видео
  */
 export const VideosTab = ({
   videos = [],
   currentUser,
-  targetUser,
-  isProfileOwner,
+  isOwnProfile,
   isLoading,
+  isLoadingMore,
   error,
   mode,
   toggleLikes,
@@ -38,10 +40,12 @@ export const VideosTab = ({
   updateViewCount,
   updateGlobalViewCount,
   onPlayVideo,
-  deleteVideo,
+  deleteOptimistic,
   toggleFavorite,
   toggleComments,
   onRetry,
+  loadMore,
+  hasMore,
 }) => {
   /** Обработчик для увеличения счетчика просмотров при воспроизведении видео */
   useEffect(() => {
@@ -69,40 +73,59 @@ export const VideosTab = ({
     return () => onPlayVideo(null);
   }, [onPlayVideo, updateViewCount, updateGlobalViewCount, videos]);
 
+
   return (
     <ContentState
-      loading={isLoading || (!currentUser && !targetUser)}
+      loading={isLoading && videos.length === 0}
       isEmpty={!videos?.length}
       error={error}
       loadingMessage="Загружаем видео..."
       emptyIcon="🎬"
       emptyTitle="Нет видео"
       emptyDescription={
-        isProfileOwner
+        isOwnProfile
           ? 'Добавьте свои первые видео.'
           : 'У пользователя пока нет публичных видео.'
       }
       onRetry={onRetry}
     >
       <div className={style.videosGrid}>
-        {videos.map((video) => (
-          <Video
-            key={video.id}
-            video={video}
-            currentUser={currentUser}
-            isProfileOwner={isProfileOwner}
-            mode={mode}
-            onPlay={onPlayVideo}
-            addToLibrary={addOptimistic}
-            removeFromLibrary={removeOptimistic}
-            toggleLike={toggleLikes}
-            onDelete={deleteVideo}
-            toggleComments={toggleComments}
-            updateViewCount={updateViewCount}
-            updateGlobalViewCount={updateGlobalViewCount}
-            toggleFavorite={toggleFavorite}
+        {videos.map((item) => {
+          return (
+            <Video
+              video={item}
+              currentUser={currentUser}
+              isOwnProfile={isOwnProfile}
+              mode={mode}
+              onPlay={onPlayVideo}
+              addToLibrary={addOptimistic}
+              removeFromLibrary={removeOptimistic}
+              toggleLike={toggleLikes}
+              onDelete={deleteOptimistic}
+              toggleComments={toggleComments}
+              updateViewCount={updateViewCount}
+              updateGlobalViewCount={updateGlobalViewCount}
+              toggleFavorite={toggleFavorite}
+              />
+          );
+        })}
+
+        {videos.length > 0 && (
+          <InfiniteScrollFooter
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+            error={error}
+            onRetry={loadMore}
+            endMessage="Вы просмотрели все видео"
           />
-        ))}
+        )}
+
+        {error && videos.length > 0 && (
+          <ErrorBanner
+            message="Не удалось загрузить следующую порцию видео"
+            onRetry={loadMore}
+          />
+        )}
       </div>
     </ContentState>
   );

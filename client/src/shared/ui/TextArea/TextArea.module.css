@@ -1,21 +1,21 @@
 .textarea {
   width: 100%;
-  min-height: 110px;
+  min-height: var(--space-28);
   padding: var(--space-3);
   resize: vertical;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-primary);
-  background: var(--surface-primary);
+  background: var(--surface-secondary);
   color: var(--text-primary);
   font: inherit;
   transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--border-focus);
   box-shadow: var(--shadow-focus);
 }
 

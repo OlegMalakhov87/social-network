@@ -1,178 +1,72 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { addLike, deleteLike } from '../../../entities/like';
 import {
   addTrackToLibrary,
-  removeTrackFromLibrary,
+  deleteTrackFromLibrary,
   updateTrackFromLibrary,
 } from '../../../entities/track';
 import {
   addVideoToLibrary,
-  removeVideoFromLibrary,
+  deleteVideoFromLibrary,
   updateVideoFromLibrary,
 } from '../../../entities/video ';
+import {
+  useNotify,
+  useOptimisticCommentCount,
+  useOptimisticCounter,
+  useOptimisticFavorite,
+  useOptimisticLike,
+} from '../../../shared/hooks';
 
 /**
  * Хук для управления ресурсами библиотеки.
- * @param {number|null} currentUserId - ID текущего пользователя.
+ * @param {Array} items - массив сущностей.
+ * @param {number|null} userId - ID текущего пользователя.
  * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля.
  * @param {string} activeTab - текущая вкладка.
- * @param {Function} refetchVideos - функция для обновления видео.
- * @param {Function} refetchTracks - функция для обновления треков.
- * @param {Function} refetchPosts - функция для обновления постов.
- * @param {Function} setRawVideos - функция для обновления rawItems видео.
- * @param {Function} setRawTracks - функция для обновления rawItems треков.
- * @param {Function} setRawPosts - функция для обновления rawItems постов.
+ * @param {Object} refetch - объект с функциями для обновления ресурсов.
+ * @param {Function} setItems - функция для обновления items.
+ * @param {Function} onError - функция обработки ошибки.
+ * @param {Function} onSuccess - функция обработки успеха.
  */
-export function useLibraryResource(
-  currentUserId,
+export function useLibraryResource({
+  items,
+  userId,
   isOwnProfile,
   activeTab,
-  refetchVideos,
-  refetchTracks,
-  refetchPosts,
-  setRawVideos,
-  setRawTracks,
-  setRawPosts
-) {
+  refetch,
+  setItems,
+  onError,
+  onSuccess,
+}) {
+  const notify = useNotify();
   /**
-   * Получение функции для обновления rawItems в зависимости от типа контента
-   */
-  const setRawItems = useMemo(() => {
-    const map = {
-      videos: setRawVideos,
-      tracks: setRawTracks,
-      posts: setRawPosts,
-      photos: setRawPosts,
-    };
-    return (
-      map[activeTab] ||
-      (() => {
-        console.error('Неизвестный тип контента:', activeTab);
-        return () => {};
-      })
-    );
-  }, [activeTab, setRawVideos, setRawTracks, setRawPosts]);
-
-  /**
-   * Оптимистичный лайк / дизлайк
+   *Оптимистичное добавление сущности в библиотеку.
    * @param {number} itemId – ID сущности.
-   * @param {boolean} currentlyLiked — текущее состояние (лайкнут или нет)
-   */
-  const toggleLikeItem = useCallback(
-    async (itemId, currentlyLiked) => {
-      setRawItems((prev) =>
-        prev.map((item) => {
-          if (item.id !== itemId) return item;
-          const likes = item.likes || [];
-          const newLikes = currentlyLiked
-            ? likes.filter((like) => like.userId !== currentUserId)
-            : [...likes, { userId: currentUserId }];
-          return {
-            ...item,
-            likes: newLikes,
-          };
-        })
-      );
-      try {
-        if (currentlyLiked) {
-          await deleteLike(activeTab, itemId);
-        } else {
-          await addLike(activeTab, itemId);
-        }
-      } catch (err) {
-        setRawItems((prev) =>
-          prev.map((item) => {
-            if (item.id !== itemId) return item;
-            const likes = item.likes || [];
-            const newLikes = currentlyLiked
-              ? [...likes, { userId: currentUserId }]
-              : likes.filter((like) => like.userId !== currentUserId);
-            return {
-              ...item,
-              likes: newLikes,
-            };
-          })
-        );
-        console.error('Ошибка лайка:', err);
-      }
-    },
-    [currentUserId, activeTab, setRawItems]
-  );
-
-  /**
-   * Удаление сущности из библиотеки.
-   * @param {number} itemId – ID сущности.
-   * @param {number} libraryId – запись в библиотеке
-   */
-  const removeItemOptimistic = useCallback(
-    async (itemId, libraryId) => {
-      if (!itemId) return;
-
-      // Обновляем rawItems для мгновенного UI
-      setRawItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                isInLibrary: false,
-                isFavorite: false,
-                libraryCreatedAt: null, // дата добавления в библиотеку
-                ...(activeTab === 'videos' ? { lastWatchedAt: null } : null),
-              }
-            : item
-        )
-      );
-      try {
-        if (activeTab === 'videos') {
-          await removeVideoFromLibrary(libraryId);
-          refetchVideos();
-        } else if (activeTab === 'tracks') {
-          await removeTrackFromLibrary(libraryId);
-          refetchTracks();
-        }
-      } catch (err) {
-        console.error('Ошибка удаления сущности из библиотеки:', err);
-        setRawItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId ? { ...item, isInLibrary: true } : item
-          )
-        );
-        if (activeTab === 'videos') {
-          refetchVideos();
-        } else if (activeTab === 'tracks') {
-          refetchTracks();
-        }
-      }
-    },
-    [activeTab, refetchVideos, refetchTracks, setRawItems]
-  );
-
-  /**
-   * Добавление сущности в библиотеку.
-   * @param {number} itemId – ID сущности.
+   * @returns {Promise<void>}
    */
   const addItemOptimistic = useCallback(
     async (itemId) => {
-      // Обновляем rawItems для мгновенного UI
+      // Обновляем setItems для мгновенного UI
       if (isOwnProfile) {
         // Свой профиль – сбрасываем счётчик, ставим дату добавления
-        setRawItems((prev) =>
+        setItems((prev) =>
           prev.map((item) =>
             item.id === itemId
               ? {
                   ...item,
                   isInLibrary: true,
                   ...(activeTab === 'videos'
-                    ? { viewCount: 0 }
+                    ? { viewCount: 0, lastWatchedAt: new Date().toISOString() }
                     : { playCount: 0 }),
-                  libraryCreatedAt: new Date(),
+                  libraryCreatedAt: new Date().toISOString(),
                 }
               : item
           )
         );
       } else {
-        // Чужой профиль – только моя кнопка, данные профиля не трогаем
-        setRawItems((prev) =>
+        // Чужой профиль – меняем только кнопку, данные профиля не трогаем
+        setItems((prev) =>
           prev.map((item) =>
             item.id === itemId ? { ...item, isInLibrary: true } : item
           )
@@ -186,7 +80,7 @@ export function useLibraryResource(
           result = await addTrackToLibrary(itemId);
         }
         if (result) {
-          setRawItems((prev) =>
+          setItems((prev) =>
             prev.map((item) =>
               item.id === itemId
                 ? { ...item, libraryId: result.libraryItem.id }
@@ -194,155 +88,152 @@ export function useLibraryResource(
             )
           );
         }
+        onSuccess?.('add', result);
       } catch (err) {
-        console.error('Ошибка добавления сущности в библиотеку:', err);
-        setRawItems((prev) =>
+        console.error(
+          `Ошибка добавления сущности в библиотеку ${activeTab}:`,
+          err
+        );
+        onError?.('add', err);
+        // Откат при ошибке
+        setItems((prev) =>
           prev.map((item) =>
             item.id === itemId ? { ...item, isInLibrary: false } : item
           )
         );
         if (activeTab === 'videos') {
-          refetchVideos();
+          refetch.refetchVideos();
         } else if (activeTab === 'tracks') {
-          refetchTracks();
+          refetch.refetchTracks();
         }
       }
     },
-    [isOwnProfile, activeTab, refetchVideos, refetchTracks, setRawItems]
+    [isOwnProfile, activeTab, refetch, setItems, onError, onSuccess]
   );
 
   /**
-   * Оптимистичное обновления счетчика просмотров/ прослушиваний
-   * @param {number} itemId - ID сущности.
+   * Удаление сущности из библиотеки.
+   * @param {number} itemId – ID сущности.
    * @param {number} libraryId – запись в библиотеке
-   * @param {boolean} isFavorite - в избранном или нет (текущее состояние)
-   * @param {number} newCount – количество просмотров/ прослушиваний
+   * @returns {Promise<void>}
    */
-  const updateItemCount = useCallback(
-    async (itemId, libraryId, isFavorite, newCount) => {
+  const deleteItemOptimistic = useCallback(
+    async (itemId, libraryId) => {
       if (!itemId || !libraryId) return;
-      // Оптимистично увеличиваем счётчик
-      setRawItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                ...(activeTab === 'videos'
-                  ? {
-                      viewCount: newCount,
-                      lastWatchedAt: new Date().toISOString(),
-                    }
-                  : { playCount: newCount }),
-              }
-            : item
-        )
-      );
-      try {
-        if (activeTab === 'videos') {
-          await updateVideoFromLibrary(libraryId, {
-            viewCount: newCount,
-            isFavorite,
-            lastWatchedAt: new Date().toISOString(),
-          });
-        } else if (activeTab === 'tracks') {
-          await updateTrackFromLibrary(libraryId, {
-            playCount: newCount,
-            isFavorite,
-          });
-        }
-      } catch (err) {
-        // Откат при ошибке
-        setRawItems((prev) =>
+
+      // Обновляем setItems для мгновенного UI
+      if (isOwnProfile) {
+        // Свой профиль – сбрасываем состояние библиотеки
+        setItems((prev) =>
           prev.map((item) =>
             item.id === itemId
               ? {
                   ...item,
+                  isInLibrary: false,
+                  isFavorite: false,
+                  libraryCreatedAt: null, // дата добавления в библиотеку
                   ...(activeTab === 'videos'
-                    ? {
-                        viewCount: newCount - 1,
-                        lastWatchedAt: new Date().toISOString(),
-                      }
-                    : { playCount: newCount - 1 }),
+                    ? { viewCount: 0, lastWatchedAt: null }
+                    : { playCount: 0 }),
                 }
               : item
           )
         );
-        console.error('Ошибка обновления счетчика:', err);
-      }
-    },
-    [activeTab, setRawItems]
-  );
-
-  /**
-   * Оптимистичное добавление/ удаление в избранное
-   * @param {number} itemId - ID сущности.
-   * @param {number} libraryId – запись в библиотеке
-   * @param {boolean} currentlyFavorite - в избранном или нет (текущее состояние)
-   * @param {number} count – количество просмотров
-   * @param {Date} lastWatchedAt – дата последнего просмотра
-   */
-  const toggleFavorite = useCallback(
-    async (itemId, libraryId, currentlyFavorite, count, lastWatchedAt) => {
-      if (!itemId || !libraryId) return;
-      const newFavorite = !currentlyFavorite;
-      // Оптимистично обновляем UI
-      setRawItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId ? { ...item, isFavorite: newFavorite } : item
-        )
-      );
-      try {
-        if (activeTab === 'videos') {
-          await updateVideoFromLibrary(libraryId, {
-            isFavorite: newFavorite,
-            viewCount: count,
-            lastWatchedAt,
-          });
-        } else if (activeTab === 'tracks') {
-          await updateTrackFromLibrary(libraryId, {
-            isFavorite: newFavorite,
-            playCount: count,
-          });
-        }
-      } catch (err) {
-        // Откат
-        setRawItems((prev) =>
+      } else {
+        // Чужой профиль – меняем только кнопку, данные профиля не трогаем
+        setItems((prev) =>
           prev.map((item) =>
-            item.id === itemId
-              ? { ...item, isFavorite: currentlyFavorite }
-              : item
+            item.id === itemId ? { ...item, isInLibrary: false } : item
           )
         );
-        console.error('Ошибка избранного:', err);
+      }
+      try {
+        let result;
+        if (activeTab === 'videos') {
+          result = await deleteVideoFromLibrary(libraryId);
+        } else if (activeTab === 'tracks') {
+          result = await deleteTrackFromLibrary(libraryId);
+        }
+        if (result) {
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === itemId ? { ...item, libraryId: false } : item
+            )
+          );
+        }
+        onSuccess?.('delete', result);
+      } catch (err) {
+        console.error(
+          `Ошибка удаления сущности из библиотеки ${activeTab}:`,
+          err
+        );
+        onError?.('delete', err);
+        // Откат при ошибке
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === itemId ? { ...item, isInLibrary: true } : item
+          )
+        );
+        if (activeTab === 'videos') {
+          refetch.refetchVideos();
+        } else if (activeTab === 'tracks') {
+          refetch.refetchTracks();
+        }
       }
     },
-    [activeTab, setRawItems]
+    [activeTab, refetch, setItems, onError, isOwnProfile, onSuccess]
   );
 
-  /**
-   * Обновление счетчика комментариев к карточки.
-   * @param {number} itemId – ID сущности.
-   * @param {number} delta – изменение счетчика.
-   */
-  const updateCommentCount = useCallback(
-    (itemId, delta) => {
-      setRawItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? { ...item, commentsCount: (item.commentsCount ?? 0) + delta }
-            : item
-        )
-      );
+  /** Оптимистичное управление лайками. */
+  const toggleLikeItem = useOptimisticLike({
+    setItems,
+    addLikeFn: addLike,
+    deleteLikeFn: deleteLike,
+    currentUserId: userId,
+    targetType: activeTab,
+    onSuccess: (action) => {
+      notify.success(action);
     },
-    [setRawItems]
-  );
+    onError: (action) => {
+      notify.error(action);
+    },
+  });
+
+  /** Оптимистичный счётчик просмотров. */
+  const { incrementWithApi: incrementCounter } = useOptimisticCounter({
+    items,
+    setItems,
+    countField: activeTab === 'videos' ? 'viewCount' : 'playCount',
+    updateFn:
+      activeTab === 'videos' ? updateVideoFromLibrary : updateTrackFromLibrary,
+    targetType: activeTab,
+  });
+
+  /** Оптимистичное управление избранным. */
+  const toggleFavoriteItem = useOptimisticFavorite({
+    setItems,
+    updateFavoriteFn:
+      activeTab === 'videos' ? updateVideoFromLibrary : updateTrackFromLibrary,
+    targetType: activeTab,
+    onSuccess: (action) => {
+      notify.success(action);
+    },
+    onError: (action) => {
+      notify.error(action);
+    },
+  });
+
+  /** Оптимистичный счётчик комментариев. */
+  const updateCommentCount = useOptimisticCommentCount({
+    setItems,
+  });
 
   return {
     toggleLikeItem,
-    removeItemOptimistic,
+    deleteItemOptimistic,
     addItemOptimistic,
-    updateItemCount,
-    toggleFavorite,
+    incrementCounter,
+    toggleFavoriteItem,
     updateCommentCount,
   };
 }

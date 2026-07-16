@@ -1,48 +1,36 @@
-import { apiFetch } from '../../../shared/api';
-
-/**
- * API-функции для работы с пользователями.
- * Все запросы идут на базовый URL, который можно вынести в переменные окружения.
- */
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { api } from '../../../shared/api';
 
 /**
  * Получить пользователя по ID.
  * @param {number} userId
- * @returns {Promise<Object>}
+ * @returns {Promise<Object>} - пользователь
  */
-export async function fetchUserById(userId, config = {}) {
-  const url = new URL(`${BASE_URL}/profile/${userId}`);
-  const response = await apiFetch(url.toString(), config);
-  return response.json();
+export async function fetchUserById({ userId, signal } = {}) {
+  const response = await api.get(`/profile/${userId}`, { signal });
+  return response.data;
 }
 
 /**
  * Получить всех пользователей (с пагинацией).
  * @param {Object} params - { page, limit }
- * @returns {Promise<Object>}
+ * @returns {Promise<Array>} - массив пользователей
  */
-export async function fetchAllUsers({ page = 1, limit = 30 } = {}) {
-  const url = new URL(`${BASE_URL}/profile`);
-  url.searchParams.set('page', page);
-  url.searchParams.set('limit', limit);
-  const response = await apiFetch(url);
-  if (!response.ok) {
-    throw new Error(`Ошибка загрузки пользователей: ${response.status}`);
-  }
-  return response.json();
+export async function fetchAllUsers({ page, limit, signal } = {}) {
+  const response = await api.get(`/profile`, {
+    params: { page, limit },
+    signal,
+  });
+  return response.data;
 }
 
 /**
  * Получить статус пользователей в сети.
- * @param {Array} userIds
- * @returns {Promise<Object>}
+ * @param {Array} userIds - массив ID пользователей
+ * @returns {Promise<Array>} - массив статусов пользователей
  */
 export async function fetchUsersOnlineStatus(userIds) {
-  const response = await apiFetch(`${BASE_URL}/profile/online-status`, {
-    method: 'POST',
-    body: JSON.stringify({ userIds }),
+  const response = await api.post(`/profile/online-status`, {
+    data: { userIds },
   });
-  if (!response.ok) throw new Error('Ошибка проверки онлайна');
-  return response.json();
+  return response.data;
 }

@@ -6,19 +6,17 @@ import style from './EntityHeader.module.css';
  * Используется внутри BaseCard.
  *
  * @param {Object} props
- * @param {React.ReactNode} [props.children]
- * @param {React.ReactNode} [props.leftSlot]
- * @param {React.ReactNode} [props.rightSlot]
+ * @param {React.ReactNode} [props.children] - контент заголовка
+ * @param {React.ReactNode} [props.leftSlot] - левое поле заголовка
+ * @param {React.ReactNode} [props.rightSlot] - правое поле заголовка
  */
 
 export const EntityHeader = ({ children, leftSlot, rightSlot }) => {
   return (
     <header className={style.header}>
-      {leftSlot}
-
+      {leftSlot && <div className={style.left}>{leftSlot}</div>}
       <div className={style.content}>{children}</div>
-
-      {rightSlot}
+      {rightSlot && <div className={style.right}>{rightSlot}</div>}
     </header>
   );
 };

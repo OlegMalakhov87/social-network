@@ -2,8 +2,8 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--color-surface-secondary);
-  border: 2px solid var(--color-border);
+  background: var(--surface-secondary);
+  border: 2px solid var(--border-primary);
   transition:
     transform var(--transition-fast),
     box-shadow var(--transition-fast),
@@ -18,40 +18,40 @@
 }
 
 .xs {
-  width: 28px;
-  height: 28px;
+  width: var(--space-7);
+  height: var(--space-7);
 }
 
 .sm {
-  width: 40px;
-  height: 40px;
+  width: var(--space-9);
+  height: var(--space-9);
 }
 
 .md {
-  width: 56px;
-  height: 56px;
+  width: var(--space-11);
+  height: var(--space-11);
 }
 
 .lg {
-  width: 72px;
-  height: 72px;
+  width: var(--space-18);
+  height: var(--space-18);
 }
 
 .xl {
-  width: 96px;
-  height: 96px;
+  width: var(--space-24);
+  height: var(--space-24);
 }
 
 .circle {
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 .rounded {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 }
 
 .square {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
 }
 
 .clickable {
@@ -76,12 +76,10 @@
   position: absolute;
   right: 2px;
   bottom: 2px;
-
-  width: 12px;
-  height: 12px;
-
-  border-radius: 50%;
-  border: 2px solid var(--color-surface);
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-primary);
 }
 
 .online {
@@ -89,7 +87,7 @@
 }
 
 .offline {
-  background: var(--color-text-muted);
+  background: var(--text-secondary);
 }
 
 .busy {
@@ -102,12 +100,12 @@
 
 @media (max-width: 768px) {
   .lg {
-    width: 64px;
-    height: 64px;
+    width: var(--space-16);
+    height: var(--space-16);
   }
 
   .xl {
-    width: 84px;
-    height: 84px;
+    width: var(--space-21);
+    height: var(--space-21);
   }
 }

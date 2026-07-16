@@ -1,8 +1,8 @@
 .content {
   display: flex;
   align-items: center;
-  min-height: 72px;
+  min-height: var(--space-18);
   font-size: var(--font-md);
   line-height: 1.6;
-  color: var(--color-text);
+  color: var(--text-primary);
 }

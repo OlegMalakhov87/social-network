@@ -5,17 +5,17 @@ import style from './Badge.module.css';
  * Универсальный бейдж.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children
- * @param {'primary'|'secondary'|'success'|'warning'|'danger'} [props.variant]
- * @param {'sm'|'md'} [props.size]
- * @param {string} [props.className]
+ * @param {React.ReactNode} props.children - контент бейджа
+ * @param {'primary'|'secondary'|'success'|'warning'|'danger'} [props.variant] - вариант бейджа
+ * @param {'sm'|'md'} [props.size] - размер бейджа
+ * @param {string} [props.className] - дополнительный класс
  */
 
 export const Badge = ({
   children,
   variant = 'primary',
   size = 'md',
-  className,
+  className = '',
 }) => {
   return (
     <span

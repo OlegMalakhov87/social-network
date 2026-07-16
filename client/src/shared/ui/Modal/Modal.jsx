@@ -19,7 +19,7 @@ import styles from './Modal.module.css';
  * @param {React.ReactNode} [props.footer]
  */
 export const Modal = ({
-  isOpen,
+  isOpen=true,
   onClose,
   children,
   title,

@@ -6,10 +6,30 @@
  * Конкретное поле из данных определяется маппингом FIELD_MAP.
  */
 export const SORT_OPTIONS = {
-  dateDesc: { id: 'dateDesc', label: 'Сначала новые', field: 'date', order: 'desc' },
-  dateAsc: { id: 'dateAsc', label: 'Сначала старые', field: 'date', order: 'asc' },
-  viewsDesc: { id: 'viewsDesc', label: 'По популярности ↓', field: 'popularity', order: 'desc' },
-  viewsAsc: { id: 'viewsAsc', label: 'По популярности ↑', field: 'popularity', order: 'asc' },
+  dateDesc: {
+    id: 'dateDesc',
+    label: 'Сначала новые',
+    field: 'date',
+    order: 'desc',
+  },
+  dateAsc: {
+    id: 'dateAsc',
+    label: 'Сначала старые',
+    field: 'date',
+    order: 'asc',
+  },
+  viewsDesc: {
+    id: 'viewsDesc',
+    label: 'По популярности ↓',
+    field: 'popularity',
+    order: 'desc',
+  },
+  viewsAsc: {
+    id: 'viewsAsc',
+    label: 'По популярности ↑',
+    field: 'popularity',
+    order: 'asc',
+  },
 };
 
 /**
@@ -19,8 +39,9 @@ export const SORT_OPTIONS = {
  * для видео и новостей = viewCount.
  */
 export const FIELD_MAP = {
-  Video: { views: 'viewCount', date: 'createdAt' },
-  Music: { views: 'playCount', date: 'createdAt' },
-  News: { views: 'viewCount', date: 'createdAt' },
-  Post: { views: 'likesCount', date: 'createdAt' },
+  videos: { views: 'viewCount', date: 'createdAt' },
+  tracks: { views: 'playCount', date: 'createdAt' },
+  news: { views: 'viewCount', date: 'createdAt' },
+  posts: { views: 'likesCount', date: 'createdAt' },
+  comments: { views: 'likesCount', date: 'createdAt' },
 };

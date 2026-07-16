@@ -2,12 +2,11 @@
  * Формирует массив действий для карточки фото.
  *
  * @param {Object} params
- * @param {Object} params.photo
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike
- * @param {(id:number)=>void} params.toggleComments
- * @param {Function} params.onShare
- *
- * @returns {Array}
+ * @param {Object} params.photo - фото
+ * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка фото
+ * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к фото
+ * @param {Function} params.onShare - функция- переход на страницу сообщений для передачи фото
+ * @returns {Array<Object>} - массив действий карточки фото
  */
 export const getPhotoActions = ({
   photo,
@@ -39,7 +38,7 @@ export const getPhotoActions = ({
     actions.push({
       key: 'share',
       icon: '↗️',
-      label: String(photo.sharedCount ?? 0),
+      label: 'Поделиться',
       ariaLabel: 'Поделиться',
       onClick: () => onShare?.(),
     });

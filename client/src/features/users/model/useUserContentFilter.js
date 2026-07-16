@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
-import { sortByData } from '../../../shared/lib';
+import { useNotify } from '../../../shared/hooks';
 import { useUserPosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
 import { useLibraryResource, useUserProfile } from '../../users';
@@ -13,20 +12,11 @@ import { useUserVideoLibrary } from '../../videos';
  * @param {'posts'|'photos'|'tracks'|'videos'} [params.activeTab] - тип контента для отображения
  * @param {number} [params.userIdParam] - ID пользователя, чей контент показываем
  * @param {string} [params.sortKey] - ключ сортировки из SORT_OPTIONS
- * @returns {{
- *   items: Array.<Object>,
- *   isLoading: boolean,
- *   currentUser: Object|null,
- *   targetUser: Object|null
- * }}
- * @property {Array.<Object>} items - отфильтрованный и отсортированный массив сущностей (посты/фото/треки/видео)
- * @property {boolean} isLoading - флаг загрузки (true, пока не определён currentUser)
- * @property {Object|null} currentUser - данные авторизованного пользователя
- * @property {Object|null} targetUser - данные пользователя, чей профиль просматриваем (совпадает с currentUser, если это свой профиль)
  */
-
 export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
   const currentUser = selectUser();
+
+  const notify = useNotify();
 
   /**
    * Получение ID пользователя и приводим к правильному типу
@@ -54,6 +44,7 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
     user: apiUser,
     isLoading: userLoading,
     error: userError,
+    refetch: refetchUser,
   } = useUserProfile(profileUserId);
 
   /**
@@ -67,21 +58,10 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
    * @returns {Object} маппинг для определения, нужно ли загружать контент
    */
   const fetchMap = {
-    Post: {
-      posts: true,
-    },
-
-    Photo: {
-      posts: true,
-    },
-
-    Music: {
-      tracks: true,
-    },
-
-    Video: {
-      videos: true,
-    },
+    posts: { posts: true },
+    photos: { posts: true },
+    tracks: { tracks: true },
+    videos: { videos: true },
   };
 
   const config = fetchMap[activeTab] ?? {};
@@ -93,18 +73,20 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
 
   const {
     posts: apiPosts,
-    isLoading: postsLoading,
-    pagination: paginationPosts,
+    hasMore: hasMorePosts,
+    isLoading: isLoadingPostsApi,
+    loadMore: loadMorePosts,
+    isLoadingMore: isLoadingMorePosts,
     error: errorPosts,
-    handleAddPost,
-    handleEditPost,
-    handleDeletePost,
-    setRawPosts,
     refetch: refetchPosts,
+    addPost,
+    updatePost,
+    deletePost,
+    setPostsItems,
   } = useUserPosts(
     config.posts ? targetUser?.id : null,
     currentUser?.id,
-    isOwnProfile
+    sortKey
   );
 
   /**
@@ -114,15 +96,18 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
 
   const {
     tracks: apiTracks,
-    isLoading: tracksLoading,
-    pagination: paginationTracks,
+    hasMore: hasMoreTracks,
+    isLoading: isLoadingTracksApi,
+    loadMore: loadMoreTracks,
+    isLoadingMore: isLoadingMoreTracks,
     error: errorTracks,
-    setRawTracks,
     refetch: refetchTracks,
+    setTracksItems,
   } = useUserMusicLibrary(
     config.tracks ? targetUser?.id : null,
     currentUser?.id,
-    isOwnProfile
+    isOwnProfile,
+    sortKey
   );
 
   /**
@@ -132,16 +117,32 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
 
   const {
     videos: apiVideos,
-    isLoading: videosLoading,
-    pagination: paginationVideos,
+    hasMore: hasMoreVideos,
+    isLoading: isLoadingVideosApi,
+    loadMore: loadMoreVideos,
+    isLoadingMore: isLoadingMoreVideos,
     error: errorVideos,
-    setRawVideos,
     refetch: refetchVideos,
+    setVideosItems,
   } = useUserVideoLibrary(
     config.videos ? targetUser?.id : null,
     currentUser?.id,
-    isOwnProfile
+    isOwnProfile,
+    sortKey
   );
+
+  /**
+   * Получение функции для обновления rawItems в зависимости от типа контента
+   */
+  const setItems = useMemo(() => {
+    const map = {
+      videos: setVideosItems,
+      tracks: setTracksItems,
+      posts: setPostsItems,
+      photos: setPostsItems,
+    };
+    return map[activeTab];
+  }, [activeTab, setVideosItems, setTracksItems, setPostsItems]);
 
   /**
    * Получаем данные о библиотеке пользователя
@@ -149,22 +150,25 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
    */
   const {
     toggleLikeItem,
-    removeItemOptimistic,
+    deleteItemOptimistic,
     addItemOptimistic,
-    updateItemCount,
-    toggleFavorite,
+    incrementCounter,
+    toggleFavoriteItem,
     updateCommentCount,
-  } = useLibraryResource(
-    currentUser?.id,
+  } = useLibraryResource({
+    items: activeTab === 'videos' ? apiVideos : apiTracks,
+    userId: currentUser?.id,
     isOwnProfile,
     activeTab,
-    refetchVideos,
-    refetchTracks,
-    refetchPosts,
-    setRawVideos,
-    setRawTracks,
-    setRawPosts
-  );
+    refetch: { refetchVideos, refetchTracks },
+    setItems,
+    onSuccess: (action) => {
+      notify.success(action);
+    },
+    onError: (action) => {
+      notify.error(action);
+    },
+  });
 
   /**
    * Фильтрация по типу контента и пользователю
@@ -177,6 +181,7 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
       case 'posts':
         return apiPosts || [];
       case 'photos':
+        //Фильтруем посты с типом image для вкладки фото
         return (apiPosts || []).filter((post) => post.postType === 'image');
       case 'tracks':
         // Для профиля подменяем дату загрузки на дату добавления в библиотеку
@@ -197,23 +202,13 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
   }, [activeTab, targetUser?.id, apiPosts, apiTracks, apiVideos]);
 
   /**
-   * Сортировка
-   * @returns {Array.<Object>} отфильтрованный и отсортированный массив сущностей (посты/фото/треки/видео)
-   */
-  const sortedItems = useMemo(() => {
-    const sortConfig = SORT_OPTIONS[sortKey];
-    if (!sortConfig) return filteredItems;
-    return sortByData(filteredItems, sortConfig, activeTab);
-  }, [activeTab, sortKey, filteredItems]);
-
-  /**
    * Флаги загрузки профиля/постов/треков/видео
    * @returns {boolean} true, если загрузка профиля/постов/треков/видео
    */
   const isLoadingProfile = (userLoading && !isOwnProfile) || !currentUser;
-  const isLoadingPosts = config.posts && postsLoading;
-  const isLoadingTracks = config.tracks && tracksLoading;
-  const isLoadingVideos = config.videos && videosLoading;
+  const isLoadingPosts = config.posts && isLoadingPostsApi;
+  const isLoadingTracks = config.tracks && isLoadingTracksApi;
+  const isLoadingVideos = config.videos && isLoadingVideosApi;
 
   /**
    * Возвращаем объект с данными о контенте пользователя
@@ -222,32 +217,40 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
   return {
     currentUser,
     targetUser,
+    isOwnProfile,
     userError,
-    items: sortedItems,
+    refetchUser,
+    items: filteredItems,
     isLoadingProfile,
     toggleLikeItem,
-    removeItemOptimistic,
+    deleteItemOptimistic,
     addItemOptimistic,
-    updateItemCount,
-    toggleFavorite,
+    incrementCounter,
+    toggleFavoriteItem,
     updateCommentCount,
     // Посты
     isLoadingPosts,
-    paginationPosts,
+    isLoadingMorePosts,
     errorPosts,
-    handleAddPost,
-    handleEditPost,
-    handleDeletePost,
+    addPost,
+    updatePost,
+    deletePost,
     refetchPosts,
+    hasMorePosts,
+    loadMorePosts,
     // Треки
     isLoadingTracks,
-    paginationTracks,
+    isLoadingMoreTracks,
     errorTracks,
     refetchTracks,
+    hasMoreTracks,
+    loadMoreTracks,
     // Видео
     isLoadingVideos,
-    paginationVideos,
+    isLoadingMoreVideos,
     errorVideos,
     refetchVideos,
+    hasMoreVideos,
+    loadMoreVideos,
   };
 };

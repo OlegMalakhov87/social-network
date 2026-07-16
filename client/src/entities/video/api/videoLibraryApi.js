@@ -1,62 +1,92 @@
-import { apiFetch } from '../../../shared/api';
-
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { api } from '../../../shared/api';
 
 /**
  * Получить видео из библиотеки текущего пользователя.
- * @param {Object} [filters] – возможные фильтры (page, limit, visibility)
+ * @param {Object} params - параметры запроса
+ * @param {number} [params.page] - номер страницы
+ * @param {number} [params.limit] - количество на странице
+ * @param {AbortSignal} [params.signal] - сигнал отмены запроса
  * @returns {Promise<Object>} { videos, pagination }
  */
-export async function fetchMyVideoLibrary({ page = 1, limit = 30, visibility } = {}) {
-  const url = new URL(`${BASE_URL}/uservideolibrary`);
-  url.searchParams.set('page', page);
-  url.searchParams.set('limit', limit);
-  if (visibility) url.searchParams.set('visibility', visibility);
+export async function fetchMyVideoLibrary({ page, limit, signal } = {}) {
+  const response = await api.get(`/uservideolibrary`, {
+    params: { page, limit },
+    signal,
+  });
+  return {
+    items: response.data.videos || [],
+    pagination: response.data.pagination || {},
+  };
+}
 
-  const response = await apiFetch(url.toString());
-  if (!response.ok) {
-    throw new Error(`Ошибка загрузки видео: ${response.status}`);
-  }
-  return response.json();
+/**
+ * Получить видео для вкладки "Видео" на странице просматриваемого профиля.
+ * @param {number} userId - ID пользователя, библиотеку которого просматриваем
+ * @param {Object} params - параметры запроса
+ * @param {number} [params.page] - номер страницы
+ * @param {number} [params.limit] - количество на странице
+ * @param {AbortSignal} [params.signal] - сигнал отмены запроса
+ * @returns {Promise<Object>} { items, pagination }
+ */
+export async function fetchUserVideoLibrary({
+  userId,
+  page,
+  limit,
+  signal,
+} = {}) {
+  const response = await api.get(`/videos/profile/${userId}`, {
+    params: {
+      page,
+      limit,
+    },
+    signal,
+  });
+  return {
+    items: response.data.videos || [],
+    pagination: response.data.pagination || {},
+  };
 }
 
 /**
  * Добавить видео в библиотеку.
  * @param {number} videoId – ID видео, которое добавляем
+ * @returns {Promise<Object>} { libraryId }
  */
 export async function addVideoToLibrary(videoId) {
-  const response = await apiFetch(`${BASE_URL}/uservideolibrary`, {
-    method: 'POST',
-    body: JSON.stringify({ videoId }),
+  const response = await api.post(`/uservideolibrary`, {
+    videoId,
   });
-  if (!response.ok) throw new Error(`Ошибка добавления видео в библиотеку: ${response.status}`);
-  return response.json();
-}
-
-/**
- * Удалить видео из библиотеки.
- * @param {number} libraryId – ID записи в библиотеке
- */
-export async function removeVideoFromLibrary(libraryId) {
-  const response = await apiFetch(`${BASE_URL}/uservideolibrary/${libraryId}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) throw new Error(`Ошибка удаления видео из библиотеки: ${response.status}`);
-  return response.json();
+  return response.data;
 }
 
 /**
  * Обновить видео из библиотеки (увеличить счетчик просмотров, добавить в избранное).
  * @param {number} libraryId – ID записи в библиотеке
- * @param {boolean} isFavorite – состояние в избраном (да/нет)
- * @param {number} watchCount – счетчик просмотров личный
- * @param {string} lastWatchedAt - последний просмотр (дата)
+ * @param {boolean} isFavorite – состояние в избраном (true/false)
+ * @param {number} viewCount – счетчик просмотров личный
+ * @param {Date} lastWatchedAt - последний просмотр (дата)
+ * @returns {Promise<Object>} { libraryId }
  */
-export async function updateVideoFromLibrary(libraryId, { isFavorite, viewCount, lastWatchedAt }) {
-  const response = await apiFetch(`${BASE_URL}/uservideolibrary/${libraryId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ isFavorite, viewCount, lastWatchedAt }),
+export async function updateVideoFromLibrary({
+  libraryId,
+  isFavorite,
+  viewCount,
+  lastWatchedAt,
+} = {}) {
+  const response = await api.put(`/uservideolibrary/${libraryId}`, {
+    isFavorite,
+    viewCount,
+    lastWatchedAt,
   });
-  if (!response.ok) throw new Error(`Ошибка обновления видео из библиотеки: ${response.status}`);
-  return response.json();
+  return response.data;
+}
+
+/**
+ * Удалить видео из библиотеки.
+ * @param {number} libraryId – ID записи в библиотеке
+ * @returns {Promise<Object>} { libraryId }
+ */
+export async function deleteVideoFromLibrary(libraryId) {
+  const response = await api.delete(`/uservideolibrary/${libraryId}`);
+  return response.data;
 }

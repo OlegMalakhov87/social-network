@@ -1,22 +1,21 @@
+import { Alert, Button, ContentEmptyState, PageLoader } from '..';
 import style from './ContentState.module.css';
-import { Alert, PageLoader, Button, ContentEmptyState } from '..';
 
 /**
  * Универсальное состояние загрузки контента.
  *
- * Показывает:
- * Loader → Error → Empty → Children
+ * Показывает:Loader → Error → Empty → Children
  *
  * @param {Object} props
- * @param {boolean} props.loading
- * @param {string|null} props.error
- * @param {boolean} props.isEmpty
- * @param {string} props.emptyTitle
- * @param {string} props.emptyDescription
- * @param {string} [props.emptyIcon]
- * @param {string} [props.loadingMessage]
- * @param {Function} [props.onRetry]
- * @param {React.ReactNode} props.children
+ * @param {boolean} props.loading - флаг загрузки
+ * @param {string|null} props.error - сообщение об ошибке
+ * @param {boolean} props.isEmpty - флаг пустого состояния
+ * @param {string} props.emptyTitle - заголовок пустого состояния
+ * @param {string} props.emptyDescription - описание пустого состояния
+ * @param {string} [props.emptyIcon] - иконка пустого состояния
+ * @param {string} [props.loadingMessage] - сообщение загрузки
+ * @param {Function} [props.onRetry] - функция повтора запроса
+ * @param {React.ReactNode} props.children - дочерние элементы
  */
 export const ContentState = ({
   loading = false,
@@ -33,7 +32,7 @@ export const ContentState = ({
     return <PageLoader message={loadingMessage} />;
   }
 
-  if (error) {
+  if (error && isEmpty) {
     return (
       <div className={style.wrapper}>
         <Alert variant="error" title="Не удалось загрузить данные">

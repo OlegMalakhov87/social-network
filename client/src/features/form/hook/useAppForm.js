@@ -32,11 +32,8 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
   const handleChange = useCallback(
     (field, value) => {
       form.setValue(field, value);
-
       if (validation.errors[field]) {
-        requestAnimationFrame(() => {
-          validation.validateField(field);
-        });
+        validation.validateField(field);
       }
     },
     [form, validation]

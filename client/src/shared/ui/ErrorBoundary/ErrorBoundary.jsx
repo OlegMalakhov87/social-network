@@ -1,7 +1,6 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
+import { Button, Card } from '..';
 import styles from './ErrorBoundary.module.css';
-import { Card } from '..';
-import { Button } from '..';
 
 /**
  * Компонент-перехватчик ошибок React.

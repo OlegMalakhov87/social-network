@@ -2,15 +2,14 @@
  * Формирует массив действий карточки трека.
  *
  * @param {Object} params
- * @param {Object} params.track
- * @param {boolean} params.isOwn
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike
- * @param {(id:number)=>void} params.toggleComments
- * @param {(id:number)=>void} params.addToLibrary
- * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary
- * @param {Function} params.onShare
+ * @param {Object} params.track - трек
+ * @param {boolean} params.isOwn - флаг владельца трека
+ * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка трека
+ * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к треку
+ * @param {(id:number)=>void} params.addToLibrary - функция для добавления трека в библиотеку
+ * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary - функция для удаления трека из библиотеки
  *
- * @returns {Array}
+ * @returns {Array<Object>} - массив действий карточки трека
  */
 
 export const getTrackActions = ({
@@ -20,7 +19,6 @@ export const getTrackActions = ({
   toggleComments,
   addToLibrary,
   removeFromLibrary,
-  onShare,
 }) => {
   if (!track) return [];
 
@@ -54,20 +52,13 @@ export const getTrackActions = ({
           ? removeFromLibrary?.(track.libraryId, track.id)
           : addToLibrary?.(track.id),
     });
-
-    actions.push({
-      key: 'share',
-      icon: '↗️',
-      label: String(track.sharedCount ?? 0),
-      ariaLabel: 'Поделиться',
-      onClick: () => onShare?.(),
-    });
   } else {
     actions.push({
       key: 'visible',
       icon: '🔒',
       label: 'Личное',
       ariaLabel: 'Личное',
+      disabled: true,
     });
   }
 

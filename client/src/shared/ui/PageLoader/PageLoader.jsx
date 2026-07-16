@@ -1,5 +1,5 @@
-import style from './PageLoader.module.css';
 import { Loading } from '..';
+import style from './PageLoader.module.css';
 
 /**
  * Полноэкранный загрузчик страницы.

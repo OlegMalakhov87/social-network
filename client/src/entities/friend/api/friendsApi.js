@@ -25,10 +25,18 @@ export async function fetchUsersWithFriendshipStatus({
 /**
  * Получить статус дружбы с конкретным пользователем.
  * @param {number} targetUserId
+ * @param {Object} params
+ * @param {AbortSignal} params.signal
  * @returns {Promise<Object>}
  */
-export async function fetchFriendshipStatus(targetUserId) {
-  const response = await apiFetch(`${BASE_URL}/friends/status/${targetUserId}`);
+
+export async function fetchFriendshipStatus(targetUserId, { signal } = {}) {
+  const response = await apiFetch(
+    `${BASE_URL}/friends/status/${targetUserId}`,
+    {
+      signal,
+    }
+  );
   if (!response.ok)
     throw new Error(`Ошибка получения статуса: ${response.status}`);
   return response.json();

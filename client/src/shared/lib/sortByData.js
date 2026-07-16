@@ -1,18 +1,19 @@
 import { FIELD_MAP } from '../../config/sortConfig';
 
 const TAB_TO_ENTITY = {
-  Post: 'Post',
-  Photo: 'Post',
-  Track: 'Music',
-  Video: 'Video',
-  News: 'News',
+  posts: 'posts',
+  photos: 'posts',
+  tracks: 'tracks',
+  videos: 'videos',
+  news: 'news',
+  comments: 'comments',
 };
 
 /**
  * Сортирует массив сущностей по заданному полю и направлению.
  * @param {Array} items - исходный массив
  * @param {Object} sortConfig - { field: string, order: 'asc'|'desc' }
- * @param {string} entityType - тип сущности (Post, Music, Video, News)
+ * @param {string} entityType - тип сущности (posts, photos, tracks, videos, news)
  * @returns {Array} новый отсортированный массив
  */
 export const sortByData = (items, sortConfig, entityType) => {

@@ -2,12 +2,16 @@
 //export * from './model/postSelectors';
 //export { addPost, deletePost, updateNewPostText, updateVisibilityPost } from './model/postsSlice';
 
-// API - функции
+// API - функции для страницы постов (CRUD)
 export * from './api/postApi';
-/** Типы постов */
+
+// Типы постов и типы приватности постов
 export * from './config/postTypes';
-// Вспомогптельные функции
+
+// Вспомогптельные функции для постов (экшены)
 export { getPostActions } from './lib/getPostActions';
+// Функция нормализации поста
 export { normalizePost } from './lib/normalizePost';
-//Ui компоненты
+
+// Карточка поста
 export { Post } from './ui/Post';

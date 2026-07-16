@@ -4,13 +4,19 @@
 //export { addVideo, deleteVideo } from './model/videosSlice';
 //export { addVideoToLibrary, removeVideoFromLibrary } from './model/userVideosLibrarySlice';
 
-// API‑функции для библиотеки
+// API‑функции для библиотеки видео
 export * from './api/videoLibraryApi';
 // API‑функции для самого видео
 export * from './api/videoApi';
-// Вспомогательные функции
+// Вспомогательные функции для видео (экшены)
 export { getVideoActions } from './lib/getVideoActions';
+// Вспомогательные функции для метаданных видео
 export { getVideoMeta } from './lib/getVideoMeta';
+// Вспомогательные функции для статистики видео
+export { getVideoStats } from './lib/getVideoStats';
+// Функция нормализации видео
 export { normalizeVideo } from './lib/normalizeVideo';
-// UI компоненты
+// Компонент видео
 export { Video } from './ui/Video';
+export { VideoMeta } from './ui/VideoMeta';
+export { VideoThumbnail } from './ui/VideoThumbnail';

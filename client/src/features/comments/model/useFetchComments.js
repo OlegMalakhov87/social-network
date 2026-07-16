@@ -1,53 +1,120 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { addLike, deleteLike } from '../../../entities/like';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  fetchComments,
   addCommentApi,
-  editCommentApi,
   deleteCommentApi,
+  editCommentApi,
+  fetchCommentsApi,
   normalizeComment,
 } from '../../../entities/comment';
+import { addLike, deleteLike } from '../../../entities/like';
+import { SORT_OPTIONS } from '../../../shared/config';
+import { useAbortableRequest } from '../../../shared/hooks';
+import { sortByData } from '../../../shared/lib';
 
 /**
- * Хук для получения комментариев к сущности с сервера.
- * @param {string|null} targetType
- * @param {number|null} targetId
- * @param {string} content
- * @returns {{ comments: Array, isLoading: boolean, error: string|null, handleAddComment: Function, handleEditComment: Function, handleDeleteComment: Function, refetch: Function }}
+ * Хук для получения комментариев с бесконечным скроллом.
+ *
+ * @param {string|null} targetType - тип цели (Post, News, Comment)
+ * @param {number|null} targetId - ID цели
+ * @param {number|null} currentUserId - ID текущего пользователя
+ * @param {Function} onChange - колбэк для обновления счётчика комментариев
+ * @param {string} [sortKey] - ключ сортировки
+ * @returns {{ comments: Array, isLoading: boolean, hasMore: boolean, error: string|null, currentUserId: number|null, handleAddComment: Function, handleEditComment: Function, handleDeleteComment: Function, toggleLikeComment: Function, loadMore: Function, refetch: Function }}
  */
-export function useFetchComments(targetType, targetId, onChange) {
+export function useFetchComments(
+  targetType,
+  targetId,
+  currentUserId,
+  onChange,
+  sortKey
+) {
+  const loadMoreControllerRef = useRef(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [rawComments, setRawComments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const currentUser = useSelector((state) => state.auth?.user);
-
-  const fetch = useCallback(async () => {
-    if (!targetType || !targetId) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchComments(targetType, targetId);
-      setRawComments(data.comments || []);
-    } catch (err) {
-      setError(err.message);
-      setRawComments([]);
-    } finally {
-      setIsLoading(false);
+  /**
+   * Запрос комментариев с сервера
+   * @param {AbortSignal} signal - сигнал отмены запроса
+   */
+  const {
+    isLoading,
+    error,
+    execute: fetchComments,
+  } = useAbortableRequest(
+    async (signal) => {
+      if (!targetType || !targetId) {
+        return { comments: [], pagination: { hasMore: false } };
+      }
+      const data = await fetchCommentsApi(targetType, targetId, 1, { signal });
+      const comments = Array.isArray(data?.comments) ? data.comments : [];
+      return {
+        comments,
+        pagination: data.pagination || { hasMore: false },
+      };
+    },
+    [targetType, targetId],
+    {
+      initialData: { comments: [], pagination: { hasMore: false } },
+      onSuccess: (data) => {
+        setRawComments(data.comments);
+        setHasMore(data.pagination?.hasMore ?? false);
+        setPage(1);
+      },
     }
-  }, [targetType, targetId]);
+  );
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  /**
+   * Загрузка следующей страницы комментариев.
+   */
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) return;
+    if (!targetType || !targetId) return;
 
+    // Отменяем предыдущий loadMore
+    loadMoreControllerRef.current?.abort();
+    const controller = new AbortController();
+    loadMoreControllerRef.current = controller;
+
+    const nextPage = page + 1;
+    try {
+      const data = await fetchCommentsApi(targetType, targetId, nextPage, {
+        signal: loadMoreControllerRef.current.signal,
+      });
+      if (loadMoreControllerRef.current.signal.aborted) return;
+
+      const comments = Array.isArray(data?.comments) ? data.comments : [];
+      setRawComments((prev) => [...prev, ...comments]);
+      setPage(nextPage);
+      setHasMore(data.pagination?.hasMore ?? false);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Ошибка загрузки комментариев:', err);
+    }
+  }, [targetType, targetId, page, isLoading, hasMore]);
+
+  
+  /** Нормализация и сортировка комментариев */
+  const comments = useMemo(() => {
+    if (!Array.isArray(rawComments)) return [];
+    const normalized = rawComments.map((raw) =>
+      normalizeComment(raw, currentUserId)
+    );
+    const sortConfig = SORT_OPTIONS[sortKey];
+    if (!sortConfig) return normalized;
+    return sortByData(normalized, sortConfig, 'comments');
+  }, [rawComments, currentUserId, sortKey]);
+
+
+  /** Добавление комментария
+   * @param {string} content - текст комментария
+   */
   const handleAddComment = useCallback(
     async (content) => {
-      if (!currentUser?.id || !content) return false;
+      if (!currentUserId || !content) return false;
       try {
-        await addCommentApi(targetType, targetId, content);
-        fetch();
+        const newComment = await addCommentApi(targetType, targetId, content);
+        setRawComments((prev) => [newComment, ...prev]);
         onChange?.(+1);
         return true;
       } catch (error) {
@@ -55,30 +122,41 @@ export function useFetchComments(targetType, targetId, onChange) {
         return false;
       }
     },
-    [currentUser?.id, targetType, targetId, onChange, fetch]
+    [currentUserId, targetType, targetId, onChange]
   );
 
+  /** Редактирование комментария
+   * @param {number} commentId - ID комментария
+   * @param {string} editText - текст комментария
+   */
   const handleEditComment = useCallback(
     async (commentId, editText) => {
-      if (!currentUser?.id || !editText) return false;
+      if (!currentUserId || !editText) return false;
       try {
         await editCommentApi(commentId, editText, targetType, targetId);
-        fetch();
+        setRawComments((prev) =>
+          prev.map((c) =>
+            c.id === commentId ? { ...c, content: editText } : c
+          )
+        );
         return true;
       } catch (error) {
         console.error('Ошибка обновления комментария:', error);
         return false;
       }
     },
-    [currentUser?.id, targetType, targetId, fetch]
+    [currentUserId, targetType, targetId]
   );
 
+  /** Удаление комментария
+   * @param {number} commentId - ID комментария
+   */
   const handleDeleteComment = useCallback(
     async (commentId) => {
-      if (!currentUser?.id || !commentId) return false;
+      if (!currentUserId || !commentId) return false;
       try {
         await deleteCommentApi(commentId);
-        fetch();
+        setRawComments((prev) => prev.filter((c) => c.id !== commentId));
         onChange?.(-1);
         return true;
       } catch (error) {
@@ -86,24 +164,29 @@ export function useFetchComments(targetType, targetId, onChange) {
         return false;
       }
     },
-    [currentUser?.id, onChange, fetch]
+    [currentUserId, onChange]
   );
 
-  /**
-   * Оптимистичный лайк / дизлайк
-   * @param {number} commentId
-   * @param {boolean} currentlyLiked — текущее состояние (лайкнут или нет)
+  /** Оптимистичный лайк / дизлайк
+   * @param {number} commentId - ID комментария
+   * @param {boolean} currentlyLiked - текущее состояние (лайкнут или нет)
    */
   const toggleLikeComment = useCallback(
     async (commentId, currentlyLiked) => {
+      const userId = currentUserId;
+      if (!userId) return;
+
+      // Оптимистичное обновление
       setRawComments((prev) =>
         prev.map((comment) =>
           comment.id === commentId
             ? {
                 ...comment,
                 likes: currentlyLiked
-                  ? (comment.likes || []).filter((like) => like.userId !== currentUser?.id)
-                  : [...(comment.likes || []), { userId: currentUser?.id }],
+                  ? (comment.likes || []).filter(
+                      (like) => like.userId !== userId
+                    )
+                  : [...(comment.likes || []), { userId }],
               }
             : comment
         )
@@ -116,35 +199,37 @@ export function useFetchComments(targetType, targetId, onChange) {
           await addLike('Comment', commentId);
         }
       } catch (err) {
+        // Откат
         setRawComments((prev) =>
           prev.map((comment) =>
             comment.id === commentId
               ? {
                   ...comment,
                   likes: currentlyLiked
-                    ? [...(comment.likes || []), { userId: currentUser?.id }]
-                    : (comment.likes || []).filter((like) => like.userId !== currentUser?.id),
+                    ? [...(comment.likes || []), { userId }]
+                    : (comment.likes || []).filter(
+                        (like) => like.userId !== userId
+                      ),
                 }
               : comment
           )
         );
-        console.error('Ошибка лайка новости:', err);
+        console.error('Ошибка лайка комментария:', err);
       }
     },
-    [currentUser?.id]
+    [currentUserId]
   );
-
-  const comments = (rawComments || []).map((raw) => normalizeComment(raw, currentUser?.id));
 
   return {
     comments,
     isLoading,
+    hasMore,
     error,
-    currentUser,
     handleAddComment,
     handleEditComment,
     handleDeleteComment,
     toggleLikeComment,
-    refetch: fetch,
+    loadMore,
+    refetch: fetchComments,
   };
 }

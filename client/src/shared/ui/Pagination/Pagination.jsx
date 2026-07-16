@@ -1,5 +1,5 @@
-import style from './Pagination.module.css';
 import { Button } from '..';
+import style from './Pagination.module.css';
 
 /**
  * Пагинация (постраничная навигация).
@@ -8,6 +8,7 @@ import { Button } from '..';
  * @param {number} props.page - текущая страница (начиная с 1)
  * @param {Function} props.onPageChange - колбэк при смене страницы (получает номер страницы)
  */
+
 export const Pagination = ({ totalPages, page, onPageChange }) => {
   // Защита от некорректных значений
   const safeTotal = Math.max(1, Number(totalPages) || 1);
@@ -46,7 +47,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
     <nav className={style.pagination} aria-label="Пагинация">
       <Button
         variant="ghost"
-        size="small"
+        size="sm"
         className={style.pageButton}
         onClick={() => onPageChange(safePage - 1)}
         disabled={safePage === 1}
@@ -63,7 +64,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
           <Button
             key={isDots ? `dots-${idx}` : pageNum}
             variant={isActive ? 'primary' : isDots ? 'ghost' : 'secondary'}
-            size="small"
+            size="sm"
             className={style.pageButton}
             onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
             disabled={isDots || isActive}
@@ -76,7 +77,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
 
       <Button
         variant="ghost"
-        size="small"
+        size="sm"
         className={style.pageButton}
         onClick={() => onPageChange(safePage + 1)}
         disabled={safePage === safeTotal}

@@ -10,8 +10,9 @@ export const getTracksTabProps = (ctx) => ({
   mode: ctx.mode,
   currentUser: ctx.currentUser,
   targetUser: ctx.targetUser,
-  isProfileOwner: ctx.isProfileOwner,
+  isOwnProfile: ctx.isOwnProfile,
   isLoading: ctx.isLoading,
+  isLoadingMore: ctx.isLoadingMore,
   error: ctx.error,
   currentTrack: ctx.currentTrack,
   isPlaying: ctx.isPlaying,
@@ -24,4 +25,7 @@ export const getTracksTabProps = (ctx) => ({
   updatePlayCount: ctx.updatePlayCount,
   toggleFavorite: ctx.toggleFavorite,
   toggleComments: ctx.toggleComments,
+  hasMore: ctx.hasMore,
+  loadMore: ctx.loadMore,
+  onRetry: ctx.refetch,
 });

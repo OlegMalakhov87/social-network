@@ -13,21 +13,22 @@ export const getProfileActions = ({
   friendshipButton,
   onMessage,
   isOwnProfile,
-}) =>{
+}) => {
   if (!friendshipButton && !onMessage) return [];
 
   const actions = [
-    !isOwnProfile && friendshipButton && {
-      key: 'friendship',
-      ...friendshipButton,
-    },
+    !isOwnProfile &&
+      friendshipButton && {
+        key: 'friendship',
+        ...friendshipButton,
+      },
     {
       key: 'message',
       text: 'Написать сообщение',
       variant: 'secondary',
-      onClick: onMessage, 
+      onClick: onMessage,
     },
   ];
 
-  return actions;
+  return actions.filter(Boolean);
 };

@@ -6,11 +6,11 @@ import styles from './MediaPreview.module.css';
  * Универсальное превью медиа.
  *
  * @param {Object} props
- * @param {Object} props.item
- * @param {string} props.src
- * @param {string} props.alt
- * @param {Function} props.onClick
- * @param {boolean} props.clickable
+ * @param {Object} props.item - объект с данными о медиа
+ * @param {string} props.src - URL изображения
+ * @param {string} props.alt - альтернативный текст изображения
+ * @param {Function} props.onClick - функция, вызываемая при клике
+ * @param {boolean} props.clickable - если true, то превью является кликабельным
  */
 export const MediaPreview = ({
   item = {},
@@ -30,7 +30,7 @@ export const MediaPreview = ({
       <Image
         src={src}
         alt={alt}
-        fallback="/error.png"
+        fallback="/error-page.png"
         className={styles.image}
       />
 

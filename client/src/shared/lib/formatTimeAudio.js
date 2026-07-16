@@ -1,4 +1,9 @@
-/* Функция для форматирования времени (реализовано для треков) */
+/**
+ * Функция для форматирования времени (реализовано для треков).
+ *
+ * @param {number} seconds - время в секундах.
+ * @returns {string} - форматированное время.
+ */
 
 export const formatTimeAudio = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00';

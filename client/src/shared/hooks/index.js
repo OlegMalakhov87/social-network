@@ -1,6 +1,15 @@
 export { useAbortableRequest } from './useAbortableRequest';
 export { useEscapeKey } from './useEscapeKey';
+export { useFilterControls } from './useFilterControls';
+export { useInfiniteScroll } from './useInfiniteScroll';
 export { useLockBodyScroll } from './useLockBodyScroll';
 export { useMediaControls } from './useMediaControls';
+export { useNormalizedData } from './useNormalizedData';
+export { useNotify } from './useNotify';
+export { useOptimisticCommentCount } from './useOptimisticCommentCount';
+export { useOptimisticCounter } from './useOptimisticCounter';
+export { useOptimisticFavorite } from './useOptimisticFavorite';
+export { useOptimisticLike } from './useOptimisticLike';
+export { useOptimisticMutation } from './useOptimisticMutation';
 export { useOutsideClick } from './useOutsideClick';
 export { usePagination } from './usePagination';

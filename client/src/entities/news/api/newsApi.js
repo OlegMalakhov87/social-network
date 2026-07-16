@@ -1,74 +1,79 @@
-import { apiAxios } from '../../../shared/api';
+import { api } from '../../../shared/api';
 
 /**
  * Получить все новости с возможностью фильтрации по категории и поиску.
  * @param {Object} params - параметры запроса
- * @param {number} [params.page=1]
- * @param {number} [params.limit=30]
+ * @param {number} [params.page] - номер страницы
+ * @param {number} [params.limit] - количество на странице
  * @param {string} [params.category] - категория для фильтрации
  * @param {string} [params.q] - поисковый запрос
- * @returns {Promise<Object>} - { news, pagination }
+ * @param {AbortSignal} [params.signal] - сигнал отмены запроса
+ * @returns {Promise<Object>} - { items, pagination }
  */
 
-export async function fetchNews({ page = 1, limit = 30, category, q } = {}) {
-  const response = await apiAxios.get('/news', {
+export async function fetchNewsApi({ page, category, q, limit, signal } = {}) {
+  const response = await api.get(`/news`, {
     params: {
       page,
       limit,
-      category: category === 'All' ? undefined : category,
+      category: category === 'all' ? undefined : category,
       q: q?.trim() || undefined,
     },
+    signal,
   });
+  return {
+    items: response.data.news || [],
+    pagination: response.data.pagination || {},
+  };
+}
+
+/**
+ * Поделиться новостью.
+ * @param {number} newsId
+ * @returns {Promise<Object>} { news }
+ */
+export async function fetchNewsById(newsId) {
+  const response = await api.get(`/news/${newsId}/shared`);
   return response.data;
 }
 
 /**
- * Получить одну новость по ID.
- * @param {number} id
- * @returns {Promise<Object>} новость
+ * Добавить новость.
+ * @param {Object} data - поля новости (title, content, category, author, source, mediaUrl)
+ * @returns {Promise<Object>} { news }
  */
-export async function fetchNewsById(id) {
-  const response = await apiAxios.get(`/news/${id}`);
-  return response.data;
-}
-
-/**
- * Создать новость.
- * @param {Object} data - поля новости (title, content, category, author, source, imageUrl)
- * @returns {Promise<Object>} созданная новость
- */
-export async function createNews(data) {
-  const response = await apiAxios.post('/news', data);
-  return response.data;
-}
-
-/**
- * Увеличить счетчик просмотров.
- * @param {number} newsId - ID новости
- * @returns {Promise<Object>} обновлённая новость
- */
-export async function incrementNewsView(newsId) {
-  const response = await apiAxios.put(`/news/${newsId}/view`);
+export async function addNewsApi(data) {
+  const response = await api.post('/news', data);
   return response.data;
 }
 
 /**
  * Обновить новость.
- * @param {number} id
- * @param {Object} updates
- * @returns {Promise<Object>} обновлённая новость
+ * @param {number} newsId - ID новости
+ * @param {Object} updates - поля новости (title, content, category, author, source, mediaUrl)
+ * @returns {Promise<Object>} { news }
  */
-export async function updateNews(id, updates) {
-  const response = await apiAxios.put(`/news/${id}`, updates);
+export async function updateNewsApi(newsId, updates) {
+  const response = await api.put(`/news/${newsId}`, updates);
+  return response.data;
+}
+
+/**
+ * Обновить счетчик просмотров.
+ * @param {number} newsId - ID новости
+ * @returns {Promise<Object>} { news }
+ */
+export async function updateNewsViewCount(newsId) {
+  const response = await api.put(`/news/${newsId}/view`);
   return response.data;
 }
 
 /**
  * Удалить новость.
- * @param {number} id
- * @returns {Promise<Object>} подтверждение
+ * @param {number} newsId - ID новости
+ * @returns {Promise<Object>} newsId
  */
-export async function deleteNews(id) {
-  const response = await apiAxios.delete(`/news/${id}`);
+export async function deleteNewsApi(newsId) {
+  const response = await api.delete(`/news/${newsId}`);
   return response.data;
 }

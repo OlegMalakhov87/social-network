@@ -19,14 +19,14 @@
 
 .title {
   margin: 0 0 var(--space-3);
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   font-size: var(--font-xl);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .text {
   margin: 0 0 var(--space-6);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -35,7 +35,7 @@
   padding: var(--space-4);
   text-align: left;
   border-radius: var(--radius-md);
-  background: var(--color-surface-secondary);
+  background: var(--surface-secondary);
   color: var(--color-danger);
   overflow-x: auto;
   font-size: var(--font-sm);

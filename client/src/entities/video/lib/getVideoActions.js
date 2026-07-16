@@ -2,17 +2,14 @@
  * Формирует массив действий карточки видео.
  *
  * @param {Object} params
- * @param {Object} params.video
- * @param {boolean} params.isOwn
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike
- * @param {(id:number)=>void} params.toggleComments
- * @param {(id:number)=>void} params.addToLibrary
- * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary
- * @param {Function} params.onShare
- *
- * @returns {Array<Object>}
+ * @param {Object} params.video - видео
+ * @param {boolean} params.isOwn - флаг владельца видео
+ * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка видео
+ * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к видео
+ * @param {(id:number)=>void} params.addToLibrary - функция для добавления видео в библиотеку
+ * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary - функция для удаления видео из библиотеки
+ * @returns {Array<Object>} - массив действий карточки видео
  */
-
 export const getVideoActions = ({
   video,
   isOwn,
@@ -20,7 +17,6 @@ export const getVideoActions = ({
   toggleComments,
   addToLibrary,
   removeFromLibrary,
-  onShare,
 }) => {
   if (!video) return [];
 
@@ -54,20 +50,13 @@ export const getVideoActions = ({
           ? removeFromLibrary?.(video.libraryId, video.id)
           : addToLibrary?.(video.id),
     });
-
-    actions.push({
-      key: 'share',
-      icon: '↗️',
-      label: String(video.sharedCount ?? 0),
-      ariaLabel: 'Поделиться',
-      onClick: () => onShare?.(),
-    });
   } else {
     actions.push({
       key: 'visible',
       icon: '🔒',
       label: 'Личное',
       ariaLabel: 'Личное',
+      disabled: true,
     });
   }
 

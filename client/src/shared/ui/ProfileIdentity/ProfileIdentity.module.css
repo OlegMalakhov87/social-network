@@ -2,12 +2,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
   width: 100%;
 }
 
+.identity:has(:not(:empty)) {
+  gap: var(--space-4);
+}
+
 @media (max-width: 768px) {
-  .identity {
+  .identity:has(:not(:empty)) {
     gap: var(--space-3);
   }
 }

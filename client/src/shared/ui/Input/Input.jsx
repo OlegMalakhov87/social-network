@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
 import { forwardRef, useState } from 'react';
-import styles from './Input.module.css';
 import { classNames } from '../../lib';
+import styles from './Input.module.css';
 
 /**
  * Универсальный компонент поля ввода.
@@ -16,14 +15,14 @@ import { classNames } from '../../lib';
  * - fullWidth
  *
  * @param {Object} props
- * @param {string} [props.label]
- * @param {string} [props.error]
- * @param {string} [props.helperText]
- * @param {React.ReactNode} [props.leftIcon]
- * @param {React.ReactNode} [props.rightIcon]
- * @param {boolean} [props.fullWidth=true]
- * @param {boolean} [props.multiline=false]
- * @param {number} [props.rows=4]
+ * @param {string} [props.label] - текст лейбла
+ * @param {string} [props.error] - текст ошибки
+ * @param {string} [props.helperText] - текст подсказки
+ * @param {React.ReactNode} [props.leftIcon] - иконка слева
+ * @param {React.ReactNode} [props.rightIcon] - иконка справа
+ * @param {boolean} [props.fullWidth=true] - полная ширина
+ * @param {boolean} [props.multiline=false] - textarea
+ * @param {number} [props.rows=4] - количество строк
  */
 export const Input = forwardRef(
   (
@@ -51,7 +50,9 @@ export const Input = forwardRef(
     const inputType = isPassword && showPassword ? 'text' : type;
 
     return (
-      <div className={classNames(styles.wrapper, fullWidth && styles.fullWidth)}>
+      <div
+        className={classNames(styles.wrapper, fullWidth && styles.fullWidth)}
+      >
         {label && (
           <label className={styles.label}>
             {label}
@@ -60,7 +61,11 @@ export const Input = forwardRef(
         )}
 
         <div
-          className={ classNames(styles.inputWrapper, error && styles.error, disabled && styles.disabled)}
+          className={classNames(
+            styles.inputWrapper,
+            error && styles.error,
+            disabled && styles.disabled
+          )}
         >
           {leftIcon && <span className={styles.icon}>{leftIcon}</span>}
 
@@ -107,20 +112,3 @@ export const Input = forwardRef(
     );
   }
 );
-
-Input.displayName = 'Input';
-
-Input.propTypes = {
-  label: PropTypes.string,
-  error: PropTypes.string,
-  helperText: PropTypes.string,
-  leftIcon: PropTypes.node,
-  rightIcon: PropTypes.node,
-  className: PropTypes.string,
-  fullWidth: PropTypes.bool,
-  multiline: PropTypes.bool,
-  rows: PropTypes.number,
-  type: PropTypes.string,
-  disabled: PropTypes.bool,
-  required: PropTypes.bool,
-};

@@ -18,13 +18,13 @@ import styles from './Avatar.module.css';
  */
 export const Avatar = ({
   src,
-  fallback = '/images/avatar-placeholder.webp',
+  fallback = '/avatar.png',
   alt = 'Avatar',
   size = 'md',
   variant = 'circle',
   status = null,
-  clickable,
-  onClick,
+  clickable = false,
+  onClick = () => {},
   className = '',
 }) => {
   return (

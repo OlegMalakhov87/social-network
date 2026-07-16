@@ -5,8 +5,9 @@ import {
   EntityActions,
   EntityContent,
   EntityHeader,
+  ConfirmDialog,
 } from '../../../shared/ui';
-
+import { useState } from 'react';
 /**
  * Карточка одного трека.
  * @param {Object} props
@@ -15,7 +16,7 @@ import {
  * @param {Object} props.currentTrack - текущий играющий трек
  * @param {boolean} props.isPlaying - проигрывается ли трек сейчас (true/false)
  * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isProfileOwner - владелец профиля
+ * @param {boolean} props.isOwnProfile - владелец профиля
  * @param {string} props.mode
  * @param {Function} props.onPlay - начать воспроизведение
  * @param {Function} props.togglePlay - переключить play/pause текущего трека
@@ -33,7 +34,7 @@ export const Track = ({
   currentTrack,
   isPlaying,
   currentUser,
-  isProfileOwner,
+  isOwnProfile,
   mode,
   onPlay,
   togglePlay,
@@ -44,12 +45,12 @@ export const Track = ({
   toggleComments,
   onDelete,
 }) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   if (!track?.id) return null;
 
   const isOwn = track.uploadedBy === currentUser?.id;
 
-  const showFavorite =
-    mode === 'profile' && isProfileOwner && track.isInLibrary;
+  const showFavorite = mode === 'profile' && isOwnProfile && track.isInLibrary;
 
   const handlePlay = () => {
     if (currentTrack?.id === track.id) {
@@ -68,38 +69,60 @@ export const Track = ({
     toggleComments,
   });
 
-  return (
-    <BaseCard
-      header={
-        <EntityHeader
-          leftSlot={
-            showFavorite && (
-              <ActionChip
-                icon={track.isFavorite ? '⭐' : '☆'}
-                onClick={() => toggleFavorite?.(track.id)}
-              />
-            )
-          }
-          rightSlot={
-            isOwn && (
-              <ActionChip icon="🗑" onClick={() => onDelete?.(track.id)} />
-            )
-          }
-        ></EntityHeader>
-      }
-      content={
-        <EntityContent>
-          <TrackCover
-            track={track}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            onPlay={handlePlay}
-          />
+  const handleConfirmDelete = () => {
+    onDelete?.(track?.id);
+    setShowDeleteDialog(false);
+  };
 
-          <TrackMeta track={track} />
-        </EntityContent>
-      }
-      actions={<EntityActions actions={actions} />}
-    />
+  return (
+    <>
+      <BaseCard
+        header={
+          (showFavorite || isOwn) && (
+            <EntityHeader
+              leftSlot={
+                showFavorite && (
+                  <ActionChip
+                    icon={track.isFavorite ? '⭐' : '☆'}
+                    onClick={() => toggleFavorite?.(track.id)}
+                  />
+                )
+              }
+              rightSlot={
+                isOwn && (
+                  <ActionChip
+                    icon="🗑"
+                    onClick={() => setShowDeleteDialog(true)}
+                  />
+                )
+              }
+            ></EntityHeader>
+          )
+        }
+        content={
+          <EntityContent>
+            <TrackCover
+              track={track}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onPlay={handlePlay}
+            />
+
+            <TrackMeta track={track} />
+          </EntityContent>
+        }
+        actions={<EntityActions actions={actions} />}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Удалить трек?"
+        description="Это действие нельзя отменить. Трек будет удален навсегда."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        confirmVariant="danger"
+      />
+    </>
   );
 };

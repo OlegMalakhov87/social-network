@@ -1,4 +1,5 @@
-// Вспоиогательные функции
+// Вспоиогательные функции для фото (экшены)
 export { getPhotoActions } from './lib/getPhotoActions';
-// Ui компоненты
+
+// Компонент фото (карточка)
 export { Photo } from './ui/Photo';

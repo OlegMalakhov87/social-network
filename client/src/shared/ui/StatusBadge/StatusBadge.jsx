@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { classNames } from '../../../lib';
 import style from './StatusBadge.module.css';
 
 /**
@@ -18,20 +18,11 @@ export const StatusBadge = ({
 }) => {
   return (
     <div
-      className={clsx(
-        style.badge,
-        style[status],
-        style[size],
-        className
-      )}
+      className={classNames(style.badge, style[status], style[size], className)}
     >
       <span className={style.dot} />
 
-      {label && (
-        <span className={style.label}>
-          {label}
-        </span>
-      )}
+      {label && <span className={style.label}>{label}</span>}
     </div>
   );
 };

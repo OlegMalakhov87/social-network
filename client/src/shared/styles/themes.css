@@ -1,25 +1,39 @@
-/* Светлая тема */
 html[data-theme='light'] {
-  --color-background: #f5f7fa;
+  --surface-page: #f5f7fa;
 
-  --color-surface: #ffffff;
+  --surface-card: #ffffff;
 
-  --color-text-primary: #1f2937;
+  --surface-card-hover: #f9fafb;
 
-  --color-text-secondary: #6b7280;
+  --surface-secondary: #f3f4f6;
 
-  --color-border: #d1d5db;
+  --text-primary: #1f2937;
+
+  --text-secondary: #6b7280;
+
+  --text-tertiary: #9ca3af;
+
+  --border-primary: #d1d5db;
+
+  --border-secondary: #e5e7eb;
 }
 
-/* Тёмная тема */
 html[data-theme='dark'] {
-  --color-background: #18181b;
+  --surface-page: #18181b;
 
-  --color-surface: #27272a;
+  --surface-card: #27272a;
 
-  --color-text-primary: #f4f4f5;
+  --surface-card-hover: #323238;
 
-  --color-text-secondary: #a1a1aa;
+  --surface-secondary: #3a3a42;
 
-  --color-border: #3f3f46;
+  --text-primary: #f4f4f5;
+
+  --text-secondary: #a1a1aa;
+
+  --text-tertiary: #71717a;
+
+  --border-primary: #3f3f46;
+
+  --border-secondary: #52525b;
 }

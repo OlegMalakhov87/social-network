@@ -2,48 +2,107 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-
   border: none;
   cursor: pointer;
-
-  transition: 0.2s;
-
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
   border-radius: var(--radius-full);
-
-  background: var(--surface-overlay);
-
-  color: var(--text-primary);
-
-  backdrop-filter: blur(6px);
 }
 
-.button:hover {
-  transform: scale(1.05);
+.button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .sm {
-  width: 28px;
-  height: 28px;
+  width: var(--space-7);
+  height: var(--space-7);
+  font-size: var(--font-sm);
 }
 
 .md {
-  width: 36px;
-  height: 36px;
+  width: var(--space-9);
+  height: var(--space-9);
+  font-size: var(--font-md);
 }
 
 .lg {
-  width: 44px;
-  height: 44px;
+  width: var(--space-11);
+  height: var(--space-11);
+  font-size: var(--font-lg);
 }
 
-.default {
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
 }
 
-.danger:hover {
+.ghost:hover:not(:disabled) {
+  background: var(--surface-card-hover);
+  color: var(--text-primary);
+}
+
+.overlay {
+  background: var(--surface-overlay);
+  color: var(--text-inverse);
+  backdrop-filter: blur(6px);
+}
+
+.overlay:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: scale(1.05);
+}
+
+.danger {
+  background: transparent;
+  color: var(--color-danger);
+}
+
+.danger:hover:not(:disabled) {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-white);
 }
 
 .warning {
-  color: gold;
+  background: transparent;
+  color: var(--color-warning);
+}
+
+.warning:hover:not(:disabled) {
+  background: var(--color-warning);
+  color: var(--color-white);
+}
+
+.success {
+  background: transparent;
+  color: var(--color-success);
+}
+
+.success:hover:not(:disabled) {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }

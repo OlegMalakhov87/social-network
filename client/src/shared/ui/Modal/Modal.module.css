@@ -5,21 +5,21 @@
   justify-content: center;
   align-items: center;
   padding: var(--space-5);
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--surface-overlay);
   backdrop-filter: blur(4px);
   z-index: var(--z-modal);
-  animation: fadeIn 0.18s ease;
+  animation: fadeIn var(--transition-fast) ease;
 }
 
 .modal {
   width: 100%;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--surface-card);
+  color: var(--text-primary);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
-  animation: scaleIn 0.2s ease;
+  animation: scaleIn var(--transition-fast) ease;
 }
 
 .sm {
@@ -43,13 +43,13 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-5);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .title {
   margin: 0;
   font-size: var(--font-xl);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .content {
@@ -63,7 +63,7 @@
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-5);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border-primary);
 }
 
 @keyframes fadeIn {

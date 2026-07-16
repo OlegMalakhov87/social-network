@@ -1,93 +1,80 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchMyMusicLibrary,
   fetchUserMusicLibrary,
   normalizeTrack,
 } from '../../../entities/track';
-
+import { apiFetchItems } from '../../../shared/api';
+import {
+  useInfiniteScroll,
+  useNormalizedData,
+  useNotify,
+} from '../../../shared/hooks';
 /**
  * Хук для получения треков библиотеки пользователя.
  * @param {number|null} profileUserId - ID пользователя
  * @param {number|null} currentUserId - ID текущего пользователя
  * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля
- * @returns {{ tracks: Array, pagination: Object|null, isLoading: boolean, error: string|null, refetch: Function, setRawTracks: Function }}
+ * @param {string} sortKey - ключ сортировки
+ * @returns {{ tracks: Array, hasMore: boolean, isLoading: boolean, isLoadingMore: boolean, error: string|null, refetch: Function, setTracksItems: Function, loadMore: Function }}
  */
 export function useUserMusicLibrary(
   profileUserId,
   currentUserId,
-  isOwnProfile
+  isOwnProfile,
+  sortKey
 ) {
-  const [rawTracks, setRawTracks] = useState([]);
-  const [pagination, setPagination] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const notify = useNotify('tracks');
 
   /**
    * Получение треков библиотеки пользователя.
    */
-  const fetchTracks = useCallback(async () => {
-    if (!profileUserId || profileUserId <= 0) {
-      setRawTracks([]);
-      setPagination(null);
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      let data;
-      //  Выбираем эндпоинт в зависимости от профиля
-      if (isOwnProfile) {
-        // Свой профиль: запрашиваем МОЮ библиотеку
-        data = await fetchMyMusicLibrary({ page: 1, limit: 30 });
-      } else {
-        // Чужой профиль: запрашиваем ЕГО библиотеку + статус для моей кнопки
-        data = await fetchUserMusicLibrary(profileUserId, {
-          page: 1,
-          limit: 30,
-        });
+  const {
+    items: tracksItems,
+    setItems: setTracksItems,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+  } = useInfiniteScroll({
+    fetchFn: ({ page, limit, signal }) => {
+      if (!profileUserId || profileUserId <= 0) {
+        return { items: [], hasMore: false };
       }
+      return apiFetchItems(
+        isOwnProfile ? fetchMyMusicLibrary : fetchUserMusicLibrary,
+        {
+          params: { userId: profileUserId, page, limit },
+          signal,
+        }
+      );
+    },
+    deps: [profileUserId, sortKey],
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
+  });
 
-      const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
-      const tracksWithCount = tracks.map((track) => ({
-        ...track,
-        commentsCount: track.comments?.length ?? 0,
-      }));
-      setRawTracks(tracksWithCount || []);
-      setPagination(data.pagination || null);
-    } catch (err) {
-      setError(err.message);
-      setRawTracks([]);
-      setPagination(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [profileUserId, isOwnProfile]);
-
-  /**
-   * Загрузка треков библиотеки пользователя при монтировании компонента.
-   */
-  useEffect(() => {
-    fetchTracks();
-  }, [fetchTracks]);
-
-  /**
-   * Нормализация треков библиотеки пользователя.
-   */
-  const tracks = useMemo(() => {
-    if (!Array.isArray(rawTracks)) return [];
-    return rawTracks.map((entry) => normalizeTrack(entry, currentUserId));
-  }, [rawTracks, currentUserId]);
+  /** Нормализация и сортировка новостей. */
+  const tracks = useNormalizedData({
+    items: tracksItems,
+    entityType: 'tracks',
+    sortKey,
+    normalizeFn: normalizeTrack,
+    userId: currentUserId,
+  });
 
   /**
    * Возвращаем объект с данными о треках библиотеки пользователя.
    */
   return {
     tracks,
-    pagination,
+    hasMore,
     isLoading,
+    loadMore,
+    isLoadingMore,
     error,
-    setRawTracks,
-    refetch: fetchTracks,
+    refetch,
+    setTracksItems,
   };
 }

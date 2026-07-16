@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import { forwardRef } from 'react';
 import { classNames } from '../../lib';
 import styles from './Card.module.css';
 
@@ -16,29 +16,21 @@ import styles from './Card.module.css';
  * @param {boolean} [props.padding=true] - Внутренние отступы.
  * @param {string} [props.className=''] - Дополнительный CSS класс.
  */
-export const Card = ({
-  children,
-  hover = false,
-  padding = true,
-  className = '',
-}) => {
-  return (
-    <section
-      className={classNames(
-        styles.card,
-        hover && styles.hover,
-        padding && styles.padding,
-        className
-      )}
-    >
-      {children}
-    </section>
-  );
-};
 
-Card.propTypes = {
-  children: PropTypes.node.isRequired,
-  hover: PropTypes.bool,
-  padding: PropTypes.bool,
-  className: PropTypes.string,
-};
+export const Card = forwardRef(
+  ({ children, hover = false, padding = true, className = '' }, ref) => {
+    return (
+      <section
+        ref={ref}
+        className={classNames(
+          styles.card,
+          hover && styles.hover,
+          padding && styles.padding,
+          className
+        )}
+      >
+        {children}
+      </section>
+    );
+  }
+);

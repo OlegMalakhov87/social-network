@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PROFILE_TABS_MAP, getProfileTabContent } from '../../../entities/user';
 import { useCommentsPanel } from '../../../features/comments';
@@ -6,13 +6,15 @@ import { useFriendshipStatus } from '../../../features/friends';
 import { PostForm } from '../../../features/posts';
 import { useOnline, useUserContentFilter } from '../../../features/users';
 import { SORT_OPTIONS } from '../../../shared/config';
+import { useFilterControls } from '../../../shared/hooks';
 import {
-  Button,
   Dropdown,
+  ErrorBoundary,
+  IconButton,
   PageLayout,
   PageLoader,
-  ProfileToolbar,
   SectionCard,
+  Toolbar,
 } from '../../../shared/ui';
 import { useAudioPlayer } from '../../../widgets/audio-player';
 import { CommentsSection } from '../../../widgets/comments-list';
@@ -27,48 +29,66 @@ import style from './ProfilePage.module.css';
  */
 
 export const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('posts');
-  const [sortKey, setSortKey] = useState('dateDesc');
   const [showPostForm, setShowPostForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const commentsSectionRef = useRef(null);
 
   const { userId: userIdParam } = useParams();
+
+  /** Управление фильтрацией и сортировкой */
+  const {
+    filter: activeTab,
+    sortKey,
+    setSortKey,
+    handleFilterChange: setActiveTab,
+  } = useFilterControls({
+    initialFilter: 'posts',
+    initialSort: 'dateDesc',
+  });
 
   /**  Загрузка контента вкладки с экшенами */
   const {
     currentUser,
     targetUser,
+    isOwnProfile,
     userError,
     items,
     isLoadingProfile,
     toggleLikeItem,
-    removeItemOptimistic,
+    deleteItemOptimistic,
     addItemOptimistic,
-    updateItemCount,
-    toggleFavorite,
+    incrementCounter,
+    toggleFavoriteItem,
     updateCommentCount,
     // Посты
     isLoadingPosts,
-    paginationPosts,
+    isLoadingMorePosts,
     errorPosts,
-    handleAddPost,
-    handleDeletePost,
-    handleEditPost,
+    addPost,
+    updatePost,
+    deletePost,
+    hasMorePosts,
+    loadMorePosts,
+    refetchPosts,
     // Треки
     isLoadingTracks,
-    paginationTracks,
+    isLoadingMoreTracks,
     errorTracks,
+    hasMoreTracks,
+    loadMoreTracks,
+    refetchTracks,
     // Видео
     isLoadingVideos,
-    paginationVideos,
+    isLoadingMoreVideos,
     errorVideos,
+    hasMoreVideos,
+    loadMoreVideos,
+    refetchVideos,
   } = useUserContentFilter({
     activeTab,
     sortKey,
     userIdParam,
   });
-  /** Проверка, является ли текущий пользователь владельцем профиля */
-  const isProfileOwner = currentUser?.id === targetUser?.id;
 
   /** Получение статуса пользователя (в сети или нет) */
   const onlineMap = useOnline(targetUser?.id);
@@ -94,22 +114,14 @@ export const ProfilePage = () => {
     useAudioPlayer();
 
   /** Обработчик для открытия модального окна с видео*/
-  const handleClickVideo = useCallback((video) => setSelectedVideo(video), []);
+  const handleOpenVideo = useCallback((video) => setSelectedVideo(video), []);
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
-
-  /** Получение текущей пагинации открытой вкладки */
-  const currentPagination = {
-    posts: paginationPosts,
-    photos: paginationPosts,
-    tracks: paginationTracks,
-    videos: paginationVideos,
-  }[activeTab];
 
   // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
   const commentTargetType = activeTab === 'photos' ? 'posts' : activeTab;
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel(commentTargetType, currentPagination?.currentPage);
+    useCommentsPanel(commentTargetType, sortKey, activeTab);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
@@ -119,28 +131,64 @@ export const ProfilePage = () => {
     [commentTarget?.id, updateCommentCount]
   );
 
+  /** Обработчик для отправки формы */
+  const handleFormSubmit = useCallback(
+    async (values, isEdit, postId) => {
+      if (isEdit && postId) {
+        await updatePost?.(postId, values);
+      } else {
+        await addPost?.(values);
+      }
+      setShowPostForm(null);
+    },
+    [addPost, updatePost]
+  );
+
+  /** Обработчик для закрытия формы */
+  const handleCloseForm = useCallback(() => {
+    setShowPostForm(null);
+  }, []);
+
+  /** Скролл к секции комментариев при открытии панели */
+  useEffect(() => {
+    if (!commentTarget?.id || !commentTarget?.type) return;
+    commentsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [commentTarget?.id, commentTarget?.type]);
+
+  /**  Состояние загрузки всей страницы */
+  if (isLoadingProfile || (userIdParam && !targetUser)) {
+    return <PageLoader message="Загружаем профиль..." />;
+  }
+
   /**  Получение пропсов для выбранной вкладки */
   const tab = PROFILE_TABS_MAP.find(({ id }) => id === activeTab);
   if (!tab) return null;
 
-  /**  Получение пропсов для выбранной вкладки */
   const tabProps = tab?.getProps({
     currentUser,
     targetUser,
     toggleComments: onToggleComments,
-    isProfileOwner,
+    isOwnProfile,
     toggleLike: toggleLikeItem,
     posts: {
       items,
       isLoading: isLoadingPosts,
+      isLoadingMore: isLoadingMorePosts,
       error: errorPosts,
-      onPlayVideo: handleClickVideo,
-      deletePost: handleDeletePost,
-      editPost: handleEditPost,
+      onPlayVideo: handleOpenVideo,
+      deletePost: deletePost,
+      updatePost: setShowPostForm,
+      hasMore: hasMorePosts,
+      loadMore: loadMorePosts,
+      refetch: refetchPosts,
     },
     tracks: {
       items,
       isLoading: isLoadingTracks,
+      isLoadingMore: isLoadingMoreTracks,
       error: errorTracks,
       mode: 'profile',
       currentTrack: currentTrack,
@@ -149,107 +197,119 @@ export const ProfilePage = () => {
       onTrackStart: setOnTrackStart,
       togglePlay: togglePlay,
       addOptimistic: addItemOptimistic,
-      removeOptimistic: removeItemOptimistic,
-      updatePlayCount: updateItemCount,
-      toggleFavorite: toggleFavorite,
+      removeOptimistic: deleteItemOptimistic,
+      updatePlayCount: incrementCounter,
+      toggleFavorite: toggleFavoriteItem,
+      hasMore: hasMoreTracks,
+      loadMore: loadMoreTracks,
+      refetch: refetchTracks,
     },
     videos: {
       items,
       isLoading: isLoadingVideos,
+      isLoadingMore: isLoadingMoreVideos,
       error: errorVideos,
       mode: 'profile',
-      onPlayVideo: handleClickVideo,
+      onPlayVideo: handleOpenVideo,
       addOptimistic: addItemOptimistic,
-      removeOptimistic: removeItemOptimistic,
-      updateViewCount: updateItemCount,
-      toggleFavorite: toggleFavorite,
+      removeOptimistic: deleteItemOptimistic,
+      updateViewCount: incrementCounter,
+      toggleFavorite: toggleFavoriteItem,
+      hasMore: hasMoreVideos,
+      loadMore: loadMoreVideos,
+      refetch: refetchVideos,
     },
     photos: {
       items,
       isLoading: isLoadingPosts,
+      isLoadingMore: isLoadingMorePosts,
       error: errorPosts,
-      deletePhoto: handleDeletePost,
+      deletePhoto: deletePost,
+      hasMore: hasMorePosts,
+      loadMore: loadMorePosts,
+      refetch: refetchPosts,
     },
   });
 
   /**  Рендер выбранной вкладки */
   const tabContent = getProfileTabContent({ activeTab, tabProps });
 
-  /**  Состояние загрузки всей страницы */
-  if (isLoadingProfile || (userIdParam && !targetUser)) {
-    return <PageLoader message="Загружаем профиль..." />;
-  }
-
   return (
-    <PageLayout className={style.profile}>
-      {/* Карточка профиля */}
-      <UserProfileCard
-        targetUser={targetUser}
-        currentUser={currentUser}
-        onFollow={followUser}
-        onUnfollow={unfollowUser}
-        onAccept={acceptUser}
-        onUnlock={unlockUser}
-        onBlock={blockUser}
-        friendshipStatus={friendshipStatus}
-        friendshipDirection={friendshipDirection}
-        friendshipId={friendshipId}
-        error={userError}
-        online={userOnline}
-      />
-
-      {/* Вкладки с контентом */}
-      <SectionCard>
-        <ProfileToolbar
-          tabs={PROFILE_TABS_MAP}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          rightSlot={
-            <>
-              <Dropdown
-                options={SORT_OPTIONS}
-                currentSort={sortKey}
-                onChange={setSortKey}
-              />
-
-              {isProfileOwner && activeTab === 'posts' && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowPostForm((prev) => !prev)}
-                  aria-label={showPostForm ? 'Скрыть форму' : 'Добавить пост'}
-                >
-                  Добавить пост
-                </Button>
-              )}
-            </>
-          }
+    <ErrorBoundary>
+      <PageLayout className={style.profile}>
+        {/* Карточка профиля */}
+        <UserProfileCard
+          targetUser={targetUser}
+          currentUser={currentUser}
+          isOwnProfile={isOwnProfile}
+          onFollow={followUser}
+          onUnfollow={unfollowUser}
+          onAccept={acceptUser}
+          onUnlock={unlockUser}
+          onBlock={blockUser}
+          friendshipStatus={friendshipStatus}
+          friendshipDirection={friendshipDirection}
+          friendshipId={friendshipId}
+          error={userError}
+          online={userOnline}
         />
 
-        {showPostForm && currentUser && (
-          <PostForm
-            isLoading={isLoadingPosts}
-            onAddPost={handleAddPost}
-            onClose={() => setShowPostForm(false)}
+        {/* Вкладки с контентом */}
+        <SectionCard>
+          <Toolbar
+            tabs={PROFILE_TABS_MAP}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            rightSlot={
+              <>
+                <Dropdown
+                  options={SORT_OPTIONS}
+                  currentSort={sortKey}
+                  onChange={setSortKey}
+                />
+
+                {isOwnProfile && activeTab === 'posts' && (
+                  <IconButton
+                    icon="➕"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setShowPostForm('create')}
+                    aria-label="Добавить пост"
+                  />
+                )}
+              </>
+            }
+          />
+
+          {showPostForm && currentUser && (
+            <PostForm
+              key={
+                showPostForm === 'create' ? 'create' : `edit-${showPostForm.id}`
+              }
+              initialData={showPostForm === 'create' ? null : showPostForm}
+              onClose={handleCloseForm}
+              onSubmit={handleFormSubmit}
+            />
+          )}
+
+          {tabContent}
+        </SectionCard>
+
+        {commentTarget && currentUser && (
+          <CommentsSection
+            targetType={commentTarget?.type}
+            targetId={commentTarget?.id}
+            currentUser={currentUser}
+            updateCommentCount={handleCommentChange}
+            closeComments={handleCloseComments}
+            commentsSectionRef={commentsSectionRef}
           />
         )}
 
-        {tabContent}
-      </SectionCard>
-
-      {commentTarget && currentUser && (
-        <CommentsSection
-          targetType={commentTarget?.type}
-          targetId={commentTarget?.id}
-          currentUser={currentUser}
-          updateCommentCount={handleCommentChange}
-          closeComments={handleCloseComments}
-        />
-      )}
-
-      {selectedVideo && (
-        <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
-      )}
-    </PageLayout>
+        {selectedVideo && (
+          <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
+        )}
+      </PageLayout>
+    </ErrorBoundary>
   );
 };

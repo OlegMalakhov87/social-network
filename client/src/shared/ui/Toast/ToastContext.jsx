@@ -1,5 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import { createContext, useCallback, useContext, useState } from 'react';
 import { ToastContainer } from './ToastContainer';
 
 const ToastContext = createContext(null);
@@ -8,8 +7,10 @@ const ToastContext = createContext(null);
  * Провайдер системы уведомлений.
  *
  * @param {Object} props
+ * @param {React.ReactNode} props.children
  * @returns {JSX.Element}
  */
+
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
@@ -54,7 +55,3 @@ export const ToastProvider = ({ children }) => {
 };
 
 export const useToast = () => useContext(ToastContext);
-
-useToast.propTypes = {
-  children: PropTypes.node.isRequired,
-};

@@ -1,5 +1,7 @@
 export { calculateAge } from './calculateAge';
 export { classNames } from './classNames';
+export { createAbortableFetch } from './createAbortableFetch';
+export { createNotifier } from './createNotifier';
 export { debugProps } from './debugProps';
 export { formatDuration } from './formatDuration';
 export { formatFileSize } from './formatFileSize';
@@ -7,7 +9,6 @@ export { formatTime } from './formatTime';
 export { formatTimeAudio } from './formatTimeAudio';
 export { formatViews } from './formatViews';
 export { isSharedPost } from './isSharedPost';
-export { isValidUrl } from './isValidUrl';
 export { handleKeyboardClick } from './keyboard';
 export { linkify } from './linkify';
 export { sortByData } from './sortByData';

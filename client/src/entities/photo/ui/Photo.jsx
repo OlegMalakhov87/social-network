@@ -10,13 +10,14 @@ import {
   EntityMeta,
   MediaPreview,
   Text,
+  ConfirmDialog,
 } from '../../../shared/ui';
+import { useState } from 'react';
 
 /**
  * Карточка фотографии (вкладка "Фото" в профиле).
  * @param {Object} props
  * @param {Object} props.photo - объект поста с типом image
- * @param {Object} props.targetUser - выбранный пользователь
  * @param {Object} props.currentUser - текущий пользователь
  * @param {Function} props.toggleLike - лайк/дизлайк
  * @param {Function} props.onDelete - удалить
@@ -24,14 +25,13 @@ import {
  */
 export const Photo = ({
   photo,
-  targetUser,
   currentUser,
   onDelete,
   toggleLike,
   toggleComments,
 }) => {
   const navigate = useNavigate();
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   if (!photo?.id) return null;
 
   const isOwn = currentUser?.id === photo?.userId;
@@ -46,34 +46,53 @@ export const Photo = ({
     },
   });
 
-  return (
-    <BaseCard
-      header={
-        <EntityHeader
-          rightSlot={
-            isOwn && (
-              <ActionChip
-                icon="🗑"
-                onClick={() => onDelete?.(photo?.id)}
-                aria-label="Удалить фото"
-              />
-            )
-          }
-        >
-          <EntityMeta
-            title="Фотография"
-            subtitle={formatTime(photo?.createdAt)}
-          />
-        </EntityHeader>
-      }
-      content={
-        <EntityContent>
-          {photo?.mediaUrl && <MediaPreview src={photo?.mediaUrl} alt="Фото" />}
+  const handleConfirmDelete = () => {
+    onDelete?.(photo?.id);
+    setShowDeleteDialog(false);
+  };
 
-          {photo?.text && <Text linkifyText>{photo?.text}</Text>}
-        </EntityContent>
-      }
-      actions={<EntityActions actions={actions} />}
-    />
+  return (
+    <>
+      <BaseCard
+        header={
+          <EntityHeader
+            rightSlot={
+              isOwn && (
+                <ActionChip
+                  icon="🗑"
+                  onClick={() => setShowDeleteDialog(true)}
+                  aria-label="Удалить фото"
+                />
+              )
+            }
+          >
+            <EntityMeta
+              title="Фотография"
+              subtitle={formatTime(photo?.createdAt)}
+            />
+          </EntityHeader>
+        }
+        content={
+          <EntityContent>
+            {photo?.mediaUrl && (
+              <MediaPreview src={photo?.mediaUrl} alt="Фото" />
+            )}
+
+            {photo?.text && <Text linkifyText>{photo?.text}</Text>}
+          </EntityContent>
+        }
+        actions={<EntityActions actions={actions} />}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Удалить фото?"
+        description="Это действие нельзя отменить. Фото будет удалено навсегда."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        confirmVariant="danger"
+      />
+    </>
   );
 };

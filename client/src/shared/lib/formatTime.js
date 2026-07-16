@@ -1,4 +1,9 @@
-/* Функция для форматирования даты */
+/**
+ * Функция для форматирования даты.
+ *
+ * @param {number} timestamp - timestamp в миллисекундах.
+ * @returns {string} - форматированная дата.
+ */
 
 export const formatTime = (timestamp) => {
   if (!timestamp) return '';

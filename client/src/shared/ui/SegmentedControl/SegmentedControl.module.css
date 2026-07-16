@@ -18,13 +18,13 @@
 }
 
 .button:hover {
-  background: var(--surface-hover);
+  background: var(--surface-card-hover);
 }
 
 .active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+  background: var(--color-primary-active);
+  color: var(--color-white);
+  border-color: var(--border-focus);
 }
 
 .icon {
