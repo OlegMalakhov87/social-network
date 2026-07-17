@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
-import { useNotify } from '../../../shared/hooks';
+import {
+  addTrackToLibrary,
+  deleteTrackFromLibrary,
+} from '../../../entities/track';
+import {
+  addVideoToLibrary,
+  deleteVideoFromLibrary,
+} from '../../../entities/video ';
 import { useUserPosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
 import { useLibraryResource, useUserProfile } from '../../users';
@@ -15,8 +22,6 @@ import { useUserVideoLibrary } from '../../videos';
  */
 export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
   const currentUser = selectUser();
-
-  const notify = useNotify();
 
   /**
    * Получение ID пользователя и приводим к правильному типу
@@ -132,7 +137,7 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
   );
 
   /**
-   * Получение функции для обновления rawItems в зависимости от типа контента
+   * Получение функции для обновления setItems в зависимости от типа контента
    */
   const setItems = useMemo(() => {
     const map = {
@@ -144,6 +149,32 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
     return map[activeTab];
   }, [activeTab, setVideosItems, setTracksItems, setPostsItems]);
 
+  /** Определяем правила трансформации для ТЕКУЩЕЙ активной вкладки */
+  const trackAddTransform = () => ({
+    playCount: 0,
+    libraryCreatedAt: new Date().toISOString(),
+    isFavorite: false,
+  });
+  const trackRemoveTransform = () => ({
+    playCount: 0,
+    libraryCreatedAt: null,
+    isFavorite: false,
+  });
+
+  const videoAddTransform = () => ({
+    viewCount: 0,
+    lastWatchedAt: new Date().toISOString(),
+    libraryCreatedAt: new Date().toISOString(),
+    isFavorite: false,
+  });
+  const videoRemoveTransform = () => ({
+    viewCount: 0,
+    lastWatchedAt: null,
+    libraryCreatedAt: null,
+    isFavorite: false,
+  });
+
+  const isVideo = activeTab === 'videos';
   /**
    * Получаем данные о библиотеке пользователя
    * @returns {Object} данные о библиотеке пользователя
@@ -156,18 +187,18 @@ export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
     toggleFavoriteItem,
     updateCommentCount,
   } = useLibraryResource({
-    items: activeTab === 'videos' ? apiVideos : apiTracks,
+    items: isVideo ? apiVideos : apiTracks,
     userId: currentUser?.id,
     isOwnProfile,
-    activeTab,
-    refetch: { refetchVideos, refetchTracks },
+    addFn: isVideo ? addVideoToLibrary : addTrackToLibrary,
+    removeFn: isVideo ? deleteVideoFromLibrary : deleteTrackFromLibrary,
+    getAddStateTransform: isVideo ? videoAddTransform : trackAddTransform,
+    getRemoveStateTransform: isVideo
+      ? videoRemoveTransform
+      : trackRemoveTransform,
+    refetch: isVideo ? refetchVideos : refetchTracks,
     setItems,
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
+    activeTab,
   });
 
   /**

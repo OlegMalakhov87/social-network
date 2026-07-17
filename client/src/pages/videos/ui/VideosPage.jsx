@@ -1,154 +1,180 @@
-import { useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import style from './VideosPage.module.css';
-import { CommentsSection } from '../../../widgets/comments-list';
-import { VideoPlayer } from '../../../widgets/video-player';
-import { VideosTab } from '../../../widgets/user-content';
-import { useVideos, VideoForm } from '../../../features/videos';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CATEGORIES } from '../../../entities/video';
 import { useCommentsPanel } from '../../../features/comments';
-import { EmptyState, FilterButton, SortDropdown, Loading, SearchInput } from '../../../shared/ui';
-import { usePagination } from '../../../shared/lib';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
+import { VideoForm, useVideos } from '../../../features/videos';
+import { SORT_OPTIONS } from '../../../shared/config';
+import { useFilterControls } from '../../../shared/hooks';
+import {
+  Dropdown,
+  ErrorBoundary,
+  IconButton,
+  PageLayout,
+  SearchField,
+  SectionCard,
+  Toolbar,
+} from '../../../shared/ui';
+import { CommentsSection } from '../../../widgets/comments-list';
+import { VideosTab } from '../../../widgets/user-content';
+import { VideoPlayer } from '../../../widgets/video-player';
 
 /**
- * Страница видео – отображает каталог видео с фильтрацией по категориям, поиском и сортировкой.
+ * Страница видео – отображает каталог видео с фильтрацией, поиском и сортировкой.
  */
 export const VideosPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [sortKey, setSortKey] = useState('dateDesc');
+  const [videoToEdit, setVideoToEdit] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [showVideoForm, setShowVideoForm] = useState(false);
+  const commentsSectionRef = useRef(null);
 
-  const currentUser = useSelector((state) => state.auth?.user);
+  /** Управление фильтрацией и сортировкой */
+  const {
+    category: filter,
+    searchQuery,
+    setSearchQuery,
+    sortKey,
+    setSortKey,
+    handleFilterChange,
+  } = useFilterControls({ initialFilter: 'all', initialSort: 'dateDesc' });
 
+  /** Получение данных о видео */
   const {
     videos,
-    paginationVideos,
-    isLoadingVideos,
-    errorVideos,
-    toggleLikeVideo,
-    addVideoOptimistic,
-    removeVideoOptimistic,
-    updateGlobalViewCount,
+    currentUser,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+    toggleLike,
+    addVideo,
+    updateVideo,
+    deleteVideo,
+    addToLibrary,
+    removeFromLibrary,
+    incrementViewCount,
     updateCommentCount,
-  } = useVideos({ filter: categoryFilter, searchQuery, sortKey });
+  } = useVideos({ filter, searchQuery, sortKey });
 
-  const pagination = usePagination(videos, 12, 1);
+  /** Управление панелью комментариев */
+  const { commentTarget, handleCloseComments, onToggleComments } =
+    useCommentsPanel('Video', sortKey, filter);
 
-  const { commentTarget, handleCloseComments, onToggleComments } = useCommentsPanel(
-    'Video',
-    categoryFilter,
-    pagination.currentPage
-  );
-
+  /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => {
-      updateCommentCount(commentTarget.id, delta);
-    },
+    (delta) => updateCommentCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentCount]
   );
 
-  const CATEGORIES = [
-    { id: 'All', name: 'Все' },
-    { id: 'Movie', name: 'Кино' },
-    { id: 'Music', name: 'Музыка' },
-    { id: 'Sports', name: 'Спорт' },
-    { id: 'Travel', name: 'Путешествия' },
-    { id: 'Openings', name: 'Открытия' },
-  ];
-
-  // Открыть/закрыть модальное окно с видео
-  const handleClickVideo = useCallback((video) => setSelectedVideo(video), []);
+  /** Обработчик для открытия модального окна с видео*/
+  const handleOpenVideo = useCallback((video) => setSelectedVideo(video), []);
+  /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
-  if (isLoadingVideos && videos.length === 0) {
-    return <Loading fullPage message="Загружаем видео..." size="large" />;
-  }
+  /** Обработчик для отправки формы */
+  const handleFormSubmit = useCallback(
+    async (values, isEdit, videoId) => {
+      if (isEdit && videoId) {
+        await updateVideo?.(videoId, values);
+      } else {
+        await addVideo?.(values);
+      }
+      setVideoToEdit(null);
+    },
+    [addVideo, updateVideo]
+  );
+
+  /** Скролл к секции комментариев при открытии */
+  useEffect(() => {
+    if (!commentTarget?.id || !commentTarget?.type) return;
+    commentsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [commentTarget?.id, commentTarget?.type]);
 
   return (
-    <div className={style.videos}>
-      <div className={style.header}>
-        <h1 className={style.title}>Видео</h1>
-        <div className={style.search}>
-          <SearchInput
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск видео ..."
+    <ErrorBoundary>
+      <PageLayout
+        title="Видео"
+        actions={
+          currentUser && (
+            <IconButton
+              icon="➕"
+              variant="primary"
+              size="md"
+              onClick={() => setVideoToEdit('create')}
+              ariaLabel="Добавить видео"
+            />
+          )
+        }
+      >
+        <SectionCard>
+          <Toolbar
+            tabs={CATEGORIES}
+            activeTab={filter}
+            onTabChange={handleFilterChange}
+            rightSlot={
+              <>
+                <SearchField
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Поиск видео..."
+                />
+                <Dropdown
+                  options={SORT_OPTIONS}
+                  currentSort={sortKey}
+                  onChange={setSortKey}
+                />
+              </>
+            }
           />
-        </div>
-      </div>
 
-      <div className={style.filters}>
-        {CATEGORIES.map((cat) => (
-          <FilterButton
-            key={cat.id}
-            cat={cat}
-            filter={categoryFilter}
-            onChangeButtonFilter={(id) => {
-              setCategoryFilter(id);
-              setSearchQuery('');
-              setSortKey('dateDesc');
-            }}
+          {videoToEdit && currentUser && (
+            <VideoForm
+              key={
+                videoToEdit === 'create' ? 'create' : `edit-${videoToEdit.id}`
+              }
+              initialData={videoToEdit === 'create' ? null : videoToEdit}
+              onClose={handleCloseVideo}
+              onSubmit={handleFormSubmit}
+            />
+          )}
+
+          <VideosTab
+            videos={videos}
+            mode="general"
+            currentUser={currentUser}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            error={error}
+            loadMore={loadMore}
+            onRetry={refetch}
+            onPlayVideo={handleOpenVideo}
+            toggleLike={toggleLike}
+            onToggleComments={onToggleComments}
+            addOptimistic={addToLibrary}
+            removeOptimistic={removeFromLibrary}
+            updateGlobalViewCount={incrementViewCount}
+            updateVideo={setVideoToEdit}
+            deleteVideo={deleteVideo}
           />
-        ))}
-        {currentUser && (
-          <button
-            className={style.addButton}
-            onClick={(e) => {
-              e?.stopPropagation();
-              setShowVideoForm((prev) => !prev);
-            }}
-            aria-label="Добавить видео"
-          >
-            ➕
-          </button>
+        </SectionCard>
+
+        {commentTarget && currentUser && (
+          <CommentsSection
+            targetType={commentTarget?.type}
+            targetId={commentTarget?.id}
+            currentUser={currentUser}
+            onChange={handleCommentChange}
+            onCloseComments={handleCloseComments}
+            commentsSectionRef={commentsSectionRef}
+          />
         )}
-        <SortDropdown options={SORT_OPTIONS} currentSort={sortKey} onChange={setSortKey} />
-      </div>
-
-      {videos.length > 0 ? (
-        <VideosTab
-          items={pagination.paginatedItems}
-          pagination={pagination}
-          errorVideos={errorVideos}
-          currentUser={currentUser}
-          mode="general"
-          onAddToLibrary={addVideoOptimistic}
-          onRemoveFromLibrary={removeVideoOptimistic}
-          toggleLikeVideo={toggleLikeVideo}
-          onClickVideo={handleClickVideo}
-          onToggleComments={onToggleComments}
-          updateGlobalViewCount={updateGlobalViewCount}
-        />
-      ) : (
-        <EmptyState
-          icon="🎬"
-          title="Видео не найдены"
-          description="Попробуйте изменить параметры поиска или выберите другую категорию"
-        />
-      )}
-
-      {selectedVideo && <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />}
-
-      {showVideoForm && currentUser && (
-        <VideoForm
-          onClose={(e) => {
-            e?.stopPropagation();
-            setShowVideoForm(false);
-          }}
-        />
-      )}
-
-      {commentTarget && (
-        <CommentsSection
-          targetType={commentTarget.type}
-          targetId={commentTarget.id}
-          currentUser={currentUser}
-          updateCommentCount={handleCommentChange}
-          closeComments={handleCloseComments}
-        />
-      )}
-    </div>
+        {selectedVideo && (
+          <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
+        )}
+      </PageLayout>
+    </ErrorBoundary>
   );
 };

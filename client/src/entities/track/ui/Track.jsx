@@ -1,13 +1,13 @@
+import { useState } from 'react';
 import { getTrackActions, TrackCover, TrackMeta } from '..';
 import {
   ActionChip,
   BaseCard,
+  ConfirmDialog,
   EntityActions,
   EntityContent,
   EntityHeader,
-  ConfirmDialog,
 } from '../../../shared/ui';
-import { useState } from 'react';
 /**
  * Карточка одного трека.
  * @param {Object} props
@@ -25,6 +25,7 @@ import { useState } from 'react';
  * @param {Function} props.toggleFavorite - добавит/удалить из избранного
  * @param {Function} props.toggleLike - лайк/дизлайк
  * @param {Function} props.toggleComments - открыть/закрыть комментарии
+ * @param {Function} props.updateTrack - обновить трек
  * @param {Function} props.onDelete - удалить трек
  */
 
@@ -43,6 +44,7 @@ export const Track = ({
   toggleFavorite,
   toggleLike,
   toggleComments,
+  updateTrack,
   onDelete,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -67,6 +69,7 @@ export const Track = ({
     removeFromLibrary,
     toggleLike,
     toggleComments,
+    onUpdate: updateTrack,
   });
 
   const handleConfirmDelete = () => {

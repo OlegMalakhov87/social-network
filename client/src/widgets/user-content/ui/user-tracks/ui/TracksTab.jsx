@@ -26,9 +26,10 @@ import style from './TracksTab.module.css';
  * @param {Function} props.onTrackStart - увеличение счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере
  * @param {Function} props.addOptimistic - добавить трек в библиотеку
  * @param {Function} props.removeOptimistic - удалить из библиотеки
- * @param {Function} props.deleteOptimistic - удалить трек
+ * @param {Function} props.deleteTrack - удалить трек
+ * @param {Function} props.updateTrack - обновить трек
  * @param {Function} props.updatePlayCount - обновить личный счетчик прослушиваний
- * @param {Function} props.updateGlobalPlayCount - обновить глобальный счетчик прослушиваний
+ * @param {Function} props.incrementPlayCount - обновить глобальный счетчик прослушиваний
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.onToggleComments - открыть комментарии
  * @param {Function} props.onRetry - повторить загрузку
@@ -52,9 +53,10 @@ export const TracksTab = ({
   toggleLike,
   addOptimistic,
   removeOptimistic,
-  deleteOptimistic,
+  deleteTrack,
+  updateTrack,
   updatePlayCount,
-  updateGlobalPlayCount,
+  incrementPlayCount,
   toggleFavorite,
   onToggleComments,
   onRetry,
@@ -79,12 +81,12 @@ export const TracksTab = ({
           newPlayCount
         );
       } else {
-        updateGlobalPlayCount?.(track?.id);
+        incrementPlayCount?.(track?.id);
       }
     });
 
     return () => onTrackStart(null);
-  }, [onTrackStart, updatePlayCount, updateGlobalPlayCount, tracks]);
+  }, [onTrackStart, updatePlayCount, incrementPlayCount, tracks]);
 
   return (
     <ContentState
@@ -117,9 +119,10 @@ export const TracksTab = ({
               addToLibrary={addOptimistic}
               removeFromLibrary={removeOptimistic}
               toggleLike={toggleLike}
-              onDelete={deleteOptimistic}
+              onDelete={deleteTrack}
               toggleComments={onToggleComments}
               toggleFavorite={toggleFavorite}
+              updateTrack={updateTrack}
             />
           );
         })}

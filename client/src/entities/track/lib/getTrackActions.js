@@ -8,7 +8,7 @@
  * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к треку
  * @param {(id:number)=>void} params.addToLibrary - функция для добавления трека в библиотеку
  * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary - функция для удаления трека из библиотеки
- *
+ * @param {Function} params.onUpdate - функция для обновления трека
  * @returns {Array<Object>} - массив действий карточки трека
  */
 
@@ -19,6 +19,7 @@ export const getTrackActions = ({
   toggleComments,
   addToLibrary,
   removeFromLibrary,
+  onUpdate,
 }) => {
   if (!track) return [];
 
@@ -39,6 +40,16 @@ export const getTrackActions = ({
       onClick: () => toggleComments?.(track.id),
     },
   ];
+
+  if (isOwn) {
+    actions.push({
+      key: 'update',
+      icon: '✏️',
+      label: 'Обновить',
+      ariaLabel: 'Обновить трек',
+      onClick: () => onUpdate?.(track),
+    });
+  }
 
   if (track.isPublic !== false && isOwn) {
     actions.push({

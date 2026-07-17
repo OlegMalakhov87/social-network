@@ -7,6 +7,7 @@ export { BaseCard } from './BaseCard/BaseCard';
 export { Button } from './Button/Button';
 export { ButtonGroup } from './ButtonGroup/ButtonGroup';
 export { Card } from './Card/Card';
+export { Checkbox } from './Checkbox/Checkbox';
 export { Chip } from './Chip/Chip';
 export { ConfirmDialog } from './ConfirmDialog/ConfirmDialog';
 export { ContentEmptyState } from './ContentEmptyState/ContentEmptyState';

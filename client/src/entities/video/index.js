@@ -8,6 +8,8 @@
 export * from './api/videoLibraryApi';
 // API‑функции для самого видео
 export * from './api/videoApi';
+// Мапа для выбора вкладки видео
+export * from './model/videosTabs';
 // Вспомогательные функции для видео (экшены)
 export { getVideoActions } from './lib/getVideoActions';
 // Вспомогательные функции для метаданных видео

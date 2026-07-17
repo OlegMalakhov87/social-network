@@ -6,8 +6,12 @@
 
 // API‑функции для библиотеки пользователя
 export * from './api/musicLibraryApi';
+
 // API‑функции для страницы треков
 export * from './api/musicApi';
+
+// Мапа для выбора вкладки треков
+export * from './model/tracksTabs';
 
 // Вспомогательные функции для треков (экшены)
 export { getTrackActions } from './lib/getTrackActions';

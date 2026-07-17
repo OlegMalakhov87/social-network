@@ -67,9 +67,7 @@ export const NewsPage = () => {
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => {
-      updateCommentCount(commentTarget?.id, delta);
-    },
+    (delta) => updateCommentCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentCount]
   );
 

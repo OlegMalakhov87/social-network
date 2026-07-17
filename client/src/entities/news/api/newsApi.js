@@ -5,18 +5,18 @@ import { api } from '../../../shared/api';
  * @param {Object} params - параметры запроса
  * @param {number} [params.page] - номер страницы
  * @param {number} [params.limit] - количество на странице
- * @param {string} [params.category] - категория для фильтрации
+ * @param {string} [params.filter] - фильтр по категории
  * @param {string} [params.q] - поисковый запрос
  * @param {AbortSignal} [params.signal] - сигнал отмены запроса
  * @returns {Promise<Object>} - { items, pagination }
  */
 
-export async function fetchNewsApi({ page, category, q, limit, signal } = {}) {
+export async function fetchNewsApi({ page, filter, q, limit, signal } = {}) {
   const response = await api.get(`/news`, {
     params: {
       page,
       limit,
-      category: category === 'all' ? undefined : category,
+      category: filter === 'all' ? undefined : filter,
       q: q?.trim() || undefined,
     },
     signal,

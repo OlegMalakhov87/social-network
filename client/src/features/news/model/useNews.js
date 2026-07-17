@@ -27,21 +27,8 @@ import {
  * @param {string} params.searchQuery - Поисковый запрос
  * @param {string} params.sortKey - Ключ сортировки
  * @returns {Object} - Результат
- * @returns {Array} news - Массив с нормализованными новостями
- * @returns {Object} currentUser - Текущий пользователь
- * @returns {boolean} hasMore - Есть ли еще страницы для загрузки
- * @returns {boolean} isLoading - общая загрузка данных
- * @returns {boolean} isLoadingMore - Загрузка следующей страницы
- * @returns {Error} error - Ошибка
- * @returns {Function} loadMore - Загрузить следующую страницу
- * @returns {Function} refetch - Перезагрузить данные (загрузить первую страницу)
- * @returns {Function} addNews - Добавить новость
- * @returns {Function} editNews - Редактировать новость
- * @returns {Function} deleteNews - Удалить новость
- * @returns {Function} toggleLike - Переключить лайк (лайк/дизлайк)
- * @returns {Function} incrementView - Увеличить счётчик просмотров
- * @returns {Function} updateCommentCount - Обновить счётчик комментариев
  */
+
 export function useNews({ filter, searchQuery, sortKey } = {}) {
   const currentUser = selectUser();
   const notify = useNotify('news');

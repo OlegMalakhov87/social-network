@@ -12,7 +12,7 @@
 export async function apiFetchItems(fetchApi, { params = {}, signal } = {}) {
   const data = await fetchApi({
     ...params,
-    category: params.filter?.trim() ? params.filter : undefined,
+    filter: params.filter?.trim() ? params.filter : undefined,
     q: params.searchQuery?.trim() ? params.searchQuery : undefined,
     page: params.page,
     limit: params.limit,

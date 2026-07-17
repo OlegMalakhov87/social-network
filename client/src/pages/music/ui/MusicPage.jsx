@@ -1,153 +1,187 @@
-import { useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import style from './MusicPage.module.css';
-import { CommentsSection } from '../../../widgets/comments-list';
-import { useAudioPlayer } from '../../../widgets/audio-player';
-import { TracksTab } from '../../../widgets/user-content';
-import { useMusic, TrackForm } from '../../../features/tracks';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { GENRE_TABS } from '../../../entities/track';
 import { useCommentsPanel } from '../../../features/comments';
-import { EmptyState, FilterButton, SortDropdown, Loading, SearchInput } from '../../../shared/ui';
-import { usePagination } from '../../../shared/lib';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
+import { TrackForm, useMusic } from '../../../features/tracks';
+import { SORT_OPTIONS } from '../../../shared/config';
+import { useFilterControls } from '../../../shared/hooks';
+import {
+  Dropdown,
+  ErrorBoundary,
+  IconButton,
+  PageLayout,
+  SearchField,
+  SectionCard,
+  Toolbar,
+} from '../../../shared/ui';
+import { useAudioPlayer } from '../../../widgets/audio-player';
+import { CommentsSection } from '../../../widgets/comments-list';
+import { TracksTab } from '../../../widgets/user-content';
 
 /**
- * Страница музыки – отображает каталог треков с фильтрацией по жанру, поиском и сортировкой.
+ * Страница музыки с фильтрацией и сортировкой, формой добавления трека, списком треков и панелью комментариев.
  */
+
 export const MusicPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [genreFilter, setGenreFilter] = useState('All');
-  const [sortKey, setSortKey] = useState('dateDesc');
   const [showTrackForm, setShowTrackForm] = useState(false);
+  const commentsSectionRef = useRef(null);
 
-  const currentUser = useSelector((state) => state.auth?.user);
+  /** Управление фильтрацией и сортировкой */
+  const {
+    genre: filter,
+    searchQuery,
+    setSearchQuery,
+    sortKey,
+    setSortKey,
+    handleFilterChange,
+  } = useFilterControls({ initialFilter: 'all', initialSort: 'dateDesc' });
 
+  /** Получение данных о треках */
   const {
     tracks,
-    paginationTracks,
-    isLoadingTracks,
-    errorTracks,
-    toggleLikeTrack,
-    addTrackOptimistic,
-    removeTrackOptimistic,
-    updateGlobalPlayCount,
+    currentUser,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+    toggleLike,
+    addTrack,
+    updateTrack,
+    deleteTrack,
+    addToLibrary,
+    removeFromLibrary,
+    incrementPlayCount,
     updateCommentCount,
-  } = useMusic({ filter: genreFilter, searchQuery, sortKey });
+  } = useMusic({ filter, searchQuery, sortKey });
 
-  const { playTrack, setOnTrackStart, isPlaying, currentTrack, togglePlay } = useAudioPlayer();
+  /** Управление аудиоплеером */
+  const { playTrack, setOnTrackStart, isPlaying, currentTrack, togglePlay } =
+    useAudioPlayer();
 
-  const pagination = usePagination(tracks, 12, 1);
+  /** Управление панелью комментариев */
+  const { commentTarget, handleCloseComments, onToggleComments } =
+    useCommentsPanel('tracks', sortKey, filter);
 
-  const { commentTarget, handleCloseComments, onToggleComments } = useCommentsPanel(
-    'Music',
-    genreFilter,
-    pagination.currentPage
-  );
-
+  /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => {
-      updateCommentCount(commentTarget.id, delta);
-    },
+    (delta) => updateCommentCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentCount]
   );
 
-  const CATEGORIES = [
-    { id: 'All', name: 'Все' },
-    { id: 'Rock', name: 'Рок' },
-    { id: 'Pop', name: 'Поп' },
-    { id: 'Jazz', name: 'Джаз' },
-    { id: 'Classical', name: 'Классика' },
-    { id: 'Electronic', name: 'Электроника' },
-  ];
+  /** Обработчик для отправки формы */
+  const handleFormSubmit = useCallback(
+    async (values, isEdit, trackId) => {
+      if (isEdit && trackId) {
+        await updateTrack?.(trackId, values);
+      } else {
+        await addTrack?.(values);
+      }
+      setShowTrackForm(null);
+    },
+    [addTrack, updateTrack]
+  );
 
-  if (isLoadingTracks && tracks.length === 0) {
-    return <Loading fullPage message="Загружаем треки..." size="large" />;
-  }
+  /** Обработчик для закрытия формы */
+  const handleCloseForm = useCallback(() => {
+    setShowTrackForm(null);
+  }, []);
+
+  /** Скролл к секции комментариев при открытии панели */
+  useEffect(() => {
+    if (!commentTarget?.id || !commentTarget?.type) return;
+    commentsSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [commentTarget?.id, commentTarget?.type]);
 
   return (
-    <div className={style.music}>
-      <div className={style.header}>
-        <h1 className={style.title}>Музыка</h1>
-        <div className={style.search}>
-          <SearchInput
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск треков или исполнителей ..."
+    <ErrorBoundary>
+      <PageLayout
+        title="Музыка"
+        actions={
+          currentUser && (
+            <IconButton
+              icon="➕"
+              variant="primary"
+              size="md"
+              onClick={() => setShowTrackForm('create')}
+              ariaLabel="Добавить трек"
+            />
+          )
+        }
+      >
+        <SectionCard>
+          <Toolbar
+            tabs={GENRE_TABS}
+            activeTab={filter}
+            onTabChange={handleFilterChange}
+            rightSlot={
+              <>
+                <SearchField
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Поиск треков или исполнителей..."
+                />
+                <Dropdown
+                  options={SORT_OPTIONS}
+                  currentSort={sortKey}
+                  onChange={setSortKey}
+                />
+              </>
+            }
           />
-        </div>
-      </div>
 
-      <div className={style.filters}>
-        {CATEGORIES.map((cat) => (
-          <FilterButton
-            key={cat.id}
-            cat={cat}
-            filter={genreFilter}
-            onChangeButtonFilter={(id) => {
-              setGenreFilter(id);
-              setSearchQuery('');
-              setSortKey('dateDesc');
-            }}
+          {showTrackForm && currentUser && (
+            <TrackForm
+              key={
+                showTrackForm === 'create'
+                  ? 'create'
+                  : `edit-${showTrackForm.id}`
+              }
+              initialData={showTrackForm === 'create' ? null : showTrackForm}
+              onClose={handleCloseForm}
+              onSubmit={handleFormSubmit}
+            />
+          )}
+
+          <TracksTab
+            tracks={tracks}
+            mode="general"
+            currentUser={currentUser}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            error={error}
+            loadMore={loadMore}
+            onRetry={refetch}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onPlay={playTrack}
+            togglePlay={togglePlay}
+            onTrackStart={setOnTrackStart}
+            addOptimistic={addToLibrary}
+            removeOptimistic={removeFromLibrary}
+            updateTrack={setShowTrackForm}
+            deleteTrack={deleteTrack}
+            incrementPlayCount={incrementPlayCount}
+            toggleLike={toggleLike}
+            onToggleComments={onToggleComments}
           />
-        ))}
-        {currentUser && (
-          <button
-            className={style.addButton}
-            onClick={(e) => {
-              e?.stopPropagation();
-              setShowTrackForm((prev) => !prev);
-            }}
-            aria-label="Добавить трек"
-          >
-            ➕
-          </button>
+        </SectionCard>
+
+        {commentTarget && currentUser && (
+          <CommentsSection
+            targetType={commentTarget?.type}
+            targetId={commentTarget?.id}
+            currentUser={currentUser}
+            onChange={handleCommentChange}
+            onCloseComments={handleCloseComments}
+            commentsSectionRef={commentsSectionRef}
+          />
         )}
-        <SortDropdown options={SORT_OPTIONS} currentSort={sortKey} onChange={setSortKey} />
-      </div>
-
-      {tracks.length > 0 ? (
-        <TracksTab
-          items={pagination.paginatedItems}
-          pagination={pagination}
-          errorTracks={errorTracks}
-          currentUser={currentUser}
-          mode="general"
-          isPlaying={isPlaying}
-          currentTrack={currentTrack}
-          onPlayTrack={playTrack}
-          togglePlay={togglePlay}
-          onTrackStart={setOnTrackStart}
-          onAddToLibrary={addTrackOptimistic}
-          onRemoveFromLibrary={removeTrackOptimistic}
-          toggleLikeTrack={toggleLikeTrack}
-          onToggleComments={onToggleComments}
-          updateGlobalPlayCount={updateGlobalPlayCount}
-        />
-      ) : (
-        <EmptyState
-          icon="🎵"
-          title="Треки не найдены"
-          description="Попробуйте изменить параметры поиска или выберите другую категорию"
-        />
-      )}
-
-      {showTrackForm && currentUser && (
-        <TrackForm
-          onClose={(e) => {
-            e?.stopPropagation();
-            setShowTrackForm(false);
-          }}
-        />
-      )}
-
-      {commentTarget && (
-        <CommentsSection
-          targetType={commentTarget?.type}
-          targetId={commentTarget?.id}
-          currentUser={currentUser}
-          updateCommentCount={handleCommentChange}
-          closeComments={handleCloseComments}
-        />
-      )}
-    </div>
+      </PageLayout>
+    </ErrorBoundary>
   );
 };

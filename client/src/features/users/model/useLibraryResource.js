@@ -1,15 +1,7 @@
 import { useCallback } from 'react';
 import { addLike, deleteLike } from '../../../entities/like';
-import {
-  addTrackToLibrary,
-  deleteTrackFromLibrary,
-  updateTrackFromLibrary,
-} from '../../../entities/track';
-import {
-  addVideoToLibrary,
-  deleteVideoFromLibrary,
-  updateVideoFromLibrary,
-} from '../../../entities/video ';
+import { updateTrackFromLibrary } from '../../../entities/track';
+import { updateVideoFromLibrary } from '../../../entities/video ';
 import {
   useNotify,
   useOptimisticCommentCount,
@@ -26,18 +18,22 @@ import {
  * @param {string} activeTab - текущая вкладка.
  * @param {Object} refetch - объект с функциями для обновления ресурсов.
  * @param {Function} setItems - функция для обновления items.
- * @param {Function} onError - функция обработки ошибки.
- * @param {Function} onSuccess - функция обработки успеха.
+ * @param {Function} getAddStateTransform - функция для получения состояния добавления.
+ * @param {Function} getRemoveStateTransform - функция для получения состояния удаления.
+ * @param {Function} addFn - функция для добавления в библиотеку.
+ * @param {Function} removeFn - функция для удаления из библиотеки.
  */
 export function useLibraryResource({
   items,
   userId,
   isOwnProfile,
-  activeTab,
   refetch,
   setItems,
-  onError,
-  onSuccess,
+  getAddStateTransform,
+  getRemoveStateTransform,
+  addFn,
+  removeFn,
+  activeTab,
 }) {
   const notify = useNotify();
   /**
@@ -47,39 +43,21 @@ export function useLibraryResource({
    */
   const addItemOptimistic = useCallback(
     async (itemId) => {
-      // Обновляем setItems для мгновенного UI
-      if (isOwnProfile) {
-        // Свой профиль – сбрасываем счётчик, ставим дату добавления
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId
-              ? {
-                  ...item,
-                  isInLibrary: true,
-                  ...(activeTab === 'videos'
-                    ? { viewCount: 0, lastWatchedAt: new Date().toISOString() }
-                    : { playCount: 0 }),
-                  libraryCreatedAt: new Date().toISOString(),
-                }
-              : item
-          )
-        );
-      } else {
-        // Чужой профиль – меняем только кнопку, данные профиля не трогаем
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId ? { ...item, isInLibrary: true } : item
-          )
-        );
-      }
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...(isOwnProfile ? getAddStateTransform() : {}),
+                isInLibrary: true,
+              }
+            : item
+        )
+      );
+
       try {
-        let result;
-        if (activeTab === 'videos') {
-          result = await addVideoToLibrary(itemId);
-        } else if (activeTab === 'tracks') {
-          result = await addTrackToLibrary(itemId);
-        }
-        if (result) {
+        const result = await addFn(itemId);
+        if (result?.libraryItem?.id) {
           setItems((prev) =>
             prev.map((item) =>
               item.id === itemId
@@ -88,100 +66,56 @@ export function useLibraryResource({
             )
           );
         }
-        onSuccess?.('add', result);
+        notify.success('add');
       } catch (err) {
-        console.error(
-          `Ошибка добавления сущности в библиотеку ${activeTab}:`,
-          err
-        );
-        onError?.('add', err);
-        // Откат при ошибке
+        console.error('Ошибка добавления в библиотеку профиля:', err);
+        notify.error('add');
+        // Откат
         setItems((prev) =>
           prev.map((item) =>
             item.id === itemId ? { ...item, isInLibrary: false } : item
           )
         );
-        if (activeTab === 'videos') {
-          refetch.refetchVideos();
-        } else if (activeTab === 'tracks') {
-          refetch.refetchTracks();
-        }
+        refetch?.();
       }
     },
-    [isOwnProfile, activeTab, refetch, setItems, onError, onSuccess]
+    [setItems, isOwnProfile, getAddStateTransform, addFn, refetch, notify]
   );
 
-  /**
-   * Удаление сущности из библиотеки.
-   * @param {number} itemId – ID сущности.
-   * @param {number} libraryId – запись в библиотеке
-   * @returns {Promise<void>}
-   */
   const deleteItemOptimistic = useCallback(
-    async (itemId, libraryId) => {
+    async (libraryId, itemId) => {
       if (!itemId || !libraryId) return;
 
-      // Обновляем setItems для мгновенного UI
-      if (isOwnProfile) {
-        // Свой профиль – сбрасываем состояние библиотеки
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...(isOwnProfile ? getRemoveStateTransform() : {}),
+                isInLibrary: false,
+                libraryId: null,
+              }
+            : item
+        )
+      );
+
+      try {
+        await removeFn(libraryId);
+        notify.success('delete');
+      } catch (err) {
+        console.error('Ошибка удаления из библиотеки профиля:', err);
+        notify.error('delete');
         setItems((prev) =>
           prev.map((item) =>
             item.id === itemId
-              ? {
-                  ...item,
-                  isInLibrary: false,
-                  isFavorite: false,
-                  libraryCreatedAt: null, // дата добавления в библиотеку
-                  ...(activeTab === 'videos'
-                    ? { viewCount: 0, lastWatchedAt: null }
-                    : { playCount: 0 }),
-                }
+              ? { ...item, isInLibrary: true, libraryId }
               : item
           )
         );
-      } else {
-        // Чужой профиль – меняем только кнопку, данные профиля не трогаем
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId ? { ...item, isInLibrary: false } : item
-          )
-        );
-      }
-      try {
-        let result;
-        if (activeTab === 'videos') {
-          result = await deleteVideoFromLibrary(libraryId);
-        } else if (activeTab === 'tracks') {
-          result = await deleteTrackFromLibrary(libraryId);
-        }
-        if (result) {
-          setItems((prev) =>
-            prev.map((item) =>
-              item.id === itemId ? { ...item, libraryId: false } : item
-            )
-          );
-        }
-        onSuccess?.('delete', result);
-      } catch (err) {
-        console.error(
-          `Ошибка удаления сущности из библиотеки ${activeTab}:`,
-          err
-        );
-        onError?.('delete', err);
-        // Откат при ошибке
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId ? { ...item, isInLibrary: true } : item
-          )
-        );
-        if (activeTab === 'videos') {
-          refetch.refetchVideos();
-        } else if (activeTab === 'tracks') {
-          refetch.refetchTracks();
-        }
+        refetch?.();
       }
     },
-    [activeTab, refetch, setItems, onError, isOwnProfile, onSuccess]
+    [setItems, isOwnProfile, getRemoveStateTransform, removeFn, refetch, notify]
   );
 
   /** Оптимистичное управление лайками. */

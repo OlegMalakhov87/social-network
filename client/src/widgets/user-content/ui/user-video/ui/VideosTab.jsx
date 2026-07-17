@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { Video } from '../../../../../entities/video';
-import { ContentState, ErrorBanner, InfiniteScrollFooter } from '../../../../../shared/ui';
+import {
+  ContentState,
+  ErrorBanner,
+  InfiniteScrollFooter,
+} from '../../../../../shared/ui';
 import style from './VideosTab.module.css';
 
 /**
@@ -13,18 +17,19 @@ import style from './VideosTab.module.css';
  * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы видео
  * @param {string} props.error - ошибка
  * @param {string} props.mode - режим отображения
- * @param {Function} props.toggleLikes - лайк/дизлайк
- * @param {Function} props.addOptimistic - добавить видео в библиотеку 
- * @param {Function} props.removeOptimistic - удалить видео из библиотеки 
+ * @param {Function} props.toggleLike - лайк/дизлайк
+ * @param {Function} props.addOptimistic - добавить видео в библиотеку
+ * @param {Function} props.removeOptimistic - удалить видео из библиотеки
  * @param {Function} props.updateViewCount - обновить счетчик просмотров
  * @param {Function} props.updateGlobalViewCount - обновить глобальный счетчик просмотров
  * @param {Function} props.onPlayVideo - воспроизведение видео
- * @param {Function} props.deleteOptimistic - удалить  видео
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
  * @param {Function} props.onRetry - повторить загрузку
  * @param {boolean} props.hasMore - флаг наличия следующей страницы видео
  * @param {Function} props.loadMore - функция для загрузки следующей страницы видео
+ * @param {Function} props.updateVideo - обновить видео
+ * @param {Function} props.deleteVideo - удалить видео
  */
 export const VideosTab = ({
   videos = [],
@@ -34,18 +39,19 @@ export const VideosTab = ({
   isLoadingMore,
   error,
   mode,
-  toggleLikes,
+  toggleLike,
   addOptimistic,
   removeOptimistic,
   updateViewCount,
   updateGlobalViewCount,
   onPlayVideo,
-  deleteOptimistic,
   toggleFavorite,
   toggleComments,
   onRetry,
   loadMore,
   hasMore,
+  updateVideo,
+  deleteVideo,
 }) => {
   /** Обработчик для увеличения счетчика просмотров при воспроизведении видео */
   useEffect(() => {
@@ -73,7 +79,6 @@ export const VideosTab = ({
     return () => onPlayVideo(null);
   }, [onPlayVideo, updateViewCount, updateGlobalViewCount, videos]);
 
-
   return (
     <ContentState
       loading={isLoading && videos.length === 0}
@@ -100,13 +105,14 @@ export const VideosTab = ({
               onPlay={onPlayVideo}
               addToLibrary={addOptimistic}
               removeFromLibrary={removeOptimistic}
-              toggleLike={toggleLikes}
-              onDelete={deleteOptimistic}
+              toggleLike={toggleLike}
               toggleComments={toggleComments}
               updateViewCount={updateViewCount}
               updateGlobalViewCount={updateGlobalViewCount}
               toggleFavorite={toggleFavorite}
-              />
+              updateVideo={updateVideo}
+              deleteVideo={deleteVideo}
+            />
           );
         })}
 

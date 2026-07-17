@@ -128,6 +128,7 @@ export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
               form.reset();
               onClose?.();
             }}
+            disabled={form.isSubmitting}
           >
             Отмена
           </Button>

@@ -1,34 +1,29 @@
-import { apiAxios } from '../../../shared/api';
+import { api } from '../../../shared/api';
 
 /**
- * Получить все публичные видео с возможностью фильтрации.
+ * Получить все публичные видео с возможностью фильтрации по категории и поиску.
  * @param {Object} params
- * @param {number} [params.page=1]
- * @param {number} [params.limit=30]
- * @param {string} [params.category] – категория
+ * @param {number} [params.page]
+ * @param {number} [params.limit]
+ * @param {string} [params.filter] – фильтр по категории
  * @param {string} [params.q] – поисковый запрос
+ * @param {AbortSignal} [params.signal] - сигнал отмены запроса
  * @returns {Promise<Object>} { videos, pagination }
  */
-export async function fetchVideos({ page = 1, limit = 30, category, q } = {}) {
-  const response = await apiAxios.get('/videos', {
+export async function fetchVideosApi({ page, limit, filter, q, signal } = {}) {
+  const response = await api.get('/videos', {
     params: {
       page,
       limit,
-      category: category === 'All' ? undefined : category,
+      category: filter === 'all' ? undefined : filter,
       q: q?.trim() || undefined,
     },
+    signal,
   });
-  return response.data;
-}
-
-/**
- * Получить одно видео по ID (нереализовано, возможно в будущем)
- * @param {number} videoId
- * @returns {Promise<Object>}
- */
-export async function fetchVideoById(videoId) {
-  const response = await apiAxios.get(`/videos/${videoId}`);
-  return response.data;
+    return {
+      items: response.data.videos || [],
+      pagination: response.data.pagination || {},
+    };
 }
 
 /**
@@ -36,28 +31,37 @@ export async function fetchVideoById(videoId) {
  * @param {Object} formData – поля видео (title, description, videoUrl, category, size, year, duration)
  * @returns {Promise<Object>}
  */
-export async function createVideo(formData) {
-  const response = await apiAxios.post('/videos', formData);
+export async function addVideoApi(formData) {
+  const response = await api.post('/videos', formData);
   return response.data;
 }
 
 /**
- * Обновить видео (счетчик просмотров на странице видео).
- * @param {number} videoId
- * @param {Object} updates
- * @returns {Promise<Object>}
+ * Обновить видео.
+ * @param {number} videoId - ID видео
+ * @param {Object} updates - поля видео
+ * @returns {Promise<Object>} { video }
  */
-export async function incrementViewCount(videoId) {
-  const response = await apiAxios.put(`/videos/${videoId}`);
+export async function updateVideoApi(videoId, updates) {
+  const response = await api.put(`/videos/${videoId}`, updates);
+  return response.data;
+}
+/**
+ * Обновить счетчик просмотров видео.
+ * @param {number} videoId - ID видео
+ * @returns {Promise<Object>} { video }
+ */
+export async function incrementVideoViewCount(videoId) {
+  const response = await api.put(`/videos/${videoId}/view`);
   return response.data;
 }
 
 /**
  * Удалить видео.
- * @param {number} videoId
- * @returns {Promise<Object>}
+ * @param {number} videoId - ID видео
+ * @returns {Promise<Object>} { videoId }
  */
-export async function deleteVideo(videoId) {
-  const response = await apiAxios.delete(`/videos/${videoId}`);
+export async function deleteVideoApi(videoId) {
+  const response = await api.delete(`/videos/${videoId}`);
   return response.data;
 }

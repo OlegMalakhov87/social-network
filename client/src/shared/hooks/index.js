@@ -9,6 +9,7 @@ export { useNotify } from './useNotify';
 export { useOptimisticCommentCount } from './useOptimisticCommentCount';
 export { useOptimisticCounter } from './useOptimisticCounter';
 export { useOptimisticFavorite } from './useOptimisticFavorite';
+export { useOptimisticLibraryToggle } from './useOptimisticLibraryToggle';
 export { useOptimisticLike } from './useOptimisticLike';
 export { useOptimisticMutation } from './useOptimisticMutation';
 export { useOutsideClick } from './useOutsideClick';

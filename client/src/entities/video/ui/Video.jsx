@@ -19,12 +19,13 @@ import {
  * @param {Object} props.currentVideo - текущее видео
  * @param {string} props.mode
  * @param {Function} props.onPlay - клик по видео (воспроизвести)
- * @param {Function} props.onDelete - удалить видео
- * @param {Function} props.addToLibrary - добавить в библиотеку
- * @param {Function} props.removeFromLibrary - удалить из библиотеки
  * @param {Function} props.toggleLike - лайк/дизлайк
  * @param {Function} props.toggleFavorite - добавит/удалить из избранного
  * @param {Function} props.toggleComments - открыть комментарии
+ * @param {Function} props.updateVideo - обновить видео
+ * @param {Function} props.deleteVideo - удалить видео
+ * @param {Function} props.addToLibrary - добавить в библиотеку
+ * @param {Function} props.removeFromLibrary - удалить из библиотеки
  */
 
 export const Video = ({
@@ -35,12 +36,13 @@ export const Video = ({
   isPlaying,
   mode,
   onPlay,
-  onDelete,
   addToLibrary,
   removeFromLibrary,
   toggleLike,
   toggleFavorite,
   toggleComments,
+  updateVideo,
+  deleteVideo,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   if (!video?.id) return null;
@@ -56,10 +58,11 @@ export const Video = ({
     removeFromLibrary,
     toggleLike,
     toggleComments,
+    onUpdate: updateVideo,
   });
 
   const handleConfirmDelete = () => {
-    onDelete?.(video?.id);
+    deleteVideo?.(video?.id);
     setShowDeleteDialog(false);
   };
 

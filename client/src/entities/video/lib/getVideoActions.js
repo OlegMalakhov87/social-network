@@ -8,6 +8,7 @@
  * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к видео
  * @param {(id:number)=>void} params.addToLibrary - функция для добавления видео в библиотеку
  * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary - функция для удаления видео из библиотеки
+ * @param {Function} params.onUpdate - функция для обновления видео
  * @returns {Array<Object>} - массив действий карточки видео
  */
 export const getVideoActions = ({
@@ -17,6 +18,7 @@ export const getVideoActions = ({
   toggleComments,
   addToLibrary,
   removeFromLibrary,
+  onUpdate,
 }) => {
   if (!video) return [];
 
@@ -38,13 +40,22 @@ export const getVideoActions = ({
     },
   ];
 
+  if (isOwn) {
+    actions.push({
+      key: 'update',
+      icon: '✏️',
+      label: 'Обновить',
+      ariaLabel: 'Обновить видео',
+      onClick: () => onUpdate?.(video),
+    });
+  }
+
   if (video.isPublic !== false && isOwn) {
     actions.push({
       key: 'library',
       icon: video.isInLibrary ? '📚' : '➕',
       label: video.isInLibrary ? 'В библиотеке' : 'В библиотеку',
       ariaLabel: 'Библиотека',
-
       onClick: () =>
         video.isInLibrary
           ? removeFromLibrary?.(video.libraryId, video.id)

@@ -1,248 +1,148 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import {
-  fetchTracks,
-  normalizeTrack,
-  addTrackToLibrary,
-  removeTrackFromLibrary,
-  incrementGlobalPlayCount,
-  createTrack,
-  deleteTrack,
-} from '../../../entities/track';
+import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import { addLike, deleteLike } from '../../../entities/like';
-import { sortByData } from '../../../shared/lib';
-import { SORT_OPTIONS } from '../../../shared/config/sortConfig';
+import {
+  addTrackApi,
+  addTrackToLibrary,
+  deleteTrackApi,
+  deleteTrackFromLibrary,
+  fetchTracksApi,
+  incrementTrackPlayCount,
+  normalizeTrack,
+  updateTrackApi,
+} from '../../../entities/track';
+import { apiFetchItems } from '../../../shared/api';
+import {
+  useInfiniteScroll,
+  useNormalizedData,
+  useNotify,
+  useOptimisticCommentCount,
+  useOptimisticCounter,
+  useOptimisticLibraryToggle,
+  useOptimisticLike,
+  useOptimisticMutation,
+} from '../../../shared/hooks';
 
 /**
- * Хук для получения и отображения треков на странице музыки.
- * @param {Object} params
- * @param {string} [params.filter] – жанр (All, Rock, Pop…)
- * @param {string} [params.searchQuery] – текст поиска
- * @param {string} [params.sortKey] – ключ сортировки
- * @returns {{ tracks: Array, pagination: Object|null, isLoading: boolean, error: string|null, toggleLikeTrack: Function, addTrackOptimistic: Function, removeTrackOptimistic: Function, updatePlayCount: Function, updateCommentCount: Function }}
+ * Хук для получения и управления треками на странице музыки с бесконечным скроллом.
+ *
+ * @param {Object} props
+ * @param {string} props.filter - фильтр по жанру
+ * @param {string} props.searchQuery - поисковый запрос
+ * @param {string} props.sortKey - ключ сортировки
+ * @returns {Object} - Результат
  */
 export function useMusic({ filter, searchQuery, sortKey } = {}) {
-  const [rawTracks, setRawTracks] = useState([]);
-  const [pagination, setPagination] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const debounceTimer = useRef(null);
+  const currentUser = selectUser();
+  const notify = useNotify('tracks');
 
-  const currentUser = useSelector((state) => state.auth?.user);
-
-  const loadTracks = useCallback(async (genre, query) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchTracks({
-        genre,
-        q: query?.trim() || undefined,
+  /** Получение треков с бесконечным скроллом */
+  const {
+    items: tracksItems,
+    setItems: setTracksItems,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+  } = useInfiniteScroll({
+    fetchFn: ({ page, limit, signal }) => {
+      if (!filter && !searchQuery) {
+        return { items: [], hasMore: false };
+      }
+      return apiFetchItems(fetchTracksApi, {
+        params: {
+          filter,
+          searchQuery,
+          page,
+          limit,
+        },
+        signal,
       });
-      const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
-      const tracksWithCount = tracks.map((track) => ({
-        ...track,
-        commentsCount: track.comments?.length ?? 0,
-      }));
-      setRawTracks(tracksWithCount || []);
-      setPagination(data.pagination || null);
-    } catch (err) {
-      setError(err.message);
-      setRawTracks([]);
-      setPagination(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    deps: [filter, searchQuery, sortKey],
+    options: {
+      autoFetch: true,
+      onSuccess: () => notify.success('load'),
+      onError: () => notify.error('load'),
+    },
+  });
 
-  // При изменении фильтра сразу загружаем
-  useEffect(() => {
-    loadTracks(filter, searchQuery);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  /** Оптимистичный переключатель библиотеки */
+  const { addToLibrary, removeFromLibrary } = useOptimisticLibraryToggle({
+    setItems: setTracksItems,
+    addFn: addTrackToLibrary,
+    removeFn: deleteTrackFromLibrary,
+    entityType: 'tracks',
+  });
 
-  // При изменении searchQuery делаем debounce (400 мс)
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      loadTracks(filter, searchQuery);
-    }, 400);
-    return () => clearTimeout(debounceTimer.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  /** Оптимистичный лайк */
+  const toggleLike = useOptimisticLike({
+    setItems: setTracksItems,
+    addLikeFn: addLike,
+    deleteLikeFn: deleteLike,
+    currentUserId: currentUser?.id,
+    targetType: 'tracks',
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
+  });
 
-  // Нормализация и сортировка на клиенте
-  const tracks = useMemo(() => {
-    if (!Array.isArray(rawTracks)) return [];
-    const normalized = rawTracks.map((item) => ({
+  /** Оптимистичный счётчик прослушиваний. */
+  const { incrementWithApi: incrementPlayCount } = useOptimisticCounter({
+    items: tracksItems,
+    setItems: setTracksItems,
+    countField: 'playCount',
+    updateFn: incrementTrackPlayCount,
+  });
+
+  /** Оптимистичные мутации (CRUD) */
+  const {
+    add: addTrack,
+    edit: updateTrack,
+    remove: deleteTrack,
+  } = useOptimisticMutation({
+    items: tracksItems,
+    setItems: setTracksItems,
+    addFn: addTrackApi,
+    editFn: updateTrackApi,
+    deleteFn: deleteTrackApi,
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
+  });
+
+  /** Оптимистичный счётчик комментариев. */
+  const updateCommentCount = useOptimisticCommentCount({
+    setItems: setTracksItems,
+  });
+
+  /** Нормализация и сортировка */
+  const tracks = useNormalizedData({
+    items: tracksItems,
+    entityType: 'tracks',
+    sortKey,
+    normalizeFn: (item) => ({
       ...normalizeTrack(item, currentUser?.id),
-      profileLibraryId: null, // сбрасываем для общей страницы
-    }));
-    const sortConfig = SORT_OPTIONS[sortKey];
-    if (!sortConfig) return normalized;
-    return sortByData(normalized, sortConfig, 'Music');
-  }, [rawTracks, currentUser?.id, sortKey]);
-
-  /**
-   * Оптимистичный лайк / дизлайк
-   * @param {number} trackId
-   * @param {boolean} currentlyLiked — текущее состояние (лайкнут или нет)
-   */
-  const toggleLikeTrack = useCallback(
-    async (trackId, currentlyLiked) => {
-      if (!currentUser?.id) return;
-      setRawTracks((prev) =>
-        prev.map((track) =>
-          track.id === trackId
-            ? {
-                ...track,
-                likes: currentlyLiked
-                  ? (track.likes || []).filter((like) => like.userId !== currentUser?.id)
-                  : [...(track.likes || []), { userId: currentUser?.id }],
-              }
-            : track
-        )
-      );
-
-      try {
-        if (currentlyLiked) {
-          await deleteLike('Music', trackId);
-        } else {
-          await addLike('Music', trackId);
-        }
-      } catch (err) {
-        setRawTracks((prev) =>
-          prev.map((track) =>
-            track.id === trackId
-              ? {
-                  ...track,
-                  likes: currentlyLiked
-                    ? [...(track.likes || []), { userId: currentUser?.id }]
-                    : (track.likes || []).filter((like) => like.userId !== currentUser?.id),
-                }
-              : track
-          )
-        );
-        console.error('Ошибка лайка трека:', err);
-      }
-    },
-    [currentUser?.id]
-  );
-
-  /**
-   * Удаление трека из библиотеки (оптимистично).
-   * @param {number} libraryId – запись в библиотеке
-   * @param {number} trackId – ID трека
-   */
-  const removeTrackOptimistic = useCallback(
-    async (libraryId, trackId) => {
-      if (!trackId) return;
-
-      // Обновляем rawTracks для мгновенного UI
-      setRawTracks((prev) =>
-        prev.map((track) =>
-          track.id === trackId
-            ? {
-                ...track,
-                isInLibrary: false,
-              }
-            : track
-        )
-      );
-      try {
-        await removeTrackFromLibrary(libraryId);
-        loadTracks();
-      } catch (err) {
-        console.error('Ошибка удаления трека из библиотеки:', err);
-        setRawTracks((prev) =>
-          prev.map((track) => (track.id === trackId ? { ...track, isInLibrary: true } : track))
-        );
-        loadTracks();
-      }
-    },
-    [loadTracks]
-  );
-
-  /**
-   * Добавление трека в библиотеку (оптимистично).
-   * @param {number} trackId – ID трека
-   */
-  const addTrackOptimistic = useCallback(
-    async (trackId) => {
-      // Обновляем rawTracks для мгновенного UI
-      setRawTracks((prev) =>
-        prev.map((track) => (track.id === trackId ? { ...track, isInLibrary: true } : track))
-      );
-      try {
-        const result = await addTrackToLibrary(trackId);
-        const newLibraryId = result?.libraryItem?.id;
-        if (newLibraryId) {
-          setRawTracks((prev) =>
-            prev.map((track) =>
-              track.id === trackId ? { ...track, libraryId: newLibraryId } : track
-            )
-          );
-        }
-      } catch (err) {
-        console.error('Ошибка добавления трека в библиотеку:', err);
-        setRawTracks((prev) =>
-          prev.map((track) => (track.id === trackId ? { ...track, isInLibrary: false } : track))
-        );
-        loadTracks();
-      }
-    },
-    [loadTracks]
-  );
-
-  /**
-   * Оптимистичное обновления глобального счетчика прослушиваний
-   * @param {number} trackId - ID трека
-   */
-  const updateGlobalPlayCount = useCallback(async (trackId) => {
-    if (!trackId) return;
-    // Оптимистично увеличиваем счётчик
-    setRawTracks((prev) =>
-      prev.map((track) =>
-        track.id === trackId ? { ...track, playCount: (track.playCount ?? 0) + 1 } : track
-      )
-    );
-    try {
-      await incrementGlobalPlayCount(trackId);
-    } catch (err) {
-      // Откат при ошибке
-      setRawTracks((prev) =>
-        prev.map((track) =>
-          track.id === trackId ? { ...track, playCount: (track.playCount ?? 1) - 1 } : track
-        )
-      );
-      console.error('Ошибка обновления трека из библиотеки:', err);
-    }
-  }, []);
-
-  /**
-   * Обновление счетчика комментариев к карточке трека.
-   * @param {number} trackId – ID трека
-   * @param {number} delta
-   */
-  const updateCommentCount = useCallback((trackId, delta) => {
-    setRawTracks((prev) =>
-      prev.map((track) =>
-        track.id === trackId
-          ? { ...track, commentsCount: (track.commentsCount ?? 0) + delta }
-          : track
-      )
-    );
-  }, []);
+      profileLibraryId: null,
+    }),
+    userId: currentUser?.id,
+  });
 
   return {
     tracks,
-    paginationTracks: pagination,
-    isLoadingTracks: isLoading,
-    errorTracks: error,
-    toggleLikeTrack,
-    addTrackOptimistic,
-    removeTrackOptimistic,
-    updateGlobalPlayCount,
+    currentUser,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+    toggleLike,
+    addTrack,
+    updateTrack,
+    deleteTrack,
+    addToLibrary,
+    removeFromLibrary,
+    incrementPlayCount,
     updateCommentCount,
   };
 }
