@@ -1,6 +1,4 @@
-import { apiFetch } from '../../../shared/api';
-
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { api } from '../../../shared/api';
 
 /**
  * Получить комментарии для конкретной сущности.
@@ -9,67 +7,62 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
  * @param {number} [page=1] - номер страницы
  * @returns {Promise<Object>} { comments, pagination }
  */
-export async function fetchComments(targetType, targetId, page = 1) {
-  const response = await apiFetch(
-    `${BASE_URL}/comments/${targetType}/${targetId}?page=${page}`
-  );
-  return response.json();
-}
-
-/**
- * Добавить комментарий.
- * @param {string} targetType
- * @param {number} targetId
- * @param {string} content
- * @returns {Promise<Object>} { comment }
- */
-export async function addCommentApi(targetType, targetId, content) {
-  const response = await apiFetch(`${BASE_URL}/comments/`, {
-    method: 'POST',
-    body: JSON.stringify({ targetType, targetId, content }),
-  });
-  return response.json();
-}
-
-/**
- * Изменить комментарий по ID.
- * @param {number} commentId
- * @param {string} newContent
- * @param {string} targetType
- * @param {number} targetId
- * @returns {Promise<Object>} { comment }
- */
-export async function editCommentApi(
-  commentId,
-  newContent,
+export async function fetchComments({
   targetType,
-  targetId
-) {
-  const response = await apiFetch(`${BASE_URL}/comments/${commentId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ content: newContent, targetType, targetId }),
+  targetId,
+  page,
+  limit,
+  signal,
+} = {}) {
+  const response = await api.get(`/comments/${targetType}/${targetId}`, {
+    params: { page, limit },
+    signal,
   });
-  return response.json();
-}
-
-/**
- * Удалить комментарий по ID
- * @param {number} commentId
- * @returns {Promise<number>}{ commentId }
- */
-export async function deleteCommentApi(commentId) {
-  const response = await apiFetch(`${BASE_URL}/comments/${commentId}`, {
-    method: 'DELETE',
-  });
-  return response.json();
+  return {
+    items: response.data.comments || [],
+    pagination: response.data.pagination || {},
+  };
 }
 
 /**
  * Получить комментарий по ID (для кнопки поделиться).
- * @param {number} commentId
+ * @param {number} commentId - ID комментария
  * @returns {Promise<Object>} { comment }
  */
 export async function fetchCommentById(commentId) {
-  const response = await apiFetch(`${BASE_URL}/comments/${commentId}/shared`);
-  return response.json();
+  const response = await api.get(`/comments/${commentId}/shared`);
+  return response.data;
 }
+
+/**
+ * Добавить комментарий.
+ * @param {Object} data - поля комментария (targetType, targetId, content)
+ * @returns {Promise<Object>} { comment }
+ */
+export async function addCommentApi(data) {
+  const response = await api.post(`/comments/`, data);
+  return response.data;
+}
+
+/**
+ * Изменить комментарий по ID.
+ * @param {number} commentId - ID комментария
+ * @param {Object}  updates - поля комментария (content, targetType, targetId)
+ * @returns {Promise<Object>} { comment }
+ */
+export async function editCommentApi(commentId, updates) {
+  const response = await api.put(`/comments/${commentId}`, updates);
+  return response.data;
+}
+
+/**
+ * Удалить комментарий по ID
+ * @param {number} commentId - ID комментария
+ * @returns {Promise<Object>} { commentId }
+ */
+export async function deleteCommentApi(commentId) {
+  const response = await api.delete(`/comments/${commentId}`);
+  return response.data;
+}
+
+

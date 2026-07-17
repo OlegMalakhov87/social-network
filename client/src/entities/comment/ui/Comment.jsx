@@ -51,8 +51,8 @@ export const Comment = ({
     toggleLike,
     onDelete: () => setShowDeleteDialog(true),
     onEdit: () => setIsEditing(true),
-    shareComment: () => {
-      sessionStorage.setItem('sharedCommentId', comment.id);
+    onShare: () => {
+      sessionStorage.setItem('sharedCommentId', comment);
       navigate('/messages');
     },
   });

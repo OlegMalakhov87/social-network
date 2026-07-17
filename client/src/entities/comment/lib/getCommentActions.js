@@ -3,21 +3,22 @@
  * Формирует массив действий для комментария.
  *
  * @param {Object} props
- * @param {Object} props.comment
- * @param {Object} props.currentUserId
- * @param {Function} props.toggleLike
- * @param {Function} props.onDelete
- * @param {Function} props.onEdit
+ * @param {Object} props.comment - комментарий
+ * @param {Object} props.currentUserId - ID текущего пользователя
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка комментария
+ * @param {Function} props.onDelete - функция для удаления комментария
+ * @param {Function} props.onEdit - функция для редактирования комментария
+ * @param {Function} props.onShare - функция для поделиться комментарием
  */
 
-export const getCommentActions = (
+export const getCommentActions = ({
   comment,
   currentUserId,
   toggleLike,
   onDelete,
   onEdit,
-  shareComment
-) => {
+  onShare,
+}) => {
   if (!comment) return [];
 
   const isAuthor = currentUserId === comment.userId;
@@ -33,9 +34,9 @@ export const getCommentActions = (
     {
       key: 'share',
       icon: '↗️',
-      label: String(comment.sharedCount ?? 0),
+      label: 'Поделиться',
       ariaLabel: 'Поделиться',
-      onClick: () => shareComment?.(comment.id),
+      onClick: () => onShare?.(),
     },
   ];
 

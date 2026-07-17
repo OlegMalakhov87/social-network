@@ -53,7 +53,7 @@ export const News = ({
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
     onShare: () => {
-      sessionStorage.setItem('sharedNewsId', news.id);
+      sessionStorage.setItem('sharedNewsId', news);
       navigate('/messages');
     },
   });

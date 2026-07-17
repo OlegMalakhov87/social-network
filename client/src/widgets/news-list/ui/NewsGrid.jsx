@@ -54,6 +54,7 @@ export const NewsGrid = ({
         {news.map((item) => {
           return (
             <News
+              key={item.id}
               news={item}
               currentUser={currentUser}
               toggleLike={toggleLike}

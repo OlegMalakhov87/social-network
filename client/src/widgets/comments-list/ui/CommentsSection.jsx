@@ -35,13 +35,14 @@ export const CommentsSection = (props) => {
   /** Получение данных о комментариях */
   const {
     comments,
+    toggleLike,
+    addComment,
+    updateComment,
+    deleteComment,
     isLoading,
+    isLoadingMore,
     hasMore,
     error,
-    handleAddComment,
-    handleEditComment,
-    handleDeleteComment,
-    toggleLikeComment,
     loadMore,
     refetch,
   } = useFetchComments(
@@ -75,17 +76,18 @@ export const CommentsSection = (props) => {
     >
       <CommentsList
         comments={comments}
-        hasMore={hasMore}
         isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
         error={error}
         currentUser={currentUser}
-        onCommentSubmit={handleAddComment}
-        onEditComment={handleEditComment}
-        onDeleteComment={handleDeleteComment}
-        toggleLikeComment={toggleLikeComment}
+        loadMore={loadMore}
+        onCommentSubmit={addComment}
+        onEditComment={updateComment}
+        onDeleteComment={deleteComment}
+        toggleLikeComment={toggleLike}
         onCloseComments={onCloseComments}
         onRetry={refetch}
-        loadMore={loadMore}
       />
     </SectionCard>
   );

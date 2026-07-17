@@ -68,6 +68,7 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
             {...form.register('message')}
             placeholder="Поделитесь своими новостями"
             rows={3}
+            disabled={form.isSubmitting}
           />
 
           {/* Динамическое поле для URL */}
@@ -80,11 +81,13 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
                   ? 'Ссылка на изображение...'
                   : 'Ссылка на видео...'
               }
+              disabled={form.isSubmitting}
             />
           )}
           <Select
             {...form.register('visibility')}
             options={VISIBILITY_OPTIONS}
+            disabled={form.isSubmitting}
           />
 
           {/* Кнопки действий */}
@@ -92,6 +95,7 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
             <Button
               variant="secondary"
               type="button"
+              disabled={form.isSubmitting}
               onClick={() => {
                 form.reset();
                 onClose?.();
@@ -99,7 +103,7 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
             >
               Отмена
             </Button>
-            <Button type="submit">{isEdit ? 'Сохранить изменения' : 'Опубликовать'}</Button>
+            <Button type="submit" disabled={form.isSubmitting}>{form.isSubmitting ? 'Отправка...' : isEdit ? 'Сохранить изменения' : 'Опубликовать'}</Button>
           </ButtonGroup>
         </form>
       }

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 /**
  * Универсальный хук управления формой.
- *
+ * 
  * @param {Object} initialValues - начальные значения формы
  * @returns {Object} - объект с значениями, ошибками и методами управления формой
  */

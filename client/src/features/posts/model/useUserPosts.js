@@ -45,7 +45,6 @@ export function useUserPosts({ profileUserId, currentUserId, sortKey }) {
     },
     deps: [profileUserId, sortKey],
     onSuccess: () => notify.success('load'),
-
     onError: () => notify.error('load'),
   });
 

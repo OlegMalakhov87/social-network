@@ -26,7 +26,7 @@ import {
  */
 export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
-/** Форма для создания/редактирования новости с валидацией*/
+  /** Форма для создания/редактирования новости с валидацией*/
   const form = useAppForm({
     initialValues: {
       title: initialData?.title || '',
@@ -74,6 +74,7 @@ export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
           label="Заголовок *"
           {...form.register('title')}
           placeholder="Введите заголовок"
+          disabled={form.isSubmitting}
         />
 
         <TextArea
@@ -81,24 +82,28 @@ export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
           {...form.register('content')}
           placeholder="Введите текст новости"
           rows={3}
+          disabled={form.isSubmitting}
         />
 
         <Select
           label="Категория *"
           {...form.register('category')}
           options={CATEGORY_OPTIONS}
+          disabled={form.isSubmitting}
         />
 
         <Input
           label="Источник"
           {...form.register('source')}
           placeholder="Название издания"
+          disabled={form.isSubmitting}
         />
 
         <Select
           label="Тип новости *"
           {...form.register('type')}
           options={NEWS_TYPES}
+          disabled={form.isSubmitting}
         />
 
         {form.values.type !== 'text' && (
@@ -111,6 +116,7 @@ export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
                 ? 'Ссылка на изображение...'
                 : 'Ссылка на видео...'
             }
+            disabled={form.isSubmitting}
           />
         )}
 
@@ -125,8 +131,12 @@ export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
           >
             Отмена
           </Button>
-          <Button type="submit">
-            {isEdit ? 'Сохранить изменения' : 'Опубликовать'}
+          <Button type="submit" disabled={form.isSubmitting}>
+            {form.isSubmitting
+              ? 'Отправка...'
+              : isEdit
+                ? 'Сохранить изменения'
+                : 'Опубликовать'}
           </Button>
         </ButtonGroup>
       </form>

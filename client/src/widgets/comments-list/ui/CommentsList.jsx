@@ -1,7 +1,10 @@
 import { Comment } from '../../../entities/comment';
 import { CommentForm } from '../../../features/comments';
-import { useInfiniteScroll } from '../../../shared/hook';
-import { ContentState, Loading } from '../../../shared/ui';
+import {
+  ContentState,
+  ErrorBanner,
+  InfiniteScrollFooter,
+} from '../../../shared/ui';
 import style from './CommentsList.module.css';
 
 /**
@@ -10,37 +13,37 @@ import style from './CommentsList.module.css';
  * @param {Object} props
  * @param {Object} props.comments - Список комментариев.
  * @param {Object} props.isLoading - Флаг загрузки.
+ * @param {Object} props.isLoadingMore - Флаг загрузки ещё комментариев.
  * @param {Object} props.hasMore - Флаг наличия ещё комментариев.
+ * @param {Object} props.error - Ошибка.
  * @param {Object} props.currentUser - Текущий пользователь.
- * @param {Function} props.onCloseComments - Функция для закрытия комментариев.
+ * @param {Function} props.loadMore - Функция для загрузки ещё комментариев.
  * @param {Function} props.onCommentSubmit - Функция для добавления нового комментария.
  * @param {Function} props.onEditComment - Функция для редактирования комментария.
  * @param {Function} props.onDeleteComment - Функция для удаления комментария.
  * @param {Function} props.toggleLikeComment - Функция для лайка комментария.
- * @param {Function} props.loadMore - Функция для загрузки ещё комментариев.
- * @param {Object} props.error - Ошибка.
+ * @param {Function} props.onCloseComments - Функция для закрытия комментариев.
  * @param {Function} props.onRetry - Функция для повторной загрузки комментариев.
  */
 export const CommentsList = ({
   comments = [],
   isLoading,
+  isLoadingMore,
   hasMore,
-  currentUser,
-  onCloseComments,
-  loadMore,
   error,
-  onRetry,
+  currentUser,
+  loadMore,
   onCommentSubmit,
   onEditComment,
   onDeleteComment,
   toggleLikeComment,
+  onCloseComments,
+  onRetry,
 }) => {
-  const lastElementRef = useInfiniteScroll(loadMore, hasMore, isLoading);
-
   return (
     <ContentState
-      loading={isLoading}
-      error={error}
+      loading={isLoading && comments.length === 0}
+      error={error && comments.length === 0}
       isEmpty={!comments?.length}
       loadingMessage="Загружаем комментарии..."
       emptyIcon="💬"
@@ -49,27 +52,36 @@ export const CommentsList = ({
       onRetry={onRetry}
     >
       <div className={style.list}>
-        {comments.map((item, index) => {
-          const isLast = index === comments.length - 1;
-
+        {comments.map((item) => {
           return (
-            <div
+            <Comment
               key={item.comment.id}
-              ref={isLast ? lastElementRef : undefined}
-            >
-              <Comment
-                comment={item.comment}
-                author={item.author}
-                currentUserId={currentUser?.id}
-                onEdit={onEditComment}
-                onDelete={onDeleteComment}
-                toggleLike={toggleLikeComment}
-              />
-            </div>
+              comment={item.comment}
+              author={item.author}
+              currentUserId={currentUser?.id}
+              onEdit={onEditComment}
+              onDelete={onDeleteComment}
+              toggleLike={toggleLikeComment}
+            />
           );
         })}
 
-        {isLoading && <Loading size="small" message="Загружаем ещё..." />}
+        {comments.length > 0 && (
+          <InfiniteScrollFooter
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+            error={error}
+            onRetry={loadMore}
+            endMessage="Вы просмотрели все комментарии"
+          />
+        )}
+
+        {error && comments.length > 0 && (
+          <ErrorBanner
+            message="Не удалось загрузить следующую порцию комментариев"
+            onRetry={loadMore}
+          />
+        )}
       </div>
 
       <CommentForm

@@ -48,20 +48,28 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
             {...form.register('content')}
             placeholder="Что вы думаете по этому поводу?"
             rows={3}
+            disabled={form.isSubmitting}
           />
 
           <ButtonGroup>
             <Button
               variant="secondary"
+              size="sm"
+              type="button"
+              disabled={form.isSubmitting}
               onClick={() => {
-                form.reset(); 
+                form.reset();
                 onClose?.();
               }}
             >
               Отмена
             </Button>
-            <Button type="submit" size="sm">
-              Добавить
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!form.values.content?.trim() || form.isSubmitting}
+            >
+              {form.isSubmitting ? 'Отправка...' : 'Добавить'}
             </Button>
           </ButtonGroup>
         </form>

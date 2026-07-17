@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from './useForm';
 import { useValidation } from './useValidation';
 
@@ -9,10 +9,12 @@ import { useValidation } from './useValidation';
  * @param {Object} config.initialValues - начальные значения формы
  * @param {Object} config.rules - правила валидации
  * @param {(values:Object)=>void|Promise<void>} config.onSubmit - колбэк на отправку формы
+ * @returns {Object} - объект с значениями, ошибками, методами и флагом isSubmitting
  */
 
 export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
   const form = useForm(initialValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /** Правила валидации */
   const validationRules =
@@ -57,18 +59,34 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
   const handleSubmit = useCallback(
     async (e) => {
       e?.preventDefault();
+
+      // Если уже идет отправка, игнорируем повторный вызов
+      if (isSubmitting) return false;
+
       const valid = validation.validate();
 
       if (!valid) return false;
 
-      await onSubmit?.(form.values);
+      // Устанавливаем флаг отправки формы
+      setIsSubmitting(true);
+      form.clearErrors();
 
-      form.reset();
-      validation.resetErrors();
-
-      return true;
+      try {
+        await onSubmit?.(form.values);
+        form.reset();
+        validation.resetErrors();
+        return true;
+      } catch (error) {
+        // Если сервер вернул ошибки полей, устанавливаем их в форму
+        if (error.fieldErrors) {
+          form.setFormErrors(error.fieldErrors);
+        }
+        return false;
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    [form, validation, onSubmit]
+    [form, validation, onSubmit, isSubmitting]
   );
 
   /**
@@ -80,18 +98,19 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
     (name, extra = {}) => ({
       name,
       value: form.values[name],
-      error: validation.errors[name],
+      error: form.errors[name] || validation.errors[name],
       onChange: (value) => handleChange(name, value),
       onBlur: () => handleBlur(name),
       ...extra,
     }),
-    [form.values, validation.errors, handleChange, handleBlur]
+    [form.values, validation.errors, form.errors, handleChange, handleBlur]
   );
 
   return {
     values: form.values,
     errors: validation.errors,
     isValid: validation.isValid,
+    isSubmitting,
 
     setValue: handleChange,
     onBlur: handleBlur,
