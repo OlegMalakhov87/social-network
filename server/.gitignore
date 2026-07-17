@@ -3,5 +3,10 @@ node_modules/
 dist/
 logs/
 coverage/
+uploads/
 .cache
 *.db
+*.tar
+*.vhdx
+*.backup
+*.tmp
