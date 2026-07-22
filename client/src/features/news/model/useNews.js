@@ -1,5 +1,5 @@
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
-import { addLike, deleteLike } from '../../../entities/like';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addNewsApi,
   deleteNewsApi,
@@ -22,14 +22,13 @@ import {
 /**
  * Хук для получения и фильтрации новостей с бесконечным скроллом.
  *
- * @param {Object} params - Параметры
- * @param {string} params.filter - Фильтр
- * @param {string} params.searchQuery - Поисковый запрос
- * @param {string} params.sortKey - Ключ сортировки
- * @returns {Object} - Результат
+ * @param {string} filter - Фильтр
+ * @param {string} searchQuery - Поисковый запрос
+ * @param {string} sortKey - Ключ сортировки
+ * @returns {Object} - объект с данными о новостях
  */
 
-export function useNews({ filter, searchQuery, sortKey } = {}) {
+export const useNews = (filter, searchQuery, sortKey) => {
   const currentUser = selectUser();
   const notify = useNotify('news');
 
@@ -49,7 +48,7 @@ export function useNews({ filter, searchQuery, sortKey } = {}) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchNewsApi, {
-        params: { filter, searchQuery, page, limit },
+        params: { filter, q: searchQuery, page, limit },
         signal,
       });
     },
@@ -64,8 +63,8 @@ export function useNews({ filter, searchQuery, sortKey } = {}) {
   /** Оптимистичный лайк. */
   const toggleLike = useOptimisticLike({
     setItems: setNewsItems,
-    addLikeFn: addLike,
-    deleteLikeFn: deleteLike,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
     currentUserId: currentUser?.id,
     targetType: 'news',
     onSuccess: (action) => notify.success(action),
@@ -129,4 +128,4 @@ export function useNews({ filter, searchQuery, sortKey } = {}) {
     incrementViewCount,
     updateCommentCount,
   };
-}
+};

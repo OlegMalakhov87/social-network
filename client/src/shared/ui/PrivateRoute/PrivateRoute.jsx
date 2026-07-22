@@ -6,7 +6,7 @@ import { PageLoader } from '..';
  * Приватный маршрут.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children
+ * @param {React.ReactNode} props.children - контент маршрута
  * @param {string} props.redirectTo - URL, на который перенаправлять при неаутентификации
  */
 export const PrivateRoute = ({ children, redirectTo = '/login' }) => {

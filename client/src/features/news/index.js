@@ -1,3 +1,2 @@
-//export { useNewsActions } from './model/useNewsActions';
-export { NewsForm } from './ui/NewsForm';
-export { useNews } from './model/useNews';
+export { useNews } from './model/useNews'; // Хук для работы с новостями
+export { NewsForm } from './ui/NewsForm'; // Форма добавления/редактирования новости

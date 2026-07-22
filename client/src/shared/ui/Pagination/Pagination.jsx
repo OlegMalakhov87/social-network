@@ -4,8 +4,8 @@ import style from './Pagination.module.css';
 /**
  * Пагинация (постраничная навигация).
  * @param {Object} props
- * @param {number} props.totalPages - общее количество страниц
- * @param {number} props.page - текущая страница (начиная с 1)
+ * @param {number} props.totalPages - общее количество страниц (целое число)
+ * @param {number} props.page - текущая страница (начиная с 1) (целое число)
  * @param {Function} props.onPageChange - колбэк при смене страницы (получает номер страницы)
  */
 

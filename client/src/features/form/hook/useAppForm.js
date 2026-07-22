@@ -5,15 +5,13 @@ import { useValidation } from './useValidation';
 /**
  * Универсальный хук для работы с формами.
  *
- * @param {Object} config - конфигурация формы
- * @param {Object} config.initialValues - начальные значения формы
- * @param {Object} config.rules - правила валидации
- * @param {(values:Object)=>void|Promise<void>} config.onSubmit - колбэк на отправку формы
+ * @param {Object} initialValues - начальные значения формы
+ * @param {Object} [rules={}] - правила валидации
+ * @param {Function} onSubmit - функция для отправки формы
  * @returns {Object} - объект с значениями, ошибками, методами и флагом isSubmitting
  */
-
-export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
-  const form = useForm(initialValues);
+export const useAppForm = (initialValues, rules = {}, onSubmit) => {
+  const form = useForm({ initialValues });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   /** Правила валидации */
@@ -30,6 +28,7 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
    * Обработчик изменения значения поля
    * @param {string} field - поле для изменения
    * @param {any} value - новое значение
+   * @returns {void}
    */
   const handleChange = useCallback(
     (field, value) => {
@@ -44,6 +43,7 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
   /**
    * Обработчик фокуса на поле
    * @param {string} field - поле для фокуса
+   * @returns {void}
    */
   const handleBlur = useCallback(
     (field) => {
@@ -54,6 +54,7 @@ export const useAppForm = ({ initialValues, rules = {}, onSubmit }) => {
 
   /**
    * Обработчик отправки формы
+   * @param {React.FormEvent<HTMLFormElement>} e - событие отправки формы
    * @returns {Promise<boolean>} - результат отправки формы
    */
   const handleSubmit = useCallback(

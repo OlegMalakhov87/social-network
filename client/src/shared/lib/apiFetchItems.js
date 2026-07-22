@@ -3,13 +3,12 @@
  * Все fetch-функции должны возвращать { items, pagination }.
  *
  * @param {Function} fetchApi - функция для запроса данных (принимает { page, limit, ...params, signal })
- * @param {Object} options
- * @param {Object} options.params - дополнительные параметры (filter, searchQuery, etc.)
- * @param {AbortSignal} options.signal - сигнал отмены запроса
- * @returns {Promise<Object>} - { items: Array, hasMore: boolean }
+ * @param {Object} params - дополнительные параметры (filter, searchQuery, etc.)
+ * @param {AbortSignal} signal - сигнал отмены запроса
+ * @returns {Promise<Object>} - объект с данными
  */
 
-export async function apiFetchItems(fetchApi, { params = {}, signal } = {}) {
+export const apiFetchItems = async (fetchApi, { params, signal }) => {
   const data = await fetchApi({
     ...params,
     filter: params.filter?.trim() ? params.filter : undefined,
@@ -29,4 +28,4 @@ export async function apiFetchItems(fetchApi, { params = {}, signal } = {}) {
     items: itemsWithCount,
     hasMore: data?.pagination?.hasMore ?? false,
   };
-}
+};

@@ -1,13 +1,13 @@
 /**
  * Формирует массив действий карточки видео.
  *
- * @param {Object} params
- * @param {Object} params.video - видео
+ * @param {Object} params - пропсы компонента
+ * @param {Object} params.video - данные видео
  * @param {boolean} params.isOwn - флаг владельца видео
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка видео
- * @param {(id:number)=>void} params.toggleComments - функция для открытия/закрытия комментариев к видео
- * @param {(id:number)=>void} params.addToLibrary - функция для добавления видео в библиотеку
- * @param {(id:number,libraryId:number)=>void} params.removeFromLibrary - функция для удаления видео из библиотеки
+ * @param {Function} params.toggleLike - функция для лайка/дизлайка видео
+ * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к видео
+ * @param {Function} params.addToLibrary - функция для добавления видео в библиотеку
+ * @param {Function} params.removeFromLibrary - функция для удаления видео из библиотеки
  * @param {Function} params.onUpdate - функция для обновления видео
  * @returns {Array<Object>} - массив действий карточки видео
  */

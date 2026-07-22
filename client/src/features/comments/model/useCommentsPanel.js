@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Хук для управления панелью комментариев.
- * @param {string} targetType – тип сущности ('posts', 'tracks', 'videos', 'photos')
- * @param {any[]} [resetDeps=[]] – зависимости, при изменении которых панель закрывается (например, фильтр, страница пагинации)
- * @returns {{ commentTarget, handleCloseComments, onToggleComments }}
+ * @param {string} targetType - тип сущности ('posts', 'tracks', 'videos', 'photos')
+ * @param {any[]} resetDeps - зависимости, при изменении которых панель закрывается (например, фильтр, страница пагинации)
+ * @returns {Object} - объект с данными о комментариях
  */
-export function useCommentsPanel(targetType, ...resetDeps) {
+export const useCommentsPanel = (targetType, ...resetDeps) => {
   const [commentTarget, setCommentTarget] = useState(null);
 
   // Открыть панель комментариев
@@ -37,4 +37,4 @@ export function useCommentsPanel(targetType, ...resetDeps) {
   }, [resetKey]);
 
   return { commentTarget, handleCloseComments, onToggleComments };
-}
+};

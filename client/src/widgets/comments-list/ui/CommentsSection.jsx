@@ -8,24 +8,21 @@ import { CommentsList } from './CommentsList';
  * Секция комментариев. Стартовый компонент для отображения списка комментариев.
  *
  * @param {Object} props
- * @param {string} props.targetType - Тип цели комментариев.
+ * @param {string} props.targetType - тип цели комментариев.
  * @param {number} props.targetId - ID цели комментариев.
- * @param {Object} props.currentUser - Текущий пользователь.
- * @param {Function} props.onChange - Функция для обновления количества комментариев.
- * @param {Function} props.onCloseComments - Функция для закрытия секции комментариев.
- * @param {Ref} props.commentsSectionRef - Ссылка на секцию комментариев.
+ * @param {Object} props.currentUser - текущий пользователь.
+ * @param {Function} props.onChange - функция для обновления количества комментариев.
+ * @param {Function} props.onCloseComments - функция для закрытия секции комментариев.
+ * @param {React.Ref<HTMLDivElement>} props.commentsSectionRef - ссылка на секцию комментариев.
  */
-
-export const CommentsSection = (props) => {
-  const {
-    targetType,
-    targetId,
-    currentUser,
-    onChange,
-    onCloseComments,
-    commentsSectionRef,
-  } = props;
-
+export const CommentsSection = ({
+  targetType,
+  targetId,
+  currentUser,
+  onChange,
+  onCloseComments,
+  commentsSectionRef,
+}) => {
   /** Управление фильтрацией и сортировкой */
   const { sortKey, setSortKey } = useFilterControls({
     initialFilter: 'all',

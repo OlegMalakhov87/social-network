@@ -1,7 +1,3 @@
-//export { usePostActions } from './model/usePostActions';export { PostForm } from './ui/PostForm';
+export { PostForm } from './ui/PostForm'; // Форма добавления/редактирования поста
 
-// Компонент формы добавления поста
-export { PostForm } from './ui/PostForm';
-
-// Хук для получения постов пользователя
-export { useUserPosts } from './model/useUserPosts';
+export { useUserPosts } from './model/useUserPosts'; // Хук для получения постов пользователя

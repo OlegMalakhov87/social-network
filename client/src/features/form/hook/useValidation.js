@@ -2,13 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 
 /**
  * Универсальная валидация форм.
- * @param {Object} props
- * @param {Object} props.values - значения формы
- * @param {Object} props.rules - правила валидации
+ * @param {Object} values - значения формы
+ * @param {Object} [rules={}] - правила валидации
  * @returns {Object} - объект с ошибками и методами валидации
  */
-
-export const useValidation = ({ values, rules = {} }) => {
+export const useValidation = (values, rules = {}) => {
   const [errors, setErrors] = useState({});
 
   /**

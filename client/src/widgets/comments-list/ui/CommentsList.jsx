@@ -11,19 +11,19 @@ import style from './CommentsList.module.css';
  * Список комментариев. Содержит в себе список комментариев и форму для добавления нового комментария.
  *
  * @param {Object} props
- * @param {Object} props.comments - Список комментариев.
- * @param {Object} props.isLoading - Флаг загрузки.
- * @param {Object} props.isLoadingMore - Флаг загрузки ещё комментариев.
- * @param {Object} props.hasMore - Флаг наличия ещё комментариев.
- * @param {Object} props.error - Ошибка.
- * @param {Object} props.currentUser - Текущий пользователь.
- * @param {Function} props.loadMore - Функция для загрузки ещё комментариев.
- * @param {Function} props.onCommentSubmit - Функция для добавления нового комментария.
- * @param {Function} props.onEditComment - Функция для редактирования комментария.
- * @param {Function} props.onDeleteComment - Функция для удаления комментария.
- * @param {Function} props.toggleLikeComment - Функция для лайка комментария.
- * @param {Function} props.onCloseComments - Функция для закрытия комментариев.
- * @param {Function} props.onRetry - Функция для повторной загрузки комментариев.
+ * @param {Object} props.comments - список комментариев.
+ * @param {Object} props.isLoading - флаг загрузки.
+ * @param {Object} props.isLoadingMore - флаг загрузки ещё комментариев.
+ * @param {Object} props.hasMore - флаг наличия ещё комментариев.
+ * @param {Object} props.error - ошибка.
+ * @param {Object} props.currentUser - текущий пользователь.
+ * @param {Function} props.loadMore - функция для загрузки ещё комментариев.
+ * @param {Function} props.onCommentSubmit - функция для добавления нового комментария.
+ * @param {Function} props.onEditComment - функция для редактирования комментария.
+ * @param {Function} props.onDeleteComment - функция для удаления комментария.
+ * @param {Function} props.toggleLikeComment - функция для лайка комментария.
+ * @param {Function} props.onCloseComments - функция для закрытия комментариев.
+ * @param {Function} props.onRetry - функция для повторной загрузки комментариев.
  */
 export const CommentsList = ({
   comments = [],

@@ -1,16 +1,16 @@
-export { useAbortableRequest } from './useAbortableRequest';
-export { useEscapeKey } from './useEscapeKey';
-export { useFilterControls } from './useFilterControls';
-export { useInfiniteScroll } from './useInfiniteScroll';
-export { useLockBodyScroll } from './useLockBodyScroll';
-export { useMediaControls } from './useMediaControls';
-export { useNormalizedData } from './useNormalizedData';
-export { useNotify } from './useNotify';
-export { useOptimisticCommentCount } from './useOptimisticCommentCount';
-export { useOptimisticCounter } from './useOptimisticCounter';
-export { useOptimisticFavorite } from './useOptimisticFavorite';
-export { useOptimisticLibraryToggle } from './useOptimisticLibraryToggle';
-export { useOptimisticLike } from './useOptimisticLike';
-export { useOptimisticMutation } from './useOptimisticMutation';
-export { useOutsideClick } from './useOutsideClick';
-export { usePagination } from './usePagination';
+export { useAbortableRequest } from './useAbortableRequest'; // Хук для отмены запроса
+export { useEscapeKey } from './useEscapeKey'; // Хук для обработки нажатий клавиш
+export { useFilterControls } from './useFilterControls'; // Хук для управления фильтрами
+export { useInfiniteScroll } from './useInfiniteScroll'; // Хук для бесконечного скролла
+export { useLockBodyScroll } from './useLockBodyScroll'; // Хук для блокировки скролла
+export { useMediaControls } from './useMediaControls'; // Хук для управления медиаплеером
+export { useNormalizedData } from './useNormalizedData'; // Хук для нормализации данных
+export { useNotify } from './useNotify'; // Хук для уведомлений
+export { useOptimisticCommentCount } from './useOptimisticCommentCount'; // Хук для оптимистичного управления количеством комментариев
+export { useOptimisticCounter } from './useOptimisticCounter'; // Хук для оптимистичного управления счетчиками
+export { useOptimisticFavorite } from './useOptimisticFavorite'; // Хук для оптимистичного управления избранным
+export { useOptimisticLibraryToggle } from './useOptimisticLibraryToggle'; // Хук для оптимистичного управления библиотекой
+export { useOptimisticLike } from './useOptimisticLike'; // Хук для оптимистичного управления лайками
+export { useOptimisticMutation } from './useOptimisticMutation'; // Хук для оптимистичных мутаций
+export { useOutsideClick } from './useOutsideClick'; // Хук для обработки кликов вне элемента
+export { usePagination } from './usePagination'; // Хук для пагинации данных

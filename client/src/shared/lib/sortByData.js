@@ -10,11 +10,12 @@ const TAB_TO_ENTITY = {
 };
 
 /**
- * Сортирует массив сущностей по заданному полю и направлению.
- * @param {Array} items - исходный массив
- * @param {Object} sortConfig - { field: string, order: 'asc'|'desc' }
- * @param {string} entityType - тип сущности (posts, photos, tracks, videos, news)
- * @returns {Array} новый отсортированный массив
+ * Функция для сортировки массива сущностей по заданному полю и направлению.
+ *
+ * @param {Array} items - массив сущностей
+ * @param {Object} sortConfig - конфигурация сортировки
+ * @param {string} entityType - тип сущности
+ * @returns {Array} отсортированный массив
  */
 export const sortByData = (items, sortConfig, entityType) => {
   if (!Array.isArray(items) || items.length === 0) return [];

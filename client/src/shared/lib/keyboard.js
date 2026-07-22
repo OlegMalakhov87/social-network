@@ -1,10 +1,8 @@
 /**
- * Выполняет действие при активации элемента клавиатурой.
+ * Функция для выполнения действия при активации элемента клавиатурой.
  *
- * Используется для элементов с role="button".
- *
- * @param {KeyboardEvent} event
- * @param {Function} callback
+ * @param {KeyboardEvent} event - событие клавиатуры
+ * @param {Function} callback - функция для выполнения действия
  */
 
 export const handleKeyboardClick = (event, callback) => {

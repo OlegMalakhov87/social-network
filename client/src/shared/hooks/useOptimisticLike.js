@@ -3,16 +3,17 @@ import { useCallback } from 'react';
 /**
  * Универсальный хук для оптимистичного управления лайками.
  *
- * @param {Function} setItems - функция обновления массива
- * @param {Function} addLikeFn - функция добавления лайка (async)
- * @param {Function} deleteLikeFn - функция удаления лайка (async)
- * @param {number|string} currentUserId - ID текущего пользователя
- * @param {string} targetType - тип сущности (Post, News, Comment, etc.)
- * @param {Function} onSuccess - функция обработки успеха.
- * @param {Function} onError - функция обработки ошибки
+ * @param {Object} params - параметры запроса
+ * @param {Function} params.setItems - функция обновления массива
+ * @param {Function} params.addLikeFn - функция добавления лайка (async)
+ * @param {Function} params.deleteLikeFn - функция удаления лайка (async)
+ * @param {number|string} params.currentUserId - ID текущего пользователя
+ * @param {string} params.targetType - тип сущности (Post, News, Comment, etc.)
+ * @param {Function} params.onSuccess - функция обработки успеха.
+ * @param {Function} params.onError - функция обработки ошибки
  * @returns {Function} - функция для добавления/удаления лайка
  */
-export function useOptimisticLike({
+export const useOptimisticLike = ({
   setItems,
   addLikeFn,
   deleteLikeFn,
@@ -20,13 +21,11 @@ export function useOptimisticLike({
   targetType,
   onSuccess,
   onError,
-}) {
-  // Функция для добавления/удаления лайка
+}) => {
   const toggleLike = useCallback(
     async (itemId, currentlyLiked) => {
       if (!currentUserId || !itemId) return;
 
-      // Оптимистично обновляем UI
       setItems((prev) =>
         prev.map((item) => {
           if (item.id !== itemId) return item;
@@ -53,7 +52,6 @@ export function useOptimisticLike({
         }
         return result;
       } catch (err) {
-        // Откат при ошибке
         setItems((prev) =>
           prev.map((item) => {
             if (item.id !== itemId) return item;
@@ -85,4 +83,4 @@ export function useOptimisticLike({
   );
 
   return toggleLike;
-}
+};

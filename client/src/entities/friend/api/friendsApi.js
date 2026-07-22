@@ -1,169 +1,86 @@
-import { apiFetch } from '../../../shared/api';
-
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { api } from '../../../shared/api';
 
 /**
  * Получить список всех пользователей со статусом связи.
- * @param {Object} params
- * @param {numder} params.page
- * @param {number} params.limit
- * @returns {Promise<Object>} { users, count }
+ * @param {Object} params - параметры запроса
+ * @param {number} params.page - номер страницы
+ * @param {number} params.limit - количество на странице
+ * @param {string} params.filter - фильтр
+ * @param {string} [params.q] - поисковый запрос
+ * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @returns {Promise<Object>} { friends, pagination }
  */
-export async function fetchUsersWithFriendshipStatus({
-  page = 1,
-  limit = 30,
-} = {}) {
-  const url = new URL(`${BASE_URL}/friends/with-friendship-status`);
-  url.searchParams.set('page', page);
-  url.searchParams.set('limit', limit);
-  const response = await apiFetch(url.toString());
-  if (!response.ok)
-    throw new Error(`Ошибка загрузки пользователей: ${response.status}`);
-  return response.json();
-}
+export const fetchFriendsApi = async ({ page, limit, filter, q, signal }) => {
+  const response = await api.get('/friends', {
+    params: {
+      page,
+      limit,
+      status: filter === 'all' ? undefined : filter,
+      q: q?.trim() || undefined,
+    },
+    signal,
+  });
+  return {
+    items: response.data.users || [],
+    pagination: response.data.pagination || {},
+  };
+};
 
 /**
  * Получить статус дружбы с конкретным пользователем.
- * @param {number} targetUserId
- * @param {Object} params
- * @param {AbortSignal} params.signal
- * @returns {Promise<Object>}
+ *
+ * @param {number} targetUserId - ID пользователя
+ * @param {AbortSignal} signal - сигнал отмены запроса
+ * @returns {Promise<Object>} { friendshipStatus }
  */
-
-export async function fetchFriendshipStatus(targetUserId, { signal } = {}) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/status/${targetUserId}`,
-    {
-      signal,
-    }
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка получения статуса: ${response.status}`);
-  return response.json();
-}
-
-/**
- * Получить список друзей (принятые заявки).
- * @param {number} userId
- * @returns {Promise<Object>} { friends, count }
- */
-export async function fetchFriends(userId) {
-  const response = await apiFetch(`${BASE_URL}/friends/${userId}`);
-  if (!response.ok)
-    throw new Error(`Ошибка загрузки друзей: ${response.status}`);
-  return response.json();
-}
-
-/**
- * Получить список друзей-друзей (друзья друзей).
- * @param {number} userId
- * @returns {Promise<Object>} { friends, count }
- */
-export async function fetchFriendsOfFriends(userId) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/${userId}/friends-of-friends`
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка загрузки друзей друзей: ${response.status}`);
-  return response.json();
-}
-
-/**
- * Получить входящие заявки в друзья.
- * @param {number} userId
- * @returns {Promise<Object>} { requests, count }
- */
-export async function fetchIncomingRequests(userId) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/${userId}/requests/incoming`
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка загрузки входящих заявок: ${response.status}`);
-  return response.json();
-}
-
-/**
- * Получить исходящие заявки в друзья.
- * @param {number} userId
- * @returns {Promise<Object>} { requests, count }
- */
-export async function fetchOutgoingRequests(userId) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/${userId}/requests/outgoing`
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка загрузки исходящих заявок: ${response.status}`);
-  return response.json();
-}
+export const fetchFriendshipStatus = async (targetUserId, signal) => {
+  const response = await api.get(`/friends/status/${targetUserId}`, { signal });
+  return response.data;
+};
 
 /**
  * Отправить заявку в друзья.
  * @param {number} friendId – ID пользователя, которому отправляем заявку
  */
-export async function sendFriendRequest(friendId) {
-  const response = await apiFetch(`${BASE_URL}/friends`, {
-    method: 'POST',
-    body: JSON.stringify({ friendId }),
+export const sendFriendRequest = async (friendId) => {
+  const response = await api.post(`/friends/request`, {
+    friendId,
   });
-  if (!response.ok)
-    throw new Error(`Ошибка отправки заявки: ${response.status}`);
-  return response.json();
-}
+  return response.data;
+};
 
 /**
  * Принять заявку в друзья.
- * @param {number} friendshipId
+ * @param {number} friendshipId - ID заявки
  */
-export async function acceptFriendRequest(friendshipId) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/${friendshipId}/accept`,
-    {
-      method: 'PUT',
-    }
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка принятия заявки: ${response.status}`);
-  return response.json();
-}
+export const acceptFriendRequest = async (friendshipId) => {
+  const response = await api.put(`/friends/${friendshipId}/accept`);
+  return response.data;
+};
 
 /**
  * Отклонить заявку (удалить запись).
- * @param {number} friendshipId
+ * @param {number} friendshipId - ID заявки
  */
-export async function rejectFriendRequest(friendshipId) {
-  const response = await apiFetch(
-    `${BASE_URL}/friends/${friendshipId}/reject`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!response.ok)
-    throw new Error(`Ошибка отклонения заявки: ${response.status}`);
-  return response.json();
-}
+export const rejectFriendRequest = async (friendshipId) => {
+  const response = await api.delete(`/friends/${friendshipId}/reject`);
+  return response.data;
+};
 
 /**
  * Удалить из друзей (любое направление).
- * @param {number} friendshipId
+ * @param {number} friendshipId - ID заявки
  */
-export async function deleteFriend(friendshipId) {
-  const response = await apiFetch(`${BASE_URL}/friends/${friendshipId}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok)
-    throw new Error(`Ошибка удаления друга: ${response.status}`);
-  return response.json();
-}
+export const deleteFriend = async (friendshipId) => {
+  const response = await api.delete(`/friends/${friendshipId}/delete`);
+  return response.data;
+};
 
 /**
  * Заблокировать пользователя.
- * @param {number} friendId
+ * @param {number} friendId - ID пользователя
  */
-export async function blockUser(friendId) {
-  const response = await apiFetch(`${BASE_URL}/friends/block`, {
-    method: 'POST',
-    body: JSON.stringify({ friendId }),
-  });
-  if (!response.ok) throw new Error(`Ошибка блокировки: ${response.status}`);
-  return response.json();
-}
+export const blockUser = async (friendId) => {
+  const response = await api.post(`/friends/block`, { friendId });
+  return response.data;
+};

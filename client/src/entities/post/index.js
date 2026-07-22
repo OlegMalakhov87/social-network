@@ -1,17 +1,8 @@
-//export { default as postsReducer } from './model/postsSlice';
-//export * from './model/postSelectors';
-//export { addPost, deletePost, updateNewPostText, updateVisibilityPost } from './model/postsSlice';
+export * from './api/postApi'; // API для постов
 
-// API - функции для страницы постов (CRUD)
-export * from './api/postApi';
+export * from './config/postTypes'; // Конфигурация типов постов
 
-// Типы постов и типы приватности постов
-export * from './config/postTypes';
+export { getPostActions } from './lib/getPostActions'; // Функция для получения действий для поста
+export { normalizePost } from './lib/normalizePost'; // Функция для нормализации поста
 
-// Вспомогптельные функции для постов (экшены)
-export { getPostActions } from './lib/getPostActions';
-// Функция нормализации поста
-export { normalizePost } from './lib/normalizePost';
-
-// Карточка поста
-export { Post } from './ui/Post';
+export { Post } from './ui/Post'; // Компонент для отображения карточки поста

@@ -10,7 +10,7 @@ import styles from './Card.module.css';
  * Вся структура карточки (Header, Content, Actions и т.д.)
  * строится внутри BaseCard.
  *
- * @param {Object} props
+ * @param {Object} props 
  * @param {React.ReactNode} props.children - Содержимое карточки.
  * @param {boolean} [props.hover=false] - Добавляет эффект при наведении.
  * @param {boolean} [props.padding=true] - Внутренние отступы.

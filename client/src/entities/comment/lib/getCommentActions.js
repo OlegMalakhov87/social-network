@@ -1,14 +1,14 @@
 /**
-
  * Формирует массив действий для комментария.
  *
- * @param {Object} props
- * @param {Object} props.comment - комментарий
- * @param {Object} props.currentUserId - ID текущего пользователя
- * @param {Function} props.toggleLike - функция для лайка/дизлайка комментария
- * @param {Function} props.onDelete - функция для удаления комментария
- * @param {Function} props.onEdit - функция для редактирования комментария
- * @param {Function} props.onShare - функция для поделиться комментарием
+ * @param {Object} params - параметры
+ * @param {Object} params.comment - комментарий
+ * @param {Object} params.currentUserId - ID текущего пользователя
+ * @param {Function} params.toggleLike - функция для лайка/дизлайка комментария
+ * @param {Function} params.onDelete - функция для удаления комментария
+ * @param {Function} params.onEdit - функция для редактирования комментария
+ * @param {Function} params.onShare - функция для поделиться комментарием
+ * @returns {Array<Object>} - массив действий для комментария
  */
 
 export const getCommentActions = ({

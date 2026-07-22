@@ -4,10 +4,10 @@ import styles from './ButtonGroup.module.css';
 /**
  * Контейнер для группы кнопок.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children
- * @param {string} props.align
- * @param {string} props.className
+ * @param {Object} props - параметры запроса
+ * @param {React.ReactNode} props.children - контент кнопок
+ * @param {'start'|'end'|'center'} [props.align='end'] - выравнивание кнопок
+ * @param {string} [props.className] - дополнительный класс
  */
 
 export const ButtonGroup = ({

@@ -1,22 +1,24 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchUsersOnlineStatus } from '../../../entities/user';
 
 /**
  * Хук для отслеживания онлайн-статусов пользователей.
- * @param {number|number[]} userIds – ID пользователя или массив ID пользователей
+ *
+ * @param {number|Array<number>} userIds – ID пользователя или массив ID пользователей
  * @returns {Map<number, boolean>} карта userId → online
  */
-export function useOnline(userIds) {
+export const useOnline = (userIds) => {
   const [statusMap, setStatusMap] = useState(new Map());
   const intervalRef = useRef(null);
 
-  // Приводим входные данные к стабильному массиву (мемоизация)
+  /** Приводим входные данные к стабильному массиву (мемоизация). */
   const normalizedIds = useMemo(() => {
     if (Array.isArray(userIds)) return userIds.filter(Boolean);
     if (userIds) return [userIds];
     return [];
   }, [userIds]);
 
+  /** Обновление статусов пользователей. */
   useEffect(() => {
     if (normalizedIds.length === 0) {
       setStatusMap(new Map());
@@ -25,6 +27,7 @@ export function useOnline(userIds) {
 
     const uniqueIds = [...new Set(normalizedIds)];
 
+    /** Обновление статусов пользователей. */
     const updateStatuses = async () => {
       try {
         const data = await fetchUsersOnlineStatus(uniqueIds);
@@ -35,11 +38,14 @@ export function useOnline(userIds) {
       }
     };
 
-    updateStatuses(); // первый запрос
-    intervalRef.current = setInterval(updateStatuses, 30000); // обновление каждые 30 сек
+    updateStatuses(); /** Первый запрос. */
+    intervalRef.current = setInterval(
+      updateStatuses,
+      30000
+    ); /** Обновление каждые 30 сек. */
 
-    return () => clearInterval(intervalRef.current);
+    return () => clearInterval(intervalRef.current); /** Очистка интервала. */
   }, [normalizedIds]);
 
-  return statusMap;
-}
+  return statusMap; /** Карта userId → online. */
+};

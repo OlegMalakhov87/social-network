@@ -16,13 +16,13 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Форма добавления/редактирования новости
+ * Форма добавления/редактирования новости.
  *
- * @param {Object} props
- * @param {Object|null} props.initialData - данные новости для редактирования
- * @param {Object} props.userName - имя текущего пользователя
- * @param {Function} props.onClose - закрыть форму
- * @param {Function} props.onSubmit - отправить форму
+ * @param {Object} props - пропсы компонента
+ * @param {Object} props.initialData - данные новости для редактирования
+ * @param {string} props.userName - имя текущего пользователя
+ * @param {Function} props.onClose - функция для закрытия формы
+ * @param {Function} props.onSubmit - функция для отправки формы
  */
 export const NewsForm = ({ initialData, userName, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);

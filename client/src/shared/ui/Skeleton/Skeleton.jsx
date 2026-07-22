@@ -9,14 +9,14 @@ import { classNames } from '../../lib';
  * @param {string|number} [props.height=16] - высота
  * @param {boolean} [props.circle=false] - круглая форма
  * @param {string|number} [props.radius] - переопределить border-radius
- * @param {string} [props.className] - дополнительный класс
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 export const Skeleton = ({
   width = '100%',
   height = 16,
   circle = false,
   radius,
-  className,
+  className = '',
   style,
 }) => {
   return (

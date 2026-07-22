@@ -12,16 +12,15 @@ import {
 } from '..';
 
 /**
- * Контекст аудиоплеера. Предоставляет методы управления и текущее состояние
- * всем компонентам через {@link useAudioPlayer}.
+ * Контекст аудиоплеера. Предоставляет методы управления и текущее состояние плеера всем компонентам через {@link useAudioPlayer}.
  * @type {React.Context}
  */
 const AudioPlayerContext = createContext(null);
 
 /**
  * Хук для доступа к контексту аудиоплеера.
- * @returns {Object} Методы и состояние плеера
- * @throws {Error} Если используется вне AudioPlayerProvider
+ * @returns {Object} методы и текущее состояние плеера
+ * @throws {Error} если используется вне AudioPlayerProvider
  */
 export const useAudioPlayer = () => useContext(AudioPlayerContext);
 
@@ -29,7 +28,7 @@ export const useAudioPlayer = () => useContext(AudioPlayerContext);
  * Провайдер аудиоплеера. Создаёт скрытый аудио-элемент, синхронизирует
  * Redux-состояние с DOM-событиями и предоставляет методы управления через контекст.
  * @param {Object} props
- * @param {React.ReactNode} props.children
+ * @param {React.ReactNode} props.children - контент провайдера
  */
 export const AudioPlayerProvider = ({ children }) => {
   const dispatch = useDispatch();

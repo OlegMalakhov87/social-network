@@ -4,17 +4,14 @@ import style from './EntityMeta.module.css';
 
 /**
  * Универсальный блок информации о сущности.
- *
- * Используется для: User, Post, Photo, Track, Video, Friend, News
- *
- * Используется внутри BaseCard или EntityHeader.
+ * Используется внутри BaseCard или EntityHeader для отображения информации о сущности.
  *
  * @param {Object} props
- * @param {string} [props.avatar] - изображение аватара
- * @param {string} props.title - заголовок
- * @param {string} [props.subtitle] - подзаголовок
- * @param {string} [props.badge] - бейдж
- * @param {string} [props.className] - класс
+ * @param {string|React.ReactNode} [props.avatar] - изображение аватара
+ * @param {string} [props.title] - заголовок (необязательно)
+ * @param {string} [props.subtitle] - подзаголовок (необязательно)
+ * @param {string} [props.badge] - бейдж (необязательно)
+ * @param {string} [props.className] - дополнительный класс
  */
 
 export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {

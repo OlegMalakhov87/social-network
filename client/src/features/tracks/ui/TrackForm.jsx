@@ -10,14 +10,13 @@ import {
 } from '../../../shared/ui';
 import { maxLength, minLength, required, url, useAppForm } from '../../form';
 /**
- * Форма добавления/редактирования трека
+ * Форма добавления/редактирования трека с валидацией.
  *
- * @param {Object} props
- * @param {Object|null} props.initialData - данные трека для редактирования
- * @param {Function} props.onClose - закрыть форму
- * @param {Function} props.onSubmit - отправить форму
+ * @param {Object} initialData - данные трека для редактирования
+ * @param {Function} onClose - функция для закрытия формы
+ * @param {Function} onSubmit - функция для отправки формы
  */
-export const TrackForm = ({ initialData, onClose, onSubmit }) => {
+export const TrackForm = (initialData, onClose, onSubmit) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для создания/редактирования трека с валидацией*/
   const form = useAppForm({

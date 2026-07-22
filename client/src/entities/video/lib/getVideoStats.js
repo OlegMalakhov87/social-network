@@ -4,7 +4,7 @@ import { formatFileSize, formatTime, formatViews } from '../../../shared/lib';
  * Формирует массив статистики для отображения в VideoPlayer.
  *
  * @param {Object} video - данные видео
- * @returns {Array<{icon: string, value: string|number}>} массив статистики
+ * @returns {Array<Object>} - массив статистики
  */
 export const getVideoStats = (video) => {
   if (!video) return [];
@@ -21,6 +21,7 @@ export const getVideoStats = (video) => {
   ];
 
   return stats.filter(
-    (item) => item.value !== undefined && item.value !== null && item.value !== ''
+    (item) =>
+      item.value !== undefined && item.value !== null && item.value !== ''
   );
 };

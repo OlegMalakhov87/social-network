@@ -2,11 +2,8 @@ import style from './EntityContent.module.css';
 
 /**
  * Универсальный контейнер контента сущности.
- *
- * Используется внутри BaseCard.
- *
  * @param {Object} props
- * @param {React.ReactNode} props.children
+ * @param {React.ReactNode} props.children - контент сущности
  */
 
 export const EntityContent = ({ children }) => {

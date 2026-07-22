@@ -5,11 +5,11 @@ import styles from './Toolbar.module.css';
  * Верхняя панель управления профилем.
  *
  * @param {Object} props
- * @param {Array<{id:string,label:string,icon?:React.ReactNode}>} props.tabs - Мапа для выбора вкладки профиля.
- * @param {string} props.activeTab - Активная вкладка профиля.
- * @param {(id:string)=>void} props.onTabChange - Функция для изменения активной вкладки профиля.
- * @param {React.ReactNode} props.leftSlot - Левая часть панели управления профилем.
- * @param {React.ReactNode} props.rightSlot - Правая часть панели управления профилем.
+  * @param {Array<{id:string,label:string,icon?:React.ReactNode}>} props.tabs - массив вкладок (идентификатор, текст, иконка) для выбора вкладки профиля.
+  * @param {string} props.activeTab - значение выбранной вкладки профиля.
+ * @param {Function} props.onTabChange - функция изменения активной вкладки профиля.
+ * @param {React.ReactNode} props.leftSlot - левая часть панели управления профилем.
+ * @param {React.ReactNode} props.rightSlot - правая часть панели управления профилем.
  */
 
 export const Toolbar = ({

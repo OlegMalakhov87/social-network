@@ -1,1 +1,1 @@
-export { VideosPage } from './ui/VideosPage';
+export { VideosPage } from './ui/VideosPage'; // Страница видео

@@ -1,5 +1,3 @@
-// Вспоиогательные функции для фото (экшены)
-export { getPhotoActions } from './lib/getPhotoActions';
+export { getPhotoActions } from './lib/getPhotoActions'; // Функция для получения действий для фотографии
 
-// Компонент фото (карточка)
-export { Photo } from './ui/Photo';
+export { Photo } from './ui/Photo'; // Компонент для отображения карточки фотографии

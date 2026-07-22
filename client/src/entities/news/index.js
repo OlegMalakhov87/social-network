@@ -1,12 +1,9 @@
-//export { default as newsReducer } from './model/newsSlice';
-//export * from './model/newsSelectors';
-//export { addNews, deleteNews } from './model/newsSlice';
+export * from './api/newsApi'; // API для новостей.
 
-/**
- * Экспортируем компоненты, библиотеки и API для работы с новостями.
- */
-export * from './api/newsApi'; // API для работы с новостями.
-export { getNewsActions } from './lib/getNewsActions'; // Получение действий для новости.
-export { normalizeNews } from './lib/normalizeNews'; // Нормализация данных новостей.
+export { getNewsActions } from './lib/getNewsActions'; // Функция для получения действий для новости.
+export { normalizeNews } from './lib/normalizeNews'; // Функция для нормализации данных новости.
+
+export * from './config/newsTypes'; // Массив типов новостей.
 export * from './model/newsTabs'; // Мапа для выбора вкладки новостей и категории новости.
-export { News } from './ui/News'; // Карточка новости.
+
+export { News } from './ui/News'; // Компонент для отображения карточки новости.

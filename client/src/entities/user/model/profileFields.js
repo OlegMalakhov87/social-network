@@ -1,8 +1,8 @@
 /**
  * Функция для отображения полей с данными пользователя на странице профиля.
  *
- * @param {Object} props
- * @param {Object|null} props.user
+ * @param {Object} user - данные пользователя
+ * @returns {Array<Object>} - массив характеристик
  */
 
 export const getProfileFields = (user) =>

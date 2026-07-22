@@ -3,20 +3,14 @@ import { Avatar } from '..';
 
 /**
  * Блок информации о пользователе.
- *
- * Используется:
- * - PostCard
- * - CommentCard
- * - VideoCard
- * - PhotoCard
- * * - MessageBubble
- *
- * @param {Object} props
- * @param {string} props.avatar
- * @param {string} props.name
- * @param {string} props.subtitle
- * @param {React.ReactNode} props.extra
- * @param {'sm'|'md'|'lg'} [props.avatarSize='md']
+ * Используется внутри BaseCard или EntityHeader для отображения информации о пользователе.
+ * 
+  * @param {Object} props
+ * @param {string} props.avatar - URL изображения аватара
+ * @param {string} props.name - имя пользователя (заголовок)
+ * @param {string} [props.subtitle] - подзаголовок
+ * @param {React.ReactNode} props.extra - дополнительное содержимое (кнопки, ссылки, etc.)
+ * @param {'sm'|'md'|'lg'} [props.avatarSize='md'] - размер аватара (по умолчанию 'md')
  */
 export const UserMeta = ({
   avatar,

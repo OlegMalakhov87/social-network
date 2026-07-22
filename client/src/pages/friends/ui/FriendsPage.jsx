@@ -1,107 +1,68 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import style from './FriendsPage.module.css';
-import { FriendsHeader, FriendsGrid } from '../../../widgets/friends-list';
+import { FRIEND_CATEGORIES } from '../../../entities/friend';
 import { useFriends } from '../../../features/friends';
-import { EmptyState, Loading } from '../../../shared/ui';
-import { usePagination } from '../../../shared/lib';
+import { useFilterControls } from '../../../shared/hooks';
+import {
+  ErrorBoundary,
+  PageLayout,
+  SectionCard,
+  Toolbar,
+} from '../../../shared/ui';
+import { FriendsGrid } from '../../../widgets/friends-list';
 
+/**
+ * Страница друзей – отображает каталог друзей с фильтрацией.
+ *
+ * @param {Object} props
+ * @param {string} props.searchQuery - поисковый запрос для загрузки друзей
+ */
 export const FriendsPage = ({ searchQuery = '' }) => {
-  const [filter, setFilter] = useState('All');
-  const navigate = useNavigate();
+  /** Управление фильтрацией */
+  const { filter, handleFilterChange } = useFilterControls({
+    initialFilter: 'all',
+  });
 
-  // Категории фильтров (ключи должны совпадать с проверками в EmptyState)
-  const CATEGORIES = [
-    { id: 'All', name: 'Пользователи' },
-    { id: 'Friends', name: 'Друзья' },
-    { id: 'Friends of friends', name: 'Друзья друзей' },
-    { id: 'Subscribers', name: 'Подписчики' },
-    { id: 'Subscriptions', name: 'Подписки' },
-  ];
-
-  const { friends, isLoading, error, follow, unfollow, accept, block, unlock } =
-    useFriends({ filter, searchQuery });
-  const pagination = usePagination(friends, 12, 1);
-
-  const handleUserClick = (userId) => (e) => {
-    e?.stopPropagation?.();
-    if (userId) navigate(`/profile/${userId}`);
-  };
-
-  // Обработчики для FriendCard (каждый возвращает функцию, как ожидает getButtonProps)
-  const onFollow = useCallback((userId) => () => follow(userId), [follow]);
-  const onUnfollow = useCallback(
-    (friendshipId, userId) => () => unfollow(friendshipId, userId),
-    [unfollow]
-  );
-  const onAccept = useCallback(
-    (friendshipId, userId) => () => accept(friendshipId, userId),
-    [accept]
-  );
-  const onBlock = useCallback((userId) => () => block(userId), [block]);
-  const onUnlock = useCallback(
-    (friendshipId, userId) => () => unlock(friendshipId, userId),
-    [unlock]
-  );
-
-  if (isLoading) {
-    return (
-      <Loading fullPage message="Загружаем пользователей..." size="large" />
-    );
-  }
+  /** Загрузка друзей */
+  const {
+    friends,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    error,
+    follow,
+    unfollow,
+    accept,
+    block,
+    unlock,
+    refetch,
+  } = useFriends({ filter, searchQuery });
 
   return (
-    <div className={style.friends}>
-      <FriendsHeader
-        filter={filter}
-        onFilterChange={setFilter}
-        categories={CATEGORIES}
-        friendsCount={friends.length}
-      />
-
-      {friends.length > 0 ? (
-        <FriendsGrid
-          friends={pagination.paginatedItems}
-          onFollow={onFollow}
-          onUnfollow={onUnfollow}
-          onAccept={onAccept}
-          onUnlock={onUnlock}
-          onBlock={onBlock}
-          onUserClick={handleUserClick}
-          pagination={pagination}
-          error={error}
-        />
-      ) : (
-        <div className={style.emptyWrapper}>
-          <EmptyState
-            icon="🔍"
-            title={
-              searchQuery?.trim()
-                ? `По запросу "${searchQuery}" ничего не найдено`
-                : filter === 'Subscribers'
-                  ? 'У Вас нет новых подписчиков'
-                  : filter === 'Subscriptions'
-                    ? 'Найдите и подпишитесь на нового друга'
-                    : filter === 'Friends'
-                      ? 'У Вас пока нет друзей'
-                      : filter === 'Friends of friends'
-                        ? 'У ваших друзей пока нет общих знакомых'
-                        : 'Пользователей не найдено'
-            }
-            description={
-              searchQuery?.trim()
-                ? 'Попробуйте изменить запрос или сбросить фильтр'
-                : filter === 'Friends'
-                  ? 'Найдите интересных людей и добавьте их в друзья'
-                  : filter === 'Friends of friends'
-                    ? 'Когда у ваших друзей появятся общие знакомые, они отобразятся здесь'
-                    : ['Subscribers', 'Subscriptions'].includes(filter)
-                      ? 'Заявки появятся после взаимодействия с другими пользователями'
-                      : 'Измените фильтр или попробуйте поиск'
-            }
+    <ErrorBoundary>
+      <PageLayout title="Друзья">
+        <SectionCard>
+          <Toolbar
+            tabs={FRIEND_CATEGORIES}
+            activeTab={filter}
+            onTabChange={handleFilterChange}
           />
-        </div>
-      )}
-    </div>
+          <FriendsGrid
+            filter={filter}
+            friends={friends}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            error={error}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            onRetry={refetch}
+            onFollow={follow}
+            onUnfollow={unfollow}
+            onAccept={accept}
+            onUnlock={unlock}
+            onBlock={block}
+          />
+        </SectionCard>
+      </PageLayout>
+    </ErrorBoundary>
   );
 };

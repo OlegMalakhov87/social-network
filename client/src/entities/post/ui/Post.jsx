@@ -15,15 +15,16 @@ import {
 
 /**
  * Карточка поста.
- * @param {Object} props
+ * @param {Object} props - параметры
  * @param {Object} props.post - данные поста
- * @param {Object} props.currentUser - текущий пользователь
- * @param {Object} props.targetUser - выбранный пользователь
- * @param {Function} props.onPlay - клик по видео (воспроизвести)
- * @param {Function} props.toggleLike - колбэк лайка/дизлайка
- * @param {Function} props.onDelete - колбэк удаления
- * @param {Function} props.onUpdate - колбэк редактирования
- * @param {Function} props.toggleComments - колбэк открытия/закрытия комментариев (получает post.id)
+ * @param {Object} props.currentUser - данные текущего пользователя
+ * @param {Object} props.targetUser - данные выбранного пользователя
+ * @param {Function} props.onPlay - функция для воспроизведения видео поста
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка поста
+ * @param {Function} props.onDelete - функция для удаления поста
+ * @param {Function} props.onUpdate - функция для обновления поста
+ * @param {Function} props.toggleComments - функция для открытия комментариев поста
+ * @returns {JSX.Element} - компонент карточки поста
  */
 export const Post = ({
   post,

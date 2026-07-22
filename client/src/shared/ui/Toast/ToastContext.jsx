@@ -7,7 +7,7 @@ const ToastContext = createContext(null);
  * Провайдер системы уведомлений.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children
+ * @param {React.ReactNode} props.children - контент провайдера
  * @returns {JSX.Element}
  */
 

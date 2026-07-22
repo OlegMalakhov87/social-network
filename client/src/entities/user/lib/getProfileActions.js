@@ -1,19 +1,17 @@
 /**
  * Получение действий профиля.
  *
- * @param {Object} params
- * @param {Object} params.friendshipButton
- * @param {Function} params.onMessage
- * @param {boolean} params.isOwnProfile
- *
- * @returns {Array<Object>}
+ * @param {Object} friendshipButton - конфигурация кнопки действия над дружбой
+ * @param {Function} onMessage - обработчик клика по кнопке "Написать сообщение"
+ * @param {boolean} isOwnProfile - флаг, определяющий, является ли текущий пользователь владельцем профиля
+ * @returns {Array<Object>} - массив действий профиля
  */
 
-export const getProfileActions = ({
+export const getProfileActions = (
   friendshipButton,
   onMessage,
-  isOwnProfile,
-}) => {
+  isOwnProfile
+) => {
   if (!friendshipButton && !onMessage) return [];
 
   const actions = [

@@ -1,153 +1,100 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { useOnline } from '../../../features/users';
+import { useCallback, useMemo } from 'react';
+import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import {
-  fetchUsersWithFriendshipStatus,
-  fetchFriends,
-  fetchFriendsOfFriends,
-  fetchIncomingRequests,
-  fetchOutgoingRequests,
-  sendFriendRequest,
   acceptFriendRequest,
-  rejectFriendRequest,
-  deleteFriend,
   blockUser,
+  deleteFriend,
+  fetchFriendsApi,
   normalizeFriend,
+  rejectFriendRequest,
+  sendFriendRequest,
 } from '../../../entities/friend';
+import { useOnline } from '../../../features/users';
+import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
 
 /**
- * Хук для загрузки списка друзей/заявок с фильтрацией.
- * @param {Object} params
- * @param {string} params.filter – 'All', 'Friends', 'Subscribers', 'Subscriptions'
- * @param {string} params.searchQuery – поисковый запрос
- * @returns {{ friends: Array, isLoading: boolean, error: string|null, refetch: Function }}
+ * Хук для загрузки списка друзей/заявок с фильтрацией, поиском и бесконечным скроллом.
+ *
+ * @param {string} filter – Фильтр
+ * @param {string} searchQuery – Поисковый запрос
+ * @returns {Object} - объект с данными о друзьях
  */
-export function useFriends({ filter, searchQuery } = {}) {
-  const [rawData, setRawData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+export const useFriends = (filter, searchQuery) => {
+  const currentUser = selectUser();
+  const notify = useNotify('friends');
 
-  const currentUserId = useSelector((state) => state.auth.user?.id);
-
-  // Загрузка данных с сервера – зависит только от фильтра
-  const loadFriends = useCallback(async () => {
-    if (!currentUserId) return;
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      let result = [];
-
-      if (filter === 'All') {
-        const res = await fetchUsersWithFriendshipStatus();
-        result = (res.users || []).map((u) => ({
-          id: u.id,
-          name: u.name,
-          nickname: u.nickname,
-          photoUrl: u.photoUrl,
-          online: u.online,
-          age: u.age,
-          city: u.address,
-          job: u.job,
-          status: u.status,
-          type: u.friendshipStatus,
-          friendshipId: u.friendshipId,
-          _friendshipDirection: u.friendshipDirection,
-        }));
-      } else if (filter === 'Friends') {
-        const res = await fetchFriends();
-        result = (res.friends || []).map((f) => ({
-          id: f.friendId,
-          name: f.name,
-          nickname: f.nickname,
-          photoUrl: f.photoUrl,
-          status: f.status,
-          job: f.job,
-          age: f.age,
-          type: 'accepted',
-          friendshipId: f.friendshipId,
-          _friendshipDirection: f.direction,
-        }));
-      } else if (filter === 'Friends of friends') {
-        const res = await fetchFriendsOfFriends();
-        result = (res.users || []).map((u) => ({
-          id: u.id,
-          name: u.name,
-          nickname: u.nickname,
-          photoUrl: u.photoUrl,
-          status: u.status,
-          job: u.job,
-          age: u.age,
-          type: 'friend of friend',
-          friendshipId: null,
-          _friendshipDirection: null,
-        }));
-      } else if (filter === 'Subscribers') {
-        const res = await fetchIncomingRequests();
-        result = (res.requests || []).map((r) => ({
-          id: r.user.id,
-          name: r.user.name,
-          nickname: r.user.nickname,
-          photoUrl: r.user.photoUrl,
-          status: r.user.status,
-          job: r.user.job,
-          age: r.user.age,
-          type: r.type,
-          friendshipId: r.requestId,
-          _friendshipDirection: 'incoming',
-        }));
-      } else if (filter === 'Subscriptions') {
-        const res = await fetchOutgoingRequests();
-        result = (res.requests || []).map((r) => ({
-          id: r.friend.id,
-          name: r.friend.name,
-          nickname: r.friend.nickname,
-          photoUrl: r.friend.photoUrl,
-          status: r.friend.status,
-          job: r.friend.job,
-          age: r.friend.age,
-          type: r.type,
-          friendshipId: r.requestId,
-          _friendshipDirection: 'outgoing',
-        }));
+  /** Получение пользователей со статусом связи с текущим пользователем. */
+  const {
+    items: friendsItems,
+    setItems: setFriendsItems,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+  } = useInfiniteScroll({
+    fetchFn: ({ page, limit, signal }) => {
+      if ((!filter && !searchQuery) || !currentUser) {
+        return { items: [], hasMore: false };
       }
+      return fetchFriendsApi({
+        filter,
+        q: searchQuery,
+        page,
+        limit,
+        signal,
+      });
+    },
+    deps: [filter, searchQuery, currentUser],
+    options: {
+      autoFetch: true,
+      onSuccess: () => notify.success('load'),
+      onError: () => notify.error('load'),
+    },
+  });
 
-      setRawData(result);
-    } catch (err) {
-      setError(err.message);
-      setRawData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUserId, filter]);
-
-  // ID пользователей в зависимости от вкладки(фильтра)
-  const userIds = useMemo(() => rawData.map((u) => u.id).filter(Boolean), [rawData]);
+  /** ID пользователей в зависимости от вкладки(фильтра). */
+  const userIds = useMemo(
+    () => friendsItems.map((u) => u.id).filter(Boolean),
+    [friendsItems]
+  );
   const onlineMap = useOnline(userIds);
 
+  /** Обогащаем данные с онлайн статусом. */
   const enrichedData = useMemo(
     () =>
-      rawData.map((user) => ({
+      friendsItems.map((user) => ({
         ...user,
-        online: onlineMap.get(user.id) ?? false,
+        online: onlineMap.get(user.id) ?? user.online,
       })),
-    [rawData, onlineMap]
+    [friendsItems, onlineMap]
   );
-  useEffect(() => {
-    loadFriends();
-  }, [loadFriends]);
 
-  // Функция для оптимистического обновления статуса (связи) между пользователями
-  const updateFriendStatus = useCallback((userId, updates) => {
-    setRawData((prev) => prev.map((user) => (user.id === userId ? { ...user, ...updates } : user)));
-  }, []);
+  /** Нормализация под компоненты. */
+  const normalizedFriends = useMemo(
+    () => enrichedData.map(normalizeFriend),
+    [enrichedData]
+  );
 
-  // Оптимистичные экшены
+  /** Оптимистическое обновление статуса (связи) между пользователями. */
+  const updateFriendStatus = useCallback(
+    (userId, updates) => {
+      setFriendsItems((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, ...updates } : user
+        )
+      );
+    },
+    [setFriendsItems]
+  );
+
+  /** Отправка запроса на дружбу. */
   const follow = useCallback(
     async (userId) => {
       updateFriendStatus(userId, {
-        type: 'pending',
-        _friendshipDirection: 'outgoing',
+        friendshipStatus: 'pending',
+        friendshipDirection: 'outgoing',
         friendshipId: null,
       });
       try {
@@ -156,53 +103,66 @@ export function useFriends({ filter, searchQuery } = {}) {
         if (newFriendshipId) {
           updateFriendStatus(userId, { friendshipId: newFriendshipId });
         }
+        notify.success('send');
       } catch (error) {
-        updateFriendStatus(userId, { type: null, _friendshipDirection: null, friendshipId: null });
-        setError(error.message);
+        updateFriendStatus(userId, {
+          friendshipStatus: null,
+          friendshipDirection: null,
+          friendshipId: null,
+        });
+        console.error('Ошибка при отправке запроса на дружбу', error);
+        notify.error('send');
       }
     },
-    [updateFriendStatus]
+    [updateFriendStatus, notify]
   );
 
+  /** Отмена запроса на дружбу. */
   const unfollow = useCallback(
     async (friendshipId, userId) => {
       updateFriendStatus(userId, {
-        type: null,
-        _friendshipDirection: null,
+        friendshipStatus: null,
+        friendshipDirection: null,
         friendshipId: null,
       });
       try {
         await rejectFriendRequest(friendshipId);
+        notify.success('cancel');
       } catch (error) {
-        loadFriends();
-        setError(error.message);
+        console.error('Ошибка при отмене запроса на дружбу', error);
+        notify.error('cancel');
+        refetch();
       }
     },
-    [updateFriendStatus, loadFriends]
+    [updateFriendStatus, notify, refetch]
   );
 
+  /** Принятие запроса на дружбу. */
   const accept = useCallback(
     async (friendshipId, userId) => {
       updateFriendStatus(userId, {
-        type: 'accepted',
-        _friendshipDirection: 'incoming',
+        friendshipStatus: 'accepted',
+        friendshipDirection: 'incoming',
         friendshipId,
       });
       try {
         await acceptFriendRequest(friendshipId);
+        notify.success('accept');
       } catch (error) {
-        loadFriends();
-        setError(error.message);
+        console.error('Ошибка при принятии запроса на дружбу', error);
+        notify.error('accept');
+        refetch();
       }
     },
-    [updateFriendStatus, loadFriends]
+    [updateFriendStatus, notify, refetch]
   );
 
+  /** Блокировка пользователя. */
   const block = useCallback(
     async (userId) => {
       updateFriendStatus(userId, {
-        type: 'blocked',
-        _friendshipDirection: 'incoming',
+        friendshipStatus: 'blocked',
+        friendshipDirection: 'incoming',
         friendshipId: null,
       });
       try {
@@ -211,51 +171,49 @@ export function useFriends({ filter, searchQuery } = {}) {
         if (newFriendshipId) {
           updateFriendStatus(userId, { friendshipId: newFriendshipId });
         }
+        notify.success('block');
       } catch (error) {
-        loadFriends();
-        setError(error.message);
+        console.error('Ошибка при блокировке пользователя', error);
+        notify.error('block');
+        refetch();
       }
     },
-    [updateFriendStatus, loadFriends]
+    [updateFriendStatus, notify, refetch]
   );
 
+  /** Разблокировка пользователя. */
   const unlock = useCallback(
     async (friendshipId, userId) => {
       updateFriendStatus(userId, {
-        type: null,
-        _friendshipDirection: null,
+        friendshipStatus: null,
+        friendshipDirection: null,
         friendshipId: null,
       });
       try {
         await deleteFriend(friendshipId);
+        notify.success('unlock');
       } catch (error) {
-        loadFriends();
-        setError(error.message);
+        console.error('Ошибка при разблокировке пользователя', error);
+        notify.error('unlock');
+        refetch();
       }
     },
-    [updateFriendStatus, loadFriends]
+    [updateFriendStatus, notify, refetch]
   );
 
-  // Фильтрация по поиску (на клиенте) – не зависит от загрузки
-  const filteredData = useMemo(() => {
-    if (!searchQuery?.trim()) return enrichedData;
-    const q = searchQuery.trim().toLowerCase();
-    return enrichedData.filter((u) => (u.name || '').toLowerCase().includes(q));
-  }, [enrichedData, searchQuery]);
-
-  // Нормализация под компоненты
-  const friends = useMemo(() => filteredData.map(normalizeFriend), [filteredData]);
-
   return {
-    friends,
+    friends: normalizedFriends,
     isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     error,
-    currentUserId,
+    currentUserId: currentUser?.id,
     follow,
     unfollow,
     accept,
     block,
     unlock,
-    refetch: loadFriends,
+    refetch,
   };
-}
+};

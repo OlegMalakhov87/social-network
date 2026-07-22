@@ -1,11 +1,10 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../../app/providers/slices/authSlice';
-import { SearchField, Button } from '../../../shared/ui';
 import { classNames } from '../../../shared/lib';
+import { Button, Image, SearchField } from '../../../shared/ui';
 import style from './Header.module.css';
-import { ImageWithFallback } from '../../../shared/hooks';
 
 /**
  * Шапка приложения с логотипом, навигацией и поиском.
@@ -41,12 +40,12 @@ export const Header = ({ onSearchChange }) => {
     <header className={style.header}>
       <div className={style.logo}>
         <NavLink to="/profile">
-          <ImageWithFallback
+          <Image
             src="/revivo-50.png"
-            fallback="/revivo-50.png"
             alt="Revivo"
-            loading="lazy"
-            decoding="async"
+            width={50}
+            height={50}
+            fallbackSrc="/revivo-50.png"
             className={style.logoImage}
           />
         </NavLink>

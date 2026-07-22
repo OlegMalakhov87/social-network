@@ -7,12 +7,12 @@ import styles from './PageLayout.module.css';
  * Используется всеми основными страницами приложения.
  *
  * @param {Object} props
- * @param {string} props.title
- * @param {string} [props.description]
- * @param {React.ReactNode} [props.actions]
- * @param {React.ReactNode} props.children
- * @param {boolean} [props.centered=false] - Центрировать контент.
- * @param {string} [props.className=''] - Дополнительный CSS класс.
+ * @param {string} props.title - заголовок страницы
+ * @param {string} [props.description] - описание страницы
+ * @param {React.ReactNode} [props.actions] - действия над страницей (кнопки, формы, etc.)
+ * @param {React.ReactNode} props.children - контент страницы
+ * @param {boolean} [props.centered=false] - центрировать контент
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 export const PageLayout = ({
   title,

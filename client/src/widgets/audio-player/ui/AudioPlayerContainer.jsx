@@ -3,7 +3,7 @@ import { useAudioPlayer, AudioPlayer } from '../../audio-player';
 
 /**
  * Подключает состояние Redux и методы контекста к UI-компоненту {@link AudioPlayer}.
- * @returns {JSX.Element}
+ * @returns {JSX.Element} возвращает разметку плеера
  */
 export const AudioPlayerContainer = () => {
   const {

@@ -22,12 +22,13 @@ import style from './Comment.module.css';
  * Карточка комментария.
  *
  * @param {Object} props
- * @param {Object} props.comment - Комментарий.
+ * @param {Object} props.comment - данные комментария.
  * @param {Object} props.currentUserId - ID текущего пользователя.
- * @param {Object} props.author - Автор комментария.
- * @param {Function} props.onEdit - Функция для редактирования комментария.
- * @param {Function} props.onDelete - Функция для удаления комментария.
- * @param {Function} props.toggleLike - Функция для лайка комментария.
+ * @param {Object} props.author - данные автора комментария.
+ * @param {Function} props.onEdit - функция для редактирования комментария.
+ * @param {Function} props.onDelete - функция для удаления комментария.
+ * @param {Function} props.toggleLike - функция для лайка комментария.
+ * @returns {JSX.Element} - компонент карточки комментария.
  */
 
 export const Comment = ({

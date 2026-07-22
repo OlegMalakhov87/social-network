@@ -3,19 +3,14 @@ import { useCallback } from 'react';
 /**
  * Универсальный хук для оптимистичного обновления счётчиков.
  *
- * @template T
- * @param {T[]} items - массив сущностей
- * @param {Function} setItems - функция обновления массива
- * @param {string} countField - поле счётчика (например, 'commentsCount', 'viewCount')
- * @param {Function} [updateFn] - асинхронная функция обновления счётчика
+ * @param {Object} params - параметры запроса
+ * @param {Array} params.items - массив сущностей
+ * @param {Function} params.setItems - функция обновления массива
+ * @param {string} params.countField - поле счётчика (например, 'commentsCount', 'viewCount')
+ * @param {Function} params.updateFn - асинхронная функция обновления счётчика
  * @returns {Object} - { increment, decrement, incrementWithApi }
  */
-export function useOptimisticCounter({
-  items,
-  setItems,
-  countField = 'count',
-  updateFn,
-}) {
+export const useOptimisticCounter = ({items, setItems, countField, updateFn}) => {
   const updateCounter = useCallback(
     (itemId, delta) => {
       setItems((prev) =>
@@ -64,4 +59,4 @@ export function useOptimisticCounter({
     decrement: (itemId, delta = 1) => updateCounter(itemId, -delta),
     incrementWithApi,
   };
-}
+};

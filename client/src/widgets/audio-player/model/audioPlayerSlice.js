@@ -17,8 +17,7 @@ const initialState = {
 };
 
 /**
- * Слайс аудиоплеера. Управляет состоянием воспроизведения, очередью,
- * громкостью, повтором и перемешиванием.
+ * Слайс аудиоплеера. Управляет состоянием воспроизведения, очередью, громкостью, повтором и перемешиванием музыки.
  * @name audioPlayerSlice
  */
 
@@ -30,7 +29,8 @@ const audioPlayerSlice = createSlice({
       const { queue, currentIndex } = action.payload;
       state.queue = queue;
       state.currentIndex = currentIndex ?? (queue.length ? 0 : -1);
-      state.currentTrack = state.currentIndex !== -1 ? state.queue[state.currentIndex] : null;
+      state.currentTrack =
+        state.currentIndex !== -1 ? state.queue[state.currentIndex] : null;
       state.error = null;
     },
     nextTrack: (state) => {
@@ -84,8 +84,16 @@ const audioPlayerSlice = createSlice({
     },
     // Синхронизация с DOM-событиями
     updatePlayerState: (state, action) => {
-      const { isPlaying, currentTime, duration, volume, isMuted, progress, isLoading, error } =
-        action.payload;
+      const {
+        isPlaying,
+        currentTime,
+        duration,
+        volume,
+        isMuted,
+        progress,
+        isLoading,
+        error,
+      } = action.payload;
       if (isPlaying !== undefined) state.isPlaying = isPlaying;
       if (currentTime !== undefined) state.currentTime = currentTime;
       if (duration !== undefined) state.duration = duration;

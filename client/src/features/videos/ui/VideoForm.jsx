@@ -11,10 +11,14 @@ import {
 import { maxLength, minLength, required, url, useAppForm } from '../../form';
 /**
  * Форма добавления/редактирования видео.
+ * @param {Object} initialData - данные видео для редактирования
+ * @param {Function} onClose - функция для закрытия формы
+ * @param {Function} onSubmit - функция для отправки формы
+ * @returns {JSX.Element} - форма добавления/редактирования видео
  */
-export const VideoForm = ({ initialData, onClose, onSubmit }) => {
+export const VideoForm = (initialData, onClose, onSubmit) => {
   const isEdit = Boolean(initialData?.id);
-
+  /** Форма для добавления/редактирования видео с валидацией */
   const form = useAppForm({
     initialValues: {
       title: initialData?.title || '',

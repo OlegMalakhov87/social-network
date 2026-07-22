@@ -15,14 +15,14 @@ import style from './SectionCard.module.css';
  * - Настройки
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children
- * @param {string} [props.title]
- * @param {string} [props.subtitle]
- * @param {React.ReactNode} [props.actions]
- * @param {string} [props.className]
+ * @param {React.ReactNode} props.children - контент секции
+ * @param {string} [props.title] - заголовок секции
+ * @param {string} [props.subtitle] - подзаголовок секции
+ * @param {React.ReactNode} [props.actions] - действия над секцией (кнопки, формы, etc.)
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 export const SectionCard = forwardRef(
-  ({ title, subtitle, actions, children, className }, ref) => {
+  ({ title, subtitle, actions, children, className = '' }, ref) => {
     return (
       <Card ref={ref} className={classNames(style.section, className)}>
         {(title || subtitle || actions) && (

@@ -3,25 +3,18 @@ import { SORT_OPTIONS } from '../../config';
 import { sortByData } from '../../lib';
 
 /**
- * Нормализует и сортирует массив данных.
+ * Хук для нормализации и сортировки массива данных.
  *
- * @template T
- * @param {Object} params
- * @param {T[]} params.items - сырые данные с сервера
+ * @param {Object} params - параметры запроса
+ * @param {Array} params.items - сырые данные с сервера
  * @param {string} params.entityType - тип сущности
- * @param {string} [params.sortKey] - ключ сортировки из SORT_OPTIONS
+ * @param {string} params.sortKey - ключ сортировки из SORT_OPTIONS
  * @param {Function} params.normalizeFn - функция нормализации одного элемента
- * @param {*} [params.userId] - ID текущего пользователя
- * @returns {T[]} - нормализованный и отсортированный массив
+ * @param {string} params.userId - ID текущего пользователя
+ * @returns {Array} - нормализованный и отсортированный массив
  */
 
-export const useNormalizedData = ({
-  items,
-  entityType,
-  sortKey,
-  normalizeFn,
-  userId,
-}) => {
+export const useNormalizedData = ({items, entityType, sortKey, normalizeFn, userId}) => {
   return useMemo(() => {
     if (!Array.isArray(items) || items.length === 0) return [];
 

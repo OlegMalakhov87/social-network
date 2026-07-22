@@ -6,15 +6,15 @@
    * Универсальное текстовое поле.
    *
    * @param {Object} props
-   * @param {string} props.className
-   * @param {string} props.error
-   * @param {boolean} props.disabled
-   * @param {number} props.rows
-   * @param {React.Ref<HTMLTextAreaElement>} props.ref
+   * @param {string} [props.className=''] - дополнительный CSS класс
+   * @param {string} props.error - сообщение об ошибке
+   * @param {boolean} props.disabled - заблокирован ли текстовое поле
+   * @param {number} props.rows - количество строк
+   * @param {React.Ref<HTMLTextAreaElement>} props.ref - ссылка на текстовое поле
    */
 
   export const TextArea = forwardRef(
-    ({ className, error, disabled, rows = 4, ...props }, ref) => {
+    ({ className = '', error, disabled, rows = 4, ...props }, ref) => {
       return (
         <>
           <textarea

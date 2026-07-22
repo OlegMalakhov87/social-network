@@ -4,12 +4,6 @@ import style from './MediaCardLayout.module.css';
 /**
  * Универсальный каркас карточек медиа.
  *
- * Используется:
- * - PostCard
- * - PhotoCard
- * - VideoCard
- * - TrackCard
- *
  * @param {Object} props
  * @param {React.ReactNode} props.header - заголовок карточки
  * @param {React.ReactNode} props.content - контент карточки

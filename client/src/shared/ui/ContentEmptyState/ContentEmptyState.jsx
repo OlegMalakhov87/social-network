@@ -8,10 +8,10 @@ import { EmptyState } from '..';
  * FriendsPage, SearchPage и других разделов.
  *
  * @param {Object} props
- * @param {string} props.icon
- * @param {string} props.title
- * @param {string} props.description
- * @param {React.ReactNode} props.action
+ * @param {string} props.icon - иконка пустого состояния
+ * @param {string} props.title - заголовок пустого состояния
+ * @param {string} props.description - описание пустого состояния
+ * @param {React.ReactNode} props.action - действие для пустого состояния
  */
 export const ContentEmptyState = ({ icon, title, description, action }) => {
   return (

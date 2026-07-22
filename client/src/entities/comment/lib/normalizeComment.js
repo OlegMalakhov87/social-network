@@ -1,10 +1,11 @@
 /**
  * Преобразует сырой комментарий с сервера в формат для CommentCard.
- * @param {Object} raw – один комментарий из ответа API (с author и likes)
- * @param {number|null} currentUserId – id текущего пользователя
- * @returns {Object} { comment, author }
+ *
+ * @param {Object} raw - один комментарий из ответа API (с author и likes)
+ * @param {number|null} currentUserId - id текущего пользователя
+ * @returns {Object} - нормализованный комментарий
  */
-export function normalizeComment(raw, currentUserId) {
+export const normalizeComment = (raw, currentUserId) => {
   const author = raw.author || {
     id: raw.userId,
     name: 'Пользователь',
@@ -26,4 +27,4 @@ export function normalizeComment(raw, currentUserId) {
     },
     author,
   };
-}
+};

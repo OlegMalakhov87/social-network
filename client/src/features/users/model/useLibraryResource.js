@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { addLike, deleteLike } from '../../../entities/like';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import { updateTrackFromLibrary } from '../../../entities/track';
 import { updateVideoFromLibrary } from '../../../entities/video ';
 import {
@@ -12,18 +12,20 @@ import {
 
 /**
  * Хук для управления ресурсами библиотеки.
- * @param {Array} items - массив сущностей.
- * @param {number|null} userId - ID текущего пользователя.
- * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля.
- * @param {string} activeTab - текущая вкладка.
- * @param {Object} refetch - объект с функциями для обновления ресурсов.
- * @param {Function} setItems - функция для обновления items.
- * @param {Function} getAddStateTransform - функция для получения состояния добавления.
- * @param {Function} getRemoveStateTransform - функция для получения состояния удаления.
- * @param {Function} addFn - функция для добавления в библиотеку.
- * @param {Function} removeFn - функция для удаления из библиотеки.
+ *
+ * @param {Object} params - параметры запроса
+ * @param {Array} params.items - массив сущностей.
+ * @param {number} params.userId - ID текущего пользователя.
+ * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля.
+ * @param {string} params.activeTab - текущая вкладка.
+ * @param {Object} params.refetch - объект с функциями для обновления ресурсов.
+ * @param {Function} params.setItems - функция для обновления items.
+ * @param {Function} params.getAddStateTransform - функция для получения состояния добавления.
+ * @param {Function} params.getRemoveStateTransform - функция для получения состояния удаления.
+ * @param {Function} params.addFn - функция для добавления в библиотеку.
+ * @param {Function} params.removeFn - функция для удаления из библиотеки.
  */
-export function useLibraryResource({
+export const useLibraryResource = ({
   items,
   userId,
   isOwnProfile,
@@ -34,12 +36,12 @@ export function useLibraryResource({
   addFn,
   removeFn,
   activeTab,
-}) {
+}) => {
   const notify = useNotify();
   /**
    *Оптимистичное добавление сущности в библиотеку.
    * @param {number} itemId – ID сущности.
-   * @returns {Promise<void>}
+   * @returns {Promise<void>} - promise для добавления сущности в библиотеку
    */
   const addItemOptimistic = useCallback(
     async (itemId) => {
@@ -121,8 +123,8 @@ export function useLibraryResource({
   /** Оптимистичное управление лайками. */
   const toggleLikeItem = useOptimisticLike({
     setItems,
-    addLikeFn: addLike,
-    deleteLikeFn: deleteLike,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
     currentUserId: userId,
     targetType: activeTab,
     onSuccess: (action) => {
@@ -170,4 +172,4 @@ export function useLibraryResource({
     toggleFavoriteItem,
     updateCommentCount,
   };
-}
+};

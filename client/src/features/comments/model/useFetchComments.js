@@ -5,7 +5,7 @@ import {
   normalizeComment,
   updateCommentApi,
 } from '../../../entities/comment';
-import { addLike, deleteLike } from '../../../entities/like';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
@@ -18,20 +18,21 @@ import {
 /**
  * Хук для получения комментариев с бесконечным скроллом.
  *
- * @param {string|null} targetType - тип сущности (Post, News, Comment)
- * @param {number|null} targetId - ID сущности
- * @param {number|null} currentUserId - ID текущего пользователя
- * @param {Function} onChange - колбэк для обновления счётчика комментариев
- * @param {string} [sortKey] - ключ сортировки
- * @returns {{ comments: Array, isLoading: boolean, hasMore: boolean, error: string|null, toggleLike: Function, addComment: Function, updateComment: Function, deleteComment: Function, loadMore: Function, refetch: Function }}
+ * @param {Object} params - параметры запроса
+ * @param {string} params.targetType - тип сущности (Post, News, Comment)
+ * @param {number} params.targetId - ID сущности
+ * @param {number} params.currentUserId - ID текущего пользователя
+ * @param {Function} params.onChange - колбэк для обновления счётчика комментариев
+ * @param {string} params.sortKey - ключ сортировки
+ * @returns {Object} - объект с данными о комментариях
  */
-export function useFetchComments(
+export const useFetchComments = ({
   targetType,
   targetId,
   currentUserId,
   onChange,
-  sortKey
-) {
+  sortKey,
+}) => {
   const notify = useNotify('comments');
 
   /** Получение комментариев с бесконечным скроллом. */
@@ -62,8 +63,8 @@ export function useFetchComments(
   /** Оптимистичный лайк. */
   const toggleLike = useOptimisticLike({
     setItems: setCommentsItems,
-    addLikeFn: addLike,
-    deleteLikeFn: deleteLike,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
     currentUserId: currentUserId,
     targetType: 'comment',
     onSuccess: (action) => notify.success(action),
@@ -119,4 +120,4 @@ export function useFetchComments(
     loadMore,
     refetch,
   };
-}
+};

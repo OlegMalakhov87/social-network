@@ -9,14 +9,14 @@ import styles from './Modal.module.css';
  * Универсальное модальное окно.
  *
  * @param {Object} props
- * @param {boolean} props.isOpen
- * @param {Function} props.onClose
- * @param {React.ReactNode} props.children
- * @param {string} [props.title]
- * @param {'sm'|'md'|'lg'|'xl'} [props.size='md']
- * @param {boolean} [props.closeOnOverlay=true]
- * @param {boolean} [props.closeOnEscape=true]
- * @param {React.ReactNode} [props.footer]
+ * @param {boolean} props.isOpen - открыт ли модальное окно
+ * @param {Function} props.onClose - функция закрытия модального окна
+ * @param {React.ReactNode} props.children - контент модального окна
+ * @param {string} [props.title] - заголовок модального окна
+ * @param {'sm'|'md'|'lg'|'xl'} [props.size='md'] - размер модального окна
+ * @param {boolean} [props.closeOnOverlay=true] - закрывать ли модальное окно при клике вне окна
+ * @param {boolean} [props.closeOnEscape=true] - закрывать ли модальное окно при нажатии Escape
+ * @param {React.ReactNode} [props.footer] - нижний колонтитул модального окна
  */
 export const Modal = ({
   isOpen=true,

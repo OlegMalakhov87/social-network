@@ -16,17 +16,18 @@ import {
 import style from './News.module.css';
 
 /**
- * Карточка новости.
+ * Компонент для отображения карточки новости.
  *
- * @param {Object} props
- * @param {Object} props.news - новость
- * @param {Object} props.currentUser - текущий пользователь
- * @param {Function} props.toggleLike - колбэк лайка/дизлайка (id: номер новости, isLiked: boolean)
- * @param {Function} props.onReadMore - увеличение счетчика просмотров
- * @param {Function} props.toggleComments - колбэк открытия комментариев (id: номер новости)
- * @param {Function} props.onDelete - колбэк удаления (id: номер новости)
- * @param {Function} props.onUpdate - колбэк обновления (id: номер новости)
- * @param {Function} props.onPlay - колбэк воспроизведения видео (id: номер новости)
+ * @param {Object} props - параметры
+ * @param {Object} props.news - данные новости
+ * @param {Object} props.currentUser - данные текущего пользователя
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка новости
+ * @param {Function} props.onReadMore - функция для чтения новости
+ * @param {Function} props.toggleComments - функция для открытия комментариев новости
+ * @param {Function} props.onDelete - функция для удаления новости
+ * @param {Function} props.onUpdate - функция для обновления новости
+ * @param {Function} props.onPlay - функция для воспроизведения видео новости
+ * @returns {JSX.Element} - компонент карточки новости
  */
 
 export const News = ({

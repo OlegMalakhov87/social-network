@@ -1,18 +1,18 @@
-import styles from '../ui';
+import styles from '../ui/Text/Text.module.css';
 /**
- * Превращает URL-адреса в тексте в кликабельные стилизованные ссылки.
+ * Функция для превращения URL-адресов в тексте в кликабельные стилизованные ссылки.
  *
  * @param {string} text - исходный текст
  * @returns {React.ReactNode[]} массив строк и элементов <a>
  */
 
-export const linkify = (text) => {
+export const linkify = (text = '') => {
   if (!text) return text;
 
   const urlRegex = /(https?:\/\/[^\s]+)/g;
 
   const parts = text.split(urlRegex);
-  
+
   return parts.map((part, index) =>
     urlRegex.test(part) ? (
       <a

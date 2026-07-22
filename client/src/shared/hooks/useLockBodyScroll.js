@@ -3,10 +3,7 @@ import { useEffect } from 'react';
 /**
  * Блокирует прокрутку страницы.
  *
- * Используется для модальных окон,
- * меню, Drawer и т.п.
- *
- * @param {boolean} locked
+ * @param {boolean} [locked=true] - заблокировать прокрутку страницы
  */
 export function useLockBodyScroll(locked = true) {
   useEffect(() => {

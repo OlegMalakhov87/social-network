@@ -6,11 +6,11 @@ import style from './EntityStats.module.css';
  * Панель статистики сущности.
  *
  * @param {Object} props
- * @param {Array} props.items
- * @param {string} [props.className]
+ * @param {Object[]} props.items - массив статистики
+ * @param {string} [props.className=''] - дополнительный класс
  */
 
-export const EntityStats = ({ items = [], className }) => {
+export const EntityStats = ({ items = [], className = '' }) => {
   if (!items.length) return null;
 
   return (

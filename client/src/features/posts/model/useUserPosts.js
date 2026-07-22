@@ -14,13 +14,14 @@ import {
 } from '../../../shared/hooks';
 
 /**
- * Хук для получения постов пользователя.
- * @param {number|null} profileUserId - ID пользователя
- * @param {number|null} currentUserId - ID текущего пользователя
+ * Хук для получения постов пользователя с бесконечным скроллом.
+ *
+ * @param {number} profileUserId - ID пользователя
+ * @param {number} currentUserId - ID текущего пользователя
  * @param {string} sortKey - ключ сортировки
- * @returns {{ posts: Array, hasMore: boolean, isLoading: boolean, isLoadingMore: boolean, error: string|null, loadMore: Function, refetch: Function, addPost: Function, updatePost: Function, deletePost: Function }}
+ * @returns {Object} - объект с данными о постах пользователя
  */
-export function useUserPosts({ profileUserId, currentUserId, sortKey }) {
+export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
   const notify = useNotify('posts');
 
   /** Получение постов с бесконечным скроллом. */
@@ -48,7 +49,7 @@ export function useUserPosts({ profileUserId, currentUserId, sortKey }) {
     onError: () => notify.error('load'),
   });
 
-  /** Оптимистичный мутации (CRUD). */
+  /** Оптимистичные мутации (CRUD). */
   const {
     add: addPost,
     edit: updatePost,
@@ -90,4 +91,4 @@ export function useUserPosts({ profileUserId, currentUserId, sortKey }) {
     deletePost,
     setPostsItems,
   };
-}
+};

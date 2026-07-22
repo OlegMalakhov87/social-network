@@ -11,23 +11,23 @@ import {
 } from '../../../shared/hooks';
 /**
  * Хук для получения треков библиотеки пользователя.
- * @param {number|null} profileUserId - ID пользователя
- * @param {number|null} currentUserId - ID текущего пользователя
- * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля
- * @param {string} sortKey - ключ сортировки
- * @returns {{ tracks: Array, hasMore: boolean, isLoading: boolean, isLoadingMore: boolean, error: string|null, refetch: Function, setTracksItems: Function, loadMore: Function }}
+ *
+ * @param {Object} params - параметры запроса
+ * @param {number|null} params.profileUserId - ID пользователя
+ * @param {number|null} params.currentUserId - ID текущего пользователя
+ * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
+ * @param {string} params.sortKey - ключ сортировки
+ * @returns {Object} - объект с данными о треках библиотеки пользователя
  */
-export function useUserMusicLibrary(
+export const useUserMusicLibrary = ({
   profileUserId,
   currentUserId,
   isOwnProfile,
-  sortKey
-) {
+  sortKey,
+}) => {
   const notify = useNotify('tracks');
 
-  /**
-   * Получение треков библиотеки пользователя.
-   */
+  /** Получение треков библиотеки пользователя с бесконечным скроллом. */
   const {
     items: tracksItems,
     setItems: setTracksItems,
@@ -55,7 +55,7 @@ export function useUserMusicLibrary(
     onError: () => notify.error('load'),
   });
 
-  /** Нормализация и сортировка новостей. */
+  /** Нормализация и сортировка треков. */
   const tracks = useNormalizedData({
     items: tracksItems,
     entityType: 'tracks',
@@ -77,4 +77,4 @@ export function useUserMusicLibrary(
     refetch,
     setTracksItems,
   };
-}
+};

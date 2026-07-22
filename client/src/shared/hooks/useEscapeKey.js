@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 
 /**
- * Выполняет callback при нажатии Escape.
+ * Функция для выполнения callback при нажатии Escape.
  *
- * @param {Function} onEscape - Обработчик нажатия Escape.
- * @param {boolean} [enabled=true] - Активен ли обработчик.
+ * @param {Function} onEscape - функция для выполнения действия при нажатии Escape
+ * @param {boolean} [enabled=true] - активен ли обработчик
  */
 export function useEscapeKey(onEscape, enabled = true) {
   useEffect(() => {

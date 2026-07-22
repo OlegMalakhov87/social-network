@@ -1,1 +1,1 @@
-export { FriendsPage } from './ui/FriendsPage';
+export { FriendsPage } from './ui/FriendsPage'; // Страница друзей

@@ -3,9 +3,8 @@ import { formatTime } from '../../../shared/lib';
 /**
  * Подготавливает данные для отображения TrackMeta.
  *
- * @param {Object} props
- * @param {Object} props.track
- * @param {string} props.mode
+ * @param {Object} track - данные трека
+ * @param {string} mode - режим отображения
  */
 
 export const getTrackMeta = (track, mode) => {

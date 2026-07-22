@@ -18,12 +18,12 @@ import {
 
 /**
  * Форма создания/редактирования поста.
- * @param {Object} props
- * @param {Object|null} props.initialData - данные поста для редактирования
- * @param {Function} props.onClose - закрыть форму
- * @param {Function} props.onSubmit - отправить форму
+ *
+ * @param {Object} initialData - данные поста для редактирования
+ * @param {Function} onClose - функция для закрытия формы
+ * @param {Function} onSubmit - функция для отправки формы
  */
-export const PostForm = ({ initialData, onClose, onSubmit }) => {
+export const PostForm = (initialData, onClose, onSubmit) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useAppForm({
@@ -39,7 +39,8 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
         minLength(10, 'Минимально 10 символов'),
         maxLength(5000, 'Максимум 5000 символов'),
       ],
-      mediaUrl: values.type !== 'text' ? [required('Вставьте ссылку'), url()] : [],
+      mediaUrl:
+        values.type !== 'text' ? [required('Вставьте ссылку'), url()] : [],
     }),
     onSubmit: (values) => {
       onSubmit?.(values, isEdit, initialData?.id);
@@ -103,7 +104,13 @@ export const PostForm = ({ initialData, onClose, onSubmit }) => {
             >
               Отмена
             </Button>
-            <Button type="submit" disabled={form.isSubmitting}>{form.isSubmitting ? 'Отправка...' : isEdit ? 'Сохранить изменения' : 'Опубликовать'}</Button>
+            <Button type="submit" disabled={form.isSubmitting}>
+              {form.isSubmitting
+                ? 'Отправка...'
+                : isEdit
+                  ? 'Сохранить изменения'
+                  : 'Опубликовать'}
+            </Button>
           </ButtonGroup>
         </form>
       }

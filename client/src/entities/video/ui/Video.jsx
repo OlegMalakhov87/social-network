@@ -11,21 +11,21 @@ import {
 
 /**
  * Карточка одного видео.
- * @param {Object} props
- * @param {Object} props.video - объект видео
- * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isOwnProfile - владелец профиля
- * @param {boolean} props.isPlaying - проигрывается видео true/false
- * @param {Object} props.currentVideo - текущее видео
- * @param {string} props.mode
- * @param {Function} props.onPlay - клик по видео (воспроизвести)
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.toggleFavorite - добавит/удалить из избранного
- * @param {Function} props.toggleComments - открыть комментарии
- * @param {Function} props.updateVideo - обновить видео
- * @param {Function} props.deleteVideo - удалить видео
- * @param {Function} props.addToLibrary - добавить в библиотеку
- * @param {Function} props.removeFromLibrary - удалить из библиотеки
+ * @param {Object} props - пропсы компонента
+ * @param {Object} props.video - данные видео
+ * @param {Object} props.currentUser - данные текущего пользователя
+ * @param {boolean} props.isOwnProfile - флаг владельца профиля
+ * @param {boolean} props.isPlaying - флаг проигрывается видео true/false
+ * @param {Object} props.currentVideo - данные текущего видео
+ * @param {string} props.mode - режим отображения
+ * @param {Function} props.onPlay - функция для воспроизведения видео
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка видео
+ * @param {Function} props.toggleFavorite - функция для добавления/удаления из избранного
+ * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к видео
+ * @param {Function} props.updateVideo - функция для обновления видео
+ * @param {Function} props.deleteVideo - функция для удаления видео
+ * @param {Function} props.addToLibrary - функция для добавления видео в библиотеку
+ * @param {Function} props.removeFromLibrary - функция для удаления видео из библиотеки
  */
 
 export const Video = ({

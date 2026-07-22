@@ -1,13 +1,10 @@
-import { PostActionsBar } from '..';
+import { ActionsBar } from '..';
 import style from './EntityActions.module.css';
 
 /**
  * Универсальный футер карточки.
- *
- * Используется внутри BaseCard.
- *
  * @param {Object} props
- * @param {Array} props.actions
+ * @param {Object[]} props.actions - массив действий
  */
 
 export const EntityActions = ({ actions = [] }) => {
@@ -15,7 +12,7 @@ export const EntityActions = ({ actions = [] }) => {
 
   return (
     <footer className={style.footer}>
-      <PostActionsBar actions={actions} />
+      <ActionsBar actions={actions} />
     </footer>
   );
 };

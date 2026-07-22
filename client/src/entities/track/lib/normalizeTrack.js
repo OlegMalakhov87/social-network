@@ -1,11 +1,12 @@
 /**
  * Преобразует треки из ответа сервера в формат для TrackCard.
+ *
  * @param {Object} raw - треки из ответа сервера
- * @param {number|null} currentUserId
- * @returns {Object}
+ * @param {number|null} currentUserId - ID текущего пользователя
+ * @returns {Object} - нормализованные данные трека
  */
 
-export function normalizeTrack(raw, currentUserId) {
+export const normalizeTrack = (raw, currentUserId) => {
   if (!raw || typeof raw !== 'object') {
     return {
       id: null,
@@ -55,4 +56,4 @@ export function normalizeTrack(raw, currentUserId) {
     commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
     comments: raw.comments || [],
   };
-}
+};

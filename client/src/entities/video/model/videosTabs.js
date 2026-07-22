@@ -1,4 +1,8 @@
-/** Список категорий видео для выбора в форме */
+/**
+ * Список категорий видео для выбора в форме.
+ *
+ * @returns {Array<Object>} - список категорий видео
+ */
 export const CATEGORY_OPTIONS = [
   { value: '', label: 'Выберите категорию' },
   { value: 'movie', label: 'Кино' },
@@ -8,7 +12,11 @@ export const CATEGORY_OPTIONS = [
   { value: 'openings', label: 'Открытия' },
 ];
 
-/** Мапа для выбора вкладки видео */
+/**
+ * Мапа для выбора вкладки видео.
+ *
+ * @returns {Array<Object>} - мапа для выбора вкладки видео
+ */
 export const CATEGORIES = [
   { id: 'all', label: 'Все', icon: '🎬' },
   { id: 'movie', label: 'Кино', icon: '🎥' },

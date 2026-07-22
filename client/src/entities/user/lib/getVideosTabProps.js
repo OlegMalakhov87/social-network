@@ -1,8 +1,8 @@
 /**
  * Возвращает пропсы для вкладки "Видео".
  *
- * @param {Object} ctx
- * @returns {Object}
+ * @param {Object} ctx - контекст компонента
+ * @returns {Object} - пропсы для вкладки "Видео"
  */
 
 export const getVideosTabProps = (ctx) => ({

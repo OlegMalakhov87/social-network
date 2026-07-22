@@ -5,11 +5,11 @@ import style from './TrackCover.module.css';
 /**
  * Обложка трека.
  *
- * @param {Object} props
- * @param {Object} props.track
- * @param {Object} props.currentTrack
- * @param {boolean} props.isPlaying
- * @param {Function} props.onPlay
+ * @param {Object} props - пропсы компонента
+ * @param {Object} props.track - данные трека
+ * @param {Object} props.currentTrack - данные текущего трека
+ * @param {boolean} props.isPlaying - проигрывается ли трек сейчас
+ * @param {Function} props.onPlay - функция для воспроизведения трека
  */
 
 export const TrackCover = ({ track, currentTrack, isPlaying, onPlay }) => {

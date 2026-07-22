@@ -5,11 +5,11 @@ import styles from './Select.module.css';
  * Универсальный Select.
  *
  * @param {Object} props
- * @param {string} props.value
- * @param {(value:string)=>void} props.onChange
- * @param {Array<{value:string,label:string}>} props.options
- * @param {boolean} props.disabled
- * @param {string} props.className
+ * @param {string} props.value - значение выбранной опции
+ * @param {(value:string)=>void} props.onChange - функция изменения выбранной опции
+ * @param {Array<{value:string,label:string}>} props.options - массив опций (значение, текст)
+ * @param {boolean} props.disabled - заблокирован ли селект
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 
 export const Select = ({
@@ -17,7 +17,7 @@ export const Select = ({
   onChange,
   options,
   disabled = false,
-  className,
+  className = '',
 }) => {
   return (
     <select

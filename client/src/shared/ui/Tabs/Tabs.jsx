@@ -5,9 +5,9 @@ import styles from './Tabs.module.css';
  * Универсальные вкладки для панели инструментов.
  *
  * @param {Object} props
- * @param {Array<{id:string,label:string,icon?:React.ReactNode}>} props.items
- * @param {string} props.value
- * @param {(id:string)=>void} props.onChange
+ * @param {Array<Object>} props.items - массив вкладок (идентификатор, текст, иконка)
+ * @param {string} props.value - значение выбранной вкладки
+ * @param {Function} props.onChange - функция изменения выбранной вкладки
  */
 
 export const Tabs = ({ items = [], value, onChange }) => {

@@ -15,13 +15,13 @@ import {
 import { useState } from 'react';
 
 /**
- * Карточка фотографии (вкладка "Фото" в профиле).
- * @param {Object} props
- * @param {Object} props.photo - объект поста с типом image
+ * Компонент для отображения карточки фотографии.
+ * @param {Object} props - пропсы компонента
+ * @param {Object} props.photo - данные фотографии
  * @param {Object} props.currentUser - текущий пользователь
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.onDelete - удалить
- * @param {Function} props.toggleComments - открыть/закрыть комментарии
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка фотографии
+ * @param {Function} props.onDelete - функция для удаления фотографии
+ * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к фотографии
  */
 export const Photo = ({
   photo,

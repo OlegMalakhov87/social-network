@@ -1,8 +1,8 @@
 /**
  * Возвращает пропсы для вкладки "Фото".
  *
- * @param {Object} ctx
- * @returns {Object}
+ * @param {Object} ctx - контекст компонента
+ * @returns {Object} - пропсы для вкладки "Фото"
  */
 
 export const getPhotosTabProps = (ctx) => ({

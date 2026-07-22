@@ -6,12 +6,11 @@ import style from './TrackMeta.module.css';
 /**
  * Информация о треке.
  *
- * @param {Object} props
- * @param {Object} props.track
- * @param {string} props.mode
+ * @param {Object} track - данные трека
+ * @param {string} mode - режим отображения
  */
 
-export const TrackMeta = ({ track, mode }) => {
+export const TrackMeta = (track, mode) => {
   const meta = getTrackMeta(track, mode);
 
   return (

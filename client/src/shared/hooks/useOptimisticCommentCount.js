@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 
 /**
- * Обновление счётчика комментариев.
- * @param {Object} props
- * @param {Function} props.setItems - функция для обновления массива элементов
+ * Хук для обновления счётчика комментариев.
+ *
+ * @param {Function} setItems - функция для обновления массива элементов
  * @returns {Function} - функция для обновления счётчика комментариев
  */
-export function useOptimisticCommentCount({ setItems }) {
+export const useOptimisticCommentCount = (setItems) => {
   const updateCommentCount = useCallback(
     (itemId, delta) => {
       setItems((prev) =>
@@ -23,4 +23,4 @@ export function useOptimisticCommentCount({ setItems }) {
     [setItems]
   );
   return updateCommentCount;
-}
+};

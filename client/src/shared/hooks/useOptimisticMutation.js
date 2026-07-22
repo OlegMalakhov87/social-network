@@ -3,19 +3,18 @@ import { useCallback } from 'react';
 /**
  * Универсальный хук для оптимистичных мутаций (CRUD).
  *
- * @template T
- * @param {T[]} items - массив сущностей
- * @param {Function} setItems - функция обновления массива
- * @param {Object} config - конфигурация
- * @param {Function} config.addFn - функция добавления (async)
- * @param {Function} config.editFn - функция обновления (async)
- * @param {Function} config.deleteFn - функция удаления (async)
- * @param {string} config.idField - поле ID (по умолчанию 'id')
- * @param {Function} config.onSuccess - колбэк успеха
- * @param {Function} config.onError - колбэк ошибки
+ * @param {Object} params - параметры запроса
+ * @param {Array} params.items - массив сущностей
+ * @param {Function} params.setItems - функция обновления массива
+ * @param {Function} params.addFn - функция добавления (async)
+ * @param {Function} params.editFn - функция обновления (async)
+ * @param {Function} params.deleteFn - функция удаления (async)
+ * @param {string} [params.idField='id'] - поле ID
+ * @param {Function} [params.onSuccess] - колбэк успеха
+ * @param {Function} [params.onError] - колбэк ошибки
  * @returns {Object} - { add, edit, remove }
  */
-export function useOptimisticMutation({
+export const useOptimisticMutation = ({
   items,
   setItems,
   addFn,
@@ -24,10 +23,8 @@ export function useOptimisticMutation({
   idField = 'id',
   onSuccess,
   onError,
-}) {
-  /**
-   * Добавление сущности
-   */
+}) => {
+  /** Добавление сущности */
   const addItem = useCallback(
     async (data) => {
       if (!addFn) {
@@ -37,7 +34,6 @@ export function useOptimisticMutation({
       try {
         const result = await addFn(data);
 
-        // Оптимистичное добавление
         setItems((prev) => [result, ...prev]);
 
         onSuccess?.('add', result);
@@ -51,17 +47,13 @@ export function useOptimisticMutation({
     [addFn, setItems, onSuccess, onError]
   );
 
-  /**
-   * Обновление сущности
-   */
+  /** Обновление сущности */
   const editItem = useCallback(
     async (id, data) => {
       if (!editFn || !id) return false;
 
-      // Сохраняем старые данные для отката
       const oldItems = items;
 
-      // Оптимистичное обновление
       setItems((prev) =>
         prev.map((item) => (item[idField] === id ? { ...item, ...data } : item))
       );
@@ -71,7 +63,6 @@ export function useOptimisticMutation({
         onSuccess?.('edit', result);
         return true;
       } catch (err) {
-        // Откат
         setItems(oldItems);
         console.error('Ошибка обновления:', err);
         onError?.('edit', err);
@@ -81,17 +72,13 @@ export function useOptimisticMutation({
     [items, setItems, editFn, idField, onSuccess, onError]
   );
 
-  /**
-   * Удаление сущности
-   */
+  /** Удаление сущности */
   const removeItem = useCallback(
     async (id) => {
       if (!deleteFn || !id) return false;
 
-      // Сохраняем старые данные для отката
       const oldItems = items;
 
-      // Оптимистичное удаление
       setItems((prev) => prev.filter((item) => item[idField] !== id));
 
       try {
@@ -99,7 +86,6 @@ export function useOptimisticMutation({
         onSuccess?.('delete', result);
         return true;
       } catch (err) {
-        // Откат
         setItems(oldItems);
         console.error('Ошибка удаления:', err);
         onError?.('delete', err);
@@ -110,4 +96,4 @@ export function useOptimisticMutation({
   );
 
   return { addItem, editItem, removeItem };
-}
+};

@@ -3,15 +3,16 @@ import { useAbortableRequest, useNotify } from '../../../shared/hooks';
 
 /**
  * Хук для получения данных пользователя с сервера
+ *
  * @param {number} profileUserId - ID пользователя
- * @returns {{ user: Object|null, isLoading: boolean, error: string|null, refetchUser: Function }}
+ * @returns {Object} - объект с данными о пользователе
  */
 
-export function useUserProfile(profileUserId) {
+export const useUserProfile = (profileUserId) => {
   const notify = useNotify();
   /**
-   * Запрос данных пользователя с сервера
-   * @param {AbortSignal} signal - сигнал отмены запроса
+   * Запрос данных пользователя с сервера.
+   * @param {AbortSignal} signal - сигнал отмены запроса.
    */
   const {
     data,
@@ -33,5 +34,11 @@ export function useUserProfile(profileUserId) {
       onError: () => notify.error('load'),
     },
   });
-  return { user: data, isLoading, error, refetch: fetchUser };
-}
+  /** Объект с данными о пользователе. */
+  return {
+    user: data,
+    isLoading,
+    error,
+    refetch: fetchUser,
+  };
+};

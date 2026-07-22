@@ -1,24 +1,13 @@
-//export { default as userVideosLibraryReducer } from './model/userVideosLibrarySlice';
-//export { default as videosReducer } from './model/videosSlice';
-//export * from './model/videoSelectors';
-//export { addVideo, deleteVideo } from './model/videosSlice';
-//export { addVideoToLibrary, removeVideoFromLibrary } from './model/userVideosLibrarySlice';
+export * from './api/videoApi'; // API‑функции видео
+export * from './api/videoLibraryApi'; // API‑функции библиотеки видео
 
-// API‑функции для библиотеки видео
-export * from './api/videoLibraryApi';
-// API‑функции для самого видео
-export * from './api/videoApi';
-// Мапа для выбора вкладки видео
-export * from './model/videosTabs';
-// Вспомогательные функции для видео (экшены)
-export { getVideoActions } from './lib/getVideoActions';
-// Вспомогательные функции для метаданных видео
-export { getVideoMeta } from './lib/getVideoMeta';
-// Вспомогательные функции для статистики видео
-export { getVideoStats } from './lib/getVideoStats';
-// Функция нормализации видео
-export { normalizeVideo } from './lib/normalizeVideo';
-// Компонент видео
-export { Video } from './ui/Video';
-export { VideoMeta } from './ui/VideoMeta';
-export { VideoThumbnail } from './ui/VideoThumbnail';
+export * from './model/videosTabs'; // Мапа для выбора вкладки видео
+
+export { getVideoActions } from './lib/getVideoActions'; // Функция для получения действий для видео
+export { getVideoMeta } from './lib/getVideoMeta'; // Функция для получения метаданных для видео
+export { getVideoStats } from './lib/getVideoStats'; // Функция для получения статистики для видео
+export { normalizeVideo } from './lib/normalizeVideo'; // Функция для нормализации данных видео
+
+export { Video } from './ui/Video'; // Компонент для отображения видео
+export { VideoMeta } from './ui/VideoMeta'; // Компонент для отображения метаданных видео
+export { VideoThumbnail } from './ui/VideoThumbnail'; // Компонент для отображения обложки видео

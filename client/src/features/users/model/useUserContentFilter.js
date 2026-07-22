@@ -15,12 +15,13 @@ import { useUserVideoLibrary } from '../../videos';
 
 /**
  * Хук для фильтрации и сортировки контента пользователя по вкладкам
- * @param {Object} params - параметры фильтрации
- * @param {'posts'|'photos'|'tracks'|'videos'} [params.activeTab] - тип контента для отображения
- * @param {number} [params.userIdParam] - ID пользователя, чей контент показываем
- * @param {string} [params.sortKey] - ключ сортировки из SORT_OPTIONS
+ *
+ * @param {string} activeTab - тип контента для отображения
+ * @param {number} userIdParam - ID пользователя, чей контент показываем
+ * @param {string} sortKey - ключ сортировки из SORT_OPTIONS
+ * @returns {Object} - объект с данными о контенте пользователя
  */
-export const useUserContentFilter = ({ activeTab, userIdParam, sortKey }) => {
+export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
   const currentUser = selectUser();
 
   /**

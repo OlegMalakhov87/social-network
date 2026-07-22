@@ -1,5 +1,5 @@
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
-import { addLike, deleteLike } from '../../../entities/like';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addVideoApi,
   addVideoToLibrary,
@@ -10,7 +10,6 @@ import {
   normalizeVideo,
   updateVideoApi,
 } from '../../../entities/video';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -21,16 +20,17 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения и отображения видео на странице видео.
- * @param {Object} params
- * @param {string} [params.filter] – фильтр по категории
- * @param {string} [params.searchQuery] – поисковый запрос
- * @param {string} [params.sortKey] – ключ сортировки
- * @returns {Object} - Результат
+ *
+ * @param {string} filter - фильтр по категории
+ * @param {string} searchQuery - поисковый запрос
+ * @param {string} sortKey - ключ сортировки
+ * @returns {Object} - объект с данными о видео
  */
-export function useVideos({ filter, searchQuery, sortKey } = {}) {
+export const useVideos = (filter, searchQuery, sortKey) => {
   const currentUser = selectUser();
   const notify = useNotify('videos');
 
@@ -78,8 +78,8 @@ export function useVideos({ filter, searchQuery, sortKey } = {}) {
   /** Оптимистичный лайк */
   const toggleLike = useOptimisticLike({
     setItems: setVideosItems,
-    addLikeFn: addLike,
-    deleteLikeFn: deleteLike,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
     currentUserId: currentUser?.id,
     targetType: 'videos',
     onSuccess: (action) => notify.success(action),
@@ -144,4 +144,4 @@ export function useVideos({ filter, searchQuery, sortKey } = {}) {
     updateVideo,
     deleteVideo,
   };
-}
+};

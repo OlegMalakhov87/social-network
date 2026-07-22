@@ -1,28 +1,6 @@
-//export { default as commentsReducer } from './model/commentsSlice';
-//export * from './model/commentsSelectors';
-/**export {
-  addComment,
-  updateNewCommentText,
-  editComment,
-  deleteComment,
-} from './model/commentsSlice';**/
+export * from './api/commentApi'; // API для комментариев
 
-/**
- * Вспомогательные функции для комментариев.
- */
-export { getCommentActions } from './lib/getCommentActions';
-export { normalizeComment } from './lib/normalizeComment';
-/**
- * Компоненты для комментариев.
- */
-export { Comment } from './ui/Comment';
-/**
- * API для комментариев.
- */
-export {
-  addCommentApi,
-  deleteCommentApi,
-  editCommentApi,
-  fetchComments,
-  fetchCommentById,
-} from './api/commentApi';
+export { getCommentActions } from './lib/getCommentActions'; // Функция для получения массива действий для комментария
+export { normalizeComment } from './lib/normalizeComment'; // Функция для нормализации комментария
+
+export { Comment } from './ui/Comment'; // Компонент для отображения комментария

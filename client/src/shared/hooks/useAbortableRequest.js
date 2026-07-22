@@ -3,19 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Универсальный хук для отменяемых асинхронных запросов.
  *
- * @template T
- * @param {(signal: AbortSignal, ...args: any[]) => Promise<T>} fetcher - асинхронная функция запроса
- * @param {any[]} deps - зависимости для перезапуска
- * @param {Object} options - опции
- * @param {boolean} options.autoFetch - автоматически выполнять запрос (по умолчанию true)
- * @param {T} options.initialData - начальные данные
- * @param {Function} options.onSuccess - колбэк успеха
- * @param {Function} options.onError - колбэк ошибки
- * @param {Function} options.onFinally - колбэк завершения
- * @returns {Object} - { data, isLoading, error, execute, abort, reset }
+ * @param {Object} params - параметры запроса
+ * @param {Function} params.fetcher - функция запроса
+ * @param {Array} [params.deps=[]] - зависимости для перезапуска запроса
+ * @param {Object} [params.options={}] - опции запроса
+ * @returns {Object} - объект с данными о запросе
  */
 
-export function useAbortableRequest({ fetcher, deps = [], options = {} }) {
+export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
   const {
     autoFetch = true,
     initialData = null,
@@ -128,4 +123,4 @@ export function useAbortableRequest({ fetcher, deps = [], options = {} }) {
     setData,
     setError,
   };
-}
+};

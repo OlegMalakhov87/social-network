@@ -1,5 +1,5 @@
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
-import { addLike, deleteLike } from '../../../entities/like';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addTrackApi,
   addTrackToLibrary,
@@ -25,13 +25,12 @@ import {
 /**
  * Хук для получения и управления треками на странице музыки с бесконечным скроллом.
  *
- * @param {Object} props
- * @param {string} props.filter - фильтр по жанру
- * @param {string} props.searchQuery - поисковый запрос
- * @param {string} props.sortKey - ключ сортировки
- * @returns {Object} - Результат
+ * @param {string} filter - фильтр по жанру
+ * @param {string} searchQuery - поисковый запрос
+ * @param {string} sortKey - ключ сортировки из SORT_OPTIONS
+ * @returns {Object} - объект с данными о треках
  */
-export function useMusic({ filter, searchQuery, sortKey } = {}) {
+export const useMusic = (filter, searchQuery, sortKey) => {
   const currentUser = selectUser();
   const notify = useNotify('tracks');
 
@@ -79,8 +78,8 @@ export function useMusic({ filter, searchQuery, sortKey } = {}) {
   /** Оптимистичный лайк */
   const toggleLike = useOptimisticLike({
     setItems: setTracksItems,
-    addLikeFn: addLike,
-    deleteLikeFn: deleteLike,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
     currentUserId: currentUser?.id,
     targetType: 'tracks',
     onSuccess: (action) => notify.success(action),
@@ -145,4 +144,4 @@ export function useMusic({ filter, searchQuery, sortKey } = {}) {
     incrementPlayCount,
     updateCommentCount,
   };
-}
+};

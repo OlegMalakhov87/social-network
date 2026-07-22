@@ -1,28 +1,29 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * Хук для управления фильтрами, поиском и сортировкой.
- * Используется на страницах со списками (NewsPage, FriendsPage, MusicPage и т.д.)
  *
- * @param {Object} options
- * @param {string} [options.initialFilter='all'] - начальный фильтр
- * @param {string} [options.initialSort='dateDesc'] - начальная сортировка
- * @returns {Object}
+ * @param {string} initialFilter - начальный фильтр
+ * @param {string} initialSort - начальная сортировка
+ * @returns {Object} - объект с данными о фильтрах, поиске и сортировке
  */
-export const useFilterControls = ({
+export const useFilterControls = (
   initialFilter = 'all',
-  initialSort = 'dateDesc',
-} = {}) => {
+  initialSort = 'dateDesc'
+) => {
   const [filter, setFilter] = useState(initialFilter);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState(initialSort);
 
   /** Сброс поиска и сортировки при смене фильтра */
-  const handleFilterChange = useCallback((id) => {
-    setFilter(id);
-    setSearchQuery('');
-    setSortKey(initialSort);
-  }, [initialSort]);
+  const handleFilterChange = useCallback(
+    (id) => {
+      setFilter(id);
+      setSearchQuery('');
+      setSortKey(initialSort);
+    },
+    [initialSort]
+  );
 
   /** Сброс всех фильтров */
   const resetFilters = useCallback(() => {

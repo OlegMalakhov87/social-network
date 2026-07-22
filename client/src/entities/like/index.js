@@ -1,1 +1,1 @@
-export * from './api/likeApi';
+export * from './api/likeApi'; // API для лайков

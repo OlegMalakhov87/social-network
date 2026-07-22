@@ -2,24 +2,22 @@ import { useCallback } from 'react';
 import { useNotify } from '..';
 
 /**
- * Простой хук для оптимистичного добавления/удаления из библиотеки
- * на общих страницах каталога (Music, Video).
+ * Простой хук для оптимистичного добавления/удаления из библиотеки на общих страницах каталога (Music, Video).
  *
- * @param {Object} params
+ * @param {Object} params - параметры запроса
  * @param {Function} params.setItems - функция для установки элементов
  * @param {Function} params.addFn - функция для добавления в библиотеку
  * @param {Function} params.removeFn - функция для удаления из библиотеки
- * @param {string} params.entityType - тип сущности (item, track, video)
- * @returns {Object}
- * @returns {Object} addToLibrary - функция для добавления в библиотеку
- * @returns {Object} removeFromLibrary - функция для удаления из библиотеки
+ * @param {string} params.entityType - тип сущности
+ * @returns {Object} - { addToLibrary, removeFromLibrary }
  */
-export function useOptimisticLibraryToggle({
+
+export const useOptimisticLibraryToggle = ({
   setItems,
   addFn,
   removeFn,
-  entityType = 'item',
-}) {
+  entityType,
+}) => {
   const notify = useNotify(entityType);
 
   const addToLibrary = useCallback(
@@ -71,4 +69,4 @@ export function useOptimisticLibraryToggle({
   );
 
   return { addToLibrary, removeFromLibrary };
-}
+};

@@ -3,28 +3,25 @@ import { useCallback } from 'react';
 /**
  * Универсальный хук для оптимистичного управления избранным.
  *
- * @param {Function} setItems - функция обновления массива
- * @param {Function} updateFavoriteFn - функция обновления избранного
- * @param {string} targetType - тип сущности (video, track)
- * @param {Function} onSuccess - функция обработки успеха.
- * @param {Function} onError - функция обработки ошибки
+ * @param {Object} params - параметры запроса
+ * @param {Function} params.setItems - функция обновления массива
+ * @param {Function} params.updateFavoriteFn - функция обновления избранного
+ * @param {string} params.targetType - тип сущности (video, track)
+ * @param {Function} params.onSuccess - функция обработки успеха.
+ * @param {Function} params.onError - функция обработки ошибки
  * @returns {Function} - функция для добавления/удаления из избранного
  */
-export function useOptimisticFavorite({
+export const useOptimisticFavorite = ({
   setItems,
   updateFavoriteFn,
   targetType,
   onSuccess,
   onError,
-}) {
-  // Функция для добавления/удаления из избранного
+}) => {
   const toggleFavorite = useCallback(
     async (itemId, libraryId, currentlyFavorite, count, lastWatchedAt) => {
       if (!itemId || !libraryId) return;
-
       const newFavorite = !currentlyFavorite;
-
-      // Оптимистично обновляем UI
       setItems((prev) =>
         prev.map((item) =>
           item.id === itemId ? { ...item, isFavorite: newFavorite } : item
@@ -56,7 +53,7 @@ export function useOptimisticFavorite({
         return false;
       }
     },
-    [setItems, updateFavoriteFn, targetType, onError, onSuccess]
+    [targetType, setItems, updateFavoriteFn, onError, onSuccess]
   );
   return toggleFavorite;
-}
+};

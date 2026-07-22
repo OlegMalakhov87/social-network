@@ -4,9 +4,9 @@ import styles from './Toast.module.css';
  * Компонент уведомления.
  *
  * @param {Object} props
- * @param {string} props.message
- * @param {string} props.type
- * @param {Function} props.onClose
+ * @param {string} props.message - текст уведомления
+ * @param {string} props.type - тип уведомления
+ * @param {Function} props.onClose - функция закрытия уведомления
  *
  */
 

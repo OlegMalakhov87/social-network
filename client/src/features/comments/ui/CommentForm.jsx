@@ -10,10 +10,11 @@ import { maxLength, minLength, useAppForm } from '../../form';
 
 /**
  * Форма для добавления комментария
- * @param {Object} props
- * @param {Object} props.currentUser – текущий пользователь
- * @param {Function} props.onSubmit – колбэк на отправку формы
- * @param {Function} props.onClose – колбэк на закрытие формы
+ * @param {Object} props - пропсы компонента  
+ * @param {Object} props.currentUser - данные текущего пользователя
+ * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Function} props.onClose - функция для закрытия формы
+ * @returns {React.ReactNode} - компонент CommentForm
  */
 
 export const CommentForm = ({ currentUser, onSubmit, onClose }) => {

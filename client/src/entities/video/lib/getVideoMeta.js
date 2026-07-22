@@ -3,9 +3,9 @@ import { formatTime } from '../../../shared/lib';
 /**
  * Подготавливает данные для отображения VideoMeta.
  *
- * @param {Object} props
- * @param {Object} props.video
- * @param {string} props.mode
+ * @param {Object} video - данные видео
+ * @param {string} mode - режим отображения
+ * @returns {Object} - данные для отображения VideoMeta
  */
 
 export const getVideoMeta = (video, mode) => {

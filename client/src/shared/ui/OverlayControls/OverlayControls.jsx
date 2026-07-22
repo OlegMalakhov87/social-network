@@ -4,8 +4,8 @@ import style from './OverlayControls.module.css';
  * Контролы для оверлея.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.left
- * @param {React.ReactNode} props.right
+ * @param {React.ReactNode} props.left - левое поле оверлея
+ * @param {React.ReactNode} props.right - правое поле оверлея
  */
 export const OverlayControls = ({ left, right }) => {
   return (

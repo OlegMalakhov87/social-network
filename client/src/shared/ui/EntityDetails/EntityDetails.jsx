@@ -1,16 +1,10 @@
 import { EntityInfoList } from '..';
 
 /**
- * Универсальный блок характеристик сущности.
- *
- * Используется:
- * Video
- * Track
- * Album
- * Playlist
+ * Универсальный блок информационных полей сущности.
  *
  * @param {Object} props
- * @param {Array} props.items
+ * @param {Object[]} props.items - массив информационных полей
  */
 
 export const EntityDetails = ({ items = [] }) => {

@@ -6,7 +6,7 @@ import styles from './ProfileIdentity.module.css';
  * Используется внутри UserProfileCard.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.children
+ * @param {React.ReactNode} props.children - контент левой части карточки профиля
  */
 
 export const ProfileIdentity = ({ children }) => {

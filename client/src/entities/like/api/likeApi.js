@@ -1,25 +1,23 @@
-import { apiAxios } from '../../../shared/api';
+import { api } from '../../../shared/api';
 
 /**
  * Поставить лайк сущности.
- * @param {string} targetType – 'Post', 'Music', 'Video', 'News', 'Comment'
- * @param {number} targetId
+ * @param {string} targetType - тип сущности ('Post', 'Music', 'Video', 'News', 'Comment')
+ * @param {number} targetId - ID сущности
  * @returns {Promise<Object>} ответ сервера
  */
-export async function addLike(targetType, targetId) {
-  const response = await apiAxios.post('/likes', { targetType, targetId });
+export const addLikeApi = async (targetType, targetId) => {
+  const response = await api.post(`/likes/${targetType}/${targetId}`);
   return response.data;
-}
+};
 
 /**
  * Убрать лайк с сущности.
- * @param {string} targetType
- * @param {number} targetId
- * @returns {Promise<Object>}
+ * @param {string} targetType - тип сущности ('Post', 'Music', 'Video', 'News', 'Comment')
+ * @param {number} targetId - ID сущности
+ * @returns {Promise<Object>} ответ сервера
  */
-export async function deleteLike(targetType, targetId) {
-  const response = await apiAxios.delete('/likes', {
-    data: { targetType, targetId },
-  });
+export const deleteLikeApi = async (targetType, targetId) => {
+  const response = await api.delete(`/likes/${targetType}/${targetId}`);
   return response.data;
-}
+};

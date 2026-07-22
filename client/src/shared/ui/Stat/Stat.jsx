@@ -5,13 +5,13 @@ import style from './Stat.module.css';
  * Один показатель статистики.
  *
  * @param {Object} props
- * @param {React.ReactNode} props.icon
- * @param {string|number} props.value
- * @param {string} [props.label]
- * @param {string} [props.className]
+ * @param {React.ReactNode} props.icon - иконка статистики
+ * @param {string|number} props.value - значение статистики
+ * @param {string} [props.label] - лейбл статистики
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 
-export const Stat = ({ icon, value, label, className }) => {
+export const Stat = ({ icon, value, label, className = '' }) => {
   return (
     <div className={classNames(style.stat, className)}>
       {icon && <span className={style.icon}>{icon}</span>}

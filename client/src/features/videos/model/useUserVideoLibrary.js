@@ -3,7 +3,7 @@ import {
   fetchUserVideoLibrary,
   normalizeVideo,
 } from '../../../entities/video';
-import { apiFetchItems } from '../../../shared/api';
+import { apiFetchItems } from '../../../shared/lib';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -12,23 +12,23 @@ import {
 
 /**
  * Хук для получения видео библиотеки пользователя.
- * @param {number|null} profileUserId - ID пользователя
- * @param {number|null} currentUserId - ID текущего пользователя
- * @param {boolean} isOwnProfile - является ли текущий пользователь владельцем профиля
- * @param {string} sortKey - ключ сортировки
- * @returns {{ videos: Array, isLoading: boolean, error: string|null, refetch: Function, setRawVideos: Function, loadMore: Function }}
+ *
+ * @param {Object} params - параметры запроса
+ * @param {number|null} params.profileUserId - ID пользователя
+ * @param {number|null} params.currentUserId - ID текущего пользователя
+ * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
+ * @param {string} params.sortKey - ключ сортировки
+ * @returns {Object} - объект с данными о видео библиотеке пользователя
  */
-export function useUserVideoLibrary(
+export const useUserVideoLibrary = ({
   profileUserId,
   currentUserId,
   isOwnProfile,
-  sortKey
-) {
+  sortKey,
+}) => {
   const notify = useNotify('videos');
 
-  /**
-   * Получение видео библиотеки пользователя.
-   */
+  /** Получение видео библиотеки пользователя. */
   const {
     items: videosItems,
     setItems: setVideosItems,
@@ -56,7 +56,7 @@ export function useUserVideoLibrary(
     onError: () => notify.error('load'),
   });
 
-  /** Нормализация и сортировка новостей. */
+  /** Нормализация и сортировка видео. */
   const videos = useNormalizedData({
     items: videosItems,
     entityType: 'videos',
@@ -65,9 +65,7 @@ export function useUserVideoLibrary(
     userId: currentUserId,
   });
 
-  /**
-   * Возвращаем объект с данными о видео библиотеке пользователя.
-   */
+  /** Объект с данными о видео библиотеке пользователя. */
   return {
     videos,
     hasMore,
@@ -78,4 +76,4 @@ export function useUserVideoLibrary(
     refetch,
     setVideosItems,
   };
-}
+};

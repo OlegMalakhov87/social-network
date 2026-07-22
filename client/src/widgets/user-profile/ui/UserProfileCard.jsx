@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFriendshipButton } from '../../../entities/friend';
+import { getFriendshipButtonConfig } from '../../../entities/friend';
 import { getProfileActions, getProfileFields } from '../../../entities/user';
 import {
   Avatar,
   BaseCard,
+  EntityDetails,
   ProfileActions,
   ProfileIdentity,
-  ProfileInfoList,
   StatusBadge,
 } from '../../../shared/ui';
 
@@ -15,18 +15,18 @@ import {
  * Карточка профиля пользователя.
  *
  * @param {Object} props
- * @param {Object|null} props.targetUser - Пользователь, профиль которого отображается.
- * @param {Object|null} props.currentUser - Текущий пользователь.
- * @param {boolean} props.isOwnProfile - Флаг владельца профиля.
- * @param {string|null} props.friendshipStatus - Статус дружбы.
- * @param {string|null} props.friendshipDirection - Направление дружбы.
- * @param {number|null} props.friendshipId - ID дружбы.
- * @param {boolean} props.userOnline - Флаг онлайн/офлайн пользователя.
- * @param {(userId:number)=>void} props.onFollow - Функция для подписания на пользователя.
- * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow - Функция для отписки от пользователя.
- * @param {(friendshipId:number,userId:number)=>void} props.onAccept - Функция для принятия запроса на дружбу.
- * @param {(friendshipId:number,userId:number)=>void} props.onUnlock - Функция для разблокировки пользователя.
- * @param {(userId:number)=>void} props.onBlock - Функция для блокировки пользователя.
+ * @param {Object|null} props.targetUser - пользователь, профиль которого отображается.
+ * @param {Object|null} props.currentUser - текущий пользователь.
+ * @param {boolean} props.isOwnProfile - флаг владельца профиля.
+ * @param {string|null} props.friendshipStatus - статус дружбы.
+ * @param {string|null} props.friendshipDirection - направление дружбы.
+ * @param {number|null} props.friendshipId - id дружбы.
+ * @param {boolean} props.userOnline - флаг онлайн/офлайн пользователя.
+ * @param {(userId:number)=>void} props.onFollow - функция для подписания на пользователя.
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow - функция для отписки от пользователя.
+ * @param {(friendshipId:number,userId:number)=>void} props.onAccept - функция для принятия запроса на дружбу.
+ * @param {(friendshipId:number,userId:number)=>void} props.onUnlock - функция для разблокировки пользователя.
+ * @param {(userId:number)=>void} props.onBlock - функция для блокировки пользователя.
  */
 
 export const UserProfileCard = ({
@@ -49,7 +49,7 @@ export const UserProfileCard = ({
   const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
 
   /** Кнопка действий дружбы */
-  const friendshipButton = useFriendshipButton({
+  const friendshipButton = getFriendshipButtonConfig({
     targetUser,
     currentUser,
     friendshipStatus,
@@ -105,7 +105,7 @@ export const UserProfileCard = ({
               </>
             )}
           </ProfileIdentity>
-          <ProfileInfoList items={infoFields} />
+          <EntityDetails items={infoFields} />
         </>
       }
     />

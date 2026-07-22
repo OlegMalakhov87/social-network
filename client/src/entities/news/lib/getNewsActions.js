@@ -3,15 +3,15 @@ import { formatViews } from '../../../shared/lib';
 /**
  * Формирует массив действий для карточки новости.
  *
- * @param {Object} params
+ * @param {Object} params - параметры
  * @param {Object} params.news - данные новости
  * @param {Object} params.currentUser - текущий пользователь
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка новости (id: номер новости, isLiked: boolean)
- * @param {(id:number)=>void} params.toggleComments - функция для открытия комментариев новости (id: номер новости)
- * @param {(id:number)=>void} params.onDelete - функция для удаления новости (id: номер новости)
- * @param {(id:number)=>void} params.onUpdate - функция для обновления новости (id: номер новости)
+ * @param {Function} params.toggleLike - функция для лайка/дизлайка новости (id: номер новости, isLiked: boolean)
+ * @param {Function} params.toggleComments - функция для открытия комментариев новости
+ * @param {Function} params.onDelete - функция для удаления новости
+ * @param {Function} params.onUpdate - функция для обновления новости
  * @param {Function} params.onShare - переход на страницу сообщений для передачи новости
- * @returns {Array<Object>} - массив действий карточки новости
+ * @returns {Array<Object>} - массив действий для карточки новости
  */
 export const getNewsActions = ({
   news,
@@ -79,7 +79,7 @@ export const getNewsActions = ({
       label: 'Удалить',
       ariaLabel: 'Удалить новость',
 
-      onClick: () => onDelete?.(news.id),
+      onClick: () => onDelete?.(),
     });
   }
 

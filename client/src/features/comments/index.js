@@ -1,10 +1,5 @@
-//export { useCommentsActions } from './model/useCommentsActions';
+export { useFetchComments } from './model/useFetchComments'; // Хук для получения комментариев с бесконечным скроллом
 
-/**Хук для получения комментариев с бесконечным скроллом*/
-export { useFetchComments } from './model/useFetchComments';
+export { useCommentsPanel } from './model/useCommentsPanel'; // Хук для управления панелью комментариев (открытие/закрытие, скролл к секции комментариев при открытии панели)
 
-/** Хук для управления панелью комментариев (открытие/закрытие, скролл к секции комментариев при открытии панели)*/
-export { useCommentsPanel } from './model/useCommentsPanel';
-
-/** Компонент для формы комментария*/
-export { CommentForm } from './ui/CommentForm';
+export { CommentForm } from './ui/CommentForm'; // Компонент для формы комментария

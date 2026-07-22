@@ -6,12 +6,12 @@ import style from './VideoMeta.module.css';
 /**
  * Информация о видео.
  *
- * @param {Object} props
- * @param {Object} props.video
- * @param {string} props.mode
+ * @param {Object} video - данные видео
+ * @param {string} mode - режим отображения
+ * @returns {Object} - данные для отображения VideoMeta
  */
 
-export const VideoMeta = ({ video, mode }) => {
+export const VideoMeta = (video, mode) => {
   const meta = getVideoMeta(video, mode);
   return (
     <div className={style.meta}>

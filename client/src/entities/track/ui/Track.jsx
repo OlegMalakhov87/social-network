@@ -10,23 +10,23 @@ import {
 } from '../../../shared/ui';
 /**
  * Карточка одного трека.
- * @param {Object} props
+ * @param {Object} props - пропсы компонента
  * @param {Object} props.track - объект трека
  * @param {Array} props.allTracks - все треки текущего контекста (для очереди)
  * @param {Object} props.currentTrack - текущий играющий трек
  * @param {boolean} props.isPlaying - проигрывается ли трек сейчас (true/false)
- * @param {Object} props.currentUser - текущий пользователь
+ * @param {Object} props.currentUser - данные текущего пользователя
  * @param {boolean} props.isOwnProfile - владелец профиля
- * @param {string} props.mode
- * @param {Function} props.onPlay - начать воспроизведение
- * @param {Function} props.togglePlay - переключить play/pause текущего трека
- * @param {Function} props.addToLibrary - добавить в библиотеку
- * @param {Function} props.removeFromLibrary - удалить из библиотеки
- * @param {Function} props.toggleFavorite - добавит/удалить из избранного
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.toggleComments - открыть/закрыть комментарии
- * @param {Function} props.updateTrack - обновить трек
- * @param {Function} props.onDelete - удалить трек
+ * @param {string} props.mode - режим отображения
+ * @param {Function} props.onPlay - функция для начать воспроизведение
+ * @param {Function} props.togglePlay - функция для переключения play/pause текущего трека
+ * @param {Function} props.addToLibrary - функция для добавления трека в библиотеку
+ * @param {Function} props.removeFromLibrary - функция для удаления трека из библиотеки
+ * @param {Function} props.toggleFavorite - функция для добавления/удаления трека из избранного
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка трека
+ * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к треку
+ * @param {Function} props.updateTrack - функция для обновления трека
+ * @param {Function} props.onDelete - функция для удаления трека
  */
 
 export const Track = ({

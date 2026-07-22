@@ -1,10 +1,10 @@
 /**  Компонент для обработки изображений.
  *
  * @param {Object} props
- * @param {string} props.src
- * @param {string} props.fallback
- * @param {string} props.alt
- * @param {Object} props.rest
+ * @param {string} props.src - URL изображения
+ * @param {string} props.fallback - URL изображения-заглушки
+ * @param {string} props.alt - альтернативный текст изображения
+ * @param {Object} props.rest - остальные пропсы
  */
 
 export const Image = ({ src, fallback, alt, ...rest }) => {

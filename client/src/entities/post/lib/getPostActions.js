@@ -1,17 +1,15 @@
 /**
  * Конфигурация элементов управления карточкой поста.
  *
- * Каждый объект описывает одну кнопку EntityActions.
- *
- * @param {Object} params
+ * @param {Object} params - параметры
  * @param {Object} params.post - данные поста
- * @param {Object} params.currentUser - текущий пользователь
- * @param {(id:number,isLiked:boolean)=>void} params.toggleLike - функция для лайка/дизлайка поста (id: номер поста, isLiked: boolean)
- * @param {(id:number)=>void} params.toggleComments - функция для открытия комментариев поста (id: номер поста)
- * @param {(id:number)=>void} params.onDelete - функция для удаления поста (id: номер поста)
+ * @param {Object} params.currentUser - данные текущего пользователя
+ * @param {Function} params.toggleLike - функция для лайка/дизлайка поста
+ * @param {Function} params.toggleComments - функция для открытия комментариев поста
+ * @param {Function} params.onDelete - функция для удаления поста
  * @param {Function} params.onShare - переход на страницу сообщений для передачи поста
- * @param {(id:number)=>void} params.onUpdate - функция для обновления поста (id: номер поста)
- * @returns {Array<Object>} - массив действий карточки поста
+ * @param {Function} params.onUpdate - функция для обновления поста
+ * @returns {Array<Object>} - массив действий для карточки поста
  */
 export const getPostActions = ({
   post,

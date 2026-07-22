@@ -1,11 +1,11 @@
 /**
  * Преобразует пост из API в формат компонентов.
- * @param {Object} post — пост с включёнными likes и author
- * @param {number|null} currentUserId — id текущего пользователя
- * @param {string|null} friendshipStatus — статус дружбы для проверки видимости
- * @returns {Object}
+ *
+ * @param {Object} post - пост с включёнными likes и author
+ * @param {number|null} currentUserId - id текущего пользователя
+ * @returns {Object} - нормализованный пост
  */
-export function normalizePost(post, currentUserId, friendshipStatus) {
+export const normalizePost = (post, currentUserId) => {
   return {
     ...post,
     text: post.message,
@@ -15,4 +15,4 @@ export function normalizePost(post, currentUserId, friendshipStatus) {
     comments: post.comments || [],
     commentsCount: post.commentsCount ?? post.comments?.length ?? 0,
   };
-}
+};

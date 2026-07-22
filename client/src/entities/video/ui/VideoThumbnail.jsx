@@ -5,11 +5,12 @@ import style from './VideoThumbnail.module.css';
 /**
  * Обложка видео.
  *
- * @param {Object} props
- * @param {Object} props.video
- * @param {boolean} props.isPlaying
- * @param {Object} props.currentVideo
- * @param {Function} props.onPlay
+ * @param {Object} props - пропсы компонента
+ * @param {Object} props.video - данные видео
+ * @param {boolean} props.isPlaying - флаг проигрывается видео true/false
+ * @param {Object} props.currentVideo - данные текущего видео
+ * @param {Function} props.onPlay - функция для воспроизведения видео
+ * @returns {React.ReactNode} - компонент VideoThumbnail
  */
 
 export const VideoThumbnail = ({ video, isPlaying, currentVideo, onPlay }) => {

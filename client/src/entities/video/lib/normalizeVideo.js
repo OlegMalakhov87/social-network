@@ -1,11 +1,12 @@
 /**
  * Преобразует видео из ответа сервера в формат для VideoCard.
+ *
  * @param {Object} raw - видео из ответа сервера
- * @param {number|null} currentUserId
- * @returns {Object}
+ * @param {number|null} currentUserId - ID текущего пользователя
+ * @returns {Object} - нормализованные данные видео
  */
 
-export function normalizeVideo(raw, currentUserId) {
+export const normalizeVideo = (raw, currentUserId) => {
   if (!raw || typeof raw !== 'object') {
     return {
       id: null,
@@ -56,4 +57,4 @@ export function normalizeVideo(raw, currentUserId) {
     commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
     comments: raw.comments || [],
   };
-}
+};

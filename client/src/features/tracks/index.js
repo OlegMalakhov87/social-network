@@ -1,11 +1,5 @@
-//export { useTrackActions } from './model/useTrackActions';
-//export { useTracksFilter } from './model/useTracksFilter';
+export { useUserMusicLibrary } from './model/useUserMusicLibrary'; // Хук для получения треков библиотеки пользователя
 
-// Хук для получения треков пользователя
-export { useUserMusicLibrary } from './model/useUserMusicLibrary';
+export { useMusic } from './model/useMusic'; // Хук для получения треков на странице музыки
 
-// Хук получения треков для общей страницы
-export { useMusic } from './model/useMusic';
-
-// Компонент формы добавления трека
-export { TrackForm } from './ui/TrackForm';
+export { TrackForm } from './ui/TrackForm'; // Форма добавления/редактирования трека

@@ -7,10 +7,10 @@ import style from './PageLoader.module.css';
  * Используется на уровне страниц и крупных разделов приложения.
  *
  * @param {Object} props
- * @param {string} props.message
- * @param {React.ReactNode} props.children
+ * @param {string} props.message - текст загрузки
+ * @param {React.ReactNode} [props.children] - контент ниже загрузчика
  */
-export const PageLoader = ({ message = 'Загрузка...', children }) => {
+export const PageLoader = ({ message = 'Загрузка...', children = null }) => {
   return (
     <section className={style.wrapper}>
       <Loading size="large" message={message} />

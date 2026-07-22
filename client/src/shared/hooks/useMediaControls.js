@@ -1,15 +1,23 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Хук для управления HTMLMediaElement. Инкапсулирует подписку на события,
- * перемотку, громкость и синхронизацию состояния.
- * @param {React.RefObject<HTMLMediaElement>} mediaRef - реф на аудио/видео элемент
- * @param {Object} [options] - дополнительные настройки
- * @param {Function} [options.onEnd] - колбэк при окончании трека
- * @param {Function} [options.onStateChange] - колбэк при изменении состояния (currentTime, duration, progress, isPlaying, isLoading, error)
- * @returns {Object} Методы управления и геттеры volume/isMuted
+ * Хук для управления HTMLMediaElement. Инкапсулирует подписку на события, перемотку, громкость и синхронизацию состояния.
+ *
+ * @param {Object} params - параметры запроса
+ * @param {React.RefObject<HTMLMediaElement>} params.mediaRef - реф на аудио/видео элемент
+ * @param {number} params.stateVolume - начальная громкость
+ * @param {boolean} params.autoPlay - автовоспроизведение
+ * @param {Object} [params.options={}] - дополнительные настройки
+ * @param {Function} [params.options.onEnd] - колбэк при окончании трека
+ * @param {Function} [params.options.onStateChange] - колбэк при изменении состояния (currentTime, duration, progress, isPlaying, isLoading, error)
+ * @returns {Object} - объект с методами управления и геттерами volume/isMuted
  */
-export const useMediaControls = (mediaRef, stateVolume, options = {}, autoPlay) => {
+export const useMediaControls = ({
+  mediaRef,
+  stateVolume,
+  autoPlay,
+  options = {},
+}) => {
   const { onEnd, onStateChange } = options;
 
   // DOM-элемент, к которому привязан ref (извлекается один раз при монтировании)

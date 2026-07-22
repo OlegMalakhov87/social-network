@@ -2,14 +2,12 @@ import { PROFILE_TABS_MAP } from '..';
 
 /**
  * Возвращает компонент активной вкладки профиля.
- *
- * @param {Object} ctx
- * @param {string} ctx.activeTab
- * @param {Object} ctx.tabProps
- * @returns {React.ReactNode}
+ * @param {string} activeTab - активная вкладка
+ * @param {Object} tabProps - пропсы для вкладки
+ * @returns {JSX.Element} - компонент активной вкладки профиля
  */
 
-export const getProfileTabContent = ({ activeTab, tabProps }) => {
+export const getProfileTabContent = (activeTab, tabProps) => {
   const tab = PROFILE_TABS_MAP[activeTab];
 
   if (!tab) return null;

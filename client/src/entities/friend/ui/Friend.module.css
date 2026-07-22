@@ -1,0 +1,17 @@
+.friendshipButton .hoverText {
+  display: none;
+}
+
+.friendshipButton:hover .defaultText {
+  display: none;
+}
+
+.friendshipButton:hover .hoverText {
+  display: inline;
+}
+
+.friendshipButton[variant='secondary']:hover {
+  background: var(--color-danger);
+  color: var(--color-white);
+  border-color: var(--color-danger);
+}

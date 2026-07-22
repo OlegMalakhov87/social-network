@@ -2,35 +2,37 @@ import { api } from '../../../shared/api';
 
 /**
  * Получить пользователя по ID.
- * @param {number} userId
+ * @param {number} userId - ID пользователя
+ * @param {AbortSignal} signal - сигнал отмены запроса
  * @returns {Promise<Object>} - пользователь
  */
-export async function fetchUserById({ userId, signal } = {}) {
+export const fetchUserById = async (userId, signal) => {
   const response = await api.get(`/profile/${userId}`, { signal });
   return response.data;
-}
+};
 
 /**
  * Получить всех пользователей (с пагинацией).
- * @param {Object} params - { page, limit }
+ * @param {Object} params - параметры запроса
+ * @param {number} params.page - номер страницы
+ * @param {number} params.limit - количество на странице
+ * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @returns {Promise<Array>} - массив пользователей
  */
-export async function fetchAllUsers({ page, limit, signal } = {}) {
+export const fetchAllUsers = async ({ page, limit, signal } = {}) => {
   const response = await api.get(`/profile`, {
     params: { page, limit },
     signal,
   });
   return response.data;
-}
+};
 
 /**
  * Получить статус пользователей в сети.
  * @param {Array} userIds - массив ID пользователей
  * @returns {Promise<Array>} - массив статусов пользователей
  */
-export async function fetchUsersOnlineStatus(userIds) {
-  const response = await api.post(`/profile/online-status`, {
-    data: { userIds },
-  });
+export const fetchUsersOnlineStatus = async (userIds) => {
+  const response = await api.post(`/profile/online-status`, { userIds });
   return response.data;
-}
+};

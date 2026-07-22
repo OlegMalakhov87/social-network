@@ -4,7 +4,8 @@ import styles from './ActionsBar.module.css';
 /**
  * Панель действий карточки.
  *
- * @param {Object[]} actions - массив действий
+ * @param {Object} props
+ * @param {Object[]} props.actions - массив действий
  */
 export const ActionsBar = ({ actions = [] }) => {
   return (

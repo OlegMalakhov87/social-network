@@ -4,24 +4,23 @@ import { createAbortableFetch } from '../lib';
 /**
  * Универсальный хук для бесконечной загрузки с пагинацией.
  *
- * @template T
- * @param {Object} config
- * @param {Function} config.fetchFn - функция загрузки данных (async)
- * @param {any[]} config.deps - зависимости для перезапуска
- * @param {number} config.limit - лимит на страницу (по умолчанию 30)
- * @param {Function} config.onSuccess - колбэк успеха
- * @param {Function} config.onError - колбэк ошибки
- * @param {T[]} config.initialItems - начальные данные
- * @returns {Object} - { items, isLoading, hasMore, error, loadMore, refetch, reset }
+ * @param {Object} params - параметры запроса
+ * @param {Function} params.fetchFn - функция загрузки данных
+ * @param {Array} [params.deps=[]] - зависимости для перезапуска запроса
+ * @param {number} [params.limit=30] - лимит на страницу
+ * @param {Function} [params.onSuccess] - функция для выполнения действия при успешном запросе
+ * @param {Function} [params.onError] - функция для выполнения действия при ошибке запроса
+ * @param {Array} [params.initialItems=[]] - начальные данные
+ * @returns {Object} - объект с данными о запросе
  */
-export function useInfiniteScroll({
+export const useInfiniteScroll = ({
   fetchFn,
   deps = [],
   limit = 30,
   onSuccess,
   onError,
   initialItems = [],
-}) {
+}) => {
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -156,4 +155,4 @@ export function useInfiniteScroll({
     reset,
     loadFirstPage,
   };
-}
+};

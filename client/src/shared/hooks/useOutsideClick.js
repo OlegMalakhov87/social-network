@@ -3,11 +3,13 @@ import { useEffect } from 'react';
 /**
  * Вызывает callback при клике вне указанного элемента.
  *
- * @param {React.RefObject<HTMLElement>} ref
- * @param {Function} onOutsideClick
- * @param {boolean} [enabled=true]
+ * @param {Object} params - параметры запроса
+ * @param {React.RefObject<HTMLElement>} params.ref - реф на элемент
+ * @param {Function} params.onOutsideClick - функция вызывается при клике вне элемента
+ * @param {boolean} [params.enabled=true] - включен ли хук
  */
-export function useOutsideClick(ref, onOutsideClick, enabled = true) {
+
+export const useOutsideClick = ({ ref, onOutsideClick, enabled = true }) => {
   useEffect(() => {
     if (!enabled) return;
 
@@ -25,4 +27,4 @@ export function useOutsideClick(ref, onOutsideClick, enabled = true) {
       document.removeEventListener('mousedown', handleMouseDown);
     };
   }, [ref, onOutsideClick, enabled]);
-}
+};

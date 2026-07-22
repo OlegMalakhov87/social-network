@@ -1,10 +1,11 @@
 /**
  * Преобразует сырой объект новости с сервера в формат для NewsCard.
+ *
  * @param {Object} raw - новость из ответа API
  * @param {number|null} currentUserId - ID текущего пользователя
- * @returns {Object}
+ * @returns {Object} - нормализованная новость
  */
-export function normalizeNews(raw, currentUserId) {
+export const normalizeNews = (raw, currentUserId) => {
   return {
     id: raw.id,
     title: raw.title,
@@ -22,4 +23,4 @@ export function normalizeNews(raw, currentUserId) {
     comments: raw.comments || [],
     commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
   };
-}
+};

@@ -5,7 +5,7 @@ import styles from './ProfileActions.module.css';
  * Панель действий профиля.
  *
  * @param {Object} props
- * @param {Array<Object>} props.actions
+ * @param {Array<Object>} props.actions - массив действий (ключ, текст, вариант, disabled, onClick)
  */
 
 export const ProfileActions = ({ actions = [] }) => {

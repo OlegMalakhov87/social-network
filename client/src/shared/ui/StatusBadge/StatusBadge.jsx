@@ -5,16 +5,16 @@ import style from './StatusBadge.module.css';
  * Универсальный бейдж статуса.
  *
  * @param {Object} props
- * @param {'online'|'offline'|'success'|'warning'|'error'|'info'} props.status
- * @param {string} props.label
- * @param {'sm'|'md'|'lg'} [props.size='md']
- * @param {string} [props.className]
+ * @param {'online'|'offline'|'success'|'warning'|'error'|'info'} props.status - статус
+ * @param {string} props.label - лейбл статуса
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - размер статуса
+ * @param {string} [props.className=''] - дополнительный CSS класс
  */
 export const StatusBadge = ({
   status = 'offline',
   label,
   size = 'md',
-  className,
+  className = '',
 }) => {
   return (
     <div

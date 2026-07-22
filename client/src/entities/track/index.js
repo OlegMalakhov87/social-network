@@ -1,26 +1,12 @@
-//export { default as userMusicLibraryReducer } from './model/userMusicLibrarySlice';
-//export { default as musicReducer } from './model/musicSlice';
-//export * from './model/trackSelectors';
-//export { addTrack, deleteTrack } from './model/musicSlice';
-//export { addMusicToLibrary, removeMusicFromLibrary } from './model/userMusicLibrarySlice';
+export * from './api/musicLibraryApi'; // API для библиотеки треков
+export * from './api/musicApi'; // API для треков
 
-// API‑функции для библиотеки пользователя
-export * from './api/musicLibraryApi';
+export * from './model/tracksTabs'; // Мапа для выбора вкладки треков
 
-// API‑функции для страницы треков
-export * from './api/musicApi';
+export { getTrackActions } from './lib/getTrackActions'; // Функция для получения действий для трека
+export { getTrackMeta } from './lib/getTrackMeta'; // Функция для получения метаданных для трека
+export { normalizeTrack } from './lib/normalizeTrack'; // Функция для нормализации данных трека
 
-// Мапа для выбора вкладки треков
-export * from './model/tracksTabs';
-
-// Вспомогательные функции для треков (экшены)
-export { getTrackActions } from './lib/getTrackActions';
-
-// Вспомогательные функции для метаданных треков
-export { getTrackMeta } from './lib/getTrackMeta';
-export { normalizeTrack } from './lib/normalizeTrack';
-
-// Компоненты треков
-export { Track } from './ui/Track';
-export { TrackCover } from './ui/TrackCover';
-export { TrackMeta } from './ui/TrackMeta';
+export { Track } from './ui/Track'; // Компонент для отображения трека
+export { TrackCover } from './ui/TrackCover'; // Компонент для отображения обложки трека
+export { TrackMeta } from './ui/TrackMeta'; // Компонент для отображения метаданных трека
