@@ -20,12 +20,8 @@ export const apiFetchItems = async (fetchApi, { params, signal }) => {
 
   const items = Array.isArray(data?.items) ? data.items : [];
 
-  const itemsWithCount = items.map((item) => ({
-    ...item,
-    commentsCount: item.comments?.length ?? 0,
-  }));
   return {
-    items: itemsWithCount,
+    items,
     hasMore: data?.pagination?.hasMore ?? false,
   };
 };

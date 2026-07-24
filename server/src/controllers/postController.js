@@ -163,6 +163,11 @@ const postController = {
             order: [['createdAt', 'DESC']],
             include: [
               {
+                model: User,
+                as: 'author',
+                attributes: ['id', 'name', 'photoUrl'],
+              },
+              {
                 model: Like,
                 as: 'likes',
                 attributes: ['id', 'userId'],
@@ -180,19 +185,21 @@ const postController = {
         return res.status(200).json({
           posts: [],
           message: 'У пользователя пока нет постов',
-          user: targetUser,
         });
       }
 
       res.json({
-        posts,
+        posts: posts.map((item) => ({
+          ...item.toJSON(),
+          likesCount: item.likes.length,
+          commentsCount: item.comments.length,
+        })),
         pagination: {
           totalPosts: count,
           totalPages: Math.ceil(count / limit),
           currentPage: page,
           hasMore: page * limit < count,
         },
-        user: targetUser,
       });
     } catch (error) {
       console.error('Error in GET /posts/:userId', error);
@@ -326,7 +333,9 @@ const postController = {
       const updates = {};
       if (message !== undefined) {
         if (message.trim().length === 0) {
-          return res.status(400).json({ error: 'Текст поста не может быть пустым' });
+          return res
+            .status(400)
+            .json({ error: 'Текст поста не может быть пустым' });
         }
         updates.message = message.trim();
       }
@@ -338,7 +347,9 @@ const postController = {
 
       // Если нечего обновлять
       if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ error: 'Не указаны поля для обновления' });
+        return res
+          .status(400)
+          .json({ error: 'Не указаны поля для обновления' });
       }
 
       await post.update(updates);

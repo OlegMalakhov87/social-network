@@ -13,11 +13,12 @@ export const normalizeNews = (raw, currentUserId) => {
     date: raw.date,
     author: raw.author,
     category: raw.category,
+    type: raw.type,
     source: raw.source,
-    imageUrl: raw.imageUrl,
-    viewCount: raw.viewCount ?? 0,
+    mediaUrl: raw.mediaUrl,
+    viewsCount: raw.viewsCount ?? 0,
 
-    likesCount: raw.likes?.length ?? 0,
+    likesCount: raw.likesCount ?? raw.likes?.length ?? 0,
     isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
 
     comments: raw.comments || [],

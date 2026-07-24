@@ -21,10 +21,7 @@ export const fetchNewsApi = async ({ page, filter, q, limit, signal }) => {
     },
     signal,
   });
-  return {
-    items: response.data.news || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

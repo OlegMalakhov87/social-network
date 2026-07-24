@@ -105,10 +105,18 @@ const commentController = {
         distinct: true,
       });
 
+      if (comments.length === 0) {
+        return res.status(200).json({
+          comments: [],
+          message: 'Комментариев пока нет',
+        });
+      }
+
       res.json({
-        targetType,
-        targetId,
-        comments,
+        comments: comments.map((item) => ({
+          ...item.toJSON(),
+          likesCount: item.likes.length,
+        })),
         pagination: {
           totalComments: count,
           totalPages: Math.ceil(count / limit),
@@ -117,7 +125,7 @@ const commentController = {
         },
       });
     } catch (error) {
-      console.error('GET /comment/:targetType/:targetId error:', error);
+      console.error('Error in GET /comment/:targetType/:targetId', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },

@@ -12,6 +12,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { normalizeSharedPost } from '../../sharedEntity';
 
 /**
  * Карточка поста.
@@ -49,7 +50,10 @@ export const Post = ({
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
     onShare: () => {
-      sessionStorage.setItem('sharedPostId', post.id);
+      sessionStorage.setItem(
+        'sharedEntity',
+        JSON.stringify(normalizeSharedPost(post))
+      );
       navigate('/messages');
     },
   });

@@ -26,10 +26,7 @@ export const fetchTracksApi = async ({
     },
     signal,
   });
-  return {
-    items: response.data.tracks || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

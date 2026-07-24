@@ -1,35 +1,19 @@
 /**
  * Функция для форматирования времени.
  *
- * @param {number} timestamp - timestamp в миллисекундах.
+ * @param {number} seconds - время в секундах.
  * @returns {string} - форматированное время.
  */
 
-export const formatTime = (timestamp) => {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
+export const formatTime = (seconds) => {
+  if (!seconds || isNaN(seconds)) return '0:00';
 
-  if (diff < 86400000) {
-    // меньше дня
-    return date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const hours = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(mins.toString()).padStart(2, '0')}:${String(secs.toString()).padStart(2, '0')}`;
   }
-  if (diff < 31536000000) {
-    // меньше года
-    return date.toLocaleDateString([], {
-      day: 'numeric',
-      month: 'short',
-    });
-  }
-  if (diff >= 31536000000) {
-    // больше года
-    return date.toLocaleDateString([], {
-      month: 'short',
-      year: 'numeric',
-    });
-  }
+  return `${mins}:${String(secs.toString()).padStart(2, '0')}`;
 };

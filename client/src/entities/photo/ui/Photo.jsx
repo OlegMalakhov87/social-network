@@ -1,18 +1,19 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPhotoActions } from '..';
 import { formatTime } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
+  ConfirmDialog,
   EntityActions,
   EntityContent,
   EntityHeader,
   EntityMeta,
   MediaPreview,
   Text,
-  ConfirmDialog,
 } from '../../../shared/ui';
-import { useState } from 'react';
+import { normalizeSharedPhoto } from '../../sharedEntity';
 
 /**
  * Компонент для отображения карточки фотографии.
@@ -40,8 +41,12 @@ export const Photo = ({
     photo,
     toggleLike,
     toggleComments,
+    onDelete: () => setShowDeleteDialog(true),
     onShare: () => {
-      sessionStorage.setItem('sharedPhotoId', photo?.id);
+      sessionStorage.setItem(
+        'sharedEntity',
+        JSON.stringify(normalizeSharedPhoto(photo))
+      );
       navigate('/messages');
     },
   });

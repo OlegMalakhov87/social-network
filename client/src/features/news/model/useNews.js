@@ -8,7 +8,6 @@ import {
   updateNewsApi,
   updateNewsViewCount,
 } from '../../../entities/news';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -18,6 +17,7 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения и фильтрации новостей с бесконечным скроллом.
@@ -103,11 +103,9 @@ export const useNews = (filter, searchQuery, sortKey) => {
     },
   });
 
-  /** Нормализация и сортировка новостей. */
+  /** Нормализация новостей. */
   const news = useNormalizedData({
     items: newsItems,
-    entityType: 'news',
-    sortKey,
     normalizeFn: normalizeNews,
     userId: currentUser?.id,
   });

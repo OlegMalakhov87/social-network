@@ -13,6 +13,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { normalizeSharedNews } from '../../sharedEntity';
 import style from './News.module.css';
 
 /**
@@ -54,7 +55,10 @@ export const News = ({
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
     onShare: () => {
-      sessionStorage.setItem('sharedNewsId', news);
+      sessionStorage.setItem(
+        'sharedEntity',
+        JSON.stringify(normalizeSharedNews(news))
+      );
       navigate('/messages');
     },
   });

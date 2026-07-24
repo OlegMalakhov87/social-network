@@ -1,65 +1,109 @@
-import { apiFetch } from '../../../shared/api';
+import { api } from '../../../shared/api';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Получить список диалогов
-export async function fetchDialogs() {
-  const response = await apiFetch(`${BASE_URL}/messages/dialogs`);
-  if (!response.ok) throw new Error(`Ошибка загрузки диалогов: ${response.status}`);
-  return response.json();
-}
-
-// Получить список сообщений с выбранным пользователем
-export async function fetchMessages(partnerId) {
-  const response = await apiFetch(`${BASE_URL}/messages/conversation/${partnerId}`);
-  if (!response.ok) throw new Error(`Ошибка загрузки сообщений: ${response.status}`);
-  return response.json();
-}
-
-// Отправить сообщение
-export async function sendMessageApi(receiverId, text) {
-  const response = await apiFetch(`${BASE_URL}/messages`, {
-    method: 'POST',
-    body: JSON.stringify({ receiverId, message: text }),
+/**
+ * Получить список диалогов
+ * @param {Object} params
+ * @param {number} params.page - номер страницы
+ * @param {string} [params.q] - поисковый запрос
+ * @param {number} params.limit - количество элементов на странице
+ * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @returns {Promise<Object>} { items, pagination }
+ */
+export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
+  const response = await api.get(`/messages/dialogs`, {
+    params: {
+      page,
+      limit,
+      q: q?.trim() || undefined,
+    },
+    signal,
   });
-  if (!response.ok) throw new Error(`Ошибка отправки: ${response.status}`);
-  return response.json();
-}
+  return response.data;
+};
 
-// Скрыть сообщение (удаляет сообщение только у текущего пользователя)
-export async function hideMessageApi(messageId) {
-  const response = await apiFetch(`${BASE_URL}/messages/${messageId}`, {
-    method: 'DELETE',
+/**
+ * Получить список сообщений с выбранным пользователем
+ * @param {Object} params
+ * @param {number} params.userId - ID собеседника
+ * @param {number} params.page - номер страницы
+ * @param {number} params.limit - количество элементов на странице
+ * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @returns {Promise<Object>} { items, pagination }
+ */
+export const fetchMessagesApi = async ({ userId, page, limit, signal }) => {
+  const response = await api.get(`/messages/conversation/${userId}`, {
+    params: {
+      page,
+      limit,
+    },
+    signal,
   });
-  if (!response.ok) throw new Error(`Ошибка удаления: ${response.status}`);
-  return response.json();
-}
+  return response.data;
+};
 
-// Редактировать сообщение
-export async function editMessageApi(messageId, newText) {
-  const response = await apiFetch(`${BASE_URL}/messages/${messageId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ message: newText }),
-  });
-  if (!response.ok) throw new Error(`Ошибка редактирования: ${response.status}`);
-  return response.json();
-}
+/**
+ * Получить сообщение по ID
+ * @param {number} messageId - ID сообщения
+ * @returns {Promise<Object>} { message }
+ */
+export const fetchMessageById = async (messageId) => {
+  const response = await api.get(`/messages/${messageId}/shared`);
+  return response.data;
+};
 
-// Отметка о прочтении
-export async function markMessagesAsRead(messageIds) {
-  const response = await apiFetch(`${BASE_URL}/messages/read`, {
-    method: 'PUT',
-    body: JSON.stringify({ messageIds }),
+/**
+ * Отправить сообщение
+ * @param {number} userId - ID собеседника
+ * @param {string} text - текст сообщения
+ * @returns {Promise<Object>} { message }
+ */
+export const sendMessageApi = async (userId, text) => {
+  const response = await api.post(`/messages/send`, {
+    userId,
+    text,
   });
-  if (!response.ok) throw new Error('Ошибка отметки прочтения');
-  return response.json();
-}
+  return response.data;
+};
 
-// Очистить чат с пользователем (удаляет чат только у текущего пользователя)
-export async function clearChatApi(partnerId) {
-  const response = await apiFetch(`${BASE_URL}/messages/clear/${partnerId}`, {
-    method: 'PUT',
+/**
+ * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
+ * @param {number} messageId - ID сообщения
+ * @returns {Promise<Object>} { success: boolean }
+ */
+export const hideMessageApi = async (messageId) => {
+  const response = await api.delete(`/messages/${messageId}/hide`);
+  return response.data;
+};
+
+/**
+ * Обновить сообщение
+ * @param {number} messageId - ID сообщения
+ * @param {string} newText - новый текст сообщения
+ * @returns {Promise<Object>} { success: boolean }
+ */
+export const updateMessageApi = async (messageId, newText) => {
+  const response = await api.put(`/messages/${messageId}/edit`, {
+    text: newText,
   });
-  if (!response.ok) throw new Error('Ошибка очистки чата');
-  return response.json();
-}
+  return response.data;
+};
+
+/**
+ * Отметка о прочтении
+ * @param {number[]} messageIds - массив ID сообщений
+ * @returns {Promise<Object>} { success: boolean }
+ */
+export const markMessagesAsRead = async (messageIds) => {
+  const response = await api.put(`/messages/read`, { messageIds });
+  return response.data;
+};
+
+/**
+ * Очистить чат с пользователем (удаляет чат только у текущего пользователя)
+ * @param {number} userId - ID собеседника
+ * @returns {Promise<Object>} { success: boolean }
+ */
+export const clearChatApi = async (userId) => {
+  const response = await api.put(`/messages/clear/${userId}`);
+  return response.data;
+};

@@ -51,11 +51,11 @@ export const NewsGrid = ({
       onRetry={onRetry}
     >
       <div className={style.newsGrid}>
-        {news.map((item) => {
+        {news.map((news) => {
           return (
             <News
-              key={item.id}
-              news={item}
+              key={news.id}
+              news={news}
               currentUser={currentUser}
               toggleLike={toggleLike}
               onReadMore={onReadMore}

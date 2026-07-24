@@ -25,7 +25,7 @@ export const VideoMeta = (video, mode) => {
         items={[
           {
             icon: '👁️',
-            value: formatViews(video.viewCount),
+            value: formatViews(video.viewsCount),
           },
         ]}
       />

@@ -13,10 +13,7 @@ export const fetchMyVideoLibrary = async ({ page, limit, signal }) => {
     params: { page, limit },
     signal,
   });
-  return {
-    items: response.data.videos || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**
@@ -41,10 +38,7 @@ export const fetchUserVideoLibrary = async ({
     },
     signal,
   });
-  return {
-    items: response.data.videos || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

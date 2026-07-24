@@ -2,7 +2,7 @@ import { api } from '../../../shared/api';
 
 /**
  * Получить комментарии для конкретной сущности.
- * @param {Object} params - параметры запроса 
+ * @param {Object} params - параметры запроса
  * @param {string} params.targetType – 'Post' | 'Music' | 'Video' | 'News'
  * @param {number} params.targetId - ID сущности
  * @param {number} params.page - номер страницы
@@ -21,10 +21,7 @@ export const fetchComments = async ({
     params: { page, limit },
     signal,
   });
-  return {
-    items: response.data.comments || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**
@@ -66,6 +63,4 @@ export const editCommentApi = async (commentId, updates) => {
 export const deleteCommentApi = async (commentId) => {
   const response = await api.delete(`/comments/${commentId}`);
   return response.data;
-};  
-
-
+};

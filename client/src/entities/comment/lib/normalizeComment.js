@@ -6,13 +6,6 @@
  * @returns {Object} - нормализованный комментарий
  */
 export const normalizeComment = (raw, currentUserId) => {
-  const author = raw.author || {
-    id: raw.userId,
-    name: 'Пользователь',
-    photoUrl: '/user.png',
-    isVerified: false,
-  };
-
   return {
     comment: {
       id: raw.id,
@@ -20,11 +13,13 @@ export const normalizeComment = (raw, currentUserId) => {
       targetType: raw.targetType,
       targetId: raw.targetId,
       content: raw.content,
-      date: raw.createdAt,
-      likesCount: raw.likes?.length ?? 0,
+      date: raw.updatedAt ?? raw.createdAt,
+
+      author: raw.author,
+
+      likesCount: raw.likesCount ?? raw.likes?.length ?? 0,
       isLiked:
         raw.likes?.some((like) => like.userId === currentUserId) ?? false,
     },
-    author,
   };
 };

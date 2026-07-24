@@ -1,214 +1,161 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { Message } from '../../../entities/dialog';
+import { MessageForm } from '../../../features/dialogs';
+import { parseSharedEntity } from '../../../shared/lib';
+import {
+  ContentState,
+  EmptyState,
+  EntityMeta,
+  ErrorBanner,
+  IconButton,
+  InfiniteScrollFooter,
+  StatusBadge,
+} from '../../../shared/ui';
 import style from './ChatGrid.module.css';
-import { SendMessageForm } from '../../../features/dialogs';
-import { MessageCard } from '../../../entities/message';
-import { EmptyState, Loading } from '../../../shared/ui';
-import { ImageWithFallback, isSharedPost } from '../../../shared/lib';
 
 /**
- * Панель чата с выбранным пользователем.
+ * Компонент отображения чата.
  * @param {Object} props
- * @param {Array} props.messages - сообщения
+ * @param {Array} props.messages - массив сообщений
  * @param {number} props.currentUserId - ID текущего пользователя
- * @param {Object|null} props.selectedUser - выбранный собеседник
- * @param {Function} props.onSendMessage - отправить сообщение (partnerId)
- * @param {Function} props.onDeleteMessage - удалить сообщение (messageId)
- * @param {Function} props.onEditMessage - редактировать сообщение (messageId, newText)
- * @param {Function} props.onPlayVideo - воспроизвести видео
- * @param {Function} props.onClearChat - очистить чат
- * @param {Function} props.onBack - вернуться к списку диалогов
+ * @param {Object} props.selectedUser - объект выбранного пользователя
+ * @param {boolean} props.isLoadingMessages - флаг загрузки сообщений
+ * @param {boolean} props.isLoadingMore - флаг загрузки следующей порции сообщений
+ * @param {boolean} props.hasMore - флаг наличия следующей порции сообщений
+ * @param {Error} props.messagesError - ошибка загрузки сообщений
+ * @param {Error} props.userError - ошибка загрузки пользователя
+ * @param {Function} props.loadMore - колбэк загрузки следующей порции сообщений
+ * @param {Function} props.onRetry - колбэк повторной загрузки
+ * @param {boolean} props.isLoadingUser - флаг загрузки пользователя
+ * @param {Function} props.onSendMessage - колбэк отправки сообщения
+ * @param {Function} props.onDeleteMessage - колбэк удаления сообщения
+ * @param {Function} props.onUpdateMessage - колбэк обновления сообщения
+ * @param {Function} props.onToggleLike - колбэк лайка сообщения
+ * @param {Function} props.onBack - колбэк назад
+ * @param {Function} props.onPlayMedia - колбэк воспроизведения медиа
+ * @param {Function} props.markAsRead - колбэк чтения сообщения
+ * @param {Function} props.onClearChat - колбэк очистки чата
+ * @param {boolean} props.partnerOnline - флаг онлайн-статуса собеседника
  */
 export const ChatGrid = ({
-  messages,
+  messages = [],
   currentUserId,
   selectedUser,
-  messagesLoading,
-  userLoading,
+  isLoadingMessages,
+  isLoadingMore,
+  hasMore,
+  messagesError,
+  userError,
+  loadMore,
+  onRetry,
+  isLoadingUser,
   onSendMessage,
   onDeleteMessage,
-  onEditMessage,
+  onUpdateMessage,
+  onToggleLike,
   onBack,
-  onPlayVideo,
+  onPlayMedia,
   markAsRead,
   onClearChat,
   partnerOnline,
 }) => {
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editText, setEditText] = useState('');
-
-  // Отмечаем прочтение при появлении сообщений
   useEffect(() => {
-    if (messages.length > 0 && selectedUser) {
+    if (messages.length > 0 && selectedUser?.id) {
       markAsRead?.();
     }
-  }, [messages, selectedUser, markAsRead]);
-
-  const handleStartEdit = (msg) => {
-    setEditingMessageId(msg.id);
-    setEditText(msg.text);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingMessageId(null);
-    setEditText('');
-  };
-
-  const handleSaveEdit = () => {
-    if (editText.trim() && editingMessageId) {
-      onEditMessage(editingMessageId, editText.trim());
-    }
-    setEditingMessageId(null);
-    setEditText('');
-  };
-
-  if (messagesLoading || userLoading) {
-    return <Loading fullPage message="Загружаем сообщения..." size="large" />;
-  }
-
-  if (!selectedUser) {
-    return (
-      <div className={style.emptyWrapper}>
-        <EmptyState
-          icon="💬"
-          title="Выберите диалог"
-          description="Нажмите на имя пользователя, чтобы начать общение"
-        />
-      </div>
-    );
-  }
+  }, [messages, selectedUser?.id, markAsRead]);
 
   return (
-    <div className={style.chat}>
-      {/* Шапка чата */}
-      <div className={style.header}>
-        <button
+    <ContentState
+      loading={isLoadingUser || (isLoadingMessages && messages.length === 0)}
+      error={userError || (messagesError && messages?.length === 0)}
+      isEmpty={!messages?.length}
+      loadingMessage={
+        isLoadingUser ? 'Загружаем пользователя...' : 'Загружаем сообщения...'
+      }
+      emptyIcon="💬"
+      emptyTitle="Нет сообщений"
+      emptyDescription="Начните общение с друзьями"
+      onRetry={onRetry}
+    >
+      <div className={style.chat}>
+        {/* Шапка чата */}
+
+        <EntityMeta
+          avatar={selectedUser?.photoUrl}
+          title={selectedUser?.name}
+        />
+
+        <StatusBadge
+          status={partnerOnline ? 'online' : 'offline'}
+          label={partnerOnline ? 'В сети' : 'Не в сети'}
+          size="sm"
+        />
+        <IconButton
+          icon="🗑️"
+          variant="ghost"
+          size="sm"
+          onClick={() => onClearChat?.(selectedUser?.id)}
+          ariaLabel="Очистить чат"
+        />
+
+        <IconButton
+          icon="←"
+          variant="ghost"
+          size="md"
+          onClick={onBack}
+          ariaLabel="Назад к списку диалогов"
           className={style.backButton}
-          onClick={(e) => {
-            e?.stopPropagation();
-            onBack?.();
-          }}
-          aria-label="Назад"
-        >
-          ←
-        </button>
-        <div className={style.avatar}>
-          <ImageWithFallback src={selectedUser.photoUrl} alt="Фото" fallback="/userPhoto.jpg" />
-        </div>
-        <div className={style.userInfo}>
-          <a href={`/profile/${selectedUser.id}`}>
-            <div className={style.name}>{selectedUser.name}</div>
-          </a>
-          <div className={style.status}>
-            <span className={partnerOnline ? style.onlineDot : style.offlineDot} />
-            {partnerOnline ? 'В сети' : 'Был(а) недавно'}
-          </div>
-        </div>
-        <div className={style.actions}>
-          <button className={style.actionButton} aria-label="Позвонить">
-            📞
-          </button>
-          <button
-            className={style.actionButton}
-            onClick={(e) => {
-              e?.stopPropagation();
-              onClearChat?.(selectedUser.id);
-            }}
-            aria-label="Очистить чат"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
+        />
 
-      {/* Список сообщений */}
-      <div className={style.messagesList}>
+        {/* Список сообщений */}
         {messages.length > 0 ? (
-          messages.map((msg) => {
-            const sharedPost = isSharedPost(msg.text) ? JSON.parse(msg.text) : null;
-
-            if (editingMessageId === msg.id) {
+          <div className={style.messagesList}>
+            {messages.map((msg) => {
+              const sharedEntity = parseSharedEntity(msg.sharedEntity);
               return (
-                // Режим редактирования
-                <div key={msg.id} className={style.editWrapper}>
-                  <textarea
-                    className={style.editInput}
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    autoFocus
-                  />
-                  <div className={style.editActions}>
-                    <button
-                      onClick={(e) => {
-                        e?.stopPropagation();
-                        handleSaveEdit?.();
-                      }}
-                      disabled={!editText.trim()}
-                      aria-label="Сохранить"
-                    >
-                      Сохранить
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e?.stopPropagation();
-                        handleCancelEdit?.();
-                      }}
-                      aria-label="Отмена"
-                    >
-                      Отмена
-                    </button>
-                  </div>
-                </div>
+                <Message
+                  key={msg.id}
+                  message={msg}
+                  sharedEntity={sharedEntity}
+                  isOwn={msg.senderId === currentUserId}
+                  onPlayMedia={onPlayMedia}
+                  toggleLike={onToggleLike}
+                  onUpdate={onUpdateMessage}
+                  onDelete={onDeleteMessage}
+                  onBack={onBack}
+                />
               );
-            }
-            return (
-              <MessageCard
-                key={msg.id}
-                message={msg}
-                isOwn={msg.senderId === currentUserId}
-                sharedPost={sharedPost}
-                onPlayVideo={onPlayVideo}
-                actions={
-                  msg.senderId === currentUserId ? (
-                    <>
-                      {!sharedPost && (
-                        <button
-                          onClick={(e) => {
-                            e?.stopPropagation();
-                            handleStartEdit?.(msg);
-                          }}
-                          aria-label="Редактировать"
-                        >
-                          ✏️
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          onDeleteMessage?.(msg.id);
-                        }}
-                        aria-label="Удалить"
-                      >
-                        🗑️
-                      </button>
-                    </>
-                  ) : null
-                }
-              />
-            );
-          })
-        ) : (
-          <div className={style.emptyWrapper}>
-            <EmptyState
-              icon="✏️"
-              title="Нет сообщений"
-              description="Напишите что-нибудь, чтобы начать диалог"
-            />
+            })}
           </div>
+        ) : (
+          <EmptyState
+            icon="✏️"
+            title="Нет сообщений"
+            description="Напишите что-нибудь, чтобы начать диалог"
+          />
         )}
-      </div>
+        
+        {messages.length > 0 && (
+          <InfiniteScrollFooter
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+            error={messagesError}
+            onRetry={loadMore}
+            endMessage="Сообщений больше нет"
+          />
+        )}
 
-      {/* Форма отправки */}
-      <SendMessageForm partnerId={selectedUser.id} sendMessage={onSendMessage} />
-    </div>
+        {messagesError && messages.length > 0 && (
+          <ErrorBanner
+            message="Не удалось загрузить сообщения"
+            onRetry={loadMore}
+          />
+        )}
+
+        {/* Форма отправки */}
+        <MessageForm partnerId={selectedUser?.id} onSubmit={onSendMessage} />
+      </div>
+    </ContentState>
   );
 };

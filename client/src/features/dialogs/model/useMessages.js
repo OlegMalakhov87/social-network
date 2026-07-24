@@ -1,142 +1,213 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { fetchMessages, markMessagesAsRead } from '../../../entities/dialog';
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  selectToken,
+  selectUser,
+} from '../../../app/providers/slices/auth/authSelectors';
+import { fetchMessagesApi, markMessagesAsRead } from '../../../entities/dialog';
+import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import { normalizeMessage } from '../../../entities/message';
+import { API_URL } from '../../../shared/config';
+import {
+  useInfiniteScroll,
+  useNotify,
+  useOptimisticLike,
+} from '../../../shared/hooks';
+import { apiFetchItems, useNormalizedData } from '../../../shared/lib';
 
 /**
  * Хук для работы с сообщениями выбранного диалога.
  * Предоставляет оптимистичное добавление, замену, удаление,
  * отметку прочтения и обновление отдельных полей сообщений.
  *
- * @param {number|null} partnerId – ID собеседника
- * @returns {{
- *   messages: Array,
- *   isLoading: boolean,
- *   error: string|null,
- *   addOptimistic: (msg: Object) => void,
- *   replaceOptimistic: (tempId: string|number, realMsg: Object) => void,
- *   removeOptimistic: (messageId: number) => void,
- *   updateMessageInState: (messageId: number, updates: Object) => void,
- *   markAsRead: () => Promise<void>,
- *   refetch: () => Promise<void>
- * }}
+ * @param {number|null} userId – ID собеседника
+ * @returns { Object } { messages, isLoading, isLoadingMore, hasMore, error, loadMore, refetch, replaceOptimistic, updateMessageInState, markAsRead, addOptimistic, removeOptimistic }
  */
-export function useMessages(partnerId) {
-  const [rawMessages, setRawMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+export function useMessages(userId) {
+  const currentUser = selectUser();
+  const token = selectToken();
+  const notify = useNotify('dialogs');
+  const readIdsRef = useRef(new Set());
 
-  const currentUserId = useSelector((state) => state.auth.user?.id);
-  const token = useSelector((state) => state.auth.token);
+  /** Получение новостей с бесконечным скроллом. */
+  const {
+    items: messagesItems,
+    setItems: setMessagesItems,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    loadMore,
+    refetch,
+  } = useInfiniteScroll({
+    fetchFn: ({ page, limit, signal }) => {
+      if (!currentUser?.id || !userId) {
+        return { items: [], hasMore: false };
+      }
+      return apiFetchItems(fetchMessagesApi, {
+        params: { userId, page, limit },
+        signal,
+      });
+    },
+    deps: [currentUser?.id, userId],
+    options: {
+      autoFetch: true,
+      onSuccess: () => notify.success('load'),
+      onError: () => notify.error('load'),
+    },
+  });
 
-  // Загрузка истории сообщений
-  const loadMessages = useCallback(async () => {
-    if (!currentUserId || !partnerId) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchMessages(partnerId);
-      setRawMessages(data.messages || []);
-    } catch (err) {
-      setError('Ошибка загрузки сообщений:', err.message);
-      setRawMessages([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUserId, partnerId]);
-
+  /** WebSocket: получение новых сообщений в реальном времени. */
   useEffect(() => {
-    loadMessages();
-  }, [loadMessages]);
+    if (!currentUser?.id || !token || !userId) return;
 
-  // WebSocket: получение новых сообщений в реальном времени
-  useEffect(() => {
-    if (!currentUserId || !token) return;
-    const ws = new WebSocket('ws://localhost:5000');
-    ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
+    let ws;
+    let reconnectTimeout;
+
+    const connect = () => {
+      ws = new WebSocket(API_URL);
+
+      ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
+    };
+
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.type === 'new message') {
+      if (data.type === 'newMessage') {
         const msg = data.message;
         if (
-          (msg.senderId === partnerId && msg.receiverId === currentUserId) ||
-          (msg.receiverId === partnerId && msg.senderId === currentUserId)
+          (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
+          (msg.receiverId === userId && msg.senderId === currentUser?.id)
         ) {
-          setRawMessages((prev) => [...prev, msg]);
+          setMessagesItems((prev) => [...prev, msg]);
         }
       }
     };
-    return () => ws.close();
-  }, [currentUserId, token, partnerId]);
+
+    ws.onclose = () => {
+      // Переподключение через 3 секунды
+      reconnectTimeout = setTimeout(connect, 3000);
+    };
+
+    connect();
+
+    return () => {
+      clearTimeout(reconnectTimeout);
+      ws?.close();
+    };
+  }, [currentUser?.id, userId, setMessagesItems, token]);
 
   /**
-   * Оптимистично добавить сообщение в локальный стейт.
+   * Оптимистичное добавление сообщения.
    * @param {Object} msg – объект сообщения
    */
-  const addOptimistic = useCallback((msg) => {
-    setRawMessages((prev) => [...prev, msg]);
-  }, []);
+  const addOptimistic = useCallback(
+    (msg) => {
+      setMessagesItems((prev) => [...prev, msg]);
+    },
+    [setMessagesItems]
+  );
 
   /**
-   * Заменить временное сообщение реальным (или удалить при ошибке).
+   * Замена временного сообщения на реальное (или удаление при ошибке).
    * @param {string|number} tempId – временный ID
    * @param {Object|null} realMsg – реальный объект сообщения или null для удаления
    */
-  const replaceOptimistic = useCallback((tempId, realMsg) => {
-    setRawMessages((prev) =>
-      realMsg === null
-        ? prev.filter((m) => m.id !== tempId)
-        : prev.map((m) => (m.id === tempId ? { ...m, ...realMsg } : m))
-    );
-  }, []);
+  const replaceOptimistic = useCallback(
+    (tempId, realMsg) => {
+      setMessagesItems((prev) =>
+        realMsg === null
+          ? prev.filter((m) => m.id !== tempId)
+          : prev.map((m) => (m.id === tempId ? { ...m, ...realMsg } : m))
+      );
+    },
+    [setMessagesItems]
+  );
 
   /**
-   * Удалить сообщение из локального стейта (оптимистично).
+   * Оптимистичное удаление сообщения.
    * @param {number} messageId – ID сообщения
    */
-  const removeOptimistic = useCallback((messageId) => {
-    setRawMessages((prev) => prev.filter((m) => m.id !== messageId));
-  }, []);
+  const removeOptimistic = useCallback(
+    (messageId) => {
+      setMessagesItems((prev) => prev.filter((m) => m.id !== messageId));
+    },
+    [setMessagesItems]
+  );
 
   /**
-   * Отметить все непрочитанные входящие сообщения как прочитанные.
+   * Отметка прочтения всех непрочитанных входящих сообщений.
    */
   const markAsRead = useCallback(async () => {
-    const unreadIds = rawMessages
-      .filter((m) => m.senderId === partnerId && m.receiverId === currentUserId && !m.isRead)
+    const unreadIds = messagesItems
+      .filter(
+        (m) =>
+          m.senderId === userId &&
+          m.receiverId === currentUser?.id &&
+          !m.isRead &&
+          !readIdsRef.current.has(m.id)
+      )
       .map((m) => m.id);
+
+    unreadIds.forEach((id) => readIdsRef.current.add(id));
+
     if (unreadIds.length === 0) return;
+
     try {
       await markMessagesAsRead(unreadIds);
-      setRawMessages((prev) =>
+      setMessagesItems((prev) =>
         prev.map((m) => (unreadIds.includes(m.id) ? { ...m, isRead: true } : m))
       );
     } catch (err) {
+      //Откат изменений при ошибке
+      unreadIds.forEach((id) => readIdsRef.current.delete(id));
       console.error('Ошибка отметки прочтения:', err);
     }
-  }, [rawMessages, partnerId, currentUserId]);
+  }, [messagesItems, setMessagesItems, userId, currentUser?.id]);
 
   /**
-   * Обновить отдельные поля сообщения (например, после редактирования).
+   * Обновление отдельных полей сообщения (например, после редактирования).
    * @param {number} messageId – ID сообщения
    * @param {Object} updates – поля для обновления
    */
-  const updateMessageInState = useCallback((messageId, updates) => {
-    setRawMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, ...updates } : m)));
-  }, []);
+  const updateMessageInState = useCallback(
+    (messageId, updates) => {
+      setMessagesItems((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, ...updates } : m))
+      );
+    },
+    [setMessagesItems]
+  );
 
-  // Нормализуем сообщения перед передачей в компоненты
-  const messages = useMemo(() => rawMessages.map(normalizeMessage), [rawMessages]);
+  /** Оптимистичный лайк. */
+  const toggleLike = useOptimisticLike({
+    setItems: setMessagesItems,
+    addLikeFn: addLikeApi,
+    deleteLikeFn: deleteLikeApi,
+    currentUserId: currentUser?.id,
+    targetType: 'messages',
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
+  });
+
+  /** Нормализация сообщений. */
+  const messages = useNormalizedData({
+    items: messagesItems,
+    normalizeFn: normalizeMessage,
+    userId: currentUser?.id,
+  });
 
   return {
     messages,
     isLoading,
+    isLoadingMore,
+    hasMore,
     error,
+    loadMore,
+    refetch,
     replaceOptimistic,
     updateMessageInState,
     markAsRead,
     addOptimistic,
     removeOptimistic,
-    refetch: loadMessages,
+    toggleLike,
   };
 }

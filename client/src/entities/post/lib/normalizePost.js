@@ -1,18 +1,26 @@
 /**
  * Преобразует пост из API в формат компонентов.
  *
- * @param {Object} post - пост с включёнными likes и author
+ * @param {Object} raw - пост с включёнными likes и author
  * @param {number|null} currentUserId - id текущего пользователя
  * @returns {Object} - нормализованный пост
  */
-export const normalizePost = (post, currentUserId) => {
+export const normalizePost = (raw, currentUserId) => {
   return {
-    ...post,
-    text: post.message,
-    createdAt: post.createdAt,
-    likesCount: post.likes?.length ?? 0,
-    isLiked: post.likes?.some((like) => like.userId === currentUserId) ?? false,
-    comments: post.comments || [],
-    commentsCount: post.commentsCount ?? post.comments?.length ?? 0,
+    id: raw.id,
+    userId: raw.userId,
+    text: raw.text,
+    mediaUrl: raw.mediaUrl,
+    visibility: raw.visibility,
+    type: raw.type,
+    date: raw.updatedAt ?? raw.createdAt,
+
+    author: raw.author,
+
+    likesCount: raw.likesCount ?? raw.likes?.length ?? 0,
+    isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+
+    comments: raw.comments || [],
+    commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
   };
 };

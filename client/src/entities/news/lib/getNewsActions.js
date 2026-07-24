@@ -55,7 +55,7 @@ export const getNewsActions = ({
     {
       key: 'views',
       icon: '👁️',
-      label: String(formatViews(news.viewCount ?? 0)),
+      label: String(formatViews(news.viewsCount ?? 0)),
       ariaLabel: 'Просмотры',
       disabled: true,
     },

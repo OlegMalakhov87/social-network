@@ -1,5 +1,5 @@
 /**
- * Преобразует треки из ответа сервера в формат для TrackCard.
+ * Преобразует треки из ответа сервера в формат для Track.
  *
  * @param {Object} raw - треки из ответа сервера
  * @param {number|null} currentUserId - ID текущего пользователя
@@ -20,7 +20,7 @@ export const normalizeTrack = (raw, currentUserId) => {
       description: '',
       isInLibrary: false,
       libraryId: null,
-      playCount: 0,
+      playsCount: 0,
       likesCount: 0,
       isLiked: false,
       commentsCount: 0,
@@ -40,8 +40,8 @@ export const normalizeTrack = (raw, currentUserId) => {
     genre: raw.genre,
     description: raw.description,
     isPublic: raw.isPublic,
-    playCount: raw.playCount ?? 0,
-    createdAt: raw.createdAt,
+    playsCount: raw.playsCount ?? 0,
+    date: raw.updatedAt ?? raw.createdAt,
     libraryCreatedAt: raw.libraryCreatedAt,
     uploaderName: raw.uploader?.name,
 

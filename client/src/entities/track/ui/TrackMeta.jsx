@@ -25,7 +25,7 @@ export const TrackMeta = (track, mode) => {
         items={[
           {
             icon: '▶',
-            value: formatViews(track.playCount),
+            value: formatViews(track.playsCount),
           },
         ]}
       />

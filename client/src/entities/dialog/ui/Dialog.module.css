@@ -1,0 +1,14 @@
+.dialogItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition-fast);
+  padding: var(--space-2);
+}
+
+.dialogItem.active {
+  background: var(--surface-secondary);
+  border-left: 4px solid var(--color-primary);
+}

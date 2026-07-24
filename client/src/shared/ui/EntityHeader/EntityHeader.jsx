@@ -11,11 +11,11 @@ import style from './EntityHeader.module.css';
  * @param {React.ReactNode} [props.rightSlot] - правое поле заголовка
  */
 
-export const EntityHeader = ({ children, leftSlot, rightSlot }) => {
+export const EntityHeader = ({ leftSlot, rightSlot, children }) => {
   return (
     <header className={style.header}>
       {leftSlot && <div className={style.left}>{leftSlot}</div>}
-      <div className={style.content}>{children}</div>
+      {children && <div className={style.content}>{children}</div>}
       {rightSlot && <div className={style.right}>{rightSlot}</div>}
     </header>
   );

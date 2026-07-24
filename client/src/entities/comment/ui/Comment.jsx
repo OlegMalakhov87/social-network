@@ -16,6 +16,7 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
+import { normalizeSharedComment } from '../../sharedEntity';
 import style from './Comment.module.css';
 
 /**
@@ -53,7 +54,10 @@ export const Comment = ({
     onDelete: () => setShowDeleteDialog(true),
     onEdit: () => setIsEditing(true),
     onShare: () => {
-      sessionStorage.setItem('sharedCommentId', comment);
+      sessionStorage.setItem(
+        'sharedEntity',
+        JSON.stringify(normalizeSharedComment(comment))
+      );
       navigate('/messages');
     },
   });

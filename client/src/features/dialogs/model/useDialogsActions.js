@@ -1,34 +1,26 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import {
-  sendMessageApi,
-  hideMessageApi,
-  editMessageApi,
   clearChatApi,
+  updateMessageApi,
+  hideMessageApi,
+  sendMessageApi,
 } from '../../../entities/dialog';
-import { fetchPostById } from '../../../entities/post';
+import { useNotify } from '../../../shared/hooks';
 
 /**
  * Хук действий с сообщениями – предоставляет функции отправки, удаления (скрытия),
- * редактирования, очистки чата и отправки общего поста.
+ * редактирования, очистки чата и отправки общей сущности.
  *
- * @param {string|null} sharedPostId – ID поста, которым делятся (из sessionStorage)
  * @param {Function} addOptimistic – добавить временное сообщение в стейт
  * @param {Function} replaceOptimistic – заменить временное сообщение реальным
  * @param {Function} removeOptimistic – удалить сообщение из стейта (оптимистично)
  * @param {Function} updateMessageInState – обновить поля сообщения (например, после редактирования)
  * @param {Function} refetchDialogs – перезапросить список диалогов
  * @param {Function} refetchMessages – перезапросить список сообщений текущего диалога
- * @returns {{
- *   sendMessage: Function,
- *   deleteMessage: Function,
- *   editMessage: Function,
- *   sendSharedPost: Function,
- *   clearChat: Function
- * }}
+ * @returns {Object} - объект с функциями действий
  */
 export const useDialogsActions = (
-  sharedPostId,
   addOptimistic,
   replaceOptimistic,
   removeOptimistic,
@@ -36,8 +28,8 @@ export const useDialogsActions = (
   refetchDialogs,
   refetchMessages
 ) => {
-  const currentUserId = useSelector((state) => state.auth.user?.id);
-
+  const currentUser = selectUser();
+  const notify = useNotify();
   /**
    * Отправить сообщение партнёру (оптимистично).
    * @param {number} partnerId – ID получателя
@@ -45,12 +37,12 @@ export const useDialogsActions = (
    */
   const sendMessage = useCallback(
     async (partnerId, text) => {
-      if (!currentUserId || !text) return;
+      if (!currentUser?.id || !text) return;
       const tempId = `temp-${Date.now()}`;
       const optimisticMsg = {
         id: tempId,
         message: text,
-        senderId: currentUserId,
+        senderId: currentUser?.id,
         receiverId: partnerId,
         createdAt: new Date().toISOString(),
         isRead: false,
@@ -58,16 +50,18 @@ export const useDialogsActions = (
       addOptimistic?.(optimisticMsg);
       try {
         const result = await sendMessageApi(partnerId, text.trim());
+        notify.success('send');
         // Заменяем временное сообщение реальным
         replaceOptimistic?.(tempId, result);
         refetchDialogs?.();
       } catch (error) {
         // Удаляем временное сообщение при ошибке
         replaceOptimistic?.(tempId, null);
-        console.error('Ошибка отправки:', error);
+        console.error('Ошибка отправки сообщения:', error);
+        notify.error('send');
       }
     },
-    [currentUserId, addOptimistic, replaceOptimistic, refetchDialogs]
+    [currentUser?.id, addOptimistic, replaceOptimistic, refetchDialogs, notify]
   );
 
   /**
@@ -81,11 +75,13 @@ export const useDialogsActions = (
       try {
         await hideMessageApi(messageId);
         refetchDialogs?.();
+        notify.success('delete');
       } catch (error) {
         console.error('Ошибка удаления сообщения:', error);
+        notify.error('delete');
       }
     },
-    [removeOptimistic, refetchDialogs]
+    [removeOptimistic, refetchDialogs, notify]
   );
 
   /**
@@ -93,7 +89,7 @@ export const useDialogsActions = (
    * @param {number} messageId – ID сообщения
    * @param {string} newText – новый текст
    */
-  const editMessage = useCallback(
+  const updateMessage = useCallback(
     async (messageId, newText) => {
       if (!newText.trim()) return;
       updateMessageInState(messageId, {
@@ -102,12 +98,14 @@ export const useDialogsActions = (
         updatedAt: new Date().toISOString(),
       });
       try {
-        await editMessageApi(messageId, newText.trim());
+        await updateMessageApi(messageId, newText.trim());
+        notify.success('edit');
       } catch (error) {
         console.error('Ошибка редактирования:', error);
+        notify.error('edit');
       }
     },
-    [updateMessageInState]
+    [updateMessageInState, notify]
   );
 
   /**
@@ -120,50 +118,43 @@ export const useDialogsActions = (
         await clearChatApi(partnerId);
         refetchMessages?.();
         refetchDialogs?.();
+        notify.success('delete');
       } catch (err) {
         console.error('Ошибка очистки чата:', err);
+        notify.error('delete');
       }
     },
-    [refetchMessages, refetchDialogs]
+    [refetchMessages, refetchDialogs, notify]
   );
 
   /**
-   * Отправить пост в виде структурированного сообщения (шеринг).
-   * @param {number} userId – ID получателя
+   * Отправить расшаренную сущность.
+   * @param {number} partnerId – ID получателя
    */
-  const sendSharedPost = useCallback(
-    async (userId) => {
-      if (!sharedPostId || !currentUserId) return;
+  const sendSharedEntity = useCallback(
+    async (partnerId) => {
+      if (!currentUser?.id) return;
+      const sharedEntity = sessionStorage.getItem('sharedEntity');
+      if (!sharedEntity) return;
+      const entity = JSON.parse(sharedEntity);
       try {
-        const post = await fetchPostById(sharedPostId);
-        const payload = {
-          type: 'sharedPost',
-          postId: post.id,
-          message: post.message,
-          mediaUrl: post.mediaUrl,
-          postType: post.postType,
-          author: post.author,
-          isLiked: post.likes?.some((like) => like.userId === currentUserId) ?? false,
-          likesCount: post.likes?.length ?? 0,
-          commentsCount: post.comments?.length ?? 0,
-          createdAt: post.createdAt,
-        };
-        await sendMessageApi(userId, JSON.stringify(payload));
-        sessionStorage.removeItem('sharedPostId');
-        refetchMessages?.();
-        refetchDialogs?.();
-      } catch (err) {
-        console.error('Ошибка при отправке поста:', err);
+        await sendMessageApi(partnerId, JSON.stringify(entity));
+        notify.success('send');
+      } catch (error) {
+        console.error('Ошибка отправки расшаренной сущности:', error);
+        notify.error('send');
+      } finally {
+        sessionStorage.removeItem('sharedEntity');
       }
     },
-    [sharedPostId, currentUserId, refetchDialogs, refetchMessages]
+    [currentUser?.id, notify]
   );
 
   return {
     sendMessage,
     deleteMessage,
-    editMessage,
-    sendSharedPost,
+    updateMessage,
+    sendSharedEntity,
     clearChat,
   };
 };

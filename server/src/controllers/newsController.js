@@ -88,8 +88,6 @@ const newsController = {
         where[Op.or] = [
           { title: { [Op.iLike]: `%${q}%` } },
           { content: { [Op.iLike]: `%${q}%` } },
-          { author: { [Op.iLike]: `%${q}%` } },
-          { category: { [Op.iLike]: `%${q}%` } },
         ];
       }
 
@@ -105,6 +103,7 @@ const newsController = {
             model: Comment,
             as: 'comments',
             limit: 100,
+            order: [['createdAt', 'DESC']],
             include: [
               {
                 model: User,
@@ -126,6 +125,13 @@ const newsController = {
         distinct: true,
       });
 
+      if (news.length === 0) {
+        return res.status(200).json({
+          news: [],
+          message: 'Новостей пока нет',
+        });
+      }
+
       res.json({
         news,
         pagination: {
@@ -136,7 +142,7 @@ const newsController = {
         },
       });
     } catch (error) {
-      console.error('GET /news error:', error);
+      console.error('Error in GET /news', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
@@ -193,7 +199,7 @@ const newsController = {
 
       res.json(newsWithStats);
     } catch (error) {
-      console.error('GET /news/:newsId error:', error);
+      console.error('Error in GET /news/:newsId', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
@@ -212,28 +218,46 @@ const newsController = {
           {
             model: Like,
             as: 'likes',
-            attributes: ['id'],
+            attributes: ['id', 'userId'],
           },
           {
             model: Comment,
             as: 'comments',
-            attributes: ['id'],
+            limit: 100,
+            order: [['createdAt', 'DESC']],
+            include: [
+              {
+                model: User,
+                as: 'author',
+                attributes: ['id', 'name', 'photoUrl'],
+              },
+              {
+                model: Like,
+                as: 'likes',
+                attributes: ['id', 'userId'],
+              },
+            ],
           },
         ],
-        order: [['date', 'DESC']],
+        order: [['createdAt', 'DESC']],
         limit,
         offset,
         distinct: true,
       });
 
+      if (news.length === 0) {
+        return res.status(200).json({
+          news: [],
+          message: 'В этой категории пока нет новостей',
+        });
+      }
+
       res.json({
         category,
         news: news.map((item) => ({
           ...item.toJSON(),
-          stats: {
-            likesCount: item.likes.length,
-            commentsCount: item.comments.length,
-          },
+          likesCount: item.likes.length,
+          commentsCount: item.comments.length,
         })),
         pagination: {
           totalNews: count,
@@ -243,7 +267,7 @@ const newsController = {
         },
       });
     } catch (error) {
-      console.error('GET /news/category/:cat error:', error);
+      console.error('Error in GET /news/:category', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
@@ -253,7 +277,8 @@ const newsController = {
   // 5. Создать новость
   createNews: async (req, res) => {
     try {
-      const { title, content, date, author, category, source, imageUrl } = req.body;
+      const { title, content, date, author, category, source, imageUrl } =
+        req.body;
 
       if (!title || !content || !author || !category) {
         return res.status(400).json({
@@ -274,7 +299,7 @@ const newsController = {
 
       res.status(201).json(news);
     } catch (error) {
-      console.error('POST /news error:', error);
+      console.error('Error in POST /news', error);
 
       if (error.name === 'SequelizeValidationError') {
         const errors = error.errors.map((err) => ({
@@ -300,7 +325,7 @@ const newsController = {
       await news.increment('viewCount', { by: 1 });
       res.json({ success: true, viewCount: news.viewCount + 1 });
     } catch (error) {
-      console.error('PUT /news/:newsId/view error:', error);
+      console.error('Error in PUT /news/:newsId/view', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
@@ -324,7 +349,7 @@ const newsController = {
 
       res.json(news);
     } catch (error) {
-      console.error('PUT /news/:newsId error:', error);
+      console.error('Error in PUT /news/:newsId', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },
@@ -350,7 +375,7 @@ const newsController = {
         newsId,
       });
     } catch (error) {
-      console.error('DELETE /news/:newsId error:', error);
+      console.error('Error in DELETE /news/:newsId', error);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   },

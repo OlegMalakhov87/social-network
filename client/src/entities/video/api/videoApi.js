@@ -20,10 +20,7 @@ export const fetchVideosApi = async ({ page, limit, filter, q, signal }) => {
     },
     signal,
   });
-  return {
-    items: response.data.videos || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

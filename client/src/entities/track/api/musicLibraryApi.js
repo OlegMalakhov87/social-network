@@ -13,10 +13,7 @@ export const fetchMyMusicLibrary = async ({ page, limit, signal } = {}) => {
     params: { page, limit },
     signal,
   });
-  return {
-    items: response.data.tracks || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**
@@ -41,10 +38,7 @@ export const fetchUserMusicLibrary = async ({
     },
     signal,
   });
-  return {
-    items: response.data.tracks || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

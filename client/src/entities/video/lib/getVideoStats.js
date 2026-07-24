@@ -11,8 +11,8 @@ export const getVideoStats = (video) => {
 
   const stats = [
     { icon: '📁', value: video.size ? formatFileSize(video.size) : null },
-    { icon: '👁', value: formatViews(video.viewCount ?? 0) },
-    { icon: '📅', value: formatTime(video.date || video.createdAt) },
+    { icon: '👁️', value: formatViews(video.viewsCount ?? 0) },
+    { icon: '📅', value: formatTime(video.updatedAt || video.createdAt) },
     { icon: '💬', value: video.commentsCount ?? 0 },
     {
       icon: video.isLiked ? '❤️' : '🤍',

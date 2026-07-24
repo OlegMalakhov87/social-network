@@ -55,7 +55,7 @@ export const VideoPlayer = ({ video, onClose }) => {
         <EntityStats items={statsItems} />
 
         <Text >
-          {video.description || video.message || 'Описание отсутствует'}
+          {video.description || 'Описание отсутствует'}
         </Text>
       </section>
     </Modal>
