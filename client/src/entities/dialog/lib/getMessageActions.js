@@ -1,4 +1,3 @@
-import { normalizeSharedMessage } from '../../../entities/sharedEntity';
 /**
  * Конфигурация элементов управления сообщением.
  *

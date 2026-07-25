@@ -1,5 +1,7 @@
+import { handleKeyboardClick } from '../../../shared/lib';
 import { IconButton, TextArea } from '../../../shared/ui';
 import { maxLength, minLength, useAppForm } from '../../form';
+import style from './MessageForm.module.css';
 
 /**
  * Форма для добавления сообщения
@@ -23,13 +25,20 @@ export const MessageForm = ({ partnerId, onSubmit }) => {
     },
   });
 
+  /** Функция для обработки нажатия клавиши Enter или Space.*/
+  const handleKeyDown = (event) => {
+    handleKeyboardClick(event, form.submit);
+  };
+
   return (
-    <form onSubmit={form.submit}>
+    <form onSubmit={form.submit} className={style.messageFormWrapper}>
       <TextArea
         {...form.register('message')}
         placeholder="Написать сообщение..."
-        rows={3}
+        rows={1}
         disabled={form.isSubmitting}
+        onKeyDown={handleKeyDown}
+        className={style.chatTextarea}
       />
 
       <IconButton
@@ -38,6 +47,7 @@ export const MessageForm = ({ partnerId, onSubmit }) => {
         size="md"
         type="submit"
         disabled={!form.values.message?.trim() || form.isSubmitting}
+        ariaLabel="Отправить сообщение"
       />
     </form>
   );

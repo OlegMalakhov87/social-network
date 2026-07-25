@@ -1,0 +1,12 @@
+.messageFormWrapper {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-primary);
+  align-items: flex-end;
+}
+.chatTextarea {
+  flex: 1;
+  border-radius: var(--radius-full);
+}

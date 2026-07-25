@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useShareEntity } from '../../../features/sharedEntities';
 import {
   useDialogs,
   useDialogsActions,
@@ -26,6 +27,9 @@ export const DialogsPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showMobileDialogs, setShowMobileDialogs] = useState(true);
   const [messageVideo, setMessageVideo] = useState(null);
+
+/** Хук для работы с расшаренными сущностями в sessionStorage.*/
+const { getSharedEntity, clearSharedEntity } = useShareEntity({});
 
   /** Получение данных о диалогах. */
   const {
@@ -69,7 +73,9 @@ export const DialogsPage = () => {
     removeOptimistic,
     updateMessageInState,
     refetchDialogs,
-    refetchMessages
+    refetchMessages,
+    getSharedEntity,
+    clearSharedEntity
   );
 
   /** Получение данных о пользователе. */

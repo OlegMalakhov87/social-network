@@ -7,8 +7,6 @@ export { formatDate } from './formatDate'; // Функция для формат
 export { formatFileSize } from './formatFileSize'; // Функция для форматирования размера файла
 export { formatTime } from './formatTime'; // Функция для форматирования длительности
 export { formatViews } from './formatViews'; // Функция для форматирования количества просмотров
-export { isSharedEntity } from './isSharedEntity'; // Функция для проверки является ли сущность общей
 export { handleKeyboardClick } from './keyboard'; // Функция для обработки нажатий клавиш
 export { linkify } from './linkify'; // Функция для форматирования ссылок
-export { parseSharedEntity } from './parseSharedEntity'; // Функция для парсинга расшаренной сущности
 export { sortByData } from './sortByData'; // Функция для сортировки данных

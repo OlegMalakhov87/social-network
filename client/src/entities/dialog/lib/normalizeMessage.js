@@ -1,3 +1,5 @@
+import { parseSharedEntity } from '../../../entities/sharedEntity';
+
 /**
  * Преобразует сообщение из ответа сервера в формат для Message.
  *
@@ -17,4 +19,6 @@ export const normalizeMessage = (raw, currentUserId) => ({
 
   likesCount: raw.likes?.length ?? 0,
   isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+
+  sharedEntity: parseSharedEntity(raw.message),
 });

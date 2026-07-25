@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Message } from '../../../entities/dialog';
+import { normalizeSharedMessage } from '../../../entities/sharedEntity';
 import { MessageForm } from '../../../features/dialogs';
-import { parseSharedEntity } from '../../../shared/lib';
+import { useShareEntity } from '../../../features/sharedEntities';
 import {
   ContentState,
-  EmptyState,
+  EntityHeader,
   EntityMeta,
   ErrorBanner,
   IconButton,
@@ -59,11 +61,19 @@ export const ChatGrid = ({
   onClearChat,
   partnerOnline,
 }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (messages.length > 0 && selectedUser?.id) {
       markAsRead?.();
     }
   }, [messages, selectedUser?.id, markAsRead]);
+
+  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const { shareEntity } = useShareEntity({
+    normalizeFn: normalizeSharedMessage,
+    onSuccess: () => navigate('/messages'),
+  });
 
   return (
     <ContentState
@@ -79,78 +89,78 @@ export const ChatGrid = ({
       onRetry={onRetry}
     >
       <div className={style.chat}>
-        {/* Шапка чата */}
+        {/* Шапка чата  */}
+        <EntityHeader className={style.chatHeader}>
+          <IconButton
+            icon="←"
+            variant="ghost"
+            size="md"
+            onClick={onBack}
+            ariaLabel="Назад к списку диалогов"
+          />
 
-        <EntityMeta
-          avatar={selectedUser?.photoUrl}
-          title={selectedUser?.name}
-        />
+          <div
+            className={style.userInfo}
+            onClick={() =>
+              selectedUser?.id && navigate(`/profile/${selectedUser?.id}`)
+            }
+          >
+            <EntityMeta
+              avatar={selectedUser?.photoUrl}
+              title={selectedUser?.name}
+              fallback="/userPhoto.jpg"
+            />
+            <StatusBadge
+              status={partnerOnline ? 'online' : 'offline'}
+              label={partnerOnline ? 'В сети' : 'Не в сети'}
+              size="sm"
+              className={style.statusBadge}
+            />
+          </div>
 
-        <StatusBadge
-          status={partnerOnline ? 'online' : 'offline'}
-          label={partnerOnline ? 'В сети' : 'Не в сети'}
-          size="sm"
-        />
-        <IconButton
-          icon="🗑️"
-          variant="ghost"
-          size="sm"
-          onClick={() => onClearChat?.(selectedUser?.id)}
-          ariaLabel="Очистить чат"
-        />
-
-        <IconButton
-          icon="←"
-          variant="ghost"
-          size="md"
-          onClick={onBack}
-          ariaLabel="Назад к списку диалогов"
-          className={style.backButton}
-        />
+          <IconButton
+            icon="🗑️"
+            variant="ghost"
+            size="sm"
+            onClick={() => onClearChat?.(selectedUser?.id)}
+            ariaLabel="Очистить чат"
+          />
+        </EntityHeader>
 
         {/* Список сообщений */}
-        {messages.length > 0 ? (
-          <div className={style.messagesList}>
-            {messages.map((msg) => {
-              const sharedEntity = parseSharedEntity(msg.sharedEntity);
-              return (
-                <Message
-                  key={msg.id}
-                  message={msg}
-                  sharedEntity={sharedEntity}
-                  isOwn={msg.senderId === currentUserId}
-                  onPlayMedia={onPlayMedia}
-                  toggleLike={onToggleLike}
-                  onUpdate={onUpdateMessage}
-                  onDelete={onDeleteMessage}
-                  onBack={onBack}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <EmptyState
-            icon="✏️"
-            title="Нет сообщений"
-            description="Напишите что-нибудь, чтобы начать диалог"
-          />
-        )}
-        
-        {messages.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={messagesError}
-            onRetry={loadMore}
-            endMessage="Сообщений больше нет"
-          />
-        )}
+        <div className={style.messagesList}>
+          {messages.map((msg) => (
+            <Message
+              key={msg.id}
+              message={msg}
+              currentUserId={currentUserId}
+              isOwn={msg.senderId === currentUserId}
+              sharedEntity={msg.sharedEntity}
+              onPlayMedia={onPlayMedia}
+              onShareEntity={shareEntity}
+              toggleLike={onToggleLike}
+              onUpdate={onUpdateMessage}
+              onDelete={onDeleteMessage}
+            />
+          ))}
+        </div>
 
-        {messagesError && messages.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить сообщения"
-            onRetry={loadMore}
-          />
+        {messages.length > 0 && (
+          <>
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={messagesError}
+              onRetry={loadMore}
+              endMessage="Сообщений больше нет"
+            />
+            {messagesError && messages.length > 0 && (
+              <ErrorBanner
+                message="Не удалось загрузить сообщения"
+                onRetry={loadMore}
+              />
+            )}
+          </>
         )}
 
         {/* Форма отправки */}

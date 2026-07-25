@@ -3,7 +3,8 @@ import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import { fetchDialogsApi } from '../../../entities/dialog';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
-import { apiFetchItems, isSharedEntity } from '../../../shared/lib';
+import { apiFetchItems } from '../../../shared/lib';
+import { parseSharedEntity } from '../../../entities/sharedEntity';
 
 /**
  * Хук для получения и отображения списка диалогов.
@@ -60,7 +61,7 @@ export function useDialogs(searchQuery = '') {
         lastMessage: dialog.lastMessage
           ? {
               ...dialog.lastMessage,
-              text: isSharedEntity(dialog.lastMessage.text)
+              text: parseSharedEntity(dialog.lastMessage.text)
                 ? 'Поделился'
                 : dialog.lastMessage.text,
             }

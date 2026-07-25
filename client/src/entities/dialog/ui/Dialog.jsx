@@ -2,6 +2,14 @@ import { classNames, formatTime } from '../../../shared/lib';
 import { EntityMeta, StatusBadge, Text } from '../../../shared/ui';
 import style from './Dialog.module.css';
 
+/**
+ * Компонент отображения диалога.
+ * @param {Object} props
+ * @param {Object} props.user - объект пользователя
+ * @param {boolean} props.isActive - флаг активности диалога
+ * @param {Function} props.onSelect - функция для выбора диалога
+ * @param {Object} props.lastMessage - объект последнего сообщения
+ */
 export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
   return (
     <div
@@ -10,21 +18,30 @@ export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
         e.stopPropagation();
         onSelect?.(user);
       }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Открыть диалог с ${user.name}`}
     >
       <EntityMeta
         avatar={user.photoUrl}
         title={user.name}
-        subtitle={lastMessage && formatTime(lastMessage.date)}
+        subtitle={
+          lastMessage ? (
+            <Text variant="caption" className={style.lastMessageText}>
+              {lastMessage.isOwn ? 'Вы: ' : ''}
+              {lastMessage.text}
+            </Text>
+          ) : (
+            <Text variant="caption">Нет сообщений</Text>
+          )
+        }
       />
-      <Text>
-        {lastMessage
-          ? lastMessage.isOwn
-            ? `Вы: ${lastMessage.text}`
-            : `Новое сообщение: ${lastMessage.text}`
-          : 'Сообщений нет'}
-      </Text>
-
-      <StatusBadge status={user.online ? 'online' : 'offline'} />
+      <div className={style.rightColumn}>
+        <Text variant="caption" className={style.timeText}>
+          {lastMessage && formatTime(lastMessage.date)}
+        </Text>
+        <StatusBadge status={user.online ? 'online' : 'offline'} size="sm" />
+      </div>
     </div>
   );
 };

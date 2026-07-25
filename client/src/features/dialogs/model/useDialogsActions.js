@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
 import {
   clearChatApi,
-  updateMessageApi,
   hideMessageApi,
   sendMessageApi,
+  updateMessageApi,
 } from '../../../entities/dialog';
 import { useNotify } from '../../../shared/hooks';
 
@@ -18,6 +18,8 @@ import { useNotify } from '../../../shared/hooks';
  * @param {Function} updateMessageInState – обновить поля сообщения (например, после редактирования)
  * @param {Function} refetchDialogs – перезапросить список диалогов
  * @param {Function} refetchMessages – перезапросить список сообщений текущего диалога
+ * @param {Function} getSharedEntity – получить расшаренную сущность из sessionStorage
+ * @param {Function} clearSharedEntity – очистить расшаренную сущность из sessionStorage
  * @returns {Object} - объект с функциями действий
  */
 export const useDialogsActions = (
@@ -26,10 +28,13 @@ export const useDialogsActions = (
   removeOptimistic,
   updateMessageInState,
   refetchDialogs,
-  refetchMessages
+  refetchMessages,
+  getSharedEntity,
+  clearSharedEntity
 ) => {
   const currentUser = selectUser();
   const notify = useNotify();
+
   /**
    * Отправить сообщение партнёру (оптимистично).
    * @param {number} partnerId – ID получателя
@@ -134,20 +139,19 @@ export const useDialogsActions = (
   const sendSharedEntity = useCallback(
     async (partnerId) => {
       if (!currentUser?.id) return;
-      const sharedEntity = sessionStorage.getItem('sharedEntity');
+      const sharedEntity = getSharedEntity();
       if (!sharedEntity) return;
-      const entity = JSON.parse(sharedEntity);
       try {
-        await sendMessageApi(partnerId, JSON.stringify(entity));
+        await sendMessageApi(partnerId, sharedEntity);
         notify.success('send');
       } catch (error) {
         console.error('Ошибка отправки расшаренной сущности:', error);
         notify.error('send');
       } finally {
-        sessionStorage.removeItem('sharedEntity');
+        clearSharedEntity();
       }
     },
-    [currentUser?.id, notify]
+    [currentUser?.id, notify, getSharedEntity, clearSharedEntity]
   );
 
   return {

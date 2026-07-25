@@ -9,10 +9,11 @@ import { normalizeMessage } from '../../../entities/message';
 import { API_URL } from '../../../shared/config';
 import {
   useInfiniteScroll,
+  useNormalizedData,
   useNotify,
   useOptimisticLike,
 } from '../../../shared/hooks';
-import { apiFetchItems, useNormalizedData } from '../../../shared/lib';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для работы с сообщениями выбранного диалога.
@@ -26,9 +27,11 @@ export function useMessages(userId) {
   const currentUser = selectUser();
   const token = selectToken();
   const notify = useNotify('dialogs');
+
+  /** Хранение ID прочитанных сообщений.*/
   const readIdsRef = useRef(new Set());
 
-  /** Получение новостей с бесконечным скроллом. */
+  /** Получение сообщений с бесконечным скроллом. */
   const {
     items: messagesItems,
     setItems: setMessagesItems,
@@ -70,15 +73,19 @@ export function useMessages(userId) {
     };
 
     ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === 'newMessage') {
-        const msg = data.message;
-        if (
-          (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
-          (msg.receiverId === userId && msg.senderId === currentUser?.id)
-        ) {
-          setMessagesItems((prev) => [...prev, msg]);
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'newMessage') {
+          const msg = data.message;
+          if (
+            (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
+            (msg.receiverId === userId && msg.senderId === currentUser?.id)
+          ) {
+            setMessagesItems((prev) => [...prev, msg]);
+          }
         }
+      } catch (err) {
+        console.error('Ошибка обработки сообщения:', err);
       }
     };
 
@@ -147,9 +154,9 @@ export function useMessages(userId) {
       )
       .map((m) => m.id);
 
-    unreadIds.forEach((id) => readIdsRef.current.add(id));
-
     if (unreadIds.length === 0) return;
+
+    unreadIds.forEach((id) => readIdsRef.current.add(id));
 
     try {
       await markMessagesAsRead(unreadIds);
