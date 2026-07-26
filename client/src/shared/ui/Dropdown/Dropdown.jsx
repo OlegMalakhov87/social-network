@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useEscapeKey, useLockBodyScroll, useOutsideClick } from '../../hooks';
+import { useEscapeKey, useOutsideClick } from '../../hooks';
 import style from './Dropdown.module.css';
 
 /**
@@ -18,9 +18,6 @@ export const Dropdown = ({ options, currentSort, onChange }) => {
 
   // Закрытие по Escape
   useEscapeKey(() => setIsOpen(false));
-
-  // Блокировка скролла
-  useLockBodyScroll();
 
   // Текущая отображаемая опция
   const items = Object.values(options);

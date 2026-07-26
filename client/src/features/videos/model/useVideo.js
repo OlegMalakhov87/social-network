@@ -1,4 +1,4 @@
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addVideoApi,
@@ -21,6 +21,7 @@ import {
   useOptimisticMutation,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
+import { selectUser } from '../../auth';
 
 /**
  * Хук для получения и отображения видео на странице видео.
@@ -31,7 +32,7 @@ import { apiFetchItems } from '../../../shared/lib';
  * @returns {Object} - объект с данными о видео
  */
 export const useVideos = (filter, searchQuery, sortKey) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify('videos');
 
   /** Получение видео с бесконечным скроллом */
@@ -55,16 +56,14 @@ export const useVideos = (filter, searchQuery, sortKey) => {
           searchQuery,
           page,
           limit,
+          sortKey,
         },
         signal,
       });
     },
     deps: [filter, searchQuery, sortKey],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
 
   /** Оптимистичный переключатель библиотеки */
@@ -114,11 +113,9 @@ export const useVideos = (filter, searchQuery, sortKey) => {
     setItems: setVideosItems,
   });
 
-  /** Нормализация и сортировка */
+  /** Нормализация видео */
   const videos = useNormalizedData({
     items: videosItems,
-    entityType: 'videos',
-    sortKey,
     normalizeFn: (item) => ({
       ...normalizeVideo(item, currentUser?.id),
       profileLibraryId: null,

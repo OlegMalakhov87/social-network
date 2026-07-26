@@ -1,4 +1,4 @@
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addNewsApi,
@@ -18,6 +18,7 @@ import {
   useOptimisticMutation,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
+import { selectUser } from '../../auth';
 
 /**
  * Хук для получения и фильтрации новостей с бесконечным скроллом.
@@ -29,7 +30,7 @@ import { apiFetchItems } from '../../../shared/lib';
  */
 
 export const useNews = (filter, searchQuery, sortKey) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify('news');
 
   /** Получение новостей с бесконечным скроллом. */
@@ -48,16 +49,13 @@ export const useNews = (filter, searchQuery, sortKey) => {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchNewsApi, {
-        params: { filter, q: searchQuery, page, limit },
+        params: { filter, q: searchQuery, page, limit, sortKey },
         signal,
       });
     },
     deps: [filter, searchQuery, sortKey],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
 
   /** Оптимистичный лайк. */

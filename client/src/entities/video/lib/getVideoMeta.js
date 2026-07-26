@@ -1,4 +1,4 @@
-import { formatTime } from '../../../shared/lib';
+import { formatDate } from '../../../shared/lib';
 
 /**
  * Подготавливает данные для отображения VideoMeta.
@@ -7,39 +7,27 @@ import { formatTime } from '../../../shared/lib';
  * @param {string} mode - режим отображения
  * @returns {Object} - данные для отображения VideoMeta
  */
-
 export const getVideoMeta = (video, mode) => {
   return {
     details: [
-      {
-        label: 'Категория',
-        value: video.category,
-      },
-      {
-        label: 'Размер',
-        value: video.size,
-      },
-      {
-        label: 'Год',
-        value: video.year,
-      },
+      { label: 'Категория', value: video.category },
+      { label: 'Размер', value: video.size },
+      { label: 'Год', value: video.year },
     ],
 
     dates:
       mode === 'profile'
         ? {
             label: 'Добавлено',
-            value: formatTime(video.libraryCreatedAt),
-            secondaryLabel: video.lastWatchedAt
-              ? 'Последний просмотр'
-              : undefined,
+            value: formatDate(video.libraryCreatedAt),
+            secondaryLabel: video.lastWatchedAt ? 'Последний просмотр' : undefined,
             secondaryValue: video.lastWatchedAt
-              ? formatTime(video.lastWatchedAt)
+              ? formatDate(video.lastWatchedAt)
               : undefined,
           }
         : {
             label: 'Загружено',
-            value: formatTime(video.createdAt),
+            value: formatDate(video.createdAt),
           },
   };
 };

@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
 import {
   acceptFriendRequest,
   blockUser,
@@ -11,6 +11,7 @@ import {
 } from '../../../entities/friend';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
+import { selectUser } from '../../auth';
 
 /**
  * Хук для загрузки списка друзей/заявок с фильтрацией, поиском и бесконечным скроллом.
@@ -20,7 +21,7 @@ import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
  * @returns {Object} - объект с данными о друзьях
  */
 export const useFriends = (filter, searchQuery) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify('friends');
 
   /** Получение пользователей со статусом связи с текущим пользователем. */
@@ -47,35 +48,9 @@ export const useFriends = (filter, searchQuery) => {
       });
     },
     deps: [filter, searchQuery, currentUser],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
-
-  /** ID пользователей в зависимости от вкладки(фильтра). */
-  const userIds = useMemo(
-    () => friendsItems.map((u) => u.id).filter(Boolean),
-    [friendsItems]
-  );
-  const onlineMap = useOnline(userIds);
-
-  /** Обогащаем данные с онлайн статусом. */
-  const enrichedData = useMemo(
-    () =>
-      friendsItems.map((user) => ({
-        ...user,
-        online: onlineMap.get(user.id) ?? user.online,
-      })),
-    [friendsItems, onlineMap]
-  );
-
-  /** Нормализация под компоненты. */
-  const normalizedFriends = useMemo(
-    () => enrichedData.map(normalizeFriend),
-    [enrichedData]
-  );
 
   /** Оптимистическое обновление статуса (связи) между пользователями. */
   const updateFriendStatus = useCallback(
@@ -199,6 +174,29 @@ export const useFriends = (filter, searchQuery) => {
       }
     },
     [updateFriendStatus, notify, refetch]
+  );
+
+  /** ID пользователей в зависимости от вкладки(фильтра). */
+  const userIds = useMemo(
+    () => friendsItems.map((u) => u.id).filter(Boolean),
+    [friendsItems]
+  );
+  const onlineMap = useOnline(userIds);
+
+  /** Обогащаем данные с онлайн статусом. */
+  const enrichedData = useMemo(
+    () =>
+      friendsItems.map((user) => ({
+        ...user,
+        online: onlineMap.get(user.id) ?? user.online,
+      })),
+    [friendsItems, onlineMap]
+  );
+
+  /** Нормализация под компоненты. */
+  const normalizedFriends = useMemo(
+    () => enrichedData.map(normalizeFriend),
+    [enrichedData]
   );
 
   return {

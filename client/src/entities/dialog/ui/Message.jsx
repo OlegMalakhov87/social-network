@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getMessageActions } from '..';
-import { classNames, formatTime } from '../../../shared/lib';
+import { classNames, formatDate } from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -9,7 +9,7 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
-import { SharedEntityCard } from '../../sharedEntity';
+import { SharedEntityCard } from '../../shared-entity';
 import style from './Message.module.css';
 
 /** Компонент отображения сообщения.
@@ -21,7 +21,6 @@ import style from './Message.module.css';
  * @param {Function} props.onPlayMedia - функция для воспроизведения медиа-контента
  * @param {Function} props.onDelete - функция для удаления сообщения
  * @param {Function} props.toggleLike - функция для лайка/дизлайка сообщения
- * @param {Function} props.onShare - функция для передачи сообщения
  * @param {Function} props.onUpdate - функция для редактирования сообщения
  */
 export const Message = ({
@@ -40,19 +39,16 @@ export const Message = ({
 
   if (!message?.id) return null;
 
-  /** Начало редактирования сообщения.*/
-  const handleStartEdit = (msg) => {
+  const handleStartEdit = () => {
+    setEditText(message.text);
     setIsEditing(true);
-    setEditText(msg.text);
   };
 
-  /** Отмена редактирования сообщения.*/
   const handleCancelEdit = () => {
+    setEditText(message.text);
     setIsEditing(false);
-    setEditText('');
   };
 
-  /** Сохранение редактирования сообщения.*/
   const handleSaveEdit = () => {
     if (editText.trim() && isEditing) {
       onUpdate(message.id, editText.trim());
@@ -60,7 +56,6 @@ export const Message = ({
     handleCancelEdit();
   };
 
-  /** Действия для сообщения.*/
   const actions = getMessageActions({
     message,
     isOwn,
@@ -71,7 +66,6 @@ export const Message = ({
     onShare: () => onShareEntity(message),
   });
 
-  /** Подтверждение удаления сообщения.*/
   const handleConfirmDelete = () => {
     onDelete?.(message.id);
     setShowDeleteDialog(false);
@@ -124,7 +118,7 @@ export const Message = ({
                 {message.isEdited && (
                   <span className={style.editedLabel}>изм. </span>
                 )}
-                {formatTime(message.updateDate || message.createDate)}
+                {formatDate(message.updateDate || message.createDate)}
               </span>
 
               {isOwn && (

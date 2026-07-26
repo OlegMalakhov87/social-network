@@ -1,6 +1,6 @@
-import { handleKeyboardClick } from '../../../shared/lib';
+import { useAppForm } from '../../../shared/hooks';
+import { handleKeyboardClick, maxLength, minLength } from '../../../shared/lib';
 import { IconButton, TextArea } from '../../../shared/ui';
-import { maxLength, minLength, useAppForm } from '../../form';
 import style from './MessageForm.module.css';
 
 /**

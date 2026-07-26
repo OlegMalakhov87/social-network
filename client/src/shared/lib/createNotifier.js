@@ -4,7 +4,7 @@ import { MESSAGES, getEntityName } from '../config';
  * Подставляет переменные в шаблонную строку.
  * @param {string} template - шаблон сообщения
  * @param {object} data - дополнительные данные для интерполяции
- * @returns {string} - сообщение с интерполированными данными
+ * @returns {string}
  */
 const interpolate = (template, data) => {
   if (!data || !template) return template;
@@ -20,76 +20,54 @@ const interpolate = (template, data) => {
 export const createNotifier = (toast, entity = null) => {
   const entityName = entity ? getEntityName(entity) : null;
 
-  /**
-   * Получает сообщение по типу и ключу.
-   * Сначала ищет специфичное для сущности, потом общее, потом default.
-   * @param {string} type - тип уведомления
-   * @param {string} key - ключ сообщения
-   * @param {object} extra - дополнительные данные для интерполяции
-   * @returns {string} - сообщение
-   */
   const getMessage = (type, key, extra) => {
-    let message = null;
+    let message;
 
-    // Пробуем найти специфичное для сущности
     if (entityName && MESSAGES[type]?.[`${entity}.${key}`]) {
       message = MESSAGES[type][`${entity}.${key}`];
-    }
-    // Пробуем найти общее сообщение по ключу
-    else if (MESSAGES[type]?.[key]) {
+    } else if (MESSAGES[type]?.[key]) {
       message = MESSAGES[type][key];
-    }
-    // Берём default
-    else {
+    } else {
       message = MESSAGES[type]?.default || 'Что-то пошло не так';
     }
 
-    // Подставляем переменные, если есть
     return interpolate(message, extra);
   };
 
-  return {
-    /** Показать успешное уведомление */
+  const notifier = {
     success: (key = 'default', extra) => {
-      const message = getMessage('success', key, extra);
-      toast.success?.(message);
+      toast.success?.(getMessage('success', key, extra));
     },
 
-    /** Показать ошибку */
     error: (key = 'default', extra) => {
-      const message = getMessage('error', key, extra);
-      toast.error?.(message);
+      toast.error?.(getMessage('error', key, extra));
     },
 
-    /** Показать предупреждение */
     warning: (key = 'default', extra) => {
-      const message = getMessage('warning', key, extra);
-      toast.warning?.(message);
+      toast.warning?.(getMessage('warning', key, extra));
     },
 
-    /** Показать информационное сообщение */
     info: (key = 'default', extra) => {
-      const message = getMessage('info', key, extra);
-      toast.info?.(message);
+      toast.info?.(getMessage('info', key, extra));
     },
 
     /**
      * Создаёт обработчики onSuccess/onError для типовых операций.
-     * @param {string} action - тип операции: 'add', 'update', 'delete', 'like', 'load', 'loadMore'
+     * @param {string} action - ключ операции: 'add', 'update', 'delete', 'like', 'load'
      * @param {object} [callbacks] - дополнительные колбэки { onSuccess, onError }
-     * @returns {object} - { onSuccess, onError }
+     * @returns {{ onSuccess: Function, onError: Function }}
      */
-    createHandlers: (action, callbacks = {}) => {
-      return {
-        onSuccess: (data) => {
-          this.success(action);
-          callbacks.onSuccess?.(data);
-        },
-        onError: (err) => {
-          this.error(action, { error: err?.message || '' });
-          callbacks.onError?.(err);
-        },
-      };
-    },
+    createHandlers: (action, callbacks = {}) => ({
+      onSuccess: (data) => {
+        notifier.success(action);
+        callbacks.onSuccess?.(data);
+      },
+      onError: (err) => {
+        notifier.error(action, { error: err?.message || '' });
+        callbacks.onError?.(err);
+      },
+    }),
   };
+
+  return notifier;
 };

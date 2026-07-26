@@ -1,13 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFriendshipButtonConfig } from '../../../entities/friend';
-import { getProfileActions, getProfileFields } from '../../../entities/user';
+import {
+  getProfileActions,
+  getProfileFields,
+  ProfileActions,
+  ProfileIdentity,
+} from '../../../entities/user';
 import {
   Avatar,
   BaseCard,
-  EntityDetails,
-  ProfileActions,
-  ProfileIdentity,
+  EntityInfoList,
   StatusBadge,
 } from '../../../shared/ui';
 
@@ -105,7 +108,7 @@ export const UserProfileCard = ({
               </>
             )}
           </ProfileIdentity>
-          <EntityDetails items={infoFields} />
+          <EntityInfoList items={infoFields} />
         </>
       }
     />

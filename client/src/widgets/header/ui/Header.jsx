@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { logout } from '../../../app/providers/slices/authSlice';
+import { logout } from '../../../features/auth';
+import { selectHasUser } from '../../../features/auth/model/authSelectors';
 import { classNames } from '../../../shared/lib';
 import { Button, Image, SearchField } from '../../../shared/ui';
 import style from './Header.module.css';
@@ -15,7 +16,7 @@ export const Header = ({ onSearchChange }) => {
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector(selectHasUser);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -32,20 +33,17 @@ export const Header = ({ onSearchChange }) => {
 
   const handleLogout = async () => {
     await dispatch(logout()).unwrap();
-
     navigate('/login');
   };
 
   return (
     <header className={style.header}>
       <div className={style.logo}>
-        <NavLink to="/profile">
+        <NavLink to="/profile" aria-label="Главная страница">
           <Image
             src="/revivo-50.png"
-            alt="Revivo"
-            width={50}
-            height={50}
-            fallbackSrc="/revivo-50.png"
+            alt="Revivo Logo"
+            fallback="/revivo-50.png"
             className={style.logoImage}
           />
         </NavLink>
@@ -58,13 +56,12 @@ export const Header = ({ onSearchChange }) => {
             classNames(style.navLink, isActive && style.active)
           }
         >
-          Главная страница
+          Главная
         </NavLink>
       </nav>
 
       <div className={style.search}>
         <SearchField
-          type="search"
           value={searchValue}
           onChange={handleSearchChange}
           onKeyDown={handleSearchSubmit}
@@ -75,14 +72,18 @@ export const Header = ({ onSearchChange }) => {
 
       <div className={style.auth}>
         {isAuthenticated ? (
-          <Button variant="secondary" onClick={handleLogout}>
+          <Button variant="secondary" size="sm" onClick={handleLogout}>
             Выйти
           </Button>
         ) : (
           <NavLink
             to="/login"
             className={({ isActive }) =>
-              classNames(style.navLink, isActive && style.active)
+              classNames(
+                style.navLink,
+                style.authLink,
+                isActive && style.active
+              )
             }
           >
             Войти

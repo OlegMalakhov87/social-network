@@ -1,6 +1,8 @@
 export { useAbortableRequest } from './useAbortableRequest'; // Хук для отмены запроса
+export { useAppForm } from './useAppForm'; // Хук для управления формой
 export { useEscapeKey } from './useEscapeKey'; // Хук для обработки нажатий клавиш
 export { useFilterControls } from './useFilterControls'; // Хук для управления фильтрами
+export { useForm } from './useForm'; // Универсальный хук управления формой
 export { useInfiniteScroll } from './useInfiniteScroll'; // Хук для бесконечного скролла
 export { useLockBodyScroll } from './useLockBodyScroll'; // Хук для блокировки скролла
 export { useMediaControls } from './useMediaControls'; // Хук для управления медиаплеером
@@ -14,3 +16,4 @@ export { useOptimisticLike } from './useOptimisticLike'; // Хук для опт
 export { useOptimisticMutation } from './useOptimisticMutation'; // Хук для оптимистичных мутаций
 export { useOutsideClick } from './useOutsideClick'; // Хук для обработки кликов вне элемента
 export { usePagination } from './usePagination'; // Хук для пагинации данных
+export { useValidation } from './useValidation'; // Универсальный хук валидации формы

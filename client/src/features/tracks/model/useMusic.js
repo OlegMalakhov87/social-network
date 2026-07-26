@@ -1,4 +1,4 @@
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addTrackApi,
@@ -10,7 +10,6 @@ import {
   normalizeTrack,
   updateTrackApi,
 } from '../../../entities/track';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -21,6 +20,8 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
+import { selectUser } from '../../auth';
 
 /**
  * Хук для получения и управления треками на странице музыки с бесконечным скроллом.
@@ -31,7 +32,7 @@ import {
  * @returns {Object} - объект с данными о треках
  */
 export const useMusic = (filter, searchQuery, sortKey) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify('tracks');
 
   /** Получение треков с бесконечным скроллом */
@@ -55,16 +56,14 @@ export const useMusic = (filter, searchQuery, sortKey) => {
           searchQuery,
           page,
           limit,
+          sortKey,
         },
         signal,
       });
     },
     deps: [filter, searchQuery, sortKey],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
 
   /** Оптимистичный переключатель библиотеки */
@@ -114,11 +113,9 @@ export const useMusic = (filter, searchQuery, sortKey) => {
     setItems: setTracksItems,
   });
 
-  /** Нормализация и сортировка */
+  /** Нормализация треков */
   const tracks = useNormalizedData({
     items: tracksItems,
-    entityType: 'tracks',
-    sortKey,
     normalizeFn: (item) => ({
       ...normalizeTrack(item, currentUser?.id),
       profileLibraryId: null,

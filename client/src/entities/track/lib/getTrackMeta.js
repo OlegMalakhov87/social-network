@@ -1,4 +1,4 @@
-import { formatTime } from '../../../shared/lib';
+import { formatDate } from '../../../shared/lib';
 
 /**
  * Подготавливает данные для отображения TrackMeta.
@@ -6,33 +6,23 @@ import { formatTime } from '../../../shared/lib';
  * @param {Object} track - данные трека
  * @param {string} mode - режим отображения
  */
-
 export const getTrackMeta = (track, mode) => {
   return {
     details: [
-      {
-        label: 'Исполнитель',
-        value: track.artist,
-      },
-      {
-        label: 'Альбом',
-        value: track.album,
-      },
-      {
-        label: 'Год',
-        value: track.year,
-      },
+      { label: 'Исполнитель', value: track.artist },
+      { label: 'Альбом', value: track.album },
+      { label: 'Год', value: track.year },
     ],
 
     dates:
       mode === 'profile'
         ? {
             label: 'Добавлено',
-            value: formatTime(track.libraryCreatedAt),
+            value: formatDate(track.libraryCreatedAt),
           }
         : {
             label: 'Загружено',
-            value: formatTime(track.createdAt),
+            value: formatDate(track.createdAt),
           },
   };
 };

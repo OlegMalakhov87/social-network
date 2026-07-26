@@ -1,4 +1,4 @@
-import { classNames, formatTime } from '../../../shared/lib';
+import { classNames, formatDate } from '../../../shared/lib';
 import { EntityMeta, StatusBadge, Text } from '../../../shared/ui';
 import style from './Dialog.module.css';
 
@@ -38,7 +38,7 @@ export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
       />
       <div className={style.rightColumn}>
         <Text variant="caption" className={style.timeText}>
-          {lastMessage && formatTime(lastMessage.date)}
+          {lastMessage && formatDate(lastMessage.date)}
         </Text>
         <StatusBadge status={user.online ? 'online' : 'offline'} size="sm" />
       </div>

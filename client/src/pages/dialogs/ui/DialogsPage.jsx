@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useShareEntity } from '../../../features/sharedEntities';
+import { useShareEntity } from '../../../features/shared-entities';
 import {
   useDialogs,
   useDialogsActions,

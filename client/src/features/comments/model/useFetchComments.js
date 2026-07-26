@@ -6,7 +6,6 @@ import {
   updateCommentApi,
 } from '../../../entities/comment';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -14,6 +13,7 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения комментариев с бесконечным скроллом.
@@ -51,7 +51,7 @@ export const useFetchComments = ({
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchCommentsApi, {
-        params: { targetType, targetId, page, limit },
+        params: { targetType, targetId, page, limit, sortKey },
         signal,
       });
     },
@@ -101,8 +101,6 @@ export const useFetchComments = ({
   /** Нормализация и сортировка комментариев. */
   const comments = useNormalizedData({
     items: commentsItems,
-    entityType: 'comments',
-    sortKey,
     normalizeFn: normalizeComment,
     userId: currentUserId,
   });

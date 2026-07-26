@@ -1,3 +1,5 @@
+import { useAppForm } from '../../../shared/hooks';
+import { maxLength, minLength } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -6,11 +8,10 @@ import {
   EntityMeta,
   TextArea,
 } from '../../../shared/ui';
-import { maxLength, minLength, useAppForm } from '../../form';
 
 /**
  * Форма для добавления комментария
- * @param {Object} props - пропсы компонента  
+ * @param {Object} props - пропсы компонента
  * @param {Object} props.currentUser - данные текущего пользователя
  * @param {Function} props.onSubmit - функция для отправки формы
  * @param {Function} props.onClose - функция для закрытия формы

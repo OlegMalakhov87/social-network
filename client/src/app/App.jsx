@@ -1,33 +1,31 @@
 import './style/App.css';
 // React
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 // Router
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 // Pages
-import { LoginPage } from '../pages/authorization';
-import { RegisterPage } from '../pages/authorization';
-import { ProfilePage } from '../pages/profile';
+import { LoginPage, RegisterPage } from '../pages/authorization';
 import { DialogsPage } from '../pages/dialogs';
-import { NewsPage } from '../pages/news';
-import { MusicPage } from '../pages/music';
-import { VideosPage } from '../pages/videos';
-import { SettingsPage } from '../pages/settings';
 import { FriendsPage } from '../pages/friends';
+import { MusicPage } from '../pages/music';
+import { NewsPage } from '../pages/news';
+import { ProfilePage } from '../pages/profile';
+import { SettingsPage } from '../pages/settings';
+import { VideosPage } from '../pages/videos';
 // Widgets
+import {
+  AudioPlayerContainer,
+  AudioPlayerProvider,
+} from '../widgets/audio-player';
+import { Footer } from '../widgets/footer';
 import { Header } from '../widgets/header';
 import { Navbar } from '../widgets/navbar';
-import { Footer } from '../widgets/footer';
 import { Sidebar } from '../widgets/sidebar';
-import {
-  AudioPlayerProvider,
-  AudioPlayerContainer,
-} from '../widgets/audio-player';
 // Shared
-import { PrivateRoute } from '../shared/ui';
-import { ToastProvider } from '../shared/ui';
+import { PrivateRoute, ToastProvider } from '../shared/ui';
 // Redux
-import { fetchCurrentUser } from '../app/providers/slices/authSlice';
+import { fetchCurrentUser } from '../features/auth';
 
 /**
  * Корневой компонент приложения.

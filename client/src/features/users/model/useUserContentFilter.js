@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../auth';
 import {
   addTrackToLibrary,
   deleteTrackFromLibrary,
@@ -7,7 +8,7 @@ import {
 import {
   addVideoToLibrary,
   deleteVideoFromLibrary,
-} from '../../../entities/video ';
+} from '../../../entities/video';
 import { useUserPosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
 import { useLibraryResource, useUserProfile } from '../../users';
@@ -22,7 +23,7 @@ import { useUserVideoLibrary } from '../../videos';
  * @returns {Object} - объект с данными о контенте пользователя
  */
 export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
 
   /**
    * Получение ID пользователя и приводим к правильному типу
@@ -109,12 +110,12 @@ export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
     error: errorTracks,
     refetch: refetchTracks,
     setTracksItems,
-  } = useUserMusicLibrary(
-    config.tracks ? targetUser?.id : null,
-    currentUser?.id,
+  } = useUserMusicLibrary({
+    profileUserId: config.tracks ? targetUser?.id : null,
+    currentUserId: currentUser?.id,
     isOwnProfile,
-    sortKey
-  );
+    sortKey,
+  });
 
   /**
    * Загружаем видео пользователя только когда активна вкладка Video
@@ -130,12 +131,12 @@ export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
     error: errorVideos,
     refetch: refetchVideos,
     setVideosItems,
-  } = useUserVideoLibrary(
-    config.videos ? targetUser?.id : null,
-    currentUser?.id,
+  } = useUserVideoLibrary({
+    profileUserId: config.videos ? targetUser?.id : null,
+    currentUserId: currentUser?.id,
     isOwnProfile,
-    sortKey
-  );
+    sortKey,
+  });
 
   /**
    * Получение функции для обновления setItems в зависимости от типа контента

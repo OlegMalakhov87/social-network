@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../auth';
 import {
   clearChatApi,
   hideMessageApi,
@@ -32,7 +33,7 @@ export const useDialogsActions = (
   getSharedEntity,
   clearSharedEntity
 ) => {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify();
 
   /**
@@ -46,7 +47,7 @@ export const useDialogsActions = (
       const tempId = `temp-${Date.now()}`;
       const optimisticMsg = {
         id: tempId,
-        message: text,
+        text,
         senderId: currentUser?.id,
         receiverId: partnerId,
         createdAt: new Date().toISOString(),
@@ -98,7 +99,7 @@ export const useDialogsActions = (
     async (messageId, newText) => {
       if (!newText.trim()) return;
       updateMessageInState(messageId, {
-        message: newText,
+        text: newText,
         isEdited: true,
         updatedAt: new Date().toISOString(),
       });

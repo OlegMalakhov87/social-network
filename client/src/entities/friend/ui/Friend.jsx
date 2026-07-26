@@ -11,8 +11,8 @@ import {
   Button,
   ConfirmDialog,
   EntityContent,
-  EntityDetails,
   EntityHeader,
+  EntityInfoList,
   EntityMeta,
   StatusBadge,
 } from '../../../shared/ui';
@@ -103,7 +103,7 @@ export const Friend = ({
         }
         content={
           <EntityContent>
-            <EntityDetails items={friendDetails} />
+            <EntityInfoList items={friendDetails} />
           </EntityContent>
         }
         actions={

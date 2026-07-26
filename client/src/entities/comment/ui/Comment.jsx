@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCommentActions } from '..';
-import { formatTime } from '../../../shared/lib';
+import { formatDate } from '../../../shared/lib';
 import {
   Avatar,
   Badge,
@@ -16,7 +16,7 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
-import { normalizeSharedComment } from '../../sharedEntity';
+import { normalizeSharedComment } from '../../shared-entity';
 import style from './Comment.module.css';
 
 /**
@@ -107,7 +107,7 @@ export const Comment = ({
                   )}
                 </Link>
               }
-              subtitle={formatTime(comment.updatedAt || comment.createdAt)}
+              subtitle={formatDate(comment.updatedAt || comment.createdAt)}
             />
           </EntityHeader>
         }

@@ -1,19 +1,21 @@
 :root {
   /* =======================================================
-      COLORS
+      COLORS — Brand
    ======================================================= */
-
-  /* Brand */
 
   --color-primary: #667eea;
   --color-primary-hover: #5a67d8;
   --color-primary-active: #4c5fd0;
+  --color-primary-accent: #764ba2;
 
   /* Feedback */
 
   --color-success: #22c55e;
+  --color-success-hover: #16a34a;
   --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
   --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
   --color-info: #3b82f6;
 
   /* Base */
@@ -23,26 +25,34 @@
 
   /* =======================================================
       SURFACE TOKENS
+      Меняются в themes.css при смене темы
    ======================================================= */
 
   --surface-page: #f5f7fa;
   --surface-card: #ffffff;
   --surface-card-hover: #f9fafb;
   --surface-secondary: #f3f4f6;
+  --surface-nav: #2d3748;
   --surface-overlay: rgba(0, 0, 0, 0.45);
 
   /* =======================================================
       TEXT TOKENS
+      Меняются в themes.css при смене темы
    ======================================================= */
 
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
-  --text-disabled: #9ca3af;
+  --text-disabled: #c4c7cc;
   --text-inverse: #ffffff;
+
+  /* Text on dark nav (остаётся светлым в обеих темах) */
+  --text-on-nav: #e2e8f0;
+  --text-on-nav-muted: #a0aec0;
 
   /* =======================================================
       BORDER TOKENS
+      Меняются в themes.css при смене темы
    ======================================================= */
 
   --border-primary: #d1d5db;
@@ -50,22 +60,26 @@
   --border-focus: var(--color-primary);
 
   /* =======================================================
+      SCROLLBAR TOKENS
+      Меняются в themes.css при смене темы
+   ======================================================= */
+
+  --scrollbar-track: var(--surface-secondary);
+  --scrollbar-thumb: var(--border-primary);
+  --scrollbar-thumb-hover: var(--text-tertiary);
+
+  /* =======================================================
       SHADOWS
+      Меняются в themes.css при смене темы
    ======================================================= */
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
-
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
-
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.18);
-
   --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.24);
-
-  --shadow-focus: 0 0 0 3px rgba(102, 126, 234, 0.2);
-
-  --shadow-danger: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(102, 126, 234, 0.25);
+  --shadow-danger: 0 0 0 3px rgba(239, 68, 68, 0.2);
 
   /* =======================================================
       BORDER RADIUS
@@ -80,6 +94,7 @@
 
   /* =======================================================
       SPACING
+      Шкала: --space-N = N × 4px
    ======================================================= */
 
   --space-1: 4px;
@@ -105,8 +120,7 @@
       TYPOGRAPHY
    ======================================================= */
 
-  --font-family:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --font-xs: 12px;
   --font-sm: 14px;
@@ -127,9 +141,7 @@
    ======================================================= */
 
   --transition-fast: 0.15s ease;
-
   --transition-normal: 0.25s ease;
-
   --transition-slow: 0.4s ease;
 
   /* =======================================================
@@ -146,10 +158,7 @@
    ======================================================= */
 
   --container-width: 1200px;
-
   --header-height: 60px;
-
   --sidebar-width: 220px;
-
   --info-width: 260px;
 }

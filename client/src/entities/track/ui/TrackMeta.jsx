@@ -1,23 +1,23 @@
 import { getTrackMeta } from '..';
 import { formatViews } from '../../../shared/lib';
-import { EntityDates, EntityDetails, EntityStats } from '../../../shared/ui';
+import { EntityDates, EntityInfoList, EntityStats } from '../../../shared/ui';
 import style from './TrackMeta.module.css';
 
 /**
  * Информация о треке.
  *
- * @param {Object} track - данные трека
- * @param {string} mode - режим отображения
+ * @param {Object} props
+ * @param {Object} props.track - данные трека
+ * @param {string} [props.mode] - режим отображения
  */
-
-export const TrackMeta = (track, mode) => {
+export const TrackMeta = ({ track, mode }) => {
   const meta = getTrackMeta(track, mode);
 
   return (
     <div className={style.meta}>
       <h3 className={style.title}>{track.title}</h3>
 
-      <EntityDetails items={meta.details} />
+      <EntityInfoList items={meta.details} />
 
       <EntityDates {...meta.dates} />
 

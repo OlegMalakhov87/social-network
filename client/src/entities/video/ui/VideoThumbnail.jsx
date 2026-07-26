@@ -1,4 +1,4 @@
-import { formatDuration } from '../../../shared/lib';
+import { formatTime } from '../../../shared/lib';
 import { Badge, IconButton, MediaPreview } from '../../../shared/ui';
 import style from './VideoThumbnail.module.css';
 
@@ -31,7 +31,7 @@ export const VideoThumbnail = ({ video, isPlaying, currentVideo, onPlay }) => {
           ariaLabel={playing ? 'Поставить на паузу' : 'Воспроизвести видео'}
         />
 
-        <Badge size="sm">{formatDuration(video.duration)}</Badge>
+        <Badge size="sm">{formatTime(video.duration)}</Badge>
       </div>
     </div>
   );

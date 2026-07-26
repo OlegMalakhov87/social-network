@@ -9,4 +9,5 @@ export { formatTime } from './formatTime'; // Функция для формат
 export { formatViews } from './formatViews'; // Функция для форматирования количества просмотров
 export { handleKeyboardClick } from './keyboard'; // Функция для обработки нажатий клавиш
 export { linkify } from './linkify'; // Функция для форматирования ссылок
-export { sortByData } from './sortByData'; // Функция для сортировки данных
+export { sortItems } from './sortItems'; // Функция для сортировки данных
+export * from './validators'; // Валидаторы

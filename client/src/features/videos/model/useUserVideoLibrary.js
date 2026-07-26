@@ -3,12 +3,12 @@ import {
   fetchUserVideoLibrary,
   normalizeVideo,
 } from '../../../entities/video';
-import { apiFetchItems } from '../../../shared/lib';
 import {
   useInfiniteScroll,
   useNormalizedData,
   useNotify,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения видео библиотеки пользователя.
@@ -46,7 +46,7 @@ export const useUserVideoLibrary = ({
       return apiFetchItems(
         isOwnProfile ? fetchMyVideoLibrary : fetchUserVideoLibrary,
         {
-          params: { userId: profileUserId, page, limit },
+          params: { userId: profileUserId, page, limit, sortKey },
           signal,
         }
       );
@@ -56,11 +56,9 @@ export const useUserVideoLibrary = ({
     onError: () => notify.error('load'),
   });
 
-  /** Нормализация и сортировка видео. */
+  /** Нормализация видео. */
   const videos = useNormalizedData({
     items: videosItems,
-    entityType: 'videos',
-    sortKey,
     normalizeFn: normalizeVideo,
     userId: currentUserId,
   });

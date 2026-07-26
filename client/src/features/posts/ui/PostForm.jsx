@@ -1,11 +1,6 @@
 import { POST_TYPES, VISIBILITY_OPTIONS } from '../../../entities/post';
-import {
-  maxLength,
-  minLength,
-  required,
-  url,
-  useAppForm,
-} from '../../../features/form';
+import { useAppForm } from '../../../shared/hooks';
+import { maxLength, minLength, required, url } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -23,7 +18,7 @@ import {
  * @param {Function} onClose - функция для закрытия формы
  * @param {Function} onSubmit - функция для отправки формы
  */
-export const PostForm = (initialData, onClose, onSubmit) => {
+export const PostForm = ({ initialData, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useAppForm({

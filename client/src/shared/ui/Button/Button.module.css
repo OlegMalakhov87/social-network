@@ -98,7 +98,7 @@
 }
 
 .success:hover:not(:disabled) {
-  background: var(--surface-card-hover);
+  background: var(--color-success-hover);
 }
 
 .danger {
@@ -107,7 +107,7 @@
 }
 
 .danger:hover:not(:disabled) {
-  background: var(--surface-card-hover);
+  background: var(--color-danger-hover);
 }
 
 .fullWidth {

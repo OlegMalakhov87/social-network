@@ -20,7 +20,7 @@
     rgba(255, 255, 255, 0.35),
     transparent
   );
-  animation: skeleton-loading var(--transition-fast) infinite;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
 }
 
 @keyframes skeleton-loading {

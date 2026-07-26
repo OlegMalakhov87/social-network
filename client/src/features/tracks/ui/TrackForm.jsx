@@ -1,4 +1,6 @@
 import { GENRE_OPTIONS } from '../../../entities/track';
+import { useAppForm } from '../../../shared/hooks';
+import { maxLength, minLength, required, url } from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -8,7 +10,6 @@ import {
   Select,
   TextArea,
 } from '../../../shared/ui';
-import { maxLength, minLength, required, url, useAppForm } from '../../form';
 /**
  * Форма добавления/редактирования трека с валидацией.
  *
@@ -16,7 +17,7 @@ import { maxLength, minLength, required, url, useAppForm } from '../../form';
  * @param {Function} onClose - функция для закрытия формы
  * @param {Function} onSubmit - функция для отправки формы
  */
-export const TrackForm = (initialData, onClose, onSubmit) => {
+export const TrackForm = ({ initialData, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для создания/редактирования трека с валидацией*/
   const form = useAppForm({

@@ -1,3 +1,7 @@
+/* =======================================================
+    APP WRAPPER — Grid-layout всего приложения
+   ======================================================= */
+
 *,
 *::before,
 *::after {
@@ -9,106 +13,122 @@
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family: var(--font-family);
 }
 
 .app_wrapper {
   display: grid;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container-width);
   min-height: 100vh;
   margin: 0 auto;
   gap: 2px;
   grid-template-columns: 200px 1fr 250px;
-  grid-template-rows: 60px 1fr auto;
+  grid-template-rows: var(--header-height) 1fr auto;
   grid-template-areas:
     'h h h'
     'n m i'
     'f f f';
 }
 
-/* Десктоп (по умолчанию) */
+/* =======================================================
+    LAYOUT AREAS
+   ======================================================= */
+
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   grid-area: h;
-  color: white;
-  border-radius: 4px;
-  padding: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-accent) 100%
+  );
+  color: var(--color-white);
+  border-radius: var(--radius-xs);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar {
-  background-color: #2d3748;
   grid-area: n;
-  color: #e2e8f0;
-  border-radius: 8px 0 0 8px;
-  padding: 5px;
+  background-color: var(--surface-nav);
+  color: var(--text-on-nav);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: var(--space-2);
   overflow-y: auto;
 }
 
 .main {
   grid-area: m;
-  background-color: #4a5568;
+  background-color: var(--surface-page);
   min-height: calc(100vh - 120px);
-  padding: 5px;
+  padding: var(--space-2);
   overflow-y: auto;
 }
 
 .info {
-  background-color: #4a5568;
   grid-area: i;
-  padding: 5px;
-  border-radius: 0 8px 8px 0;
+  background-color: var(--surface-secondary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--space-2);
   overflow-y: auto;
 }
 
 .footer {
   grid-area: f;
-  background: #2d3748;
-  color: #a0aec0;
-  padding: 5px;
+  background-color: var(--surface-nav);
+  color: var(--text-on-nav-muted);
+  padding: var(--space-2);
   text-align: center;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-/* Планшет (768px - 1024px) */
+/* =======================================================
+    RESPONSIVE — Планшет (768px – 1024px)
+   ======================================================= */
+
 @media screen and (max-width: 1024px) {
   .app_wrapper {
     grid-template-columns: 180px 1fr 220px;
   }
 }
 
-/* Планшет (до 768px) */
+/* =======================================================
+    RESPONSIVE — Мобильный (до 768px)
+   ======================================================= */
+
 @media screen and (max-width: 768px) {
   .app_wrapper {
     grid-template-columns: 1fr;
-    grid-template-rows: 60px auto auto auto auto;
+    grid-template-rows: var(--header-height) auto auto auto auto;
     grid-template-areas:
       'h'
       'n'
       'm'
       'i'
       'f';
-    gap: 8px;
-    padding: 8px;
+    gap: var(--space-2);
+    padding: var(--space-2);
   }
 
   .navbar,
   .info {
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
   }
 
   .main {
     min-height: auto;
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 
-/* Мобильные (до 480px) */
+/* =======================================================
+    RESPONSIVE — Мобильный (до 480px)
+   ======================================================= */
+
 @media screen and (max-width: 480px) {
   .app_wrapper {
-    gap: 4px;
-    padding: 4px;
+    gap: var(--space-1);
+    padding: var(--space-1);
   }
 
   .header {
@@ -116,15 +136,15 @@ body {
   }
 
   .main {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .info {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .footer {
-    padding: 12px;
-    font-size: 14px;
+    padding: var(--space-3);
+    font-size: var(--font-sm);
   }
 }

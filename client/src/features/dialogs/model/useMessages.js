@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import {
-  selectToken,
-  selectUser,
-} from '../../../app/providers/slices/auth/authSelectors';
-import { fetchMessagesApi, markMessagesAsRead } from '../../../entities/dialog';
+  fetchMessagesApi,
+  markMessagesAsRead,
+  normalizeMessage,
+} from '../../../entities/dialog';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
-import { normalizeMessage } from '../../../entities/message';
-import { API_URL } from '../../../shared/config';
+import { WS_URL } from '../../../shared/config';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -14,6 +14,7 @@ import {
   useOptimisticLike,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
+import { selectToken, selectUser } from '../../auth';
 
 /**
  * Хук для работы с сообщениями выбранного диалога.
@@ -24,8 +25,8 @@ import { apiFetchItems } from '../../../shared/lib';
  * @returns { Object } { messages, isLoading, isLoadingMore, hasMore, error, loadMore, refetch, replaceOptimistic, updateMessageInState, markAsRead, addOptimistic, removeOptimistic }
  */
 export function useMessages(userId) {
-  const currentUser = selectUser();
-  const token = selectToken();
+  const currentUser = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const notify = useNotify('dialogs');
 
   /** Хранение ID прочитанных сообщений.*/
@@ -52,11 +53,8 @@ export function useMessages(userId) {
       });
     },
     deps: [currentUser?.id, userId],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
 
   /** WebSocket: получение новых сообщений в реальном времени. */
@@ -67,31 +65,30 @@ export function useMessages(userId) {
     let reconnectTimeout;
 
     const connect = () => {
-      ws = new WebSocket(API_URL);
+      ws = new WebSocket(WS_URL);
 
       ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
-    };
 
-    ws.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === 'newMessage') {
-          const msg = data.message;
-          if (
-            (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
-            (msg.receiverId === userId && msg.senderId === currentUser?.id)
-          ) {
-            setMessagesItems((prev) => [...prev, msg]);
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'newMessage') {
+            const msg = data.message;
+            if (
+              (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
+              (msg.receiverId === userId && msg.senderId === currentUser?.id)
+            ) {
+              setMessagesItems((prev) => [...prev, msg]);
+            }
           }
+        } catch (err) {
+          console.error('Ошибка обработки сообщения:', err);
         }
-      } catch (err) {
-        console.error('Ошибка обработки сообщения:', err);
-      }
-    };
+      };
 
-    ws.onclose = () => {
-      // Переподключение через 3 секунды
-      reconnectTimeout = setTimeout(connect, 3000);
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
     };
 
     connect();

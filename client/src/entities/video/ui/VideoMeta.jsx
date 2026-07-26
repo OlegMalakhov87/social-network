@@ -1,23 +1,23 @@
 import { getVideoMeta } from '..';
 import { formatViews } from '../../../../shared/lib';
-import { EntityDates, EntityDetails, EntityStats } from '../../../../shared/ui';
+import { EntityDates, EntityInfoList, EntityStats } from '../../../../shared/ui';
 import style from './VideoMeta.module.css';
 
 /**
  * Информация о видео.
  *
- * @param {Object} video - данные видео
- * @param {string} mode - режим отображения
- * @returns {Object} - данные для отображения VideoMeta
+ * @param {Object} props
+ * @param {Object} props.video - данные видео
+ * @param {string} [props.mode] - режим отображения
  */
-
-export const VideoMeta = (video, mode) => {
+export const VideoMeta = ({ video, mode }) => {
   const meta = getVideoMeta(video, mode);
+
   return (
     <div className={style.meta}>
       <h3 className={style.title}>{video.title}</h3>
 
-      <EntityDetails items={meta.details} />
+      <EntityInfoList items={meta.details} />
 
       <EntityDates {...meta.dates} />
 

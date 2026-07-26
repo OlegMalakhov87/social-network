@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import style from './EditProfileForm.module.css';
-import { ImageWithFallback } from '../../../../shared/lib';
 import { Loading } from '../../../../shared/ui';
-import { updateProfile } from '../../../../app/providers/slices/authSlice';
+import { updateUser } from '../../../auth';
 
 /**
  * Форма редактирования профиля.
@@ -34,7 +33,7 @@ export const EditProfileForm = ({ showNotification }) => {
   const handleSaveProfile = async (e) => {
     try {
       e.stopPropagation();
-      await dispatch(updateProfile(formData)).unwrap();
+      await dispatch(updateUser(formData)).unwrap();
       setIsEditing(false);
       showNotification?.('success', 'Профиль успешно обновлён');
     } catch (err) {
@@ -64,7 +63,11 @@ export const EditProfileForm = ({ showNotification }) => {
 
       <div className={style.avatarSection}>
         <div className={style.avatar}>
-          <ImageWithFallback src={currentUser.photoUrl} alt="Ваше фото" fallback="/support.png" />
+          <img
+            src={currentUser.photoUrl || '/support.png'}
+            alt="Ваше фото"
+            onError={(e) => { e.target.src = '/support.png'; }}
+          />
           <div className={style.avatarOverlay}>📷</div>
         </div>
         <div className={style.avatarInfo}>

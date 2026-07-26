@@ -22,7 +22,7 @@
 .label {
   color: var(--text-primary);
   font-size: var(--font-sm);
-  font-weight: var(--font-medium);
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
 }
 

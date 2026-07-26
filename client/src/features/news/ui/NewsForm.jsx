@@ -1,11 +1,6 @@
 import { CATEGORY_OPTIONS, NEWS_TYPES } from '../../../entities/news';
-import {
-  maxLength,
-  minLength,
-  required,
-  url,
-  useAppForm,
-} from '../../../features/form';
+import { useAppForm } from '../../../shared/hooks';
+import { maxLength, minLength, required, url } from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,

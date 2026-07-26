@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import style from './ChangePasswordForm.module.css';
-import { changePassword, deleteProfile } from '../../../../app/providers/slices/authSlice';
+import { changePassword, deleteUser } from '../../../auth';
 
 /**
  * Форма смены пароля.
@@ -48,7 +48,7 @@ export const ChangePasswordForm = ({ showNotification }) => {
   const handleDeleteProfile = async (e) => {
     try {
       e.stopPropagation();
-      await dispatch(deleteProfile()).unwrap();
+      await dispatch(deleteUser()).unwrap();
     } catch (err) {
       showNotification?.('error', err);
     }

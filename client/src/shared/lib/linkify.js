@@ -1,20 +1,23 @@
 import styles from '../ui/Text/Text.module.css';
+
 /**
  * Функция для превращения URL-адресов в тексте в кликабельные стилизованные ссылки.
  *
  * @param {string} text - исходный текст
  * @returns {React.ReactNode[]} массив строк и элементов <a>
  */
-
 export const linkify = (text = '') => {
   if (!text) return text;
 
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Разделяем текст по URL — капчуры-группа включает совпадения в массив
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
 
-  const parts = text.split(urlRegex);
+  // Используем отдельный regex без флага g для проверки каждой части,
+  // чтобы избежать бага с сохранением lastIndex у глобального RegExp
+  const urlPattern = /^https?:\/\/[^\s]+$/;
 
   return parts.map((part, index) =>
-    urlRegex.test(part) ? (
+    urlPattern.test(part) ? (
       <a
         key={index}
         href={part}

@@ -1,4 +1,6 @@
 import { CATEGORY_OPTIONS } from '../../../entities/video';
+import { useAppForm } from '../../../shared/hooks';
+import { maxLength, minLength, required, url } from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -8,7 +10,6 @@ import {
   Select,
   TextArea,
 } from '../../../shared/ui';
-import { maxLength, minLength, required, url, useAppForm } from '../../form';
 /**
  * Форма добавления/редактирования видео.
  * @param {Object} initialData - данные видео для редактирования
@@ -16,7 +17,7 @@ import { maxLength, minLength, required, url, useAppForm } from '../../form';
  * @param {Function} onSubmit - функция для отправки формы
  * @returns {JSX.Element} - форма добавления/редактирования видео
  */
-export const VideoForm = (initialData, onClose, onSubmit) => {
+export const VideoForm = ({ initialData, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для добавления/редактирования видео с валидацией */
   const form = useAppForm({
@@ -45,6 +46,7 @@ export const VideoForm = (initialData, onClose, onSubmit) => {
     }),
     onSubmit: (values) => {
       onSubmit?.(values, isEdit, initialData?.id);
+      onClose?.();
     },
   });
 

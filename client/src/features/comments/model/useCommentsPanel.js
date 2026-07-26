@@ -18,9 +18,8 @@ export const useCommentsPanel = (targetType, ...resetDeps) => {
 
   // Закрыть панель комментариев
   const handleCloseComments = useCallback(() => {
-    if (!commentTarget) return;
     setCommentTarget(null);
-  }, [commentTarget]);
+  }, []);
 
   // Колбэк для передачи в карточки для открытия панели комментариев
   const onToggleComments = useCallback(

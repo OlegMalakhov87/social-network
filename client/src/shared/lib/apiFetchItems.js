@@ -7,14 +7,13 @@
  * @param {AbortSignal} signal - сигнал отмены запроса
  * @returns {Promise<Object>} - объект с данными
  */
-
 export const apiFetchItems = async (fetchApi, { params, signal }) => {
+  const { searchQuery, filter, ...restParams } = params;
+
   const data = await fetchApi({
-    ...params,
-    filter: params.filter?.trim() ? params.filter : undefined,
-    q: params.searchQuery?.trim() ? params.searchQuery : undefined,
-    page: params.page,
-    limit: params.limit,
+    ...restParams,
+    ...(filter?.trim() && { filter }),
+    ...(searchQuery?.trim() && { q: searchQuery }),
     signal,
   });
 

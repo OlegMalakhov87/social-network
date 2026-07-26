@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPostActions } from '..';
-import { formatTime } from '../../../shared/lib';
+import { formatDate } from '../../../shared/lib';
 import {
   BaseCard,
   ConfirmDialog,
@@ -12,7 +12,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
-import { normalizeSharedPost } from '../../sharedEntity';
+import { normalizeSharedPost } from '../../shared-entity';
 
 /**
  * Карточка поста.
@@ -71,7 +71,7 @@ export const Post = ({
             <EntityMeta
               avatar={targetUser?.photoUrl}
               title={targetUser?.name}
-              subtitle={formatTime(post.updatedAt || post.createdAt)}
+              subtitle={formatDate(post.updatedAt || post.createdAt)}
             />
           </EntityHeader>
         }

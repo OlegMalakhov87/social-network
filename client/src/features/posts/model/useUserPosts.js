@@ -5,13 +5,13 @@ import {
   normalizePosts,
   updatePostApi,
 } from '../../../entities/post';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
   useNotify,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения постов пользователя с бесконечным скроллом.
@@ -40,7 +40,7 @@ export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchPostsApi, {
-        params: { userId: profileUserId, page, limit },
+        params: { userId: profileUserId, page, limit, sortKey },
         signal,
       });
     },
@@ -71,8 +71,6 @@ export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
   /** Нормализация и сортировка постов. */
   const posts = useNormalizedData({
     items: postsItems,
-    entityType: 'posts',
-    sortKey,
     normalizeFn: normalizePosts,
     userId: currentUserId,
   });

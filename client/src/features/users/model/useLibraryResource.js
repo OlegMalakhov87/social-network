@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import { updateTrackFromLibrary } from '../../../entities/track';
-import { updateVideoFromLibrary } from '../../../entities/video ';
+import { updateVideoFromLibrary } from '../../../entities/video';
 import {
   useNotify,
   useOptimisticCommentCount,

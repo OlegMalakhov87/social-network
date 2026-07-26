@@ -1,7 +1,4 @@
-@import './variables.css';
-
-@import './themes.css';
-
-@import './animations.css';
-
-@import './reset.css';
+@import './reset.css'; /* сброс стилей */
+@import './variables.css'; /* переменные */
+@import './themes.css'; /* темы */
+@import './animations.css'; /* анимации */

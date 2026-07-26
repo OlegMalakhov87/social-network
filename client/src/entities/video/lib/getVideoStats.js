@@ -1,4 +1,4 @@
-import { formatFileSize, formatTime, formatViews } from '../../../shared/lib';
+import { formatDate, formatFileSize, formatViews } from '../../../shared/lib';
 
 /**
  * Формирует массив статистики для отображения в VideoPlayer.
@@ -12,16 +12,12 @@ export const getVideoStats = (video) => {
   const stats = [
     { icon: '📁', value: video.size ? formatFileSize(video.size) : null },
     { icon: '👁️', value: formatViews(video.viewsCount ?? 0) },
-    { icon: '📅', value: formatTime(video.updatedAt || video.createdAt) },
+    { icon: '📅', value: formatDate(video.updatedAt || video.createdAt) },
     { icon: '💬', value: video.commentsCount ?? 0 },
-    {
-      icon: video.isLiked ? '❤️' : '🤍',
-      value: video.likesCount ?? 0,
-    },
+    { icon: video.isLiked ? '❤️' : '🤍', value: video.likesCount ?? 0 },
   ];
 
   return stats.filter(
-    (item) =>
-      item.value !== undefined && item.value !== null && item.value !== ''
+    (item) => item.value !== undefined && item.value !== null && item.value !== ''
   );
 };

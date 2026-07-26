@@ -30,6 +30,7 @@ export const Button = ({
   rightIcon,
   className = '',
   onClick,
+  ...rest
 }) => {
   const buttonClassName = classNames(
     styles.button,
@@ -46,6 +47,7 @@ export const Button = ({
       className={buttonClassName}
       disabled={disabled || loading}
       onClick={onClick}
+      {...rest}
     >
       {loading && <span className={styles.spinner} />}
 

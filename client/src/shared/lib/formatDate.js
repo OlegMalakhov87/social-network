@@ -1,35 +1,27 @@
-/**
- * Функция для форматирования времени.
- *
- * @param {number} timestamp - timestamp в миллисекундах.
- * @returns {string} - форматированное время.
- */
+const LOCALE = 'ru-RU';
 
+const ONE_DAY_MS = 86_400_000;
+const ONE_YEAR_MS = 31_536_000_000;
+
+/**
+ * Форматирует временну́ю метку в читаемую строку с учётом давности.
+ *
+ * @param {number|string} timestamp - timestamp в миллисекундах или ISO-строка
+ * @returns {string} - форматированная дата
+ */
 export const formatDate = (timestamp) => {
   if (!timestamp) return '';
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
 
-  if (diff < 86400000) {
-    // меньше дня
-    return date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const date = new Date(timestamp);
+  const diff = Date.now() - date.getTime();
+
+  if (diff < ONE_DAY_MS) {
+    return date.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
   }
-  if (diff < 31536000000) {
-    // меньше года
-    return date.toLocaleDateString([], {
-      day: 'numeric',
-      month: 'short',
-    });
+
+  if (diff < ONE_YEAR_MS) {
+    return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
   }
-  if (diff >= 31536000000) {
-    // больше года
-    return date.toLocaleDateString([], {
-      month: 'short',
-      year: 'numeric',
-    });
-  }
+
+  return date.toLocaleDateString(LOCALE, { month: 'short', year: 'numeric' });
 };

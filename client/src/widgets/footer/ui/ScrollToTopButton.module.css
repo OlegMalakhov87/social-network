@@ -1,0 +1,63 @@
+.scrollTop {
+  position: fixed;
+  bottom: var(--space-8);
+  right: var(--space-8);
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-xl);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-sticky);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--transition-normal),
+    visibility var(--transition-normal),
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.scrollTop.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scrollTop:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+@media screen and (max-width: 768px) {
+  .scrollTop {
+    bottom: var(--space-5);
+    right: var(--space-5);
+    width: 45px;
+    height: 45px;
+    font-size: var(--font-lg);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .scrollTop {
+    bottom: var(--space-4);
+    right: var(--space-4);
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-md);
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .scrollTop {
+    bottom: var(--space-3);
+    right: var(--space-3);
+    width: 35px;
+    height: 35px;
+    font-size: var(--font-sm);
+  }
+}

@@ -1,4 +1,4 @@
-import { formatTimeAudio } from '../../../shared/lib';
+import { formatTime } from '../../../shared/lib';
 import { Badge, IconButton, MediaPreview } from '../../../shared/ui';
 import style from './TrackCover.module.css';
 
@@ -31,7 +31,7 @@ export const TrackCover = ({ track, currentTrack, isPlaying, onPlay }) => {
           ariaLabel={playing ? 'Поставить на паузу' : 'Воспроизвести трек'}
         />
 
-        <Badge size="sm">{formatTimeAudio(track.duration)}</Badge>
+        <Badge size="sm">{formatTime(track.duration)}</Badge>
       </div>
     </div>
   );

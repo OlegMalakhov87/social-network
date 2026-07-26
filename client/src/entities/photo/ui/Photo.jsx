@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPhotoActions } from '..';
-import { formatTime } from '../../../shared/lib';
+import { formatDate } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
@@ -13,7 +13,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
-import { normalizeSharedPhoto } from '../../sharedEntity';
+import { normalizeSharedPhoto } from '../../shared-entity';
 
 /**
  * Компонент для отображения карточки фотографии.
@@ -73,7 +73,7 @@ export const Photo = ({
           >
             <EntityMeta
               title="Фотография"
-              subtitle={formatTime(photo?.createdAt)}
+              subtitle={formatDate(photo?.createdAt)}
             />
           </EntityHeader>
         }

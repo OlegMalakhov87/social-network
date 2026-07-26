@@ -1,39 +1,56 @@
+/* =======================================================
+    LIGHT THEME
+    Дефолтные значения уже заданы в :root (variables.css).
+    Блок нужен только для явного переключения через JS:
+    document.documentElement.setAttribute('data-theme', 'light')
+   ======================================================= */
+
 html[data-theme='light'] {
   --surface-page: #f5f7fa;
-
   --surface-card: #ffffff;
-
   --surface-card-hover: #f9fafb;
-
   --surface-secondary: #f3f4f6;
+  --surface-nav: #2d3748;
 
   --text-primary: #1f2937;
-
   --text-secondary: #6b7280;
-
   --text-tertiary: #9ca3af;
+  --text-disabled: #c4c7cc;
 
   --border-primary: #d1d5db;
-
   --border-secondary: #e5e7eb;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.18);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.24);
 }
+
+/* =======================================================
+    DARK THEME
+    document.documentElement.setAttribute('data-theme', 'dark')
+   ======================================================= */
 
 html[data-theme='dark'] {
   --surface-page: #18181b;
-
   --surface-card: #27272a;
-
   --surface-card-hover: #323238;
-
   --surface-secondary: #3a3a42;
+  --surface-nav: #111114;
 
   --text-primary: #f4f4f5;
-
   --text-secondary: #a1a1aa;
-
   --text-tertiary: #71717a;
+  --text-disabled: #52525b;
 
   --border-primary: #3f3f46;
-
   --border-secondary: #52525b;
+
+  /* Тени усилены — на тёмном фоне rgba(0,0,0,…) почти невидимы */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
 }

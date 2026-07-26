@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { selectUser } from '../../../app/providers/slices/auth/authSelectors';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../auth';
 import { fetchDialogsApi } from '../../../entities/dialog';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
-import { parseSharedEntity } from '../../../entities/sharedEntity';
+import { parseSharedEntity } from '../../../entities/shared-entity';
 
 /**
  * Хук для получения и отображения списка диалогов.
@@ -14,7 +15,7 @@ import { parseSharedEntity } from '../../../entities/sharedEntity';
  * @returns {Object} { dialogs, isLoading, error, refetch }
  */
 export function useDialogs(searchQuery = '') {
-  const currentUser = selectUser();
+  const currentUser = useSelector(selectUser);
   const notify = useNotify('dialogs');
 
   /** Получение новостей с бесконечным скроллом. */
@@ -37,11 +38,8 @@ export function useDialogs(searchQuery = '') {
       });
     },
     deps: [currentUser?.id, searchQuery],
-    options: {
-      autoFetch: true,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
-    },
+    onSuccess: () => notify.success('load'),
+    onError: () => notify.error('load'),
   });
 
   /** Все ID собеседников (уникальные). */

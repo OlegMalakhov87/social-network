@@ -18,7 +18,7 @@
 }
 
 .row:hover {
-  background: var(--color-primary-hover);
+  background: var(--surface-card-hover);
 }
 
 .label {

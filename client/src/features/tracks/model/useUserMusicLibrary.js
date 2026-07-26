@@ -3,12 +3,12 @@ import {
   fetchUserMusicLibrary,
   normalizeTrack,
 } from '../../../entities/track';
-import { apiFetchItems } from '../../../shared/api';
 import {
   useInfiniteScroll,
   useNormalizedData,
   useNotify,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 /**
  * Хук для получения треков библиотеки пользователя.
  *
@@ -45,7 +45,7 @@ export const useUserMusicLibrary = ({
       return apiFetchItems(
         isOwnProfile ? fetchMyMusicLibrary : fetchUserMusicLibrary,
         {
-          params: { userId: profileUserId, page, limit },
+          params: { userId: profileUserId, page, limit, sortKey },
           signal,
         }
       );
@@ -55,11 +55,9 @@ export const useUserMusicLibrary = ({
     onError: () => notify.error('load'),
   });
 
-  /** Нормализация и сортировка треков. */
+  /** Нормализация треков. */
   const tracks = useNormalizedData({
     items: tracksItems,
-    entityType: 'tracks',
-    sortKey,
     normalizeFn: normalizeTrack,
     userId: currentUserId,
   });
