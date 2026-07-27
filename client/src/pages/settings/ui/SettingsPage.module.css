@@ -1,148 +1,56 @@
-.settings {
-  padding: 20px;
-  background: #f7fafc;
-  min-height: 100%;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-
-.header {
-  margin-bottom: 24px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: #718096;
-  margin-top: 8px;
-}
-
-.content {
-  display: flex;
-  grid-template-columns: 260px 1fr;
-  gap: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.settingsCard {
+  padding: 0;
   overflow: hidden;
 }
 
-.sidebar {
-  flex: 0 0 260px;
-  background: #f7fafc;
-  border-right: 1px solid #e2e8f0;
-  padding: 16px 0;
-  box-sizing: border-box;
-}
-
-.navList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.navItem {
-  margin: 2px 0;
-}
-
-.navButton {
-  width: 100%;
-  padding: 10px 20px;
-  background: transparent;
-  border: none;
-  text-align: left;
-  font-size: 14px;
-  color: #4a5568;
-  cursor: pointer;
+.layout {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
+  min-height: 600px;
 }
 
-.navButton:hover {
-  background: #edf2f7;
+.sidebar {
+  width: 260px;
+  background: var(--surface-secondary);
+  border-right: 1px solid var(--border-primary);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.navButton.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+.menuButton {
+  justify-content: flex-start;
 }
 
-.navIcon {
-  font-size: 16px;
-  width: 20px;
-  text-align: center;
+.menuIcon {
+  margin-right: var(--space-3);
+  font-size: var(--font-lg);
 }
 
 .main {
   flex: 1;
-  padding: 24px;
-  background: white;
-  min-width: 0;
-  box-sizing: border-box;
+  padding: var(--space-6);
+  background: var(--surface-page);
+  overflow-y: auto;
 }
 
-.placeholder {
-  padding: 40px;
-  text-align: center;
-  color: #718096;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
-  .settings {
-    padding: 12px;
-  }
-  .content {
+  .layout {
     flex-direction: column;
   }
   .sidebar {
-    flex: auto;
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 8px 0;
-  }
-  .navList {
-    display: flex;
-    flex-wrap: nowrap;
+    border-bottom: 1px solid var(--border-primary);
+    flex-direction: row;
     overflow-x: auto;
-    gap: 4px;
-    padding: 0 12px;
-    -webkit-overflow-scrolling: touch;
+    padding: var(--space-3);
   }
-  .navButton {
+  .menuButton {
     white-space: nowrap;
-    border-radius: 8px;
-    padding: 8px 14px;
+    flex-shrink: 0;
   }
   .main {
-    padding: 16px;
-  }
-}
-
-/* Тёмная тема */
-@media (prefers-color-scheme: dark) {
-  .settings {
-    background: #1a202c;
-  }
-  .content {
-    background: #2d3748;
-  }
-  .sidebar {
-    background: #1a202c;
-    border-color: #4a5568;
-  }
-  .main {
-    background: #2d3748;
-  }
-  .title {
-    color: #f7fafc;
+    padding: var(--space-4);
   }
 }

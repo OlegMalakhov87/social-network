@@ -1,22 +1,20 @@
-.register {
+.authWrapper {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-accent) 100%
+  );
+  padding: var(--space-5);
 }
 
-.container {
+.authCard {
   width: 100%;
   max-width: 480px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  animation: slideUp 0.5s ease;
+  animation: slideUp var(--transition-normal) ease;
 }
 
 @keyframes slideUp {
@@ -30,403 +28,90 @@
   }
 }
 
-/* Шапка */
-.header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40px 30px;
-  text-align: center;
-  color: white;
-}
-
-.logo {
-  margin-bottom: 20px;
-}
-
-.logoText {
-  width: 200px;
-  padding: 20px 0;
-  font-size: 20px;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.2);
-  text-align: center;
-  border-radius: 20px;
-  margin: 0 auto;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  text-align: center;
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 14px;
-  opacity: 0.9;
-}
-.socialSection {
-  padding: 0 30px 30px;
-}
-
-/* Форма */
-.form {
-  padding: 30px;
-}
-
-.formGroup {
-  margin-bottom: 20px;
-}
-
-.label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-}
-
-.labelIcon {
-  font-size: 16px;
-}
-
-.input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: all 0.2s;
-  background: white;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.input.error {
-  border-color: #e53e3e;
-}
-
-.input.error:focus {
-  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
-}
-
-/* Ряд с двумя полями */
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-/* Ошибки */
-.errorMessage {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: #e53e3e;
-  margin-top: 6px;
-}
-
-/* Кнопка */
-.button {
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-.button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.button.loading {
-  color: transparent;
-}
-
-.button.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
-  border: 2px solid white;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-/* Разделитель */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 24px 0;
-  color: #a0aec0;
-  font-size: 14px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e2e8f0;
-}
-
-/* Социальные кнопки */
-.socialButtons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.socialButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  color: #4a5568;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.socialButton:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
-}
-
-.socialIcon {
-  font-size: 18px;
-}
-
-/* Ссылка на логин */
-.loginLink {
   text-align: center;
-  margin-top: 24px;
-  margin-bottom: 24px;
-  font-size: 14px;
-  color: #718096;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
 }
 
-.link {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 4px;
-  transition: color 0.2s;
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
 }
 
-.link:hover {
-  color: #764ba2;
-  text-decoration: underline;
+.fullWidth {
+  grid-column: 1 / -1;
 }
 
-/* Чекбокс согласия */
-.terms {
+@media screen and (min-width: 481px) {
+  .fieldsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .halfWidth {
+    grid-column: span 1;
+  }
+}
+
+.checkboxWrapper {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 20px 0;
-  font-size: 14px;
-  color: #718096;
-}
-
-.checkbox {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #e2e8f0;
-  border-radius: 4px;
-  cursor: pointer;
-  accent-color: #667eea;
-}
-
-.checkbox:checked {
-  background: #667eea;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .termsLink {
-  color: #667eea;
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
 }
 
 .termsLink:hover {
+  color: var(--color-primary-hover);
   text-decoration: underline;
 }
 
-/* Уведомления */
-.notification {
-  margin: 0 30px 20px;
-  padding: 12px 16px;
-  border-radius: 10px;
+.errorText {
+  color: var(--color-danger);
+}
+
+.actions {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: slideDown 0.3s ease;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.footerText {
+  text-align: center;
+  color: var(--text-secondary);
 }
 
-.notificationSuccess {
-  background: #c6f6d5;
-  border: 1px solid #9ae6b4;
-  color: #22543d;
+.link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  transition: color var(--transition-fast);
 }
 
-.notificationError {
-  background: #fed7d7;
-  border: 1px solid #fc8181;
-  color: #742a2a;
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
-.notificationInfo {
-  background: #bee3f8;
-  border: 1px solid #90cdf4;
-  color: #2c5282;
-}
-
-.notificationIcon {
-  font-size: 20px;
-}
-
-.notificationMessage {
-  flex: 1;
-  font-size: 14px;
-}
-
-.closeButton {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: inherit;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.closeButton:hover {
-  opacity: 1;
-}
-
-/* Адаптивность */
-@media screen and (max-width: 480px) {
-  .register {
-    padding: 10px;
-  }
-
-  .header {
-    padding: 30px 20px;
-  }
-
-  .logoText {
-    width: 160px;
-    padding: 16px 0;
-    font-size: 18px;
-  }
-
-  .title {
-    font-size: 24px;
-  }
-
-  .form {
-    padding: 20px;
-  }
-
-  .row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .socialButtons {
-    grid-template-columns: 1fr;
-  }
-
-  .button {
-    padding: 14px;
-  }
-}
-
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-  .container {
-    background: #2d3748;
-  }
-
-  .label {
-    color: #e2e8f0;
-  }
-
-  .input {
-    background: #4a5568;
-    border-color: #718096;
-    color: #f7fafc;
-  }
-
-  .input:focus {
-    border-color: #667eea;
-  }
-
-  .divider {
-    color: #a0aec0;
-  }
-
-  .divider::before,
-  .divider::after {
-    background: #4a5568;
-  }
-
-  .socialButton {
-    background: #4a5568;
-    border-color: #718096;
-    color: #e2e8f0;
-  }
-
-  .socialButton:hover {
-    background: #718096;
-  }
-
-  .terms {
-    color: #a0aec0;
-  }
-
-  .loginLink {
-    color: #a0aec0;
-  }
+.alert {
+  margin-bottom: var(--space-2);
 }

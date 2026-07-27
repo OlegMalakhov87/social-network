@@ -1,4 +1,4 @@
-import { api } from '..';
+import { api } from '../../../shared/api';
 
 /**
  * Зарегистрировать пользователя.
@@ -65,7 +65,7 @@ export const deleteCurrentUser = async () => {
  *
  * @returns {Promise<{Object}>}
  */
-export const changePassword = async (credentials) => {
+export const changePasswordApi = async (credentials) => {
   const response = await api.patch('/profile/change-password', credentials);
   return response.data;
 };

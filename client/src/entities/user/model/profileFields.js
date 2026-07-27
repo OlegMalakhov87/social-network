@@ -16,3 +16,4 @@ export const getProfileFields = (user) =>
     { label: 'Статус:', value: user?.status },
     { label: 'Телефон:', value: user?.phone },
   ].filter((field) => field.value !== undefined && field.value !== null);
+

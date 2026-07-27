@@ -1,0 +1,88 @@
+.formWrapper {
+  max-width: 600px;
+}
+
+.sectionTitle {
+  margin-bottom: var(--space-5);
+  color: var(--text-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 481px) {
+  .fieldsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .halfWidth {
+    grid-column: span 1;
+  }
+  .fullWidth {
+    grid-column: 1 / -1;
+  }
+}
+
+.profileHeader {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.actions {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-primary);
+}
+
+.dangerZone {
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 2px solid var(--color-danger);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.deleteButton,
+.saveButton {
+  margin-top: var(--space-6);
+  align-self: flex-start;
+}
+
+.toggleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.checkboxLabelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.checkboxTitle {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.checkboxDescription {
+  color: var(--text-secondary);
+}
+
+.hintText {
+  color: var(--text-secondary);
+  margin-top: calc(-1 * var(--space-3));
+  margin-bottom: var(--space-4);
+  line-height: 1.5;
+}

@@ -3,7 +3,9 @@ import { Text } from '../../../shared/ui';
 import style from './FooterContacts.module.css';
 
 /**
- * Секция контактной информации.
+ * Секция контактной информации(email, телефон, адрес).
+ *
+ * @returns {React.ReactNode}
  */
 export const FooterContacts = () => {
   return (

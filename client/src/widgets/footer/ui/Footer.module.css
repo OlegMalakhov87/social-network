@@ -21,11 +21,6 @@
 .bottom {
   padding-top: var(--space-6);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
 }
 
 .copyright {
@@ -59,28 +54,23 @@
   .footer {
     padding: var(--space-10) 0 var(--space-5);
   }
-
   .content {
     grid-template-columns: 1fr 1fr;
     gap: var(--space-8);
   }
-
   .content > :first-child {
     grid-column: 1 / -1;
     text-align: center;
     align-items: center;
   }
-
   .content > :last-child {
     grid-column: 1 / -1;
   }
-
   .bottom {
     flex-direction: column;
     text-align: center;
     gap: var(--space-3);
   }
-
   .legalLinks {
     justify-content: center;
     flex-wrap: wrap;
@@ -91,20 +81,16 @@
   .footer {
     padding: var(--space-8) 0 var(--space-4);
   }
-
   .container {
     padding: 0 var(--space-4);
   }
-
   .content {
     grid-template-columns: 1fr;
     gap: var(--space-6);
   }
-
   .bottom {
     padding-top: var(--space-4);
   }
-
   .legalLinks {
     gap: var(--space-4);
   }

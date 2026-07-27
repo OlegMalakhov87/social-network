@@ -3,12 +3,13 @@ import { Text } from '../../../shared/ui';
 import style from './FooterLinks.module.css';
 
 /**
- * Универсальный компонент для секций ссылок в футере.
- * Переиспользуется для "Компания", "Продукт" и других секций.
+ * Универсальный компонент для секций ссылок в футере(ссылки на страницы компании, продукта и других разделов).
  *
  * @param {Object} props
  * @param {string} props.title - заголовок секции
  * @param {Array<{label: string, path: string}>} props.links - массив ссылок
+ *
+ * @returns {React.ReactNode}
  */
 export const FooterLinks = ({ title, links }) => {
   return (

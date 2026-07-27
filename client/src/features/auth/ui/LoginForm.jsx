@@ -1,83 +1,107 @@
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../../../app/providers/slices/authSlice';
-import { FormNotification } from '../../../shared/ui';
-import styles from './LoginForm.module.css';
+import {
+  login,
+  selectAuthError,
+  selectIsAuthLoading,
+} from '../../../entities/auth';
+import { useAppForm } from '../../../shared/hooks';
+import { email, required } from '../../../shared/lib';
+import {
+  Alert,
+  BaseCard,
+  Button,
+  Input,
+  Text,
+  useToast,
+} from '../../../shared/ui';
+import style from './RegisterForm.module.css';
 
 export const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status, error } = useSelector((state) => state.auth);
+  const toast = useToast();
+  const authError = useSelector(selectAuthError);
+  const isSubmitting = useSelector(selectIsAuthLoading);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await dispatch(login({ email, password })).unwrap();
-      navigate('/profile');
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const form = useAppForm({
+    initialValues: { email: '', password: '' },
+    rules: {
+      email: [required('Email обязателен'), email('Неверный формат email')],
+      password: [required('Пароль обязателен')],
+    },
+    onSubmit: async (values) => {
+      try {
+        await dispatch(login(values)).unwrap();
+        toast.success('Добро пожаловать!');
+        navigate('/profile');
+      } catch (error) {
+        toast.error(error || 'Ошибка авторизации');
+      }
+    },
+  });
 
   return (
-    <div className={styles.register}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Вход</h1>
-          <p className={styles.subtitle}>Добро пожаловать</p>
-        </div>
+    <div className={style.authWrapper}>
+      <BaseCard
+        className={style.authCard}
+        content={
+          <form onSubmit={form.submit} className={style.form}>
+            {authError && (
+              <Alert
+                variant="error"
+                title="Ошибка входа"
+                className={style.alert}
+              >
+                {authError}
+              </Alert>
+            )}
 
-        {error && (
-          <FormNotification
-            notification={{
-              type: 'error',
-              message: `${error}, попробуйте снова`,
-            }}
-          />
-        )}
+            <Text variant="h2" className={style.title}>
+              Вход в аккаунт
+            </Text>
+            <Text variant="body2" className={style.subtitle}>
+              Введите свои данные для продолжения
+            </Text>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Email</label>
-            <input
+            <Input
+              label="Email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
+              {...form.register('email')}
               placeholder="email@example.com"
-              required
+              disabled={form.isSubmitting || isSubmitting}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Пароль</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-              placeholder="Введите пароль"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className={styles.button}
-            disabled={status === 'loading'}
-          >
-            {status === 'loading' ? 'Загрузка...' : 'Войти'}
-          </button>
-        </form>
 
-        <div className={styles.loginLink}>
-          Ещё нет аккаунта?{' '}
-          <Link to="/register" className={styles.link}>
-            Зарегистрироваться
-          </Link>
-        </div>
-      </div>
+            <Input
+              label="Пароль"
+              type="password"
+              {...form.register('password')}
+              placeholder="Введите ваш пароль"
+              disabled={form.isSubmitting || isSubmitting}
+            />
+          </form>
+        }
+        actions={
+          <div className={style.actions}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={form.isSubmitting || isSubmitting}
+            >
+              Войти
+            </Button>
+
+            <Text variant="body2" className={style.footerText}>
+              Ещё нет аккаунта?{' '}
+              <Link to="/register" className={style.link}>
+                Зарегистрироваться
+              </Link>
+            </Text>
+          </div>
+        }
+      />
     </div>
   );
 };

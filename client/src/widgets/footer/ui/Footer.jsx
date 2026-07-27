@@ -1,19 +1,22 @@
 import { Link } from 'react-router-dom';
+import { EntityHeader, Text } from '../../../shared/ui';
 import {
   COMPANY_LINKS,
-  FooterBrand,
-  FooterContacts,
-  FooterLinks,
   LEGAL_LINKS,
   PRODUCT_LINKS,
-  ScrollToTopButton,
-} from '..';
-import { Text } from '../../../shared/ui';
+} from '../config/footerConfig';
 import style from './Footer.module.css';
+import { FooterBrand } from './FooterBrand';
+import { FooterContacts } from './FooterContacts';
+import { FooterLinks } from './FooterLinks';
+import { ScrollToTopButton } from './ScrollToTopButton';
 
 /**
- * Футер приложения с навигацией, контактами и кнопкой "наверх".
- * Композиция подкомпонентов для читабельности и переиспользования.
+ * Футер сайта с информацией о компании, продукте, контактах и ссылках на legals
+ * показывает информацию о компании, продукте, контактах и ссылках на legals
+ *
+ *
+ * @returns {React.ReactNode}
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -28,7 +31,7 @@ export const Footer = () => {
           <FooterContacts />
         </div>
 
-        <div className={style.bottom}>
+        <EntityHeader className={style.bottom}>
           <Text variant="caption" className={style.copyright}>
             © {currentYear} Oleg Malakhov prod. SocialNetwork. Все права
             защищены.
@@ -36,13 +39,12 @@ export const Footer = () => {
           <div className={style.legalLinks}>
             {LEGAL_LINKS.map((link) => (
               <Link key={link.path} to={link.path} className={style.legalLink}>
-              {link.label}
-            </Link>
+                {link.label}
+              </Link>
             ))}
           </div>
-        </div>
+        </EntityHeader>
       </div>
-
       <ScrollToTopButton />
     </footer>
   );

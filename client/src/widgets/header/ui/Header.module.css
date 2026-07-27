@@ -1,27 +1,18 @@
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: 100%;
   padding: 0 var(--space-6);
   background: var(--surface-nav);
   color: var(--text-on-nav);
-  box-shadow: var(--shadow-sm);
-  gap: var(--space-4);
 }
 
-.logo {
-  flex: 0 0 auto;
+.logoLink {
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
 .logoImage {
   width: 40px;
   height: 40px;
-  display: block;
-  object-fit: contain;
   border-radius: var(--radius-md);
   transition: transform var(--transition-fast);
 }
@@ -30,15 +21,16 @@
   transform: scale(1.05);
 }
 
-.nav {
-  flex-shrink: 0;
+.searchContainer {
+  flex: 1;
+  max-width: 400px;
+  min-width: 0;
 }
 
 .navLink {
   color: var(--text-on-nav-muted);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
-  font-size: var(--font-md);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   transition:
@@ -46,79 +38,30 @@
     color var(--transition-fast);
 }
 
-.navLink:hover {
+.navLink:hover,
+.navLink.active {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-on-nav);
-}
-
-.navLink.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--color-white);
-}
-
-.authLink {
-  border: 1px solid var(--border-primary);
-}
-
-.search {
-  flex: 1;
-  max-width: 400px;
-  min-width: 0;
-}
-
-.auth {
-  flex: 0 0 auto;
-}
-
-.navLink:focus-visible,
-.logoImage:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
 }
 
 @media screen and (max-width: 768px) {
   .header {
     padding: 0 var(--space-4);
-    gap: var(--space-3);
   }
-
-  .navLink {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--font-sm);
-  }
-
-  .search {
+  .searchContainer {
     max-width: 250px;
   }
 }
 
 @media screen and (max-width: 576px) {
   .header {
-    flex-wrap: wrap;
     height: auto;
     padding: var(--space-3);
+    flex-wrap: wrap;
     gap: var(--space-3);
   }
-
-  .logo {
-    order: 1;
-  }
-
-  .auth {
-    order: 2;
-  }
-
-  .nav {
+  .searchContainer {
     order: 3;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-top: var(--space-2);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .search {
-    order: 4;
     max-width: 100%;
     width: 100%;
   }

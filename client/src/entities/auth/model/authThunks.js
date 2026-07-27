@@ -1,13 +1,13 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
-  changePassword as changePasswordApi,
+  changePasswordApi,
   deleteCurrentUser,
   getCurrentUser,
+  getToken,
   loginUser,
   registerUser,
   updateCurrentUser,
-} from '../../../shared/api';
-import { getToken } from './authStorage';
+} from '..';
 
 /** Авторизация пользователя. */
 export const login = createAsyncThunk(

@@ -1,9 +1,8 @@
-import './style/App.css';
-// React
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-// Router
+import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import './style/App.css';
+
 // Pages
 import { LoginPage, RegisterPage } from '../pages/authorization';
 import { DialogsPage } from '../pages/dialogs';
@@ -13,6 +12,7 @@ import { NewsPage } from '../pages/news';
 import { ProfilePage } from '../pages/profile';
 import { SettingsPage } from '../pages/settings';
 import { VideosPage } from '../pages/videos';
+
 // Widgets
 import {
   AudioPlayerContainer,
@@ -20,27 +20,77 @@ import {
 } from '../widgets/audio-player';
 import { Footer } from '../widgets/footer';
 import { Header } from '../widgets/header';
+import { AppShellSkeleton } from '../widgets/layout';
 import { Navbar } from '../widgets/navbar';
 import { Sidebar } from '../widgets/sidebar';
-// Shared
-import { PrivateRoute, ToastProvider } from '../shared/ui';
-// Redux
-import { fetchCurrentUser } from '../features/auth';
 
-/**
- * Корневой компонент приложения.
- * Управляет маршрутизацией и глобальным состоянием поиска.
- */
+// Shared
+import { PageLoader, ToastProvider } from '../shared/ui';
+
+// Redux
+import {
+  fetchCurrentUser,
+  selectIsAuthenticated,
+  selectIsAuthLoading,
+} from '../entities/auth';
+
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useDispatch();
 
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isUserLoading = useSelector(selectIsAuthLoading);
+
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
   useEffect(() => {
-    if (localStorage.getItem('token')) {
-      dispatch(fetchCurrentUser());
-    }
+    const checkAuth = async () => {
+      if (localStorage.getItem('token')) {
+        await dispatch(fetchCurrentUser());
+      }
+      setIsCheckingAuth(false);
+    };
+    checkAuth();
   }, [dispatch]);
 
+  // 1. Первоначальная проверка токена (до рендера чего-либо)
+  if (isCheckingAuth) {
+    return (
+      <ToastProvider>
+        <PageLoader message="Загрузка приложения..." />
+      </ToastProvider>
+    );
+  }
+
+  // 2. НЕ авторизован: показываем ТОЛЬКО форму на пустом экране
+  if (!isAuthenticated) {
+    return (
+      <AudioPlayerProvider>
+        <ToastProvider>
+          <div className="auth_wrapper">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </div>
+        </ToastProvider>
+      </AudioPlayerProvider>
+    );
+  }
+
+  // 3. АВТОРИЗОВАН, но данные пользователя еще грузятся -> ПОКАЗЫВАЕМ APP SHELL SKELETON
+  if (isUserLoading) {
+    return (
+      <AudioPlayerProvider>
+        <ToastProvider>
+          <AppShellSkeleton />
+        </ToastProvider>
+      </AudioPlayerProvider>
+    );
+  }
+
+  // 4. АВТОРИЗОВАН и данные загружены -> ПОКАЗЫВАЕМ ПОЛНОЦЕННЫЙ ИНТЕРФЕЙС
   return (
     <AudioPlayerProvider>
       <ToastProvider>
@@ -59,90 +109,21 @@ const App = () => {
 
           <main className="main">
             <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
-                    <ProfilePage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/profile/:userId"
-                element={
-                  <PrivateRoute>
-                    <ProfilePage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/messages"
-                element={
-                  <PrivateRoute>
-                    <DialogsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/messages/:userId"
-                element={
-                  <PrivateRoute>
-                    <DialogsPage />
-                  </PrivateRoute>
-                }
-              />
+              <Route path="/" element={<Navigate to="/profile" replace />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/:userId" element={<ProfilePage />} />
+              <Route path="/messages" element={<DialogsPage />} />
+              <Route path="/messages/:userId" element={<DialogsPage />} />
               <Route
                 path="/friends"
-                element={
-                  <PrivateRoute>
-                    <FriendsPage searchQuery={searchQuery} />
-                  </PrivateRoute>
-                }
+                element={<FriendsPage searchQuery={searchQuery} />}
               />
-              <Route
-                path="/friends/:friendId"
-                element={
-                  <PrivateRoute>
-                    <ProfilePage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/news"
-                element={
-                  <PrivateRoute>
-                    <NewsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/music"
-                element={
-                  <PrivateRoute>
-                    <MusicPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/videos"
-                element={
-                  <PrivateRoute>
-                    <VideosPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <PrivateRoute>
-                    <SettingsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="/friends/:friendId" element={<ProfilePage />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/music" element={<MusicPage />} />
+              <Route path="/videos" element={<VideosPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/profile" replace />} />
             </Routes>
           </main>
 
@@ -150,7 +131,6 @@ const App = () => {
             <Footer />
           </footer>
 
-          {/* Глобальный аудиоплеер */}
           <AudioPlayerContainer />
         </div>
       </ToastProvider>

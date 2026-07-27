@@ -4,8 +4,9 @@ import { classNames } from '../../../shared/lib';
 import style from './Navbar.module.css';
 
 /**
- * Боковая панель навигации.
- * @returns {React.ReactElement}
+ * Боковая панель навигации(ссылки на основные разделы сайта).
+ *
+ * @returns {React.ReactNode}
  */
 export const Navbar = () => {
   return (

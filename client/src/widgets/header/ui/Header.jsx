@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { selectHasUser } from '../../../entities/auth/model/authSelectors';
 import { logout } from '../../../features/auth';
-import { selectHasUser } from '../../../features/auth/model/authSelectors';
 import { classNames } from '../../../shared/lib';
-import { Button, Image, SearchField } from '../../../shared/ui';
+import { Button, EntityHeader, Image, SearchField } from '../../../shared/ui';
 import style from './Header.module.css';
 
 /**
@@ -38,58 +38,48 @@ export const Header = ({ onSearchChange }) => {
 
   return (
     <header className={style.header}>
-      <div className={style.logo}>
-        <NavLink to="/profile" aria-label="Главная страница">
-          <Image
-            src="/revivo-50.png"
-            alt="Revivo Logo"
-            fallback="/revivo-50.png"
-            className={style.logoImage}
-          />
-        </NavLink>
-      </div>
-
-      <nav className={style.nav}>
-        <NavLink
-          to="/profile"
-          className={({ isActive }) =>
-            classNames(style.navLink, isActive && style.active)
-          }
-        >
-          Главная
-        </NavLink>
-      </nav>
-
-      <div className={style.search}>
-        <SearchField
-          value={searchValue}
-          onChange={handleSearchChange}
-          onKeyDown={handleSearchSubmit}
-          placeholder="Поиск пользователей..."
-          aria-label="Поиск пользователей"
-        />
-      </div>
-
-      <div className={style.auth}>
-        {isAuthenticated ? (
-          <Button variant="secondary" size="sm" onClick={handleLogout}>
-            Выйти
-          </Button>
-        ) : (
+      <EntityHeader
+        leftSlot={
           <NavLink
-            to="/login"
-            className={({ isActive }) =>
-              classNames(
-                style.navLink,
-                style.authLink,
-                isActive && style.active
-              )
-            }
+            to="/profile"
+            aria-label="На главную"
+            className={style.logoLink}
           >
-            Войти
+            <Image
+              src="/revivo-50.png"
+              alt="Revivo Logo"
+              fallback="/revivo-50.png"
+              className={style.logoImage}
+            />
           </NavLink>
-        )}
-      </div>
+        }
+        rightSlot={
+          isAuthenticated ? (
+            <Button variant="secondary" size="sm" onClick={handleLogout}>
+              Выйти
+            </Button>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                classNames(style.navLink, isActive && style.active)
+              }
+            >
+              Войти
+            </NavLink>
+          )
+        }
+      >
+        <div className={style.searchContainer}>
+          <SearchField
+            value={searchValue}
+            onChange={handleSearchChange}
+            onKeyDown={handleSearchSubmit}
+            placeholder="Поиск пользователей..."
+            aria-label="Поиск пользователей"
+          />
+        </div>
+      </EntityHeader>
     </header>
   );
 };

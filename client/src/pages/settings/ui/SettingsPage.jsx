@@ -1,88 +1,91 @@
 import { useState } from 'react';
-import style from './SettingsPage.module.css';
-import { SettingsToast } from '../../../widgets/settings';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../../entities/auth';
 import {
-  EditProfileForm,
+  AppearanceSettings,
   ChangePasswordForm,
+  EditProfileForm,
   NotificationToggle,
   PrivacySettings,
 } from '../../../features/settings';
+import {
+  Button,
+  ErrorBoundary,
+  PageLayout,
+  PageLoader,
+  SectionCard,
+  Text,
+} from '../../../shared/ui';
+import style from './SettingsPage.module.css';
+
+const MENU_ITEMS = [
+  { id: 'profile', icon: '👤', label: 'Профиль' },
+  { id: 'account', icon: '🔐', label: 'Аккаунт' },
+  { id: 'appearance', icon: '🎨', label: 'Внешний вид' },
+  { id: 'notifications', icon: '🔔', label: 'Уведомления' },
+  { id: 'privacy', icon: '🔒', label: 'Приватность' },
+];
 
 /**
- * Страница настроек пользователя.
- * Содержит боковое меню и контент выбранного раздела.
+ * Компонент страницы настроек.
+ *
  */
 export const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [notification, setNotification] = useState(null);
+  const currentUser = useSelector(selectUser);
 
-  // Показать уведомление на 5 секунд
-  const showNotification = (type, message) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 5000);
-  };
-
-  const menuItems = [
-    { id: 'profile', icon: '👤', label: 'Профиль' },
-    { id: 'account', icon: '🔐', label: 'Аккаунт' },
-    { id: 'notifications', icon: '🔔', label: 'Уведомления' },
-    { id: 'privacy', icon: '🔒', label: 'Приватность' },
-    { id: 'appearance', icon: '🎨', label: 'Внешний вид' },
-    { id: 'language', icon: '🌐', label: 'Язык' },
-    { id: 'security', icon: '🛡️', label: 'Безопасность' },
-    { id: 'help', icon: '❓', label: 'Помощь' },
-  ];
+  /**  Состояние загрузки всей страницы */
+  if (!currentUser) {
+    return <PageLoader message="Загружаем страницу настроек..." />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
-        return <EditProfileForm showNotification={showNotification} />;
+        return <EditProfileForm currentUser={currentUser} />;
       case 'account':
-        return <ChangePasswordForm showNotification={showNotification} />;
+        return <ChangePasswordForm currentUser={currentUser} />;
+      case 'appearance':
+        return <AppearanceSettings />;
       case 'notifications':
-        return <NotificationToggle />;
+        return <NotificationToggle currentUser={currentUser} />;
       case 'privacy':
-        return <PrivacySettings />;
+        return <PrivacySettings currentUser={currentUser} />;
       default:
-        return (
-          <div className={style.placeholder}>
-            <h2>Раздел в разработке</h2>
-            <p>Скоро здесь появится полезная информация</p>
-          </div>
-        );
+        return <Text>Раздел в разработке</Text>;
     }
   };
 
   return (
-    <div className={style.settings}>
-      <div className={style.header}>
-        <h1 className={style.title}>Настройки</h1>
-        <p className={style.subtitle}>Управляйте настройками вашего профиля и аккаунта</p>
-      </div>
-
-      {notification && (
-        <SettingsToast notification={notification} setNotification={setNotification} />
-      )}
-
-      <div className={style.content}>
-        <div className={style.sidebar}>
-          <ul className={style.navList}>
-            {menuItems.map((item) => (
-              <li key={item.id} className={style.navItem}>
-                <button
-                  className={`${style.navButton} ${activeTab === item.id ? style.active : ''}`}
+    <ErrorBoundary>
+      <PageLayout
+        title="Настройки"
+        description="Управляйте настройками вашего профиля и аккаунта"
+      >
+        <SectionCard className={style.settingsCard}>
+          <div className={style.layout}>
+            {/* Боковое меню */}
+            <nav className={style.sidebar}>
+              {MENU_ITEMS.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? 'primary' : 'ghost'}
+                  fullWidth
+                  align="start"
+                  className={style.menuButton}
                   onClick={() => setActiveTab(item.id)}
                 >
-                  <span className={style.navIcon}>{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <span className={style.menuIcon}>{item.icon}</span>
+                  {item.label}
+                </Button>
+              ))}
+            </nav>
 
-        <div className={style.main}>{renderContent()}</div>
-      </div>
-    </div>
+            {/* Основной контент */}
+            <main className={style.main}>{renderContent()}</main>
+          </div>
+        </SectionCard>
+      </PageLayout>
+    </ErrorBoundary>
   );
 };
