@@ -11,7 +11,8 @@ module.exports = {
         job: 'Frontend разработчик',
         status: 'В поиске новых вызовов',
         phone: '+79161234567',
-        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -23,7 +24,8 @@ module.exports = {
         job: 'Дизайнер UI/UX',
         status: 'Люблю создавать красивые интерфейсы',
         phone: '+79167654321',
-        photoUrl: 'https://randomuser.me/api/portraits/women/1.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/1.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -35,7 +37,8 @@ module.exports = {
         job: 'Backend разработчик',
         status: 'Пишу на Node.js и Python',
         phone: '+79165557788',
-        photoUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -47,7 +50,8 @@ module.exports = {
         job: 'Каменщик',
         status: 'Работа выполнена в срок',
         phone: '+79536788832',
-        photoUrl: 'https://randomuser.me/api/portraits/men/3.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/3.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -59,7 +63,8 @@ module.exports = {
         job: 'Фотограф',
         status: 'Наблюдаю за полетами майских жуков',
         phone: '+79112345678',
-        photoUrl: 'https://randomuser.me/api/portraits/women/2.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/2.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
 
@@ -72,7 +77,8 @@ module.exports = {
         job: 'Водитель',
         status: 'Пробили колеса в машине сволочи!',
         phone: '+79134567890',
-        photoUrl: 'https://randomuser.me/api/portraits/men/4.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/4.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -84,7 +90,8 @@ module.exports = {
         job: 'Дизайнер',
         status: 'Кто уже купался в этом году?',
         phone: '+79123456789',
-        photoUrl: 'https://randomuser.me/api/portraits/women/3.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/3.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -96,7 +103,8 @@ module.exports = {
         job: 'Frontend разработчик',
         status: 'В поиске новых вызовов',
         phone: '+79156548842',
-        photoUrl: 'https://randomuser.me/api/portraits/men/5.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/5.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -108,7 +116,8 @@ module.exports = {
         job: 'Барбер',
         status: 'В поисках счастья..',
         phone: '+79876543210',
-        photoUrl: 'https://randomuser.me/api/portraits/men/6.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/6.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -120,7 +129,8 @@ module.exports = {
         job: 'Администратор',
         status: 'Скоро выхожу замуж! Ура!',
         phone: '+79164557698',
-        photoUrl: 'https://randomuser.me/api/portraits/women/4.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/4.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -132,7 +142,8 @@ module.exports = {
         job: 'Домохозяйка',
         status: 'В активном поиске',
         phone: '+79159853221',
-        photoUrl: 'https://randomuser.me/api/portraits/women/5.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/5.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -144,7 +155,8 @@ module.exports = {
         job: 'Программист',
         status: 'Пью кофе и кодю',
         phone: '+79195678901',
-        photoUrl: 'https://randomuser.me/api/portraits/men/7.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/7.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -156,7 +168,8 @@ module.exports = {
         job: 'Повар',
         status: 'Пишу книгу о кулинарии',
         phone: '+79102345678',
-        photoUrl: 'https://randomuser.me/api/portraits/women/6.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/6.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -168,7 +181,8 @@ module.exports = {
         job: 'Строитель',
         status: 'На отдыхе в горах',
         phone: '+79178901234',
-        photoUrl: 'https://randomuser.me/api/portraits/men/8.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/8.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -180,7 +194,8 @@ module.exports = {
         job: 'Юрист',
         status: 'Свободна для работы',
         phone: '+79187890123',
-        photoUrl: 'https://randomuser.me/api/portraits/women/7.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/7.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -192,7 +207,8 @@ module.exports = {
         job: 'Модель',
         status: 'Снимаю ролики для TikTok',
         phone: '+79145678901',
-        photoUrl: 'https://randomuser.me/api/portraits/women/8.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/8.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -204,7 +220,8 @@ module.exports = {
         job: 'Преподаватель',
         status: 'Изучаю новые языки программирования',
         phone: '+79135567890',
-        photoUrl: 'https://randomuser.me/api/portraits/men/9.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/9.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
       {
@@ -216,7 +233,8 @@ module.exports = {
         job: 'Медицинская сестра',
         status: 'Сегодня день рождения!',
         phone: '+79123756789',
-        photoUrl: 'https://randomuser.me/api/portraits/women/9.jpg',
+        avatarUrl: 'https://randomuser.me/api/portraits/women/9.jpg',
+        visibility: 'public',
         passwordHash: 123,
       },
     ]);

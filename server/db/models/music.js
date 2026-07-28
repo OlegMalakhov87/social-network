@@ -79,7 +79,14 @@ module.exports = (sequelize, DataTypes) => {
           max: 3600,
         },
       },
-      fileUrl: {
+      audioUrl: {
+        type: DataTypes.STRING(500),
+        allowNull: false,
+        validate: {
+          isUrl: true,
+        },
+      },
+      coverUrl: {
         type: DataTypes.STRING(500),
         allowNull: false,
         validate: {

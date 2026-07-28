@@ -1,35 +1,46 @@
 import { useEffect, useState } from 'react';
+import { THEME_OPTIONS } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { Button, Select, Text } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
 
-const THEME_OPTIONS = [
-  { value: 'light', label: '☀️ Светлая тема' },
-  { value: 'dark', label: '🌙 Тёмная тема' },
-  { value: 'system', label: '💻 Как в системе' },
-];
-
+/**
+ * Компонент формы настроек внешнего вида.
+ */
 export const AppearanceSettings = () => {
   const notify = useNotify();
 
-  // Инициализация темы из localStorage или дефолтное значение 'light'
+  //Инициализация темы из localStorage или дефолтное значение 'light'
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
 
   // Применение темы при изменении стейта или первой загрузке
   useEffect(() => {
-    let appliedTheme = theme;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      ).matches;
-      appliedTheme = prefersDark ? 'dark' : 'light';
-    }
+    const applyTheme = () => {
+      let appliedTheme = theme;
+      if (theme === 'system') {
+        appliedTheme = mediaQuery.matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', appliedTheme);
+      localStorage.setItem('theme', theme);
+    };
 
-    document.documentElement.setAttribute('data-theme', appliedTheme);
-    localStorage.setItem('theme', theme);
+    applyTheme();
+
+    const handleChange = () => {
+      if (theme === 'system') {
+        applyTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
   }, [theme]);
 
   const handleSave = () => {

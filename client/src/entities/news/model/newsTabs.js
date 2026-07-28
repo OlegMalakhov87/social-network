@@ -8,13 +8,5 @@ export const NEWS_TABS_MAP = [
   { id: 'health', label: 'Здоровье', icon: '🏥' },
 ];
 
-/** Мапа для выбора категории новости*/
-export const CATEGORY_OPTIONS = [
-  { value: '', label: 'Выберите категорию' },
-  { value: 'technology', label: 'Технологии' },
-  { value: 'sports', label: 'Спорт' },
-  { value: 'culture', label: 'Культура' },
-  { value: 'economy', label: 'Экономика' },
-  { value: 'health', label: 'Здоровье' },
-];
+
 

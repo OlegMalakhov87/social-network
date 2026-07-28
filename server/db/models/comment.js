@@ -60,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
           isInt: true,
         },
       },
-      content: {
+      text: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {

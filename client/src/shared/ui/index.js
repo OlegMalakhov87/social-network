@@ -23,6 +23,7 @@ export { EntityMeta } from './EntityMeta/EntityMeta';
 export { EntityStats } from './EntityStats/EntityStats';
 export { ErrorBanner } from './ErrorBanner/ErrorBanner';
 export { ErrorBoundary } from './ErrorBoundary/ErrorBoundary';
+export { FileInput } from './FileInput/FileInput';
 export { IconButton } from './IconButton/IconButton';
 export { Image } from './Image/Image';
 export { InfiniteScrollFooter } from './InfiniteScrollFooter/InfiniteScrollFooter';

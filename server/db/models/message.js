@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       senderId: DataTypes.INTEGER,
       receiverId: DataTypes.INTEGER,
-      message: {
+      content: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {

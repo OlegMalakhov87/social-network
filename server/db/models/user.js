@@ -113,10 +113,17 @@ module.exports = (sequelize, DataTypes) => {
           len: [5, 25],
         },
       },
-      photoUrl: {
+      avatarUrl: {
         type: DataTypes.STRING(500),
         validate: {
           isUrl: true,
+        },
+      },
+      visibility: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        validate: {
+          isIn: [['public', 'friends', 'private']],
         },
       },
       passwordHash: {

@@ -1,11 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  FORM_FIELDS,
-  GENDER_OPTIONS,
-  register,
-  selectIsAuthLoading,
-} from '../../../entities/auth';
+import { FORM_FIELDS, GENDER_OPTIONS } from '..';
+import { register, selectIsAuthLoading } from '../../../entities/auth';
 import { useAppForm } from '../../../shared/hooks';
 import { custom, email, match, minLength, required } from '../../../shared/lib';
 import {

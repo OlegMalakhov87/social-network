@@ -81,12 +81,12 @@ export const selectUserName = (state) => state.auth.user?.name ?? null;
 export const selectUserNickname = (state) => state.auth.user?.nickname ?? null;
 
 /**
- * Получить фотографию пользователя.
+ * Получить аватар пользователя.
  *
  * @param {Object} state - Redux Store.
  * @returns {string}
  */
-export const selectUserPhoto = (state) => state.auth.user?.photoUrl ?? null;
+export const selectUserAvatar = (state) => state.auth.user?.avatar ?? null;
 
 /**
  * Проверить, загружен ли пользователь.

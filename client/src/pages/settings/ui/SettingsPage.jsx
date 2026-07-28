@@ -7,6 +7,7 @@ import {
   EditProfileForm,
   NotificationToggle,
   PrivacySettings,
+  SETTINGS_TABS_MAP,
 } from '../../../features/settings';
 import {
   Button,
@@ -17,14 +18,6 @@ import {
   Text,
 } from '../../../shared/ui';
 import style from './SettingsPage.module.css';
-
-const MENU_ITEMS = [
-  { id: 'profile', icon: '👤', label: 'Профиль' },
-  { id: 'account', icon: '🔐', label: 'Аккаунт' },
-  { id: 'appearance', icon: '🎨', label: 'Внешний вид' },
-  { id: 'notifications', icon: '🔔', label: 'Уведомления' },
-  { id: 'privacy', icon: '🔒', label: 'Приватность' },
-];
 
 /**
  * Компонент страницы настроек.
@@ -44,11 +37,11 @@ export const SettingsPage = () => {
       case 'profile':
         return <EditProfileForm currentUser={currentUser} />;
       case 'account':
-        return <ChangePasswordForm currentUser={currentUser} />;
+        return <ChangePasswordForm />;
       case 'appearance':
         return <AppearanceSettings />;
       case 'notifications':
-        return <NotificationToggle currentUser={currentUser} />;
+        return <NotificationToggle />;
       case 'privacy':
         return <PrivacySettings currentUser={currentUser} />;
       default:
@@ -66,7 +59,7 @@ export const SettingsPage = () => {
           <div className={style.layout}>
             {/* Боковое меню */}
             <nav className={style.sidebar}>
-              {MENU_ITEMS.map((item) => (
+              {SETTINGS_TABS_MAP.map((item) => (
                 <Button
                   key={item.id}
                   variant={activeTab === item.id ? 'primary' : 'ghost'}

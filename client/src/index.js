@@ -1,11 +1,11 @@
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
-import './shared/styles/index.css';
-import { store } from './app/providers/store/store';
-import { ScrollToTop } from './shared/lib/index';
+import { store } from './app/store/store';
 import reportWebVitals from './reportWebVitals';
+import { ScrollToTop } from './shared/lib';
+import './shared/styles/index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

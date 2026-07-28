@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getCommentActions } from '..';
 import { formatDate } from '../../../shared/lib';
 import {
@@ -16,7 +16,6 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
-import { normalizeSharedComment } from '../../shared-entity';
 import style from './Comment.module.css';
 
 /**
@@ -26,16 +25,17 @@ import style from './Comment.module.css';
  * @param {Object} props.comment - данные комментария.
  * @param {Object} props.currentUserId - ID текущего пользователя.
  * @param {Object} props.author - данные автора комментария.
+ * @param {Function} props.onShareEntity - функция для передачи сообщения.
  * @param {Function} props.onEdit - функция для редактирования комментария.
  * @param {Function} props.onDelete - функция для удаления комментария.
- * @param {Function} props.toggleLike - функция для лайка комментария.
+ * @param {Function} props.toggleLike - функция для лайка/дизлайка комментария.
  * @returns {JSX.Element} - компонент карточки комментария.
  */
-
 export const Comment = ({
   comment,
   currentUserId,
   author,
+  onShareEntity,
   onEdit,
   onDelete,
   toggleLike,
@@ -43,7 +43,6 @@ export const Comment = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment?.content || '');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const navigate = useNavigate();
 
   if (!comment?.id || !author) return null;
 
@@ -54,11 +53,7 @@ export const Comment = ({
     onDelete: () => setShowDeleteDialog(true),
     onEdit: () => setIsEditing(true),
     onShare: () => {
-      sessionStorage.setItem(
-        'sharedEntity',
-        JSON.stringify(normalizeSharedComment(comment))
-      );
-      navigate('/messages');
+      onShareEntity?.(comment);
     },
   });
 

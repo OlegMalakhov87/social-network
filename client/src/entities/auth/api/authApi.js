@@ -69,3 +69,15 @@ export const changePasswordApi = async (credentials) => {
   const response = await api.patch('/profile/change-password', credentials);
   return response.data;
 };
+
+/**
+ * Загрузить аватар текущего пользователя.
+ *
+ * @param {File} file - файл аватара
+ *
+ * @returns {Promise<{Object}>}
+ */
+export const uploadAvatarApi = async (file) => {
+  const response = await api.post('/profile/upload-avatar', file);
+  return response.data;
+};

@@ -7,6 +7,7 @@ import {
   loginUser,
   registerUser,
   updateCurrentUser,
+  uploadAvatarApi,
 } from '..';
 
 /** Авторизация пользователя. */
@@ -123,6 +124,20 @@ export const changePassword = createAsyncThunk(
         error.response?.data?.error ||
           error.message ||
           'Не удалось изменить пароль'
+      );
+    }
+  }
+);
+
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (file, thunkAPI) => {
+    try {
+      const data = await uploadAvatarApi(file);
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || 'Ошибка загрузки фото'
       );
     }
   }

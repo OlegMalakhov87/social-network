@@ -1,90 +1,140 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 /**
- * Универсальный хук управления формой.
+ * Универсальный хук для работы с формами.
  *
- * @param {Object} initialValues - начальные значения формы
- * @returns {Object} - объект с значениями, ошибками и методами управления формой
+ * @param {Object} params
+ * @param {Object} params.initialValues - начальные значения формы
+ * @param {Object|Function} [params.rules={}] - правила валидации (объект или функция от values)
+ * @param {Function} params.onSubmit - функция для отправки формы
+ * @returns {Object}
  */
-export const useForm = (initialValues) => {
+export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /**
-   * Изменение одного поля формы.
-   * @param {string} field - поле для изменения
-   * @param {any} value - значение для изменения
-   * @returns {void}
-   */
+  const validationRules = useMemo(
+    () => (typeof rules === 'function' ? rules(values) : rules),
+    [rules, values]
+  );
+
+  /** Валидация конкретного поля. */
+  const validateField = useCallback(
+    (field) => {
+      const validators = validationRules[field] || [];
+      const value = values[field];
+
+      for (const validator of validators) {
+        const error = validator(value, values);
+        if (error) {
+          setFieldErrors((prev) => ({ ...prev, [field]: error }));
+          return false;
+        }
+      }
+      setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+      return true;
+    },
+    [validationRules, values]
+  );
+
+  /** Валидация всей формы. */
+  const validate = useCallback(() => {
+    let valid = true;
+    const nextErrors = {};
+
+    for (const field of Object.keys(validationRules)) {
+      const validators = validationRules[field] || [];
+      for (const validator of validators) {
+        const error = validator(values[field], values);
+        if (error) {
+          nextErrors[field] = error;
+          valid = false;
+          break;
+        }
+      }
+      if (!nextErrors[field]) nextErrors[field] = '';
+    }
+
+    setFieldErrors(nextErrors);
+    return valid;
+  }, [validationRules, values]);
+
+  /** Изменение поля. */
   const setValue = useCallback((field, value) => {
-    setValues((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [field]: '',
-    }));
+    setValues((prev) => ({ ...prev, [field]: value }));
+    // Сбрасываем ошибку поля при изменении
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }));
   }, []);
 
-  /**
-   * Массовое обновление значений формы.
-   * @param {Object} nextValues - новые значения формы
-   * @returns {void}
-   */
-  const setForm = useCallback((nextValues) => {
-    setValues(nextValues);
-  }, []);
+  /** Обработчик onBlur — валидирует поле при уходе с него. */
+  const handleBlur = useCallback(
+    (field) => validateField(field),
+    [validateField]
+  );
 
-  /**
-   * Установка ошибки конкретного поля формы.
-   * @param {string} field - поле для установки ошибки
-   * @param {string} message - сообщение об ошибке
-   * @returns {void}
-   */
-  const setError = useCallback((field, message) => {
-    setErrors((prev) => ({
-      ...prev,
-      [field]: message,
-    }));
-  }, []);
+  /** Сабмит формы. */
+  const handleSubmit = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      if (isSubmitting) return false;
 
-  /**
-   * Установка нескольких ошибок формы.
-   * @param {Object} nextErrors - новые ошибки формы
-   * @returns {void}
-   */
-  const setFormErrors = useCallback((nextErrors) => {
-    setErrors(nextErrors);
-  }, []);
+      const valid = validate();
+      if (!valid) return false;
 
-  /** Очистка ошибок формы.
-   * @returns {void}
-   */
-  const clearErrors = useCallback(() => {
-    setErrors({});
-  }, []);
+      setIsSubmitting(true);
+      try {
+        await onSubmit?.(values);
+        setValues(initialValues);
+        setFieldErrors({});
+        return true;
+      } catch (error) {
+        if (error?.fieldErrors) {
+          setFieldErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+        }
+        return false;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [validate, onSubmit, isSubmitting, values, initialValues]
+  );
 
-  /**Сброс формы.
-   * @returns {void}
-   */
+  /** Регистрация поля (для удобной привязки к инпутам). */
+  const register = useCallback(
+    (name, extra = {}) => ({
+      name,
+      value: values[name],
+      error: fieldErrors[name],
+      onChange: (value) => setValue(name, value),
+      onBlur: () => handleBlur(name),
+      ...extra,
+    }),
+    [values, fieldErrors, setValue, handleBlur]
+  );
+
+  /** Сброс формы. */
   const reset = useCallback(() => {
     setValues(initialValues);
-    setErrors({});
+    setFieldErrors({});
   }, [initialValues]);
+
+  const isValid = useMemo(
+    () => Object.values(fieldErrors).every((e) => !e),
+    [fieldErrors]
+  );
 
   return {
     values,
-    errors,
-
+    errors: fieldErrors,
+    isValid,
+    isSubmitting,
     setValue,
-    setForm,
-
-    setError,
-    setFormErrors,
-    clearErrors,
-
+    onBlur: handleBlur,
+    submit: handleSubmit,
+    register,
     reset,
+    validate,
+    validateField,
   };
 };

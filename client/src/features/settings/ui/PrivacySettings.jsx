@@ -7,11 +7,10 @@ import style from './SettingsForm.module.css';
 /**
  * Компонент формы настроек приватности.
  *
- * @param {Object} props - пропсы компонента.
- * @param {Object} props.currentUser - текущий пользователь.
+ * @param {Object} currentUser - текущий пользователь.
  * @returns {JSX.Element}
  */
-export const PrivacySettings = () => {
+export const PrivacySettings = (currentUser) => {
   const notify = useNotify();
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'public',
@@ -20,10 +19,12 @@ export const PrivacySettings = () => {
     isVideosPublic: 'true',
   });
 
+  /** Обработчик изменения настроек приватности */
   const handlePrivacyChange = (key, value) => {
     setPrivacy((prev) => ({ ...prev, [key]: value }));
   };
 
+  /** Обработчик сохранения настроек приватности */
   const handleSave = () => {
     const payload = { ...privacy };
     PRIVACY_SETTINGS_CONFIG.forEach((setting) => {

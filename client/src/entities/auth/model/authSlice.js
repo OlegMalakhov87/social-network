@@ -10,6 +10,7 @@ import {
   removeToken,
   saveToken,
   updateUser,
+  uploadAvatar,
 } from '..';
 
 /** Начальное состояние авторизации.*/
@@ -165,6 +166,20 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.error =
           action.payload || action.error.message || 'Ошибка обновления пароля';
+      })
+
+      /** Загрузка аватара пользователя.*/
+      .addCase(uploadAvatar.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user.avatar = action.payload.avatar;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error =
+          action.payload || action.error.message || 'Ошибка загрузки аватара';
       });
   },
 });

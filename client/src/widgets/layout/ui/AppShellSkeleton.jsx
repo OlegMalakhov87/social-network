@@ -10,14 +10,14 @@ import style from './AppShellSkeleton.module.css';
 export const AppShellSkeleton = () => {
   return (
     <div className="app_wrapper">
-      {/* 1. Header Skeleton */}
+      {/* Скелетон Header */}
       <header className={`${style.skeletonArea} ${style.header}`}>
         <Skeleton width={40} height={40} circle />
         <Skeleton width="40%" height={36} radius="var(--radius-full)" />
         <Skeleton width={80} height={32} radius="var(--radius-md)" />
       </header>
 
-      {/* 2. Navbar Skeleton */}
+      {/* Скелетон Navbar */}
       <nav className={`${style.skeletonArea} ${style.navbar}`}>
         <div className={style.navList}>
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -29,7 +29,7 @@ export const AppShellSkeleton = () => {
         </div>
       </nav>
 
-      {/* 3. Main Content Skeleton (имитируем профиль или ленту) */}
+      {/* Скелетон Main Content (имитируем профиль или ленту) */}
       <main className={`${style.skeletonArea} ${style.main}`}>
         <Skeleton
           width="100%"
@@ -53,7 +53,7 @@ export const AppShellSkeleton = () => {
         </div>
       </main>
 
-      {/* 4. Sidebar Skeleton */}
+      {/* Скелетон Sidebar */}
       <aside className={`${style.skeletonArea} ${style.info}`}>
         <Skeleton
           width="100%"
@@ -64,7 +64,7 @@ export const AppShellSkeleton = () => {
         <Skeleton width="100%" height={200} radius="var(--radius-lg)" />
       </aside>
 
-      {/* 5. Footer Skeleton */}
+      {/* Скелетон Footer */}
       <footer className={`${style.skeletonArea} ${style.footer}`}>
         <Skeleton width={250} height={16} />
         <div className={style.footerLinks}>

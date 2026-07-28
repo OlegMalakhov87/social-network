@@ -38,8 +38,15 @@ module.exports = {
         type: Sequelize.STRING(20),
         unique: true,
       },
-      photoUrl: {
+      avatarUrl: {
         type: Sequelize.STRING(500),
+      },
+      visibility: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
+        validate: {
+          isIn: [['public', 'friends', 'private']],
+        },
       },
       passwordHash: {
         type: Sequelize.STRING(60),

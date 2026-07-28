@@ -18,7 +18,7 @@ module.exports = {
       targetType: {
         type: Sequelize.STRING,
         allowNull: false,
-        type: Sequelize.ENUM('Post', 'Music', 'Video', 'News', 'Comment'),
+        type: Sequelize.ENUM('Post', 'Music', 'Video', 'News', 'Comment', 'Message'),
       },
       targetId: {
         type: Sequelize.INTEGER,

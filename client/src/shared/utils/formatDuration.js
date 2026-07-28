@@ -1,10 +1,10 @@
 /**
- * Форматирует длительность в секундах в строку вида "м:сс" или "ч:мм:сс".
+ * Форматирует длительность в секундах в строку вида "ч:мм:сс" или "м:сс".
  *
  * @param {number} seconds - время в секундах
  * @returns {string} - форматированное время
  */
-export const formatTime = (seconds) => {
+export const formatDuration = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00';
 
   const totalSeconds = Math.floor(seconds);

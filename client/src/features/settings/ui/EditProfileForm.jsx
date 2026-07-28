@@ -1,28 +1,31 @@
 import { useDispatch } from 'react-redux';
 import { FORM_FIELDS } from '..';
-import { updateUser } from '../../../entities/auth';
-import { useAppForm, useNotify } from '../../../shared/hooks';
+import { updateUser, uploadAvatar } from '../../../entities/auth';
+import { useForm, useNotify } from '../../../shared/hooks';
 import {
   Avatar,
   Button,
   ButtonGroup,
   EntityHeader,
   EntityMeta,
+  FileInput,
   Input,
 } from '../../../shared/ui';
+import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
 import style from './SettingsForm.module.css';
 
 /**
  * Компонент формы редактирования профиля.
  *
- * @param {Object} props - пропсы компонента.
- * @param {Object} props.currentUser - текущий пользователь.
+ * @param {Object} currentUser - текущий пользователь.
  * @returns {JSX.Element}
  */
-export const EditProfileForm = ({ currentUser }) => {
+export const EditProfileForm = (currentUser) => {
   const dispatch = useDispatch();
   const notify = useNotify();
-  const form = useAppForm({
+
+  /** Форма для редактирования профиля */
+  const form = useForm({
     initialValues: {
       name: currentUser?.name || '',
       nickname: currentUser?.nickname || '',
@@ -43,7 +46,20 @@ export const EditProfileForm = ({ currentUser }) => {
     },
   });
 
-  if (!currentUser) return null;
+  /** Хук для загрузки фото */
+  const { preview, isUploading, error, handleFileChange } = useFileUpload(
+    AVATAR_UPLOAD_CONFIG,
+    {
+      onSuccess: async (data) => {
+        try {
+          await dispatch(uploadAvatar(data)).unwrap();
+          notify.success('Аватар успешно загружен');
+        } catch (error) {
+          notify.error(error || 'Ошибка загрузки аватара');
+        }
+      },
+    }
+  );
 
   return (
     <div className={style.formWrapper}>
@@ -52,7 +68,7 @@ export const EditProfileForm = ({ currentUser }) => {
           <EntityMeta
             avatar={
               <Avatar
-                src={currentUser.photoUrl}
+                src={preview || currentUser.avatar}
                 size="xl"
                 fallback="/support.png"
               />
@@ -62,9 +78,13 @@ export const EditProfileForm = ({ currentUser }) => {
           />
         }
         rightSlot={
-          <Button variant="secondary" size="sm">
-            Изменить фото
-          </Button>
+          <FileInput
+            accept={AVATAR_UPLOAD_CONFIG.accept}
+            buttonText="Изменить фото"
+            isUploading={isUploading}
+            error={error}
+            onChange={handleFileChange}
+          />
         }
         className={style.profileHeader}
       />

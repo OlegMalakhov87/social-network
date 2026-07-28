@@ -22,7 +22,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      message: {
+      content: {
         type: Sequelize.TEXT,
         allowNull: false,
       },

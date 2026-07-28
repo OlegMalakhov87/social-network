@@ -5,8 +5,8 @@ export { normalizeSharedPhoto } from './lib/normalizeSharedPhoto'; // Норма
 export { normalizeSharedPost } from './lib/normalizeSharedPost'; // Нормализует объект поста в объект SharedEntityCard.
 export { normalizeSharedTrack } from './lib/normalizeSharedTrack'; // Нормализует объект трека в объект SharedEntityCard.
 export { normalizeSharedVideo } from './lib/normalizeSharedVideo'; // Нормализует объект видео в объект SharedEntityCard.
-export { isPlayable } from './lib/isPlayable'; // Определяет, является ли сущность воспроизводимой (видео/аудио).
-export { parseSharedEntity } from './lib/parseSharedEntity'; // Парсит строку JSON в объект SharedEntity.
+export { isPlayable } from '../../shared/utils/isPlayable'; // Определяет, является ли сущность воспроизводимой (видео/аудио).
+export { parseSharedEntity } from '../../shared/utils/parseSharedEntity'; // Парсит строку JSON в объект SharedEntity.
 
 export { getStatsItems  } from './model/getStatsItems '; // Получает маппинг статистики для сущности.
 

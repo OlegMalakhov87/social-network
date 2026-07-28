@@ -1,7 +1,7 @@
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Like extends Model {
-    static associate({ User, Post, Music, Video, News, Comment }) {
+    static associate({ User, Post, Music, Video, News, Comment, Message }) {
       // Пользователь, который поставил лайк
       this.belongsTo(User, { foreignKey: 'userId', as: 'users' });
 
@@ -50,13 +50,29 @@ module.exports = (sequelize, DataTypes) => {
         },
         as: 'comments',
       });
+
+      this.belongsTo(Message, {
+        foreignKey: 'targetId',
+        constraints: false,
+        scope: {
+          targetType: 'Message',
+        },
+        as: 'messages',
+      });
     }
   }
   Like.init(
     {
       userId: { type: DataTypes.INTEGER, allowNull: false },
       targetType: {
-        type: DataTypes.ENUM('Post', 'Music', 'Video', 'News', 'Comment'),
+        type: DataTypes.ENUM(
+          'Post',
+          'Music',
+          'Video',
+          'News',
+          'Comment',
+          'Message'
+        ),
         allowNull: false,
       },
       targetId: {

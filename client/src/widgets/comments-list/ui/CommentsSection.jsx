@@ -2,7 +2,7 @@ import { useFetchComments } from '../../../features/comments';
 import { SORT_OPTIONS } from '../../../shared/config';
 import { useFilterControls } from '../../../shared/hooks';
 import { Dropdown, IconButton, SectionCard } from '../../../shared/ui';
-import { CommentsList } from './CommentsList';
+import { CommentsList } from '..';
 
 /**
  * Секция комментариев. Стартовый компонент для отображения списка комментариев.

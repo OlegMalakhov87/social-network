@@ -6,7 +6,7 @@ import styles from '../ui/Text/Text.module.css';
  * @param {string} text - исходный текст
  * @returns {React.ReactNode[]} массив строк и элементов <a>
  */
-export const linkify = (text = '') => {
+export const linkifyText = (text = '') => {
   if (!text) return text;
 
   // Разделяем текст по URL — капчуры-группа включает совпадения в массив

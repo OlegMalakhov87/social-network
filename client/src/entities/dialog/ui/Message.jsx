@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getMessageActions } from '..';
-import { classNames, formatDate } from '../../../shared/lib';
+import { classNames, formatDate } from '../../../shared/utils';
 import {
   Button,
   ButtonGroup,
@@ -51,7 +51,7 @@ export const Message = ({
 
   const handleSaveEdit = () => {
     if (editText.trim() && isEditing) {
-      onUpdate(message.id, editText.trim());
+      onUpdate?.(message.id, editText.trim());
     }
     handleCancelEdit();
   };
@@ -63,7 +63,7 @@ export const Message = ({
     toggleLike,
     handleStartEdit,
     onDelete: () => setShowDeleteDialog(true),
-    onShare: () => onShareEntity(message),
+    onShare: () => onShareEntity?.(message),
   });
 
   const handleConfirmDelete = () => {

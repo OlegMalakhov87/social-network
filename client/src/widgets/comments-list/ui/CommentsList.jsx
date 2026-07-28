@@ -1,5 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { Comment } from '../../../entities/comment';
+import { normalizeSharedComment } from '../../../entities/sharedEntity';
 import { CommentForm } from '../../../features/comments';
+import { useShareEntity } from '../../../features/sharedEntities';
 import {
   ContentState,
   ErrorBanner,
@@ -40,6 +43,14 @@ export const CommentsList = ({
   onCloseComments,
   onRetry,
 }) => {
+  const navigate = useNavigate();
+
+  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const { shareEntity } = useShareEntity({
+    normalizeFn: normalizeSharedComment,
+    onSuccess: () => navigate('/messages'),
+  });
+
   return (
     <ContentState
       loading={isLoading && comments.length === 0}
@@ -59,6 +70,7 @@ export const CommentsList = ({
               comment={item.comment}
               author={item.author}
               currentUserId={currentUser?.id}
+              onShareEntity={shareEntity}
               onEdit={onEditComment}
               onDelete={onDeleteComment}
               toggleLike={toggleLikeComment}

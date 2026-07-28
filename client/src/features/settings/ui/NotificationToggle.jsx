@@ -7,11 +7,8 @@ import style from './SettingsForm.module.css';
 /**
  * Компонент формы настроек уведомлений.
  *
- * @param {Object} props - пропсы компонента.
- * @param {Object} props.currentUser - текущий пользователь.
- * @returns {JSX.Element}
  */
-export const NotificationToggle = ({ currentUser }) => {
+export const NotificationToggle = () => {
   const notify = useNotify();
   const [notifications, setNotifications] = useState({
     email: true,
@@ -22,14 +19,14 @@ export const NotificationToggle = ({ currentUser }) => {
     digest: true,
   });
 
+  /** Обработчик сохранения настроек уведомлений */
   const handleSave = () => {
     notify.success('Настройки уведомлений сохранены');
   };
 
+  /** Обработчик переключения уведомлений */
   const toggle = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  if (!currentUser) return null;
 
   return (
     <div className={style.formWrapper}>

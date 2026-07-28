@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PROFILE_TABS_MAP, getProfileTabContent } from '../../../entities/user';
 import { useCommentsPanel } from '../../../features/comments';
 import { useFriendshipStatus } from '../../../features/friends';
 import { PostForm } from '../../../features/posts';
@@ -18,6 +17,10 @@ import {
 } from '../../../shared/ui';
 import { useAudioPlayer } from '../../../widgets/audio-player';
 import { CommentsSection } from '../../../widgets/comments-list';
+import {
+  PROFILE_TABS_MAP,
+  getProfileTabContent,
+} from '../../../widgets/user-content';
 import { UserProfileCard } from '../../../widgets/user-profile';
 import { VideoPlayer } from '../../../widgets/video-player';
 import style from './ProfilePage.module.css';

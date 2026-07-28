@@ -1,25 +1,22 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { changePassword, deleteUser, logout } from '../../../entities/auth';
-import { useAppForm, useNotify } from '../../../shared/hooks';
+import { useForm, useNotify } from '../../../shared/hooks';
 import { match, minLength, required } from '../../../shared/lib';
 import { Alert, Button, ConfirmDialog, Input, Text } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
 
 /**
  * Компонент формы смены пароля.
- *
- * @param {Object} props - пропсы компонента.
- * @param {Object} props.currentUser - текущий пользователь.
- * @returns {JSX.Element}
  */
-export const ChangePasswordForm = ({ currentUser }) => {
+export const ChangePasswordForm = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const dispatch = useDispatch();
   const notify = useNotify();
 
-  const form = useAppForm({
+  /** Форма для смены пароля */
+  const form = useForm({
     initialValues: {
       currentPassword: '',
       newPassword: '',
@@ -52,6 +49,7 @@ export const ChangePasswordForm = ({ currentUser }) => {
     },
   });
 
+  /** Обработчик подтверждения удаления аккаунта */
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
@@ -65,8 +63,6 @@ export const ChangePasswordForm = ({ currentUser }) => {
       setIsDeleteDialogOpen(false);
     }
   };
-
-  if (!currentUser) return null;
 
   return (
     <div className={style.formWrapper}>
