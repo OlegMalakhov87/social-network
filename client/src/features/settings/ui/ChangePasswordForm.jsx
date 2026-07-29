@@ -3,7 +3,14 @@ import { useDispatch } from 'react-redux';
 import { changePassword, deleteUser, logout } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import { match, minLength, required } from '../../../shared/lib';
-import { Alert, Button, ConfirmDialog, Input, Text } from '../../../shared/ui';
+import {
+  Alert,
+  Button,
+  ButtonGroup,
+  ConfirmDialog,
+  Input,
+} from '../../../shared/ui';
+import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
 
 /**
@@ -65,36 +72,35 @@ export const ChangePasswordForm = () => {
   };
 
   return (
-    <div className={style.formWrapper}>
-      <Text variant="h3" className={style.sectionTitle}>
-        Смена пароля
-      </Text>
-
+    <SettingsSection title="Смена пароля">
       <form onSubmit={form.submit} className={style.form}>
         <Input
           label="Текущий пароль"
           type="password"
+          fullWidth
           {...form.register('currentPassword')}
           disabled={form.isSubmitting}
         />
         <Input
           label="Новый пароль"
           type="password"
+          fullWidth
           {...form.register('newPassword')}
           disabled={form.isSubmitting}
         />
         <Input
           label="Подтвердите пароль"
           type="password"
+          fullWidth
           {...form.register('confirmPassword')}
           disabled={form.isSubmitting}
         />
 
-        <div className={style.actions}>
+        <ButtonGroup className={style.actions}>
           <Button type="submit" variant="primary" loading={form.isSubmitting}>
             Изменить пароль
           </Button>
-        </div>
+        </ButtonGroup>
       </form>
 
       <div className={style.dangerZone}>
@@ -121,6 +127,6 @@ export const ChangePasswordForm = () => {
         confirmVariant="danger"
         loading={isDeleting}
       />
-    </div>
+    </SettingsSection>
   );
 };

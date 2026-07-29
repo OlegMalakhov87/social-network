@@ -43,6 +43,19 @@ const App = () => {
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  /** Применение темы из localStorage или системной темы */
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const appliedTheme = savedTheme === 'system' 
+      ? (mediaQuery.matches ? 'dark' : 'light') 
+      : savedTheme;
+      
+    document.documentElement.setAttribute('data-theme', appliedTheme);
+  }, []);
+
+  /** Проверка авторизации */
   useEffect(() => {
     const checkAuth = async () => {
       if (localStorage.getItem('token')) {

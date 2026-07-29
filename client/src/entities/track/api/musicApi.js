@@ -51,6 +51,16 @@ export const updateTrackApi = async (trackId, updates) => {
 };
 
 /**
+ * Обновить приватность треков.
+ * @param {boolean} isPublic - видимость треков
+ * @returns {Promise<Object>} { isPublic }
+ */
+export const updateTracksPrivacyApi = async (isPublic) => {
+  const response = await api.put(`/music/privacy`, { isPublic });
+  return response.data;
+};
+
+/**
  * Обновить счетчик прослушиваний трека.
  * @param {number} trackId - ID трека
  * @returns {Promise<Object>} { track }

@@ -1,4 +1,4 @@
-import { getStatsItems, isPlayable } from '..';
+import { getStatsItems } from '..';
 import {
   BaseCard,
   EntityContent,
@@ -8,11 +8,11 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { isPlayable } from '../../../shared/utils';
 import style from './SharedEntityCard.module.css';
 
 /**
- * Универсальная карточка расшаренной сущности в сообщении.
- * Поддерживает типы: 'post', 'video', 'track', 'article'.
+ * Универсальная карточка расшаренной сущности в сообщении..
  *
  * @param {Object} props
  * @param {Object} props.entity - данные сущности (приведенные к единому формату)

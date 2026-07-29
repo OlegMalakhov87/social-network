@@ -13,22 +13,18 @@
   gap: var(--space-4);
 }
 
+.fieldLabel {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
 .fieldsGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
-}
-
-@media (min-width: 481px) {
-  .fieldsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .halfWidth {
-    grid-column: span 1;
-  }
-  .fullWidth {
-    grid-column: 1 / -1;
-  }
 }
 
 .profileHeader {
@@ -52,9 +48,13 @@
   gap: var(--space-4);
 }
 
-.deleteButton,
-.saveButton {
-  margin-top: var(--space-6);
+.saveButton,
+.formFooter {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+
+.deleteButton {
   align-self: flex-start;
 }
 
@@ -62,27 +62,45 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
 }
 
-.checkboxLabelWrapper {
+.settingItem {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  align-items: stretch;
+  gap: var(--space-3);
 }
 
-.checkboxTitle {
-  color: var(--text-primary);
-  font-weight: var(--font-weight-medium);
+.settingItemField {
+  flex: 1;
+  min-width: 0;
 }
 
-.checkboxDescription {
-  color: var(--text-secondary);
+.settingItemSave {
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
-.hintText {
-  color: var(--text-secondary);
-  margin-top: calc(-1 * var(--space-3));
-  margin-bottom: var(--space-4);
-  line-height: 1.5;
+@media (min-width: 481px) {
+  .settingItem {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: var(--space-4);
+  }
+
+  .settingItemSave {
+    align-self: flex-end;
+  }
+
+  .fieldsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .halfWidth {
+    grid-column: span 1;
+  }
+
+  .fullWidth {
+    grid-column: 1 / -1;
+  }
 }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { NOTIFICATION_SETTINGS_CONFIG } from '..';
 import { useNotify } from '../../../shared/hooks';
-import { Button, Checkbox, Text } from '../../../shared/ui';
+import { Button, Checkbox } from '../../../shared/ui';
+import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
 
 /**
@@ -19,49 +20,32 @@ export const NotificationToggle = () => {
     digest: true,
   });
 
-  /** Обработчик сохранения настроек уведомлений */
   const handleSave = () => {
     notify.success('Настройки уведомлений сохранены');
   };
 
-  /** Обработчик переключения уведомлений */
   const toggle = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div className={style.formWrapper}>
-      <Text variant="h3" className={style.sectionTitle}>
-        Уведомления
-      </Text>
-
+    <SettingsSection title="Уведомления">
       <div className={style.toggleGroup}>
         {NOTIFICATION_SETTINGS_CONFIG.map((option) => (
           <Checkbox
             key={option.id}
             id={option.id}
+            label={option.label}
+            description={option.description}
+            align="start"
             checked={notifications[option.id]}
             onChange={() => toggle(option.id)}
-            label={
-              <div className={style.checkboxLabelWrapper}>
-                <Text variant="body1" className={style.checkboxTitle}>
-                  {option.label}
-                </Text>
-                <Text variant="caption" className={style.checkboxDescription}>
-                  {option.description}
-                </Text>
-              </div>
-            }
           />
         ))}
       </div>
 
-      <Button
-        variant="primary"
-        className={style.saveButton}
-        onClick={handleSave}
-      >
+      <Button variant="primary" className={style.formFooter} onClick={handleSave}>
         Сохранить настройки
       </Button>
-    </div>
+    </SettingsSection>
   );
 };

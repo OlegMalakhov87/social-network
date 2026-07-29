@@ -18,7 +18,7 @@ import { useNotify } from '../../../shared/hooks';
  */
 export const useFileUpload = (config, options = {}) => {
   const notify = useNotify();
-  const { onSuccess, onError } = options;
+  const { uploadFn, onSuccess, onError } = options;
 
   const [preview, setPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,23 +66,28 @@ export const useFileUpload = (config, options = {}) => {
 
     // 3. Отправка на сервер
     try {
-      const formData = new FormData();
-      formData.append(config.fieldName, file);
+      let result;
+      if (uploadFn) {
+        result = await uploadFn(file);
+      } else {
+        const formData = new FormData();
+        formData.append(config.previewType, file);
 
-      const response = await api.post(config.endpoint, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setProgress(percent);
-          }
-        },
-      });
+        const response = await api.post(config.endpoint, formData, {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setProgress(percent);
+            }
+          },
+        });
+        result = response.data;
+      }
 
       notify.success('Файл успешно загружен');
-      onSuccess?.(response.data);
+      onSuccess?.(result);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || err.message || 'Ошибка загрузки файла';

@@ -36,3 +36,13 @@ export const fetchUsersOnlineStatus = async (userIds) => {
   const response = await api.post(`/profile/online-status`, { userIds });
   return response.data;
 };
+
+/**
+ * Обновить приватность пользователя.
+ * @param {boolean} isPublic - видимость пользователя
+ * @returns {Promise<Object>} { isPublic }
+ */
+export const updateUserPrivacyApi = async (isPublic) => {
+  const response = await api.put(`/profile/privacy`, { isPublic });
+  return response.data;
+};

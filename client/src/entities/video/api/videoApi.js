@@ -45,6 +45,16 @@ export const updateVideoApi = async (videoId, updates) => {
 };
 
 /**
+ * Обновить приватность видео.
+ * @param {boolean} isPublic - видимость видео
+ * @returns {Promise<Object>} { isPublic }
+ */
+export const updateVideosPrivacyApi = async (isPublic) => {
+  const response = await api.put(`/videos/privacy`, { isPublic });
+  return response.data;
+};
+
+/**
  * Обновить счетчик просмотров видео.
  * @param {number} videoId - ID видео
  * @returns {Promise<Object>} { video }

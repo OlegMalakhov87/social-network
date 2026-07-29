@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
 import { THEME_OPTIONS } from '..';
-import { useNotify } from '../../../shared/hooks';
-import { Button, Select, Text } from '../../../shared/ui';
+import { Alert, SegmentedControl } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
+import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы настроек внешнего вида.
  */
 export const AppearanceSettings = () => {
-  const notify = useNotify();
-
-  //Инициализация темы из localStorage или дефолтное значение 'light'
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'light';
+    return localStorage.getItem('theme') || 'system';
   });
 
-  // Применение темы при изменении стейта или первой загрузке
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -43,37 +39,23 @@ export const AppearanceSettings = () => {
     };
   }, [theme]);
 
-  const handleSave = () => {
-    notify.success('Настройки внешнего вида сохранены');
-  };
-
   return (
-    <div className={style.formWrapper}>
-      <Text variant="h3" className={style.sectionTitle}>
-        Внешний вид
-      </Text>
-
+    <SettingsSection title="Внешний вид">
       <div className={style.form}>
-        <Select
-          label="Цветовая схема"
-          options={THEME_OPTIONS}
-          value={theme}
-          onChange={(value) => setTheme(value)}
-        />
+        <div>
+          <span className={style.fieldLabel}>Цветовая схема</span>
+          <SegmentedControl
+            options={THEME_OPTIONS}
+            value={theme}
+            onChange={setTheme}
+          />
+        </div>
 
-        <Text variant="body2" className={style.hintText}>
+        <Alert variant="info" title="Подсказка">
           Выбор темы автоматически применится ко всему приложению. Если выбрана
-          опция "Как в системе", приложение будет следовать настройкам вашей ОС.
-        </Text>
-
-        <Button
-          variant="primary"
-          className={style.saveButton}
-          onClick={handleSave}
-        >
-          Сохранить настройки
-        </Button>
+          опция «Система», приложение будет следовать настройкам вашей ОС.
+        </Alert>
       </div>
-    </div>
+    </SettingsSection>
   );
 };

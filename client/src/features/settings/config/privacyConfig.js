@@ -1,18 +1,14 @@
-/**
- * Опции видимости для профиля и постов.
- */
-export const VISIBILITY_OPTIONS_EXTENDED = [
-  { value: 'public', label: 'Публичный (все)' },
-  { value: 'friends', label: 'Только друзья' },
-  { value: 'private', label: 'Только я' },
-];
+import { updatePostsPrivacyApi } from '../../../entities/post';
+import { updateTracksPrivacyApi } from '../../../entities/track';
+import { updateUserPrivacyApi } from '../../../entities/user';
+import { updateVideosPrivacyApi } from '../../../entities/video';
 
 /**
- * Опции видимости для медиа (треки, видео).
+ * Опции видимости для полей приватности.
  */
-export const VISIBILITY_OPTIONS_MEDIA = [
-  { value: 'true', label: 'Публичный' },
-  { value: 'false', label: 'Приватный (только я)' },
+export const VISIBILITY_OPTIONS = [
+  { value: true, label: 'Публичный' },
+  { value: false, label: 'Приватный' },
 ];
 
 /**
@@ -20,27 +16,27 @@ export const VISIBILITY_OPTIONS_MEDIA = [
  */
 export const PRIVACY_SETTINGS_CONFIG = [
   {
-    key: 'profileVisibility',
+    key: 'profile',
     label: 'Кто видит мой профиль',
-    options: VISIBILITY_OPTIONS_EXTENDED,
-    isBoolean: false,
+    options: VISIBILITY_OPTIONS,
+    updateFn: updateUserPrivacyApi,
   },
   {
-    key: 'postsVisibility',
+    key: 'posts',
     label: 'Кто видит мои посты',
-    options: VISIBILITY_OPTIONS_EXTENDED,
-    isBoolean: false,
+    options: VISIBILITY_OPTIONS,
+    updateFn: updatePostsPrivacyApi,
   },
   {
-    key: 'isTracksPublic',
+    key: 'tracks',
     label: 'Кто видит мои треки',
-    options: VISIBILITY_OPTIONS_MEDIA,
-    isBoolean: true, 
+    options: VISIBILITY_OPTIONS,
+    updateFn: updateTracksPrivacyApi,
   },
   {
-    key: 'isVideosPublic',
+    key: 'videos',
     label: 'Кто видит мои видео',
-    options: VISIBILITY_OPTIONS_MEDIA,
-    isBoolean: true,
+    options: VISIBILITY_OPTIONS,
+    updateFn: updateVideosPrivacyApi,
   },
 ];

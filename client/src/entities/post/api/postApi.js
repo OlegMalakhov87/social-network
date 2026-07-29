@@ -55,6 +55,16 @@ export const updatePostApi = async (postId, updates) => {
 };
 
 /**
+ * Обновить приватность постов.
+ * @param {boolean} isPublic - видимость постов
+ * @returns {Promise<Object>} { isPublic }
+ */
+export const updatePostsPrivacyApi = async (isPublic) => {
+  const response = await api.put(`/posts/privacy`, { isPublic });
+  return response.data;
+};
+
+/**
  * Удалить пост по ID.
  * @param {number} postId - ID поста
  * @returns {Promise<Object>} { postId }

@@ -9,7 +9,6 @@ import {
   maxDuration,
   minImageResolution,
 } from '../../../shared/lib/mediaValidators';
-import{uploadAvatar} from '../../../entities/auth';
 
 /**
  * Конфигурация загрузки аватара профиля.
@@ -78,12 +77,7 @@ export const POST_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/gif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
-    fileType([
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-      'image/gif',
-    ]),
+    fileType(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
     fileExtension(['.jpg', '.jpeg', '.png', '.webp', '.gif']),
   ]),
   endpoint: '/posts/upload-media',
@@ -109,7 +103,6 @@ export const POST_VIDEO_UPLOAD_CONFIG = {
   fieldName: 'media',
   previewType: 'video',
 };
-
 
 /**
  * Конфигурация загрузки изображения для новости.

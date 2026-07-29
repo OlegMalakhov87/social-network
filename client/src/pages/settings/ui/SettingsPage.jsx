@@ -10,19 +10,19 @@ import {
   SETTINGS_TABS_MAP,
 } from '../../../features/settings';
 import {
-  Button,
   ErrorBoundary,
   PageLayout,
   PageLoader,
   SectionCard,
+  SettingsNav,
   Text,
 } from '../../../shared/ui';
 import style from './SettingsPage.module.css';
 
 /**
  * Компонент страницы настроек.
- *
  */
+
 export const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const currentUser = useSelector(selectUser);
@@ -32,6 +32,7 @@ export const SettingsPage = () => {
     return <PageLoader message="Загружаем страницу настроек..." />;
   }
 
+  /** Рендерит контент в зависимости от активной вкладки */
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -43,7 +44,7 @@ export const SettingsPage = () => {
       case 'notifications':
         return <NotificationToggle />;
       case 'privacy':
-        return <PrivacySettings currentUser={currentUser} />;
+        return <PrivacySettings />;
       default:
         return <Text>Раздел в разработке</Text>;
     }
@@ -57,25 +58,15 @@ export const SettingsPage = () => {
       >
         <SectionCard className={style.settingsCard}>
           <div className={style.layout}>
-            {/* Боковое меню */}
-            <nav className={style.sidebar}>
-              {SETTINGS_TABS_MAP.map((item) => (
-                <Button
-                  key={item.id}
-                  variant={activeTab === item.id ? 'primary' : 'ghost'}
-                  fullWidth
-                  align="start"
-                  className={style.menuButton}
-                  onClick={() => setActiveTab(item.id)}
-                >
-                  <span className={style.menuIcon}>{item.icon}</span>
-                  {item.label}
-                </Button>
-              ))}
-            </nav>
+            <aside className={style.sidebar}>
+              <SettingsNav
+                items={SETTINGS_TABS_MAP}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+              />
+            </aside>
 
-            {/* Основной контент */}
-            <main className={style.main}>{renderContent()}</main>
+            <div className={style.content}>{renderContent()}</div>
           </div>
         </SectionCard>
       </PageLayout>

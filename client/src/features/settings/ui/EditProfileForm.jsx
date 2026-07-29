@@ -12,15 +12,17 @@ import {
   Input,
 } from '../../../shared/ui';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
+import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
 
 /**
  * Компонент формы редактирования профиля.
  *
- * @param {Object} currentUser - текущий пользователь.
+ * @param {Object} props
+ * @param {Object} props.currentUser - текущий пользователь.
  * @returns {JSX.Element}
  */
-export const EditProfileForm = (currentUser) => {
+export const EditProfileForm = ({ currentUser }) => {
   const dispatch = useDispatch();
   const notify = useNotify();
 
@@ -50,7 +52,7 @@ export const EditProfileForm = (currentUser) => {
   const { preview, isUploading, error, handleFileChange } = useFileUpload(
     AVATAR_UPLOAD_CONFIG,
     {
-      onSuccess: async (data) => {
+      uploadFn: async (data) => {
         try {
           await dispatch(uploadAvatar(data)).unwrap();
           notify.success('Аватар успешно загружен');
@@ -61,16 +63,20 @@ export const EditProfileForm = (currentUser) => {
     }
   );
 
+  const getFieldGridClass = (field) =>
+    field.half ? style.halfWidth : style.fullWidth;
+
   return (
-    <div className={style.formWrapper}>
+    <SettingsSection title="Профиль">
       <EntityHeader
         leftSlot={
           <EntityMeta
             avatar={
               <Avatar
-                src={preview || currentUser.avatar}
+                src={preview || currentUser?.avatar}
                 size="xl"
-                fallback="/support.png"
+                fallback="/avatar.png"
+                alt="Аватар"
               />
             }
             title={form.values.name}
@@ -92,13 +98,13 @@ export const EditProfileForm = (currentUser) => {
       <form onSubmit={form.submit} className={style.form}>
         <div className={style.fieldsGrid}>
           {FORM_FIELDS.map((field) => (
-            <div
-              key={field.name}
-              className={field.half ? style.halfWidth : style.fullWidth}
-            >
+            <div key={field.name} className={getFieldGridClass(field)}>
               <Input
                 label={field.label}
-                type={field.type}
+                type={field.multiline ? undefined : field.type}
+                multiline={field.multiline}
+                rows={field.rows}
+                fullWidth
                 {...form.register(field.name)}
                 placeholder={field.placeholder}
                 disabled={form.isSubmitting}
@@ -126,6 +132,6 @@ export const EditProfileForm = (currentUser) => {
           </Button>
         </ButtonGroup>
       </form>
-    </div>
+    </SettingsSection>
   );
 };

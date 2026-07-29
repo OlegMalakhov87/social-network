@@ -59,5 +59,7 @@ export const FORM_FIELDS = [
     type: 'text',
     placeholder: 'О себе',
     fullWidth: true,
+    multiline: true,
+    rows: 3,
   },
 ];

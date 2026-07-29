@@ -1,66 +1,85 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PRIVACY_SETTINGS_CONFIG } from '..';
 import { useNotify } from '../../../shared/hooks';
-import { Button, Select, Text } from '../../../shared/ui';
+import { Button, Select } from '../../../shared/ui';
+import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
+
+const DEFAULT_PRIVACY = {
+  profile: true,
+  posts: true,
+  tracks: true,
+  videos: true,
+};
 
 /**
  * Компонент формы настроек приватности.
  *
- * @param {Object} currentUser - текущий пользователь.
- * @returns {JSX.Element}
  */
-export const PrivacySettings = (currentUser) => {
+export const PrivacySettings = ({currentUser}) => {
   const notify = useNotify();
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: 'public',
-    postsVisibility: 'public',
-    isTracksPublic: 'true',
-    isVideosPublic: 'true',
-  });
+  const [savingKeys, setSavingKeys] = useState(new Set());
+  const [privacy, setPrivacy] = useState(DEFAULT_PRIVACY);
+  const lastSavedRef = useRef({ ...DEFAULT_PRIVACY });
 
-  /** Обработчик изменения настроек приватности */
   const handlePrivacyChange = (key, value) => {
     setPrivacy((prev) => ({ ...prev, [key]: value }));
   };
 
-  /** Обработчик сохранения настроек приватности */
-  const handleSave = () => {
-    const payload = { ...privacy };
-    PRIVACY_SETTINGS_CONFIG.forEach((setting) => {
-      if (setting.isBoolean) {
-        payload[setting.key] = payload[setting.key] === 'true';
-      }
-    });
-    console.log('Отправка на сервер:', payload);
-    notify.success('Настройки приватности сохранены');
+  const handleSave = async (setting) => {
+    const { key, updateFn } = setting;
+    const value = privacy[key];
+    const rollbackValue = lastSavedRef.current[key];
+
+    if (value === rollbackValue) {
+      notify.info('Сохраненные настройки уже установлены');
+      return;
+    }
+
+    setSavingKeys((prev) => new Set(prev).add(key));
+
+    try {
+      await updateFn(value);
+      lastSavedRef.current[key] = value;
+      notify.success(`Настройки для ${setting.label} сохранены`);
+    } catch (error) {
+      notify.error(error?.message || 'Ошибка сохранения');
+      setPrivacy((prev) => ({ ...prev, [key]: rollbackValue }));
+    } finally {
+      setSavingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
   };
 
   return (
-    <div className={style.formWrapper}>
-      <Text variant="h3" className={style.sectionTitle}>
-        Приватность
-      </Text>
-
+    <SettingsSection title="Приватность">
       <div className={style.form}>
         {PRIVACY_SETTINGS_CONFIG.map((setting) => (
-          <Select
-            key={setting.key}
-            label={setting.label}
-            options={setting.options}
-            value={privacy[setting.key]}
-            onChange={(value) => handlePrivacyChange(setting.key, value)}
-          />
+          <div key={setting.key} className={style.settingItem}>
+            <div className={style.settingItemField}>
+              <Select
+                label={setting.label}
+                options={setting.options}
+                value={privacy[setting.key]}
+                onChange={(value) => handlePrivacyChange(setting.key, value)}
+                disabled={savingKeys.has(setting.key)}
+              />
+            </div>
+            <Button
+              variant="primary"
+              className={style.settingItemSave}
+              onClick={() => handleSave(setting)}
+              disabled={savingKeys.has(setting.key)}
+              loading={savingKeys.has(setting.key)}
+            >
+              Сохранить настройки
+            </Button>
+          </div>
         ))}
-
-        <Button
-          variant="primary"
-          className={style.saveButton}
-          onClick={handleSave}
-        >
-          Сохранить настройки
-        </Button>
       </div>
-    </div>
+    </SettingsSection>
   );
 };
