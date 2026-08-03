@@ -34,8 +34,8 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       artist: initialData?.artist || '',
       album: initialData?.album || '',
       year: initialData?.year || '',
-      audioUrl: initialData?.audioUrl || '',
-      coverUrl: initialData?.coverUrl || '',
+      audio: initialData?.audio || '',
+      cover: initialData?.cover || '',
       genre: initialData?.genre || '',
       description: initialData?.description || '',
       isPublic: initialData?.isPublic || true,
@@ -64,8 +64,8 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
         minLength(10, 'Минимально 10 символов'),
         maxLength(500, 'Максимум 500 символов'),
       ],
-      audioUrl: [required('Загрузите аудиофайл')],
-      coverUrl: [required('Загрузите обложку альбома')],
+      audio: [required('Загрузите аудиофайл')],
+      cover: [required('Загрузите обложку альбома')],
     }),
     onSubmit: (values) => {
       onSubmit?.(values, isEdit, initialData?.id);
@@ -75,12 +75,12 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Хук для загрузки аудиофайла */
   const trackUpload = useFileUpload(TRACK_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('audioUrl', data.audioUrl),
+    onSuccess: (data) => form.setValue('audio', data.audio),
   });
 
   /** Хук для загрузки обложки альбома */
   const coverUpload = useFileUpload(ALBUM_COVER_CONFIG, {
-    onSuccess: (data) => form.setValue('coverUrl', data.coverUrl),
+    onSuccess: (data) => form.setValue('cover', data.cover),
   });
 
   /** Флаг загрузки */

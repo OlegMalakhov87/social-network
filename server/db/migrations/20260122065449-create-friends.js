@@ -51,12 +51,14 @@ module.exports = {
       type: 'unique',
       name: 'uniqueFriendship',
     });
-    await queryInterface.addIndex('Friends', ['userId']);
-    await queryInterface.addIndex('Friends', ['friendId']);
-    await queryInterface.addIndex('Friends', ['status']);
+    await queryInterface.addIndex('Friends', ['friendId', 'status']);
+    await queryInterface.addIndex('Friends', ['userId', 'status']);
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Friends');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_Friends_status";'
+    );
   },
 };

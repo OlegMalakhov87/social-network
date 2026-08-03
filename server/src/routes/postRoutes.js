@@ -1,17 +1,23 @@
 const { Router } = require('express');
 const postController = require('../controllers/postController');
-const { validatePost, validateIdParam } = require('../middleware/validationMiddleware');
+const {
+  validatePost,
+  validateIdParam,
+} = require('../middleware/validationMiddleware');
 const authMiddleware = require('../middleware/authMiddleware');
-const { checkPostOwnership } = require('../middleware/ownershipMiddleware');
+const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const postRoutes = Router();
 
-postRoutes.get('/search', authMiddleware, postController.searchPosts);
+// Получение постов пользователя
+postRoutes.get(
+  '/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  postController.getUserPosts
+);
 
-postRoutes.get('/feed', authMiddleware, postController.getFeed);
-
-postRoutes.get('/:userId', validateIdParam('userId'), authMiddleware, postController.getUserPosts);
-
+// Получение поста по id для shared поста
 postRoutes.get(
   '/:postId/shared',
   validateIdParam('postId'),
@@ -19,20 +25,31 @@ postRoutes.get(
   postController.getPostById
 );
 
+// Загрузка медиа файла для поста
+postRoutes.post(
+  '/upload-media',
+  authMiddleware,
+  upload.single('media'),
+  handleUploadError,
+  postController.uploadMedia
+);
+
+// Создание поста
 postRoutes.post('/', authMiddleware, validatePost, postController.createPost);
 
+// Обновление поста
 postRoutes.put(
   '/:postId',
   validateIdParam('postId'),
   authMiddleware,
-  checkPostOwnership,
   postController.updatePost
 );
+
+// Удаление поста
 postRoutes.delete(
   '/:postId',
   validateIdParam('postId'),
   authMiddleware,
-  checkPostOwnership,
   postController.deletePost
 );
 

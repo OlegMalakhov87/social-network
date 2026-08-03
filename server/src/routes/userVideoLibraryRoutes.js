@@ -5,29 +5,34 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const userVideoLibraryRoutes = Router();
 
-userVideoLibraryRoutes.get('/', authMiddleware, userVideoLibraryController.getUserLibrary);
+// Получить мою библиотеку видео
+userVideoLibraryRoutes.get(
+  '/',
+  authMiddleware,
+  userVideoLibraryController.getMyLibrary
+);
 
-userVideoLibraryRoutes.post('/', authMiddleware, userVideoLibraryController.createUserLibrary);
+// Добавить видео в библиотеку
+userVideoLibraryRoutes.post(
+  '/',
+  authMiddleware,
+  userVideoLibraryController.addToLibrary
+);
 
+// Обновить запись в библиотеке (избранное, счетчик просмотров, время просмотра)
+userVideoLibraryRoutes.put(
+  '/:libraryId',
+  validateIdParam('libraryId'),
+  authMiddleware,
+  userVideoLibraryController.updateLibraryItem
+);
+
+// Удалить видео из библиотеки
 userVideoLibraryRoutes.delete(
   '/:libraryId',
   validateIdParam('libraryId'),
   authMiddleware,
-  userVideoLibraryController.deleteUserLibrary
-);
-
-userVideoLibraryRoutes.put(
-  '/:libraryId',
-  validateIdParam('libraryId'),
-  authMiddleware,
-  userVideoLibraryController.updateUserLibrary
-);
-
-userVideoLibraryRoutes.put(
-  '/:libraryId/watch',
-  validateIdParam('libraryId'),
-  authMiddleware,
-  userVideoLibraryController.updateСounters
+  userVideoLibraryController.removeFromLibrary
 );
 
 module.exports = userVideoLibraryRoutes;

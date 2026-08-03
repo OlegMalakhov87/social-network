@@ -155,7 +155,7 @@ export const VIDEO_UPLOAD_CONFIG = {
     fileExtension(['.mp4', '.webm', '.mov']),
     maxDuration(300, 'Длительность видео не должна превышать 5 минут'),
   ]),
-  endpoint: '/videos/upload',
+  endpoint: '/videos/upload-video',
   fieldName: 'video',
   previewType: 'video',
 };
@@ -174,7 +174,7 @@ export const TRACK_UPLOAD_CONFIG = {
     fileExtension(['.mp3', '.wav', '.ogg', '.flac']),
     maxDuration(600, 'Длительность трека не должна превышать 10 минут'),
   ]),
-  endpoint: '/tracks/upload',
-  fieldName: 'track',
+  endpoint: '/tracks/upload-audio',
+  fieldName: 'audio',
   previewType: 'audio',
 };

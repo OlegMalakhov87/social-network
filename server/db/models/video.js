@@ -42,7 +42,14 @@ module.exports = (sequelize, DataTypes) => {
 
   Video.init(
     {
-      uploadedBy: { type: DataTypes.INTEGER, allowNull: false },
+      uploadedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
+      },
       title: {
         type: DataTypes.STRING(100),
         allowNull: false,
@@ -53,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       description: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
         validate: {
           len: [1, 2000],
           notEmpty: true,
@@ -61,43 +68,60 @@ module.exports = (sequelize, DataTypes) => {
       },
       duration: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         validate: {
           min: 1,
-          max: 2000,
+          max: 7200,
+          isInt: true,
         },
       },
       size: {
         type: DataTypes.BIGINT,
-        allowNull: false,
+        allowNull: true,
         validate: {
           min: 1024,
+          isInt: true,
         },
       },
-      year: { type: DataTypes.INTEGER, allowNull: false },
-      videoUrl: {
+      year: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        validate: {
+          min: 1900,
+          max: new Date().getFullYear(),
+          isInt: true,
+        },
+      },
+      url: {
         type: DataTypes.STRING(500),
         allowNull: false,
-        validate: {
-          isUrl: true,
-        },
+        defaultValue: '/default-video.mp4',
       },
-      thumbnailUrl: {
+      thumbnail: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+        defaultValue: '/thumbnail-video.webp',
+      },
+      category: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
         validate: {
-          isUrl: true,
+          len: [1, 50],
+          notEmpty: true,
         },
       },
-      category: { type: DataTypes.STRING(50), allowNull: false },
       isPublic: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: true,
       },
-      viewCount: {
+      viewsCount: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+        allowNull: false,
         validate: {
           min: 0,
+          isInt: true,
         },
       },
     },
@@ -108,13 +132,15 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'Videos',
       timestamps: true,
       createdAt: 'createdAt',
-      updatedAt: false,
+      updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
         { fields: ['uploadedBy'] },
-        { fields: ['createdAt'], order: 'DESC' },
+        { fields: ['createdAt'] },
+        { fields: ['title'] },
         { fields: ['category'] },
         { fields: ['isPublic'] },
+        { fields: ['viewsCount'] },
       ],
     }
   );

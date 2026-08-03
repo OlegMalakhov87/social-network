@@ -1,7 +1,14 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// Настройка хранилища
+/** Гарантируем, что папки существуют при запуске */
+const ensureDirExists = (dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
+/** Хранение файлов на диске */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath = 'uploads/';
@@ -14,6 +21,8 @@ const storage = multer.diskStorage({
     } else {
       uploadPath += 'other/';
     }
+
+    ensureDirExists(uploadPath);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
@@ -22,47 +31,48 @@ const storage = multer.diskStorage({
   },
 });
 
-// Фильтр файлов
+/** Фильтрация файлов */
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = {
-    image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-    video: ['video/mp4', 'video/webm', 'video/ogg'],
-    audio: ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'],
-  };
+  const allowedMimes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav',
+    'audio/flac',
+  ];
 
-  if (file.mimetype.startsWith('image/') && allowedTypes.image.includes(file.mimetype)) {
-    cb(null, true);
-  } else if (file.mimetype.startsWith('video/') && allowedTypes.video.includes(file.mimetype)) {
-    cb(null, true);
-  } else if (file.mimetype.startsWith('audio/') && allowedTypes.audio.includes(file.mimetype)) {
+  if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new Error('Неподдерживаемый тип файла'), false);
   }
 };
 
-// Лимиты
-const limits = {
-  fileSize: 100 * 1024 * 1024, // 100MB
-  files: 5, // максимум 5 файлов за раз
-};
-
+/** Загрузка файлов */
 const upload = multer({
   storage,
   fileFilter,
-  limits,
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
-// Middleware для обработки ошибок загрузки
+/** Обработка ошибок загрузки файлов */
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'Файл слишком большой (макс. 100MB)' });
+      return res
+        .status(400)
+        .json({
+          error: 'Файл слишком большой (макс. 100MB)',
+          code: 'FILE_TOO_LARGE',
+        });
     }
-    if (err.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({ error: 'Слишком много файлов (макс. 5)' });
-    }
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message, code: 'MULTER_ERROR' });
   }
   next(err);
 };

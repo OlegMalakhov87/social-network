@@ -129,6 +129,7 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+/** Загрузка аватара пользователя */
 export const uploadAvatar = createAsyncThunk(
   'auth/uploadAvatar',
   async (file, thunkAPI) => {

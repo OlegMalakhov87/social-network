@@ -1,25 +1,38 @@
 const { Router } = require('express');
-const { validateIdParam } = require('../middleware/validationMiddleware');
 const userMusicLibraryController = require('../controllers/userMusicLibraryController');
+const { validateIdParam } = require('../middleware/validationMiddleware');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const userMusicLibraryRoutes = Router();
 
-userMusicLibraryRoutes.get('/', authMiddleware, userMusicLibraryController.getUserLibrary);
-
-userMusicLibraryRoutes.post('/', authMiddleware, userMusicLibraryController.createUserLibrary);
-
-userMusicLibraryRoutes.delete(
-  '/:libraryId',
-  validateIdParam('libraryId'),
+// Получить мою библиотеку
+userMusicLibraryRoutes.get(
+  '/',
   authMiddleware,
-  userMusicLibraryController.deleteUserLibrary
+  userMusicLibraryController.getMyLibrary
 );
 
+// Добавить трек в библиотеку
+userMusicLibraryRoutes.post(
+  '/',
+  authMiddleware,
+  userMusicLibraryController.addToLibrary
+);
+
+// Обновить запись в библиотеке (лайк, счетчик прослушиваний)
 userMusicLibraryRoutes.put(
   '/:libraryId',
   validateIdParam('libraryId'),
   authMiddleware,
-  userMusicLibraryController.updateUserLibrary
+  userMusicLibraryController.updateLibraryItem
 );
+
+// Удалить трек из библиотеки
+userMusicLibraryRoutes.delete(
+  '/:libraryId',
+  validateIdParam('libraryId'),
+  authMiddleware,
+  userMusicLibraryController.removeFromLibrary
+);
+
 module.exports = userMusicLibraryRoutes;

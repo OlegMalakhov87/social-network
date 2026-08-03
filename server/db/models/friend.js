@@ -3,8 +3,8 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Friend extends Model {
     static associate({ User }) {
-      this.belongsTo(User, { foreignKey: 'userId', as: 'users' });
-      this.belongsTo(User, { foreignKey: 'friendId', as: 'friends' });
+      this.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+      this.belongsTo(User, { foreignKey: 'friendId', as: 'friend' });
     }
   }
   Friend.init(
@@ -28,14 +28,15 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'Friends',
       timestamps: true,
       createdAt: 'createdAt',
-      updatedAt: false,
+      updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
-        { fields: ['status'] },
         {
           fields: ['userId', 'friendId'],
           unique: true,
         },
+        { fields: ['userId', 'status'] },
+        { fields: ['friendId', 'status'] },
       ],
     }
   );

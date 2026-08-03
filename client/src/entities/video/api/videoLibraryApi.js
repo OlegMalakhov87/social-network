@@ -58,19 +58,19 @@ export const addVideoToLibrary = async (videoId) => {
  * @param {Object} params - параметры запроса
  * @param {number} params.libraryId – ID записи в библиотеке
  * @param {boolean} params.isFavorite – состояние в избраном (true/false)
- * @param {number} params.viewCount – счетчик просмотров личный
+ * @param {number} params.viewsCount – счетчик просмотров личный
  * @param {Date} params.lastWatchedAt - последний просмотр (дата)
  * @returns {Promise<Object>} { libraryId }
  */
 export const updateVideoFromLibrary = async ({
   libraryId,
   isFavorite,
-  viewCount,
+  viewsCount,
   lastWatchedAt,
 }) => {
   const response = await api.put(`/uservideolibrary/${libraryId}`, {
     isFavorite,
-    viewCount,
+    viewsCount,
     lastWatchedAt,
   });
   return response.data;

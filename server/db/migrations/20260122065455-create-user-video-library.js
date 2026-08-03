@@ -25,13 +25,17 @@ module.exports = {
       isFavorite: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
+        allowNull: false,
       },
-      viewCount: {
+      viewsCount: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
+        allowNull: false,
       },
       lastWatchedAt: {
         type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null,
       },
       createdAt: {
         allowNull: false,
@@ -53,8 +57,6 @@ module.exports = {
     // Индексы для быстрого поиска
     await queryInterface.addIndex('UserVideoLibraries', ['userId']);
     await queryInterface.addIndex('UserVideoLibraries', ['videoId']);
-    await queryInterface.addIndex('UserVideoLibraries', ['isFavorite']);
-    await queryInterface.addIndex('UserVideoLibraries', ['createdAt']);
   },
 
   async down(queryInterface, Sequelize) {

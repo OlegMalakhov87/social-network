@@ -10,7 +10,6 @@ import { useNotify } from '../../../shared/hooks';
  * @param {string} config.endpoint - эндпоинт API
  * @param {string} config.fieldName - имя поля в FormData
  * @param {Function} config.validators - композиция валидаторов
- * @param {'image'|'video'|'audio'} config.previewType - тип превью
  * @param {Object} [options] - опции
  * @param {Function} [options.onSuccess] - колбэк при успехе (получает response.data)
  * @param {Function} [options.onError] - колбэк при ошибке
@@ -71,7 +70,7 @@ export const useFileUpload = (config, options = {}) => {
         result = await uploadFn(file);
       } else {
         const formData = new FormData();
-        formData.append(config.previewType, file);
+        formData.append(config.fieldName, file);
 
         const response = await api.post(config.endpoint, formData, {
           onUploadProgress: (progressEvent) => {

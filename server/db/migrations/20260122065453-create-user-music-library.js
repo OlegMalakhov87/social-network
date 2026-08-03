@@ -25,10 +25,12 @@ module.exports = {
       isFavorite: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
+        allowNull: false,
       },
       playCount: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -52,8 +54,6 @@ module.exports = {
     // Индексы для быстрого поиска
     await queryInterface.addIndex('UserMusicLibraries', ['userId']);
     await queryInterface.addIndex('UserMusicLibraries', ['trackId']);
-    await queryInterface.addIndex('UserMusicLibraries', ['isFavorite']);
-    await queryInterface.addIndex('UserMusicLibraries', ['createdAt']);
   },
 
   async down(queryInterface, Sequelize) {

@@ -1,53 +1,49 @@
 const { Router } = require('express');
-const authMiddleware = require('../middleware/authMiddleware');
 const messageController = require('../controllers/messageController');
-const { validateMessage, validateIdParam } = require('../middleware/validationMiddleware');
-const { checkMessageOwnership } = require('../middleware/ownershipMiddleware');
+const { validateIdParam } = require('../middleware/validationMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const messageRoutes = Router();
 
+// Получить список диалогов
 messageRoutes.get('/dialogs', authMiddleware, messageController.getDialogs);
 
-messageRoutes.get(
-  '/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  checkMessageOwnership,
-  messageController.getAllMessagesByUserId
-);
-
+// Получить переписку с конкретным пользователем
 messageRoutes.get(
   '/conversation/:userId',
   validateIdParam('userId'),
   authMiddleware,
-  messageController.getMessagesByUsers
+  messageController.getConversation
 );
 
-messageRoutes.post('/', authMiddleware, validateMessage, messageController.createMessage);
+// Отправить сообщение
+messageRoutes.post('/send', authMiddleware, messageController.sendMessage);
 
-messageRoutes.put('/read', authMiddleware, messageController.markMessageAsRead);
-
+// Обновить сообщение
 messageRoutes.put(
-  '/:messageId',
+  '/:messageId/edit',
   validateIdParam('messageId'),
   authMiddleware,
-  checkMessageOwnership,
   messageController.updateMessage
 );
 
-messageRoutes.put(
-  '/clear/:partnerId',
-  validateIdParam('partnerId'),
-  authMiddleware,
-  messageController.clearChat
-);
-
+// Скрыть сообщение (удалить у себя)
 messageRoutes.delete(
-  '/:messageId',
+  '/:messageId/hide',
   validateIdParam('messageId'),
   authMiddleware,
-  checkMessageOwnership,
-  messageController.deleteMessage
+  messageController.hideMessage
+);
+
+// Отметить сообщения как прочитанные
+messageRoutes.put('/read', authMiddleware, messageController.markAsRead);
+
+// Очистить чат (удалить всю переписку с пользователем у себя)
+messageRoutes.put(
+  '/clear/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  messageController.clearChat
 );
 
 module.exports = messageRoutes;

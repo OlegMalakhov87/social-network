@@ -1,29 +1,59 @@
 const { Router } = require('express');
-const newsControllers = require('../controllers/newsController');
+const newsController = require('../controllers/newsController');
 const authMiddleware = require('../middleware/authMiddleware');
-const { validateIdParam } = require('../middleware/validationMiddleware');
+const {
+  validateIdParam,
+  validateNews,
+} = require('../middleware/validationMiddleware');
+const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const newsRoutes = Router();
 
-newsRoutes.get('/search', authMiddleware, newsControllers.searchNews);
+// Получить новости
+newsRoutes.get('/', authMiddleware, newsController.getNews);
 
-newsRoutes.get('/', authMiddleware, newsControllers.getAllNews);
+// Получить новость по ID для шеринга
+newsRoutes.get(
+  '/:newsId/shared',
+  validateIdParam('newsId'),
+  authMiddleware,
+  newsController.getNewsById
+);
 
-newsRoutes.get('/:newsId', validateIdParam('newsId'), authMiddleware, newsControllers.getNewsById);
+// Создать новость
+newsRoutes.post('/', authMiddleware, validateNews, newsController.createNews);
 
-newsRoutes.get('/category/:category', authMiddleware, newsControllers.getCategoryNews);
+// Увеличить счетчик просмотров новости
+newsRoutes.put(
+  '/:newsId/views',
+  validateIdParam('newsId'),
+  authMiddleware,
+  newsController.incrementViewsCount
+);
 
-newsRoutes.post('/', authMiddleware, newsControllers.createNews);
+// Загрузка медиа файла для новости
+newsRoutes.post(
+  '/upload-media',
+  authMiddleware,
+  upload.single('media'),
+  handleUploadError,
+  newsController.uploadMedia
+);
+// Обновить новость
+newsRoutes.put(
+  '/:newsId',
+  validateIdParam('newsId'),
+  authMiddleware,
+  validateNews,
+  newsController.updateNews
+);
 
-newsRoutes.put('/:newsId/view', authMiddleware, newsControllers.incrementViewCount);
-
-newsRoutes.put('/:newsId', validateIdParam('newsId'), authMiddleware, newsControllers.updateNews);
-
+// Удалить новость
 newsRoutes.delete(
   '/:newsId',
   validateIdParam('newsId'),
   authMiddleware,
-  newsControllers.deleteNews
+  newsController.deleteNews
 );
 
 module.exports = newsRoutes;

@@ -9,44 +9,49 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       nickname: {
-        type: Sequelize.STRING(25),
+        type: Sequelize.STRING(100),
+        allowNull: true,
         unique: true,
       },
       name: {
-        type: Sequelize.STRING(30),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       age: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       email: {
-        type: Sequelize.STRING(35),
+        type: Sequelize.STRING(55),
         allowNull: false,
         unique: true,
       },
       address: {
         type: Sequelize.TEXT,
+        allowNull: true,
       },
       job: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING(100),
+        allowNull: true,
       },
       status: {
         type: Sequelize.TEXT,
+        allowNull: true,
       },
       phone: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING(25),
         unique: true,
+        allowNull: true,
       },
-      avatarUrl: {
+      avatar: {
         type: Sequelize.STRING(500),
+        allowNull: true,
+        defaultValue: '/user.png',
       },
-      visibility: {
-        type: Sequelize.STRING(10),
+      isPublic: {
+        type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: {
-          isIn: [['public', 'friends', 'private']],
-        },
+        defaultValue: true,
       },
       passwordHash: {
         type: Sequelize.STRING(60),
@@ -67,7 +72,6 @@ module.exports = {
     await queryInterface.addIndex('Users', ['email']);
     await queryInterface.addIndex('Users', ['nickname']);
     await queryInterface.addIndex('Users', ['name']);
-    await queryInterface.addIndex('Users', ['age']);
   },
 
   async down(queryInterface, Sequelize) {

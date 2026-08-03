@@ -5,35 +5,38 @@ module.exports = (sequelize, DataTypes) => {
     static associate({ User, Video }) {
       this.belongsTo(User, {
         foreignKey: 'userId',
-        as: 'users',
+        as: 'user',
       });
       this.belongsTo(Video, {
         foreignKey: 'videoId',
-        as: 'videos',
+        as: 'video',
       });
     }
   }
 
   UserVideoLibrary.init(
     {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false,
-      },
       userId: { type: DataTypes.INTEGER, allowNull: false },
       videoId: { type: DataTypes.INTEGER, allowNull: false },
-      isFavorite: { type: DataTypes.BOOLEAN, defaultValue: false },
-      viewCount: {
+      isFavorite: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      viewsCount: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         defaultValue: 0,
         validate: {
           min: 0,
           isInt: true,
         },
       },
-      lastWatchedAt: DataTypes.DATE,
+      lastWatchedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+        allowNull: true,
+      },
     },
     {
       sequelize,
@@ -44,6 +47,8 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
+        { fields: ['userId'] },
+        { fields: ['videoId'] },
         {
           fields: ['userId', 'videoId'],
           unique: true,

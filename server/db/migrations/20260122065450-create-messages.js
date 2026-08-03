@@ -55,14 +55,29 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW'),
       },
     });
+    await queryInterface.addConstraint('Messages', {
+      fields: ['senderId', 'receiverId'],
+      type: 'check',
+      where: {
+        senderId: {
+          [Sequelize.Op.ne]: Sequelize.col('receiverId'),
+        },
+      },
+      name: 'preventSelfMessage',
+    });
     await queryInterface.addIndex('Messages', ['senderId', 'createdAt'], {
       name: 'messagesSenderCreatedAt',
-      order: 'DESC',
     });
     await queryInterface.addIndex('Messages', ['receiverId', 'createdAt'], {
       name: 'messagesReceiverCreatedAt',
-      order: 'DESC',
     });
+    await queryInterface.addIndex(
+      'Messages',
+      ['senderId', 'receiverId', 'createdAt'],
+      {
+        name: 'messagesSenderReceiverCreatedAt',
+      }
+    );
   },
 
   async down(queryInterface, Sequelize) {

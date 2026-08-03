@@ -39,11 +39,11 @@ export const SORT_OPTIONS = {
  */
 export const FIELD_MAP = {
   /** Маппинг для видео */
-  videos: { views: 'viewCount', date: 'createdAt' },
+  videos: { views: 'viewsCount', date: 'createdAt' },
   /** Маппинг для музыки */
   tracks: { views: 'playCount', date: 'createdAt' },
   /** Маппинг для новостей */
-  news: { views: 'viewCount', date: 'createdAt' },
+  news: { views: 'viewsCount', date: 'createdAt' },
   /** Маппинг для постов */
   posts: { views: 'likesCount', date: 'createdAt' },
   /** Маппинг для комментариев */

@@ -1,34 +1,41 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../../db/models');
+const { AppError } = require('../services/authService');
 
-const authMiddleware = async (req, res, next) => {
+/**
+ * Middleware для проверки авторизации пользователя
+ * @param {Object} req - Объект запроса
+ * @param {Object} res - Объект ответа
+ * @param {Function} next - Функция для перехода к следующему middleware
+ * @returns {Promise<void>}
+ */
+const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ error: 'Токен не предоставлен' });
+    // Получаем токен из заголовка authorization
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new AppError(
+        'Токен не предоставлен или имеет неверный формат',
+        401
+      );
     }
 
+    // Получаем токен из заголовка authorization
+    const token = authHeader.split(' ')[1];
+
+    // Декодируем токен
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id, {
-      attributes: { exclude: ['passwordHash'] },
-    });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Пользователь не найден' });
-    }
-
-    req.user = user;
+    // Кладем в req только ID. Если сервису нужен весь юзер, он его запросит.
+    req.user = { id: decoded.id };
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Недействительный токен' });
+      return next(new AppError('Недействительный токен', 401));
     }
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Токен истек' });
+      return next(new AppError('Срок действия токена истек', 401));
     }
-    console.error('Auth middleware error:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    next(error);
   }
 };
 

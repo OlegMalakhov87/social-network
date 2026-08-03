@@ -10,28 +10,28 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'targetId',
         constraints: false,
         scope: { targetType: 'Post' },
-        as: 'posts',
+        as: 'post',
       });
 
       this.belongsTo(Music, {
         foreignKey: 'targetId',
         constraints: false,
         scope: { targetType: 'Music' },
-        as: 'tracks',
+        as: 'track',
       });
 
       this.belongsTo(Video, {
         foreignKey: 'targetId',
         constraints: false,
         scope: { targetType: 'Video' },
-        as: 'videos',
+        as: 'video',
       });
 
       this.belongsTo(News, {
         foreignKey: 'targetId',
         constraints: false,
         scope: { targetType: 'News' },
-        as: 'news',
+        as: 'new',
       });
 
       // Лайки комментария
@@ -47,7 +47,14 @@ module.exports = (sequelize, DataTypes) => {
   }
   Comment.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
+      },
       targetType: {
         type: DataTypes.ENUM('Post', 'Music', 'Video', 'News'),
         allowNull: false,
@@ -64,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {
-          len: [1, 1000],
+          len: [1, 2000],
           notEmpty: true,
         },
       },
@@ -78,7 +85,10 @@ module.exports = (sequelize, DataTypes) => {
       createdAt: 'createdAt',
       updatedAt: 'updatedAt',
       //underscored: true,
-      indexes: [{ fields: ['userId'] }, { fields: ['targetType', 'targetId', 'createdAt'] }],
+      indexes: [
+        { fields: ['userId'] },
+        { fields: ['targetType', 'targetId', 'createdAt'] },
+      ],
     }
   );
   return Comment;

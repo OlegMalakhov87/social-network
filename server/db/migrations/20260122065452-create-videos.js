@@ -21,26 +21,29 @@ module.exports = {
       },
       description: {
         type: Sequelize.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       duration: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       size: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
+        type: Sequelize.BIGINT,
+        allowNull: true,
       },
       year: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
-      videoUrl: {
+      url: {
         type: Sequelize.STRING(500),
         allowNull: false,
+        defaultValue: '/default-video.mp4',
       },
-      thumbnailUrl: {
+      thumbnail: {
         type: Sequelize.STRING(500),
+        allowNull: true,
+        defaultValue: '/thumbnail-video.webp',
       },
       category: {
         type: Sequelize.STRING(50),
@@ -48,11 +51,13 @@ module.exports = {
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: true,
       },
-      viewCount: {
+      viewsCount: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -66,9 +71,11 @@ module.exports = {
       },
     });
     await queryInterface.addIndex('Videos', ['uploadedBy']);
-    await queryInterface.addIndex('Videos', ['createdAt'], { order: 'DESC' });
+    await queryInterface.addIndex('Videos', ['createdAt']);
+    await queryInterface.addIndex('Videos', ['title']);
     await queryInterface.addIndex('Videos', ['category']);
     await queryInterface.addIndex('Videos', ['isPublic']);
+    await queryInterface.addIndex('Videos', ['viewsCount']);
   },
 
   async down(queryInterface, Sequelize) {

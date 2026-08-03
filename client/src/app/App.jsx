@@ -4,7 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import './style/App.css';
 
 // Pages
-import { LoginPage, RegisterPage } from '../pages/authorization';
 import { DialogsPage } from '../pages/dialogs';
 import { FriendsPage } from '../pages/friends';
 import { MusicPage } from '../pages/music';
@@ -23,6 +22,9 @@ import { Header } from '../widgets/header';
 import { AppShellSkeleton } from '../widgets/layout';
 import { Navbar } from '../widgets/navbar';
 import { Sidebar } from '../widgets/sidebar';
+
+// Features
+import { LoginPage, RegisterPage } from '../features/auth';
 
 // Shared
 import { PageLoader, ToastProvider } from '../shared/ui';
@@ -47,11 +49,14 @@ const App = () => {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'system';
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const appliedTheme = savedTheme === 'system' 
-      ? (mediaQuery.matches ? 'dark' : 'light') 
-      : savedTheme;
-      
+
+    const appliedTheme =
+      savedTheme === 'system'
+        ? mediaQuery.matches
+          ? 'dark'
+          : 'light'
+        : savedTheme;
+
     document.documentElement.setAttribute('data-theme', appliedTheme);
   }, []);
 

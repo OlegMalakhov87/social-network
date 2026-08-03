@@ -15,20 +15,28 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      message: {
+      text: {
         type: Sequelize.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
-      mediaUrl: {
+      media: {
         type: Sequelize.STRING(500),
+        allowNull: true,
       },
-      visibility: {
-        type: Sequelize.ENUM('public', 'friends', 'private'),
-        defaultValue: 'public',
+      isPublic: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
-      postType: {
+      type: {
         type: Sequelize.ENUM('text', 'image', 'video'),
+        allowNull: false,
         defaultValue: 'text',
+      },
+      pinned: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,
@@ -42,11 +50,15 @@ module.exports = {
       },
     });
     await queryInterface.addIndex('Posts', ['userId']);
-    await queryInterface.addIndex('Posts', ['createdAt'], { order: 'DESC' });
-    await queryInterface.addIndex('Posts', ['visibility']);
+    await queryInterface.addIndex('Posts', ['userId', 'createdAt']);
+    await queryInterface.addIndex('Posts', ['isPublic']);
+    await queryInterface.addIndex('Posts', ['type']);
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Posts');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_Posts_type";'
+    );
   },
 };

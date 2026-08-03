@@ -1,39 +1,50 @@
 const { Router } = require('express');
 const likeController = require('../controllers/likeController');
 const authMiddleware = require('../middleware/authMiddleware');
-const { validateLike, validateIdParam } = require('../middleware/validationMiddleware');
-const { checkLikeOwnership } = require('../middleware/ownershipMiddleware');
+const { validateIdParam } = require('../middleware/validationMiddleware');
 
 const likeRoutes = Router();
 
-console.log('likeRoutes loaded');
-
+// Проверить, поставил ли текущий пользователь лайк
 likeRoutes.get(
-  '/:userId',
-  validateIdParam('userId'),
+  '/check/:targetType/:targetId',
+  validateIdParam('targetId'),
   authMiddleware,
-  likeController.getAllLikesUser
+  likeController.checkLike
 );
 
+// Получить все лайки конкретной сущности
 likeRoutes.get(
   '/:targetType/:targetId',
   validateIdParam('targetId'),
   authMiddleware,
-  likeController.getAllLikesTarget
+  likeController.getLikesByTarget
 );
 
-likeRoutes.get('/check', authMiddleware, likeController.checkLikeUser);
-
-likeRoutes.post('/', authMiddleware, validateLike, likeController.createLike);
-
-likeRoutes.delete('/', authMiddleware, validateLike, likeController.deleteLike);
-
-likeRoutes.delete(
-  '/:likeId',
-  validateIdParam('likeId'),
+// Поставить лайк
+likeRoutes.post(
+  '/:targetType/:targetId',
+  validateIdParam('targetId'),
   authMiddleware,
-  checkLikeOwnership,
-  likeController.deleteLikeById
+  validateLike,
+  likeController.addLike
+);
+
+// Убрать лайк
+likeRoutes.delete(
+  '/:targetType/:targetId',
+  validateIdParam('targetId'),
+  authMiddleware,
+  validateLike,
+  likeController.removeLike
+);
+
+// Получить все лайки пользователя
+likeRoutes.get(
+  '/user/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  likeController.getUserLikes
 );
 
 module.exports = likeRoutes;

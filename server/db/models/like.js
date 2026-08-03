@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   class Like extends Model {
     static associate({ User, Post, Music, Video, News, Comment, Message }) {
       // Пользователь, который поставил лайк
-      this.belongsTo(User, { foreignKey: 'userId', as: 'users' });
+      this.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
       // Полиморфная связь с целевой сущностью
       this.belongsTo(Post, {
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         scope: {
           targetType: 'Post',
         },
-        as: 'posts',
+        as: 'post',
       });
 
       this.belongsTo(Music, {
@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         scope: {
           targetType: 'Music',
         },
-        as: 'tracks',
+        as: 'track',
       });
 
       this.belongsTo(Video, {
@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
         scope: {
           targetType: 'Video',
         },
-        as: 'videos',
+        as: 'video',
       });
 
       this.belongsTo(News, {
@@ -48,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
         scope: {
           targetType: 'Comment',
         },
-        as: 'comments',
+        as: 'comment',
       });
 
       this.belongsTo(Message, {
@@ -57,13 +57,20 @@ module.exports = (sequelize, DataTypes) => {
         scope: {
           targetType: 'Message',
         },
-        as: 'messages',
+        as: 'message',
       });
     }
   }
   Like.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
+      },
       targetType: {
         type: DataTypes.ENUM(
           'Post',
@@ -91,7 +98,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'Likes',
       timestamps: true,
       createdAt: 'createdAt',
-      updatedAt: false,
+      updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
         { fields: ['userId'] },

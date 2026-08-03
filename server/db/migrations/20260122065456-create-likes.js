@@ -16,9 +16,15 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       targetType: {
-        type: Sequelize.STRING,
         allowNull: false,
-        type: Sequelize.ENUM('Post', 'Music', 'Video', 'News', 'Comment', 'Message'),
+        type: Sequelize.ENUM(
+          'Post',
+          'Music',
+          'Video',
+          'News',
+          'Comment',
+          'Message'
+        ),
       },
       targetId: {
         type: Sequelize.INTEGER,
@@ -50,5 +56,8 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Likes');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_Likes_targetType";'
+    );
   },
 };

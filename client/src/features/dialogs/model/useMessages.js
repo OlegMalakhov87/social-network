@@ -63,17 +63,22 @@ export function useMessages(userId) {
 
     let ws;
     let reconnectTimeout;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 5;
 
     const connect = () => {
-      ws = new WebSocket(WS_URL);
+      const wsUrl = `${WS_URL}?token=${encodeURIComponent(token)}`;
+      ws = new WebSocket(wsUrl);
 
-      ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
+      ws.onopen = () => {
+        reconnectAttempts = 0; // Сбрасываем счетчик при успешном подключении
+      };
 
       ws.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
           if (data.type === 'newMessage') {
-            const msg = data.message;
+            const msg = data.data;
             if (
               (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
               (msg.receiverId === userId && msg.senderId === currentUser?.id)
@@ -82,13 +87,46 @@ export function useMessages(userId) {
             }
           }
         } catch (err) {
-          console.error('Ошибка обработки сообщения:', err);
+          console.error('Ошибка обработки сообщения WebSocket:', err);
         }
       };
 
-      ws.onclose = () => {
-        reconnectTimeout = setTimeout(connect, 3000);
+      ws.onclose = (event) => {
+        console.log(
+          `WebSocket закрыт. Код: ${event.code}, Причина: ${event.reason}`
+        );
+
+        // Не пытаемся переподключиться, если сервер нас специально выгнал (неверный токен)
+        if (event.code === 4001 || event.code === 4002) {
+          console.error(
+            'Ошибка аутентификации WebSocket. Переподключение остановлено.'
+          );
+          return;
+        }
+
+        // Защита от "шторма" переподключений (экспоненциальная задержка + jitter)
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts += 1;
+          const delay =
+            Math.min(1000 * 2 ** reconnectAttempts, 10000) +
+            Math.random() * 1000;
+
+          reconnectTimeout = setTimeout(() => {
+            console.log(
+              `Попытка переподключения WebSocket (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
+            );
+            connect();
+          }, delay);
+        } else {
+          console.error(
+            'Превышено максимальное количество попыток переподключения WebSocket.'
+          );
+        }
       };
+    };
+
+    ws.onerror = (error) => {
+      console.error('Ошибка WebSocket соединения:', error);
     };
 
     connect();

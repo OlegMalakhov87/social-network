@@ -1,6 +1,7 @@
 export * from './api/authApi'; // API для работы с авторизацией и регистрацией
 
-export * from './model/authSelectors'; // selectors (селекторы для получения состояния авторизации)
+export * from './lib/authSelectors'; // selectors (селекторы для получения состояния авторизации)
+export * from './lib/authStorage'; // storage (функции для работы с JWT токеном (хранение и получение токена из localStorage))
+
 export * from './model/authSlice'; // slice (состояние авторизации)
-export * from './model/authStorage'; // storage (функции для работы с JWT токеном (хранение и получение токена из localStorage))
 export * from './model/authThunks'; // thunks (экшены для авторизации)

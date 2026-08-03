@@ -1,16 +1,18 @@
 const { Router } = require('express');
 const friendController = require('../controllers/friendController');
-const authMiddleware = require('../middleware/authMiddleware');
 const { validateIdParam } = require('../middleware/validationMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const friendRoutes = Router();
 
+// Получить список пользователей со статусом дружбы
 friendRoutes.get(
   '/with-friendship-status',
   authMiddleware,
   friendController.getUsersWithFriendshipStatus
 );
 
+// Проверить статус дружбы с конкретным пользователем
 friendRoutes.get(
   '/status/:userId',
   validateIdParam('userId'),
@@ -18,36 +20,34 @@ friendRoutes.get(
   friendController.getFriendshipStatus
 );
 
-friendRoutes.get('/', authMiddleware, friendController.getAllFriends);
+// Отправить заявку в друзья
+friendRoutes.post('/requests', authMiddleware, friendController.sendRequest);
 
-friendRoutes.get('/friends-of-friends', authMiddleware, friendController.getFriendsOfFriends);
-
-friendRoutes.get('/requests-incoming', authMiddleware, friendController.getIncomingRequests);
-
-friendRoutes.get('/requests-outgoing', authMiddleware, friendController.getOutgoingRequests);
-
-friendRoutes.post('/', authMiddleware, friendController.createRequest);
-friendRoutes.post('/block', authMiddleware, friendController.blockedUser);
-
+// Принять заявку
 friendRoutes.put(
   '/:friendshipId/accept',
   validateIdParam('friendshipId'),
   authMiddleware,
-  friendController.updateRequest
+  friendController.acceptRequest
 );
 
+// Отклонить заявку
 friendRoutes.delete(
   '/:friendshipId/reject',
   validateIdParam('friendshipId'),
   authMiddleware,
-  friendController.deleteRequest
+  friendController.rejectRequest
 );
 
+// Удалить из друзей (или отменить свою заявку)
 friendRoutes.delete(
-  '/:friendshipId',
+  '/:friendshipId/delete',
   validateIdParam('friendshipId'),
   authMiddleware,
-  friendController.deleteFriend
+  friendController.deleteFriendship
 );
+
+// Заблокировать пользователя
+friendRoutes.post('/block', authMiddleware, friendController.blockUser);
 
 module.exports = friendRoutes;

@@ -1,4 +1,4 @@
-import { FIELD_MAP } from '../../config/sortConfig';
+import { FIELD_MAP } from '../config';
 
 // Маппинг только для нестандартных случаев (photos использует поля posts)
 const TAB_TO_ENTITY = {

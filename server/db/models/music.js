@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
       uploadedBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
       },
       title: {
         type: DataTypes.STRING(100),
@@ -58,13 +62,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(100),
         allowNull: false,
         validate: {
+          len: [1, 100],
           notEmpty: true,
         },
       },
-      album: { type: DataTypes.STRING(100), allowNull: false },
+      album: { type: DataTypes.STRING(100), allowNull: true },
       year: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         validate: {
           min: 1900,
           max: new Date().getFullYear(),
@@ -73,40 +78,51 @@ module.exports = (sequelize, DataTypes) => {
       },
       duration: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         validate: {
           min: 1,
           max: 3600,
+          isInt: true,
         },
       },
-      audioUrl: {
+      audio: {
         type: DataTypes.STRING(500),
         allowNull: false,
-        validate: {
-          isUrl: true,
-        },
+        defaultValue: '/audio-track.mp3',
       },
-      coverUrl: {
+      cover: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+        defaultValue: '/cover-track.webp',
+      },
+      genre: {
+        type: DataTypes.STRING(50),
         allowNull: false,
         validate: {
-          isUrl: true,
+          len: [1, 50],
+          notEmpty: true,
         },
       },
-      genre: { type: DataTypes.STRING(50), allowNull: false },
       description: {
         type: DataTypes.TEXT,
+        allowNull: true,
         validate: {
           len: [1, 2000],
           notEmpty: true,
         },
       },
-      isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
+      isPublic: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
       playCount: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         defaultValue: 0,
         validate: {
           min: 0,
+          isInt: true,
         },
       },
     },
@@ -116,14 +132,16 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'Music',
       timestamps: true,
       createdAt: 'createdAt',
-      updatedAt: false,
+      updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
         { fields: ['uploadedBy'] },
-        { fields: ['createdAt'], order: 'DESC' },
-        { fields: ['genre'] },
+        { fields: ['createdAt'] },
+        { fields: ['title'] },
         { fields: ['artist'] },
+        { fields: ['genre'] },
         { fields: ['isPublic'] },
+        { fields: ['playCount'] },
       ],
     }
   );

@@ -11,7 +11,7 @@ import { api } from '../../../shared/api';
  * @returns {Promise<Object>} { friends, pagination }
  */
 export const fetchFriendsApi = async ({ page, limit, filter, q, signal }) => {
-  const response = await api.get('/friends', {
+  const response = await api.get('/friends/with-friendship-status', {
     params: {
       page,
       limit,
@@ -43,7 +43,7 @@ export const fetchFriendshipStatus = async (targetUserId, signal) => {
  * @param {number} friendId – ID пользователя, которому отправляем заявку
  */
 export const sendFriendRequest = async (friendId) => {
-  const response = await api.post(`/friends/request`, {
+  const response = await api.post(`/friends/requests`, {
     friendId,
   });
   return response.data;

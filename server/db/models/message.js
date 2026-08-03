@@ -1,22 +1,46 @@
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
-    static associate({ User }) {
+    static associate({ User, Like }) {
       // Отправил сообщение
       this.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
       //Получил сообщение
       this.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
+
+      // Лайки сообщения
+      this.hasMany(Like, {
+        foreignKey: 'targetId',
+        constraints: false,
+        scope: {
+          targetType: 'Message',
+        },
+        as: 'likes',
+      });
     }
   }
   Message.init(
     {
-      senderId: DataTypes.INTEGER,
-      receiverId: DataTypes.INTEGER,
+      senderId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
+      },
+      receiverId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          min: 1,
+          isInt: true,
+        },
+      },
       content: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {
-          len: [1, 1000],
+          len: [1, 2000],
           notEmpty: true,
         },
       },
@@ -29,10 +53,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
       },
       deletedBySender: {
+        allowNull: false,
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
       deletedByReceiver: {
+        allowNull: false,
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
@@ -47,8 +73,9 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: 'updatedAt',
       // underscored: true,
       indexes: [
-        { fields: ['senderId', 'createdAt'], order: 'DESC' },
-        { fields: ['receiverId', 'createdAt'], order: 'DESC' },
+        { fields: ['senderId', 'createdAt'] },
+        { fields: ['receiverId', 'createdAt'] },
+        { fields: ['senderId', 'receiverId', 'createdAt'] },
       ],
     }
   );

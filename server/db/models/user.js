@@ -12,6 +12,9 @@ module.exports = (sequelize, DataTypes) => {
       // Видео пользователя
       User.hasMany(models.Video, { foreignKey: 'uploadedBy', as: 'videos' });
 
+      // Новости пользователя
+      User.hasMany(models.News, { foreignKey: 'uploadedBy', as: 'news' });
+
       // Отправленные сообщения
       User.hasMany(models.Message, {
         foreignKey: 'senderId',
@@ -41,15 +44,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'friendId',
         as: 'receivedFriendRequests',
       });
-      // Медиа, которые пользователь ЗАГРУЗИЛ
-      User.hasMany(models.Music, {
-        foreignKey: 'uploadedBy',
-        as: 'uploadedMusic',
-      });
-      User.hasMany(models.Video, {
-        foreignKey: 'uploadedBy',
-        as: 'uploadedVideos',
-      });
+
       // Медиа в библиотеке пользователя (many-to-many)
       User.belongsToMany(models.Music, {
         through: models.UserMusicLibrary,
@@ -80,17 +75,26 @@ module.exports = (sequelize, DataTypes) => {
     {
       nickname: {
         type: DataTypes.STRING(100),
+        allowNull: true,
+        unique: true,
         validate: {
-          len: [1, 100],
+          len: [2, 100],
           notEmpty: true,
         },
       },
-      name: { type: DataTypes.STRING(100), allowNull: false },
-      age: {
-        type: DataTypes.INTEGER,
+      name: {
+        type: DataTypes.STRING(100),
         allowNull: false,
         validate: {
-          min: 9,
+          len: [2, 100],
+          notEmpty: true,
+        },
+      },
+      age: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        validate: {
+          min: 14,
           max: 99,
           isInt: true,
         },
@@ -102,35 +106,62 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isEmail: true,
           len: [5, 55],
+          notEmpty: true,
         },
       },
-      address: DataTypes.TEXT,
-      job: DataTypes.STRING(50),
-      status: DataTypes.TEXT,
+      address: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
+      },
+      job: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        validate: {
+          len: [1, 100],
+          notEmpty: true,
+        },
+      },
+      status: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
+      },
       phone: {
         type: DataTypes.STRING(25),
+        allowNull: true,
+        unique: true,
         validate: {
           len: [5, 25],
+          notEmpty: true,
         },
       },
-      avatarUrl: {
+      avatar: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+        defaultValue: '/user.png',
         validate: {
-          isUrl: true,
+          len: [1, 500],
+          notEmpty: true,
         },
       },
-      visibility: {
-        type: DataTypes.STRING(10),
+      isPublic: {
+        type: DataTypes.BOOLEAN,
         allowNull: false,
-        validate: {
-          isIn: [['public', 'friends', 'private']],
-        },
+        defaultValue: true,
       },
       passwordHash: {
         type: DataTypes.STRING(60),
         allowNull: false,
         validate: {
           len: [60, 60],
+          notEmpty: true,
         },
       },
     },
@@ -147,7 +178,6 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['email'] },
         { fields: ['nickname'] },
         { fields: ['name'] },
-        { fields: ['age'] },
       ],
     }
   );

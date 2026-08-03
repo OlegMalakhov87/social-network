@@ -29,25 +29,42 @@ module.exports = (sequelize, DataTypes) => {
   }
   Post.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false },
-      message: {
-        type: DataTypes.TEXT,
-        allowNull: false,
+      userId: { type: DataTypes.INTEGER, allowNull: false,
         validate: {
-          len: [1, 2000],
+          min: 1,
+          isInt: true,
+        },
+      },
+      text: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+          len: [1, 5000],
           notEmpty: true,
         },
       },
-      mediaUrl: {
+      media: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
       },
-      visibility: {
-        type: DataTypes.ENUM('public', 'friends', 'private'),
-        defaultValue: 'public',
+      isPublic: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
-      postType: {
+      type: {
         type: DataTypes.ENUM('text', 'image', 'video'),
+        allowNull: false,
         defaultValue: 'text',
+      },
+      pinned: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
     },
     {
@@ -60,8 +77,9 @@ module.exports = (sequelize, DataTypes) => {
       //underscored: true,
       indexes: [
         { fields: ['userId'] },
-        { fields: ['createdAt'], order: 'DESC' },
-        { fields: ['visibility'] },
+        { fields: ['userId', 'createdAt'] },
+        { fields: ['isPublic'] },
+        { fields: ['type'] },
       ],
     }
   );

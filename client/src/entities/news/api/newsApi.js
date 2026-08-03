@@ -70,7 +70,7 @@ export const updateNewsApi = async (newsId, updates) => {
  * @returns {Promise<Object>}  { news }
  */
 export const updateNewsViewCount = async (newsId) => {
-  const response = await api.put(`/news/${newsId}/view`);
+  const response = await api.put(`/news/${newsId}/views`);
   return response.data;
 };
 

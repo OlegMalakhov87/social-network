@@ -60,7 +60,7 @@ export const updateVideosPrivacyApi = async (isPublic) => {
  * @returns {Promise<Object>} { video }
  */
 export const incrementVideoViewCount = async (videoId) => {
-  const response = await api.put(`/videos/${videoId}/view`);
+  const response = await api.put(`/videos/${videoId}/views`);
   return response.data;
 };
 

@@ -16,7 +16,6 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       targetType: {
-        type: Sequelize.STRING,
         allowNull: false,
         type: Sequelize.ENUM('Post', 'Music', 'Video', 'News'),
       },
@@ -39,11 +38,18 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW'),
       },
     });
-    await queryInterface.addIndex('Comments', ['targetType', 'targetId', 'createdAt']);
+    await queryInterface.addIndex('Comments', [
+      'targetType',
+      'targetId',
+      'createdAt',
+    ]);
     await queryInterface.addIndex('Comments', ['userId']);
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Comments');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_Comments_targetType";'
+    );
   },
 };

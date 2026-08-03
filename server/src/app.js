@@ -21,14 +21,15 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 
 app.use(
   cors({
-    origin: 'http://localhost:3000', // только с этого домена
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // разрешенные методы
+    origin: process.env.CLIENT_URL || 'http://localhost:3000', // только с этого домена
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // разрешенные методы
     credentials: true, // разрешить куки/авторизацию
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', userRoutes);
