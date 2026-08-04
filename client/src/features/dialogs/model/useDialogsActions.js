@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../../auth';
+import { selectUser } from '../../../entities/auth';
 import {
   clearChatApi,
   hideMessageApi,

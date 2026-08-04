@@ -1,5 +1,5 @@
 import { GENRE_OPTIONS } from '../../../entities/track';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { maxLength, minLength, required } from '../../../shared/lib';
 import {
   Button,
@@ -28,7 +28,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
 
   /** Форма для создания/редактирования трека с валидацией*/
-  const form = useAppForm({
+  const form = useForm({
     initialValues: {
       title: initialData?.title || '',
       artist: initialData?.artist || '',

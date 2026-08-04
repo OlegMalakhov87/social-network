@@ -1,5 +1,5 @@
 import { POST_TYPES, VISIBILITY_OPTIONS } from '../../../entities/post';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { maxLength, minLength, required } from '../../../shared/lib';
 import {
   BaseCard,
@@ -29,7 +29,7 @@ import {
 export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для создания/редактирования поста с валидацией*/
-  const form = useAppForm({
+  const form = useForm({
     initialValues: {
       message: initialData?.message || '',
       visibility: initialData?.visibility || 'public',

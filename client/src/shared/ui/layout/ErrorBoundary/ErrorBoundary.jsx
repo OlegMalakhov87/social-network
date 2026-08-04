@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { Button, Card } from '..';
+import { Button, Card } from '../../../ui';
 import styles from './ErrorBoundary.module.css';
 
 /**

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { classNames } from '../../../shared/lib';
 import { Button } from '../../../shared/ui';
+import { classNames } from '../../../shared/utils';
 import style from './ScrollToTopButton.module.css';
 
 /**
@@ -28,7 +28,7 @@ export const ScrollToTopButton = () => {
       variant="primary"
       className={classNames(style.scrollTop, isVisible && style.visible)}
       onClick={scrollToTop}
-      ariaLabel="Прокрутить наверх"
+      aria-label="Прокрутить наверх"
     >
       ↑
     </Button>

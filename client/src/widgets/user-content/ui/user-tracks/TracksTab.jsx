@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Track } from '../../../../entities/track';
 import {
   ContentState,
@@ -61,12 +61,17 @@ export const TracksTab = ({
   onToggleComments,
   onRetry,
 }) => {
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+
   /** Обработчик для увеличения счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере */
   useEffect(() => {
     if (typeof onTrackStart !== 'function') return;
 
     onTrackStart((track) => {
-      const currentTrackInList = tracks.find((item) => item.id === track?.id);
+      const currentTrackInList = tracksRef.current.find(
+        (item) => item.id === track?.id
+      );
       const profileLibraryId =
         currentTrackInList?.profileLibraryId || track.profileLibraryId;
 
@@ -86,7 +91,7 @@ export const TracksTab = ({
     });
 
     return () => onTrackStart(null);
-  }, [onTrackStart, updatePlayCount, incrementPlayCount, tracks]);
+  }, [onTrackStart, updatePlayCount, incrementPlayCount]);
 
   return (
     <ContentState

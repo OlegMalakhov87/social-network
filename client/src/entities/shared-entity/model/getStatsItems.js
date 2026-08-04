@@ -1,17 +1,4 @@
-import { formatViews } from '../../../shared/lib';
-
-/**
- * Получает массив элементов статистики для сущности.
- *
- * @param {Object} entity - нормализованная сущность
- * @returns {Array} - массив { icon, value }
- */
-export const getStatsItems = (entity) => {
-  if (!entity?.type) return [];
-
-  const builder = STATS_MAP[entity.type];
-  return builder ? builder(entity) : [];
-};
+import { formatViews } from '../../../shared/utils';
 
 /**
  * Базовая статистика для любой сущности.
@@ -55,4 +42,17 @@ const STATS_MAP = {
   ],
   comment: (entity) => [...LIKES_STATS(entity)],
   message: (entity) => [...LIKES_STATS(entity)],
+};
+
+/**
+ * Получает массив элементов статистики для сущности.
+ *
+ * @param {Object} entity - нормализованная сущность
+ * @returns {Array} - массив { icon, value }
+ */
+export const getStatsItems = (entity) => {
+  if (!entity?.type) return [];
+
+  const builder = STATS_MAP[entity.type];
+  return builder ? builder(entity) : [];
 };

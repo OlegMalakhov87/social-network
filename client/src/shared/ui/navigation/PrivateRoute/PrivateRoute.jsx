@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
-import { PageLoader } from '..';
+import { PageLoader } from '../../../ui';
 
 /**
  * Приватный маршрут.
@@ -18,7 +18,9 @@ export const PrivateRoute = ({ children, redirectTo = '/login' }) => {
   }
 
   if (!user) {
-    return <PageLoader message={`Загружаем данные пользователя ${redirectTo}...`} />;
+    return (
+      <PageLoader message={`Загружаем данные пользователя ${redirectTo}...`} />
+    );
   }
 
   return children;

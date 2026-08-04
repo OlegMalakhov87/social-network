@@ -4,8 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
 import { store } from './app/store/store';
 import reportWebVitals from './reportWebVitals';
-import { ScrollToTop } from './shared/lib';
 import './shared/styles/index.css';
+import { ScrollToTop } from './shared/ui';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

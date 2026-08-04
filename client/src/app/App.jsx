@@ -24,7 +24,7 @@ import { Navbar } from '../widgets/navbar';
 import { Sidebar } from '../widgets/sidebar';
 
 // Features
-import { LoginPage, RegisterPage } from '../features/auth';
+import { LoginForm, RegisterForm } from '../features/auth';
 
 // Shared
 import { PageLoader, ToastProvider } from '../shared/ui';
@@ -87,8 +87,8 @@ const App = () => {
         <ToastProvider>
           <div className="auth_wrapper">
             <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/register" element={<RegisterForm />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </div>

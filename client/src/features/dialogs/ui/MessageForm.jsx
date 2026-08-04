@@ -1,6 +1,7 @@
-import { useAppForm } from '../../../shared/hooks';
-import { handleKeyboardClick, maxLength, minLength } from '../../../shared/lib';
+import { useForm } from '../../../shared/hooks';
+import { maxLength, minLength } from '../../../shared/lib';
 import { IconButton, TextArea } from '../../../shared/ui';
+import { handleKeyboardClick } from '../../../shared/utils';
 import style from './MessageForm.module.css';
 
 /**
@@ -12,7 +13,7 @@ import style from './MessageForm.module.css';
  */
 export const MessageForm = ({ partnerId, onSubmit }) => {
   /** Форма для добавления комментария с валидацией */
-  const form = useAppForm({
+  const form = useForm({
     initialValues: { message: '' },
     rules: () => ({
       message: [

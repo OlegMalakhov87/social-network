@@ -1,4 +1,4 @@
-import { Chip } from '..';
+import { Chip } from '../../../ui';
 import styles from './Tabs.module.css';
 
 /**

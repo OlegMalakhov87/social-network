@@ -264,8 +264,8 @@ const validateMusic = [
   body('album')
     .optional()
     .trim()
-    .withMessage('Альбом до 100 символов')
-    .isLength({ min: 1, max: 100 }),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Альбом до 100 символов'),
   body('year')
     .optional()
     .isInt({ min: 1900, max: new Date().getFullYear() })
@@ -336,8 +336,8 @@ const validateVideo = [
   body('description')
     .optional()
     .trim()
-    .withMessage('Описание до 2000 символов')
-    .isLength({ min: 1, max: 2000 }),
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Описание до 2000 символов'),
   body('duration')
     .optional()
     .isInt({ min: 1, max: 7200 })

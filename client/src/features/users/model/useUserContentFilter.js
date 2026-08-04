@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../../auth';
+import { selectUser } from '../../../entities/auth';
 import {
   addTrackToLibrary,
   deleteTrackFromLibrary,
@@ -17,12 +17,17 @@ import { useUserVideoLibrary } from '../../videos';
 /**
  * Хук для фильтрации и сортировки контента пользователя по вкладкам
  *
- * @param {string} activeTab - тип контента для отображения
- * @param {number} userIdParam - ID пользователя, чей контент показываем
- * @param {string} sortKey - ключ сортировки из SORT_OPTIONS
+ * @param {Object} params
+ * @param {string} params.activeTab - тип контента для отображения
+ * @param {string} [params.userIdParam] - ID пользователя из URL
+ * @param {string} params.sortKey - ключ сортировки из SORT_OPTIONS
  * @returns {Object} - объект с данными о контенте пользователя
  */
-export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
+export const useUserContentFilter = ({
+  activeTab = 'posts',
+  userIdParam,
+  sortKey = 'dateDesc',
+}) => {
   const currentUser = useSelector(selectUser);
 
   /**
@@ -151,30 +156,41 @@ export const useUserContentFilter = (activeTab, userIdParam, sortKey) => {
     return map[activeTab];
   }, [activeTab, setVideosItems, setTracksItems, setPostsItems]);
 
-  /** Определяем правила трансформации для ТЕКУЩЕЙ активной вкладки */
-  const trackAddTransform = () => ({
-    playCount: 0,
-    libraryCreatedAt: new Date().toISOString(),
-    isFavorite: false,
-  });
-  const trackRemoveTransform = () => ({
-    playCount: 0,
-    libraryCreatedAt: null,
-    isFavorite: false,
-  });
+  const trackAddTransform = useCallback(
+    () => ({
+      playCount: 0,
+      libraryCreatedAt: new Date().toISOString(),
+      isFavorite: false,
+    }),
+    []
+  );
+  const trackRemoveTransform = useCallback(
+    () => ({
+      playCount: 0,
+      libraryCreatedAt: null,
+      isFavorite: false,
+    }),
+    []
+  );
 
-  const videoAddTransform = () => ({
-    viewCount: 0,
-    lastWatchedAt: new Date().toISOString(),
-    libraryCreatedAt: new Date().toISOString(),
-    isFavorite: false,
-  });
-  const videoRemoveTransform = () => ({
-    viewCount: 0,
-    lastWatchedAt: null,
-    libraryCreatedAt: null,
-    isFavorite: false,
-  });
+  const videoAddTransform = useCallback(
+    () => ({
+      viewsCount: 0,
+      lastWatchedAt: new Date().toISOString(),
+      libraryCreatedAt: new Date().toISOString(),
+      isFavorite: false,
+    }),
+    []
+  );
+  const videoRemoveTransform = useCallback(
+    () => ({
+      viewsCount: 0,
+      lastWatchedAt: null,
+      libraryCreatedAt: null,
+      isFavorite: false,
+    }),
+    []
+  );
 
   const isVideo = activeTab === 'videos';
   /**

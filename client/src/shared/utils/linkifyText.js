@@ -1,4 +1,4 @@
-import styles from '../ui/Text/Text.module.css';
+import styles from '../ui/primitives/Text/Text.module.css';
 
 /**
  * Функция для превращения URL-адресов в тексте в кликабельные стилизованные ссылки.

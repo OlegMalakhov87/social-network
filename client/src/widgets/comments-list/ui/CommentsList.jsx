@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Comment } from '../../../entities/comment';
-import { normalizeSharedComment } from '../../../entities/sharedEntity';
+import { normalizeSharedComment } from '../../../entities/shared-entity';
 import { CommentForm } from '../../../features/comments';
-import { useShareEntity } from '../../../features/sharedEntities';
+import { useShareEntity } from '../../../features/shared-entities';
 import {
   ContentState,
   ErrorBanner,

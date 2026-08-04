@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../../auth';
+import { selectUser } from '../../../entities/auth';
 import { fetchDialogsApi } from '../../../entities/dialog';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
-import { parseSharedEntity } from '../../../entities/shared-entity';
+import { parseSharedEntity } from '../../../shared/utils';
 
 /**
  * Хук для получения и отображения списка диалогов.

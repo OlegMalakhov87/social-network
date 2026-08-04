@@ -43,7 +43,7 @@ module.exports = {
       thumbnail: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: '/thumbnail-video.webp',
+        defaultValue: '/default-thumbnail.mp4',
       },
       category: {
         type: Sequelize.STRING(50),

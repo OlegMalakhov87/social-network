@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addVideoApi,
@@ -21,7 +22,6 @@ import {
   useOptimisticMutation,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
-import { selectUser } from '../../auth';
 
 /**
  * Хук для получения и отображения видео на странице видео.

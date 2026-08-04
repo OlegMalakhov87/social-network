@@ -1,5 +1,5 @@
-import { classNames, formatDate } from '../../../shared/lib';
 import { EntityMeta, StatusBadge, Text } from '../../../shared/ui';
+import { classNames, formatDate } from '../../../shared/utils';
 import style from './Dialog.module.css';
 
 /**

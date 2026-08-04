@@ -1,5 +1,5 @@
 import { fetchUserById } from '../../../entities/user';
-import { useAbortableRequest, useNotify } from '../../../shared/hooks';
+import { useAbortableRequest } from '../../../shared/hooks';
 
 /**
  * Хук для получения данных пользователя с сервера
@@ -9,7 +9,6 @@ import { useAbortableRequest, useNotify } from '../../../shared/hooks';
  */
 
 export const useUserProfile = (profileUserId) => {
-  const notify = useNotify();
   /**
    * Запрос данных пользователя с сервера.
    * @param {AbortSignal} signal - сигнал отмены запроса.
@@ -28,10 +27,8 @@ export const useUserProfile = (profileUserId) => {
     },
     deps: [profileUserId],
     options: {
-      autoFetch: true,
+      autoFetch: Boolean(profileUserId),
       initialData: null,
-      onSuccess: () => notify.success('load'),
-      onError: () => notify.error('load'),
     },
   });
   /** Объект с данными о пользователе. */

@@ -1,2 +1,2 @@
-export { NAV_ITEMS } from './config'; // конфигурация навигации
+export { NAV_ITEMS } from './config/navConfig'; // конфигурация навигации
 export { Navbar } from './ui/Navbar'; // навигационное меню с логотипом, навигацией и поиском

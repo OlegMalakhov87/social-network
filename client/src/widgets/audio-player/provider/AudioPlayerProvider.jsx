@@ -1,15 +1,22 @@
-import { createContext, useContext, useRef, useCallback, useMemo, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useMediaControls } from '../../../shared/lib';
 import {
-  setQueue,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  clearPlayer,
   nextTrack,
   prevTrack,
-  clearPlayer,
+  setQueue,
   setRepeat,
   toggleShuffle,
   updatePlayerState,
 } from '..';
+import { useMediaControls } from '../../../shared/hooks';
 
 /**
  * Контекст аудиоплеера. Предоставляет методы управления и текущее состояние плеера всем компонентам через {@link useAudioPlayer}.
@@ -36,123 +43,110 @@ export const AudioPlayerProvider = ({ children }) => {
   const prevTrackId = useRef(null);
   const onTrackStartCallbackRef = useRef(null);
   const trackStartedRef = useRef(false);
+  const repeatRef = useRef('off');
+  const currentTrackRef = useRef(null);
+  const mediaControlsRef = useRef(null);
 
-  const { currentTrack, queue, currentIndex, repeat, shuffle, isPlaying, volume } = useSelector(
-    (state) => state.audioPlayer
-  );
+  const {
+    currentTrack,
+    queue,
+    currentIndex,
+    repeat,
+    shuffle,
+    isPlaying,
+    volume,
+    isMuted,
+  } = useSelector((state) => state.audioPlayer);
 
-  const stateChangeHandler = useCallback((state) => dispatch(updatePlayerState(state)), [dispatch]);
+  repeatRef.current = repeat;
+  currentTrackRef.current = currentTrack;
 
-  const mediaControls = useMediaControls(audioRef, volume, {
-    onEnd: () => {
-      if (repeat === 'one' && audioRef.current) {
-        trackStartedRef.current = false;
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      } else {
-        dispatch(nextTrack());
-      }
-    },
-    onStateChange: stateChangeHandler,
-  });
-
-  useEffect(() => {
-    if (!audioRef.current || !currentTrack?.fileUrl) return;
-
-    if (prevTrackId.current === currentTrack.id) return;
-    prevTrackId.current = currentTrack.id;
-    const audio = audioRef.current;
-    audio.src = currentTrack.fileUrl;
-    dispatch(updatePlayerState({ error: null }));
-    audio.load();
-    audio.play().catch((err) => {
-      if (!['AbortError', 'NotAllowedError'].includes(err.name)) {
-        dispatch(updatePlayerState({ error: 'Не удалось воспроизвести файл' }));
-      }
-    });
-  }, [currentTrack, dispatch]);
-
-  const setVolume = useCallback(
-    (vol) => {
-      if (audioRef.current) {
-        audioRef.current.volume = vol;
-      }
-      dispatch(updatePlayerState({ volume: vol, isMuted: vol === 0 ? false : undefined }));
-    },
+  const stateChangeHandler = useCallback(
+    (state) => dispatch(updatePlayerState(state)),
     [dispatch]
   );
 
-  const toggleMute = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.muted = !audioRef.current.muted;
-      const newMuted = audioRef.current.muted;
-      dispatch(updatePlayerState({ isMuted: newMuted }));
-    }
-  }, [dispatch]);
+  const mediaControls = useMediaControls({
+    mediaRef: audioRef,
+    stateVolume: volume,
+    stateMuted: isMuted,
+    options: {
+      onEnd: () => {
+        if (repeatRef.current === 'one') {
+          trackStartedRef.current = false;
+          mediaControlsRef.current?.seekPercent(0);
+          mediaControlsRef.current?.play();
+        } else {
+          dispatch(nextTrack());
+        }
+      },
+      onPlay: () => {
+        if (!trackStartedRef.current && onTrackStartCallbackRef.current) {
+          trackStartedRef.current = true;
+          onTrackStartCallbackRef.current(currentTrackRef.current);
+        }
+      },
+      onStateChange: stateChangeHandler,
+    },
+  });
+
+  mediaControlsRef.current = mediaControls;
+
+  const {
+    play: mediaPlay,
+    pause: mediaPause,
+    toggle: togglePlay,
+    seekPercent,
+    changeVolume,
+    toggleMute,
+    setSource,
+    clearSource,
+    playOnMedia,
+    formatDuration,
+    isMediaReady,
+  } = mediaControls;
+
+  useEffect(() => {
+    if (!isMediaReady || !currentTrack?.fileUrl) return;
+    if (prevTrackId.current === currentTrack.id) return;
+
+    prevTrackId.current = currentTrack.id;
+    trackStartedRef.current = false;
+    dispatch(updatePlayerState({ error: null }));
+    if (!setSource(currentTrack.fileUrl)) return;
+    playOnMedia();
+  }, [currentTrack, isMediaReady, dispatch, setSource, playOnMedia]);
+
+  useEffect(() => {
+    if (currentTrack) return;
+    clearSource();
+    trackStartedRef.current = false;
+    prevTrackId.current = null;
+  }, [currentTrack, clearSource]);
 
   const playTrack = useCallback(
     (track, trackList) => {
-      if (!track?.fileUrl || !audioRef.current) return;
-      const list = Array.isArray(trackList) && trackList.length ? trackList : [track];
+      if (!track?.fileUrl) return;
+      const list =
+        Array.isArray(trackList) && trackList.length ? trackList : [track];
       const idx = list.findIndex((t) => t.id === track.id);
       dispatch(setQueue({ queue: list, currentIndex: idx >= 0 ? idx : 0 }));
     },
     [dispatch]
   );
 
-  const pause = useCallback(() => {
-    audioRef.current?.pause();
-    dispatch(updatePlayerState({ isPlaying: false }));
-  }, [dispatch]);
-
   const play = useCallback(() => {
-    if (!audioRef.current || !currentTrack?.fileUrl) return;
-    audioRef.current.play().catch((err) => {
-      if (!['AbortError', 'NotAllowedError'].includes(err.name)) {
-        dispatch(updatePlayerState({ error: 'Ошибка воспроизведения' }));
-      }
-    });
-    dispatch(updatePlayerState({ isPlaying: true }));
-  }, [dispatch, currentTrack]);
+    if (!currentTrack?.fileUrl) return;
+    mediaPlay();
+  }, [currentTrack, mediaPlay]);
+
+  const pause = useCallback(() => {
+    mediaPause();
+  }, [mediaPause]);
 
   const setOnTrackStart = useCallback((fn) => {
     onTrackStartCallbackRef.current = fn;
   }, []);
-
-  // Эффект для вызова onTrackStart при начале воспроизведения нового трека
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handlePlay = () => {
-      // Проверяем, что трек ещё не был засчитан в этой сессии
-      if (!trackStartedRef.current && onTrackStartCallbackRef.current) {
-        trackStartedRef.current = true;
-        onTrackStartCallbackRef.current(currentTrack);
-      }
-    };
-
-    audio.addEventListener('play', handlePlay);
-    return () => {
-      audio.removeEventListener('play', handlePlay);
-    };
-  }, [currentTrack]); // переподписываемся при смене трека
-
-  // Сбрасываем флаг при смене трека
-  useEffect(() => {
-    trackStartedRef.current = false;
-  }, [currentTrack]);
-
-  // Останавливаем аудио и сбрасываем src, когда плеер закрывается (currentTrack === null)
-  useEffect(() => {
-    if (!currentTrack && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current.removeAttribute('src');
-      trackStartedRef.current = false;
-      prevTrackId.current = null;
-    }
-  }, [currentTrack]);
 
   const value = useMemo(
     () => ({
@@ -165,23 +159,22 @@ export const AudioPlayerProvider = ({ children }) => {
       isPlaying,
       repeat,
       shuffle,
-      formatTime: mediaControls.formatTime,
+      formatTime: formatDuration,
       playTrack,
       next: () => dispatch(nextTrack()),
       prev: () => dispatch(prevTrack()),
       close: () => {
-        audioRef.current?.pause();
+        clearSource();
         dispatch(clearPlayer());
         prevTrackId.current = null;
         trackStartedRef.current = false;
       },
       setRepeat: (mode) => dispatch(setRepeat(mode)),
       toggleShuffle: () => dispatch(toggleShuffle()),
-      togglePlay: mediaControls.toggle,
-      seekPercent: mediaControls.seekPercent,
-      setVolume,
+      togglePlay,
+      seekPercent,
+      setVolume: changeVolume,
       toggleMute,
-      audioRef,
     }),
     [
       currentTrack,
@@ -193,11 +186,14 @@ export const AudioPlayerProvider = ({ children }) => {
       playTrack,
       setOnTrackStart,
       dispatch,
-      mediaControls,
-      setVolume,
+      formatDuration,
+      changeVolume,
       toggleMute,
       pause,
       play,
+      togglePlay,
+      seekPercent,
+      clearSource,
     ]
   );
 

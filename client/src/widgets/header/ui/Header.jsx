@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { selectHasUser } from '../../../entities/auth/model/authSelectors';
-import { logout } from '../../../features/auth';
-import { classNames } from '../../../shared/lib';
+import { logout, selectHasUser } from '../../../entities/auth';
 import { Button, EntityHeader, Image, SearchField } from '../../../shared/ui';
+import { classNames } from '../../../shared/utils';
 import style from './Header.module.css';
 
 /**

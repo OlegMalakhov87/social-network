@@ -26,11 +26,19 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
   const abortControllerRef = useRef(null);
   const fetcherRef = useRef(fetcher);
   const isMountedRef = useRef(true);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  const onFinallyRef = useRef(onFinally);
 
-  // Обновляем ref при изменении fetcher
   useEffect(() => {
     fetcherRef.current = fetcher;
   }, [fetcher]);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+    onFinallyRef.current = onFinally;
+  }, [onSuccess, onError, onFinally]);
 
   // Отслеживаем монтирование
   useEffect(() => {
@@ -80,7 +88,7 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
         }
 
         setData(result);
-        onSuccess?.(result);
+        onSuccessRef.current?.(result);
         return result;
       } catch (err) {
         if (err.name === 'AbortError' || !isMountedRef.current) {
@@ -88,17 +96,17 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
         }
         setError(err);
         console.error('Ошибка запроса:', err);
-        onError?.(err);
+        onErrorRef.current?.(err);
         throw err;
       } finally {
         if (controller.signal.aborted || !isMountedRef.current) {
           return;
         }
         setIsLoading(false);
-        onFinally?.();
+        onFinallyRef.current?.();
       }
     },
-    [abort, onSuccess, onError, onFinally]
+    [abort]
   );
 
   // Автоматический запрос

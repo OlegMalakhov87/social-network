@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNotify } from '..';
+import { useNotify } from './';
 
 /**
  * Простой хук для оптимистичного добавления/удаления из библиотеки на общих страницах каталога (Music, Video).

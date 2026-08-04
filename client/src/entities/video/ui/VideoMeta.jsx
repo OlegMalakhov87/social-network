@@ -1,6 +1,6 @@
 import { getVideoMeta } from '..';
-import { formatViews } from '../../../../shared/lib';
-import { EntityDates, EntityInfoList, EntityStats } from '../../../../shared/ui';
+import { EntityDates, EntityInfoList, EntityStats } from '../../../shared/ui';
+import { formatViews } from '../../../shared/utils';
 import style from './VideoMeta.module.css';
 
 /**

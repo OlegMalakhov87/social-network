@@ -1,4 +1,4 @@
-import { classNames, linkify } from '../../../lib';
+import { classNames, linkifyText } from '../../../utils';
 import style from './Text.module.css';
 
 /**
@@ -7,14 +7,14 @@ import style from './Text.module.css';
  * @param {Object} props
  * @param {React.ReactNode} props.children - контент текста
  * @param {'h1'|'h2'|'h3'|'h4'|'body1'|'body2'|'caption'|'inherit'} [props.variant='body1'] - типографический вариант
- * @param {boolean} [props.linkifyText=false] - преобразовывать ли URL в ссылки
+ * @param {boolean} [props.linkify=false] - преобразовывать ли URL в ссылки
  * @param {string} [props.className=''] - дополнительный CSS класс
  * @param {string} [props.as] - переопределение HTML-тега (по умолчанию зависит от variant)
  */
 export const Text = ({
   children,
   variant = 'body1',
-  linkifyText = false,
+  linkify = false,
   className = '',
   as,
   ...rest
@@ -40,7 +40,7 @@ export const Text = ({
       className={classNames(style.text, style[variant], className)}
       {...rest}
     >
-      {linkifyText ? linkify(children) : children}
+      {linkify ? linkifyText(children) : children}
     </Component>
   );
 };

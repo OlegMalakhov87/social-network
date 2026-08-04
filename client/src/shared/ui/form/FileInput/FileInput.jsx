@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { Button, Image, Text } from '..';
-import { classNames } from '../../utils';
+import { Button, Image, Text } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './FileInput.module.css';
 
 /**

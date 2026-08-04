@@ -100,7 +100,7 @@ module.exports = (sequelize, DataTypes) => {
       thumbnail: {
         type: DataTypes.STRING(500),
         allowNull: true,
-        defaultValue: '/thumbnail-video.webp',
+        defaultValue: '/default-thumbnail.mp4',
       },
       category: {
         type: DataTypes.STRING(50),

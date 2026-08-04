@@ -1,5 +1,5 @@
 import styles from './Skeleton.module.css';
-import { classNames } from '../../lib';
+import { classNames } from '../../../utils';
 
 /**
  * Универсальный Skeleton для отображения состояния загрузки.

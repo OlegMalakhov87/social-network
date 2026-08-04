@@ -1,5 +1,5 @@
+import { classNames } from '../../../utils';
 import style from './Alert.module.css';
-import { classNames } from '../../lib';
 
 /**
  * Всплывающее уведомление для форм.

@@ -1,4 +1,4 @@
-import { formatViews } from '../../../shared/lib';
+import { formatViews } from '../../../shared/utils';
 
 /**
  * Формирует массив действий для карточки новости.

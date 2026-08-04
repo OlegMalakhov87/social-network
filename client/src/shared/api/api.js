@@ -1,4 +1,4 @@
-import { apiAxios } from '..';
+import { apiAxios } from './apiAxios';
 
 /**
  * API для взаимодействия с сервером.

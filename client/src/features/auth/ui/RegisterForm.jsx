@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { FORM_FIELDS, GENDER_OPTIONS } from '..';
 import { register, selectIsAuthLoading } from '../../../entities/auth';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { custom, email, match, minLength, required } from '../../../shared/lib';
 import {
   BaseCard,
@@ -24,7 +24,7 @@ export const RegisterForm = () => {
   const toast = useToast();
   const isSubmitting = useSelector(selectIsAuthLoading);
 
-  const form = useAppForm({
+  const form = useForm({
     initialValues: {
       name: '',
       email: '',
@@ -64,6 +64,7 @@ export const RegisterForm = () => {
         navigate('/profile');
       } catch (error) {
         toast.error(error || 'Ошибка при регистрации');
+        throw error;
       }
     },
   });
@@ -130,27 +131,26 @@ export const RegisterForm = () => {
                 </Text>
               )}
             </div>
-          </form>
-        }
-        actions={
-          <div className={style.actions}>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={form.isSubmitting || isSubmitting}
-            >
-              Зарегистрироваться
-            </Button>
 
-            <Text variant="body2" className={style.footerText}>
-              Уже есть аккаунт?{' '}
-              <Link to="/login" className={style.link}>
-                Войти
-              </Link>
-            </Text>
-          </div>
+            <div className={style.actions}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={form.isSubmitting || isSubmitting}
+              >
+                Зарегистрироваться
+              </Button>
+
+              <Text variant="body2" className={style.footerText}>
+                Уже есть аккаунт?{' '}
+                <Link to="/login" className={style.link}>
+                  Войти
+                </Link>
+              </Text>
+            </div>
+          </form>
         }
       />
     </div>

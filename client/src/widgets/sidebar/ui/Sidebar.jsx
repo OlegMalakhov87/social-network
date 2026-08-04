@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SIDEBAR_CONFIG } from '..';
-import { classNames } from '../../../shared/lib';
+import { classNames } from '../../../shared/utils';
+
 import {
   BaseCard,
   Button,

@@ -1,4 +1,4 @@
-import { Tabs } from '../..';
+import { Tabs } from '../../../ui';
 import styles from './Toolbar.module.css';
 
 /**

@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
-import { classNames } from '../../../lib';
-import { Card } from '../../Card/Card';
+import { Card } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './SectionCard.module.css';
 
 /**

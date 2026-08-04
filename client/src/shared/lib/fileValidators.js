@@ -1,4 +1,4 @@
-import { formatBytes } from '../utils/formatSize';
+import { formatSize } from '../utils';
 
 /**
  * Универсальные валидаторы для загрузки файлов.
@@ -17,7 +17,7 @@ export const maxFileSize = (maxBytes, message) => (file) => {
   const isValid = file.size <= maxBytes;
   return isValid
     ? null
-    : message || `Файл слишком большой (макс. ${formatBytes(maxBytes)})`;
+    : message || `Файл слишком большой (макс. ${formatSize(maxBytes)})`;
 };
 
 /**

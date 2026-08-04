@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCommentActions } from '..';
-import { formatDate } from '../../../shared/lib';
 import {
   Avatar,
   Badge,
@@ -16,6 +15,7 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
+import { formatDate } from '../../../shared/utils';
 import style from './Comment.module.css';
 
 /**

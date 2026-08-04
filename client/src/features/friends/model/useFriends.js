@@ -11,7 +11,7 @@ import {
 } from '../../../entities/friend';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
-import { selectUser } from '../../auth';
+import { selectUser } from '../../../entities/auth';
 
 /**
  * Хук для загрузки списка друзей/заявок с фильтрацией, поиском и бесконечным скроллом.

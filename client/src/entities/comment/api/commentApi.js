@@ -52,7 +52,7 @@ export const addCommentApi = async (data) => {
  * @param {Object}  updates - поля комментария (content, targetType, targetId)
  * @returns {Promise<Object>} { comment }
  */
-export const editCommentApi = async (commentId, updates) => {
+export const updateCommentApi = async (commentId, updates) => {
   const response = await api.put(`/comments/${commentId}`, updates);
   return response.data;
 };

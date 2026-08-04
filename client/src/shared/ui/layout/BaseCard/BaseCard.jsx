@@ -1,5 +1,5 @@
-import { Card } from '../..';
-import { classNames } from '../../../lib';
+import { Card } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './BaseCard.module.css';
 
 /**

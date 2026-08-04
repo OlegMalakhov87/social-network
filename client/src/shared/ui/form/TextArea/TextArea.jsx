@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { classNames } from '../../../lib';
+import { classNames } from '../../../utils';
 import styles from './TextArea.module.css';
 
 /**

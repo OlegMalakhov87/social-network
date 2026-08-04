@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { classNames } from '../../../lib';
+import { classNames } from '../../../utils';
 import styles from './Input.module.css';
 
 /**
@@ -94,7 +94,7 @@ export const Input = forwardRef(
               className={styles.toggle}
               onClick={() => setShowPassword((prev) => !prev)}
             >
-              {showPassword ? '🙈' : '👁'}
+              {showPassword ? 'Скрыть' : 'Показать'}
             </button>
           )}
 

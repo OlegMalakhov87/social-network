@@ -1,5 +1,5 @@
 import { CATEGORY_OPTIONS } from '../../../entities/video';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { maxLength, minLength, required } from '../../../shared/lib';
 import {
   Button,
@@ -27,7 +27,7 @@ import {
 export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   /** Форма для добавления/редактирования видео с валидацией */
-  const form = useAppForm({
+  const form = useForm({
     initialValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',

@@ -1,5 +1,5 @@
-import { Image } from '..';
-import { classNames, handleKeyboardClick } from '../../lib';
+import { Image } from '../../../ui';
+import { classNames, handleKeyboardClick } from '../../../utils';
 import styles from './MediaPreview.module.css';
 
 /**

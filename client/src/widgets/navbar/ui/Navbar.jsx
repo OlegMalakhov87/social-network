@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { NAV_ITEMS } from '../../../shared/config';
-import { classNames } from '../../../shared/lib';
+import { NAV_ITEMS } from '..';
+import { classNames } from '../../../shared/utils';
 import style from './Navbar.module.css';
 
 /**

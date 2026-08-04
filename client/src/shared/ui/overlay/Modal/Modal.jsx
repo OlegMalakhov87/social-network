@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Button } from '../..';
 import {
   useEscapeKey,
   useLockBodyScroll,
   useOutsideClick,
 } from '../../../hooks';
-import { classNames } from '../../../lib';
+import { Button } from '../../../ui';
+import { classNames } from '../../../utils';
 import styles from './Modal.module.css';
 
 /**

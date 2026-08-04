@@ -1,4 +1,4 @@
-import { formatTime } from '../utils/formatDuration';
+import { formatDuration } from '../utils';
 
 /**
  * Специфичные валидаторы для медиа-файлов (аудио, видео, изображения).
@@ -30,7 +30,7 @@ export const maxDuration = (maxSeconds, message) => (file) => {
         isValid
           ? null
           : message ||
-              `Длительность не должна превышать ${formatTime(maxSeconds)}`
+              `Длительность не должна превышать ${formatDuration(maxSeconds)}`
       );
     };
 

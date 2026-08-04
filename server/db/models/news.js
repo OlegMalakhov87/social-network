@@ -87,6 +87,10 @@ module.exports = (sequelize, DataTypes) => {
       media: {
         type: DataTypes.STRING(500),
         allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
       },
       viewsCount: {
         type: DataTypes.INTEGER,

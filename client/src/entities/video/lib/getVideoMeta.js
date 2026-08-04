@@ -1,4 +1,4 @@
-import { formatDate } from '../../../shared/lib';
+import { formatDate } from '../../../shared/utils';
 
 /**
  * Подготавливает данные для отображения VideoMeta.
@@ -20,7 +20,9 @@ export const getVideoMeta = (video, mode) => {
         ? {
             label: 'Добавлено',
             value: formatDate(video.libraryCreatedAt),
-            secondaryLabel: video.lastWatchedAt ? 'Последний просмотр' : undefined,
+            secondaryLabel: video.lastWatchedAt
+              ? 'Последний просмотр'
+              : undefined,
             secondaryValue: video.lastWatchedAt
               ? formatDate(video.lastWatchedAt)
               : undefined,

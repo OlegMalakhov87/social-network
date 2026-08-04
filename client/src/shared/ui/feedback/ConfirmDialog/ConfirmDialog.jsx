@@ -1,5 +1,4 @@
-import { Modal } from '../Modal';
-import { Button } from '../Button';
+import { Button, Modal } from '../../../ui';
 import styles from './ConfirmDialog.module.css';
 
 /**

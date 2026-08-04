@@ -12,11 +12,16 @@ import { useAbortableRequest, useNotify } from '../../../shared/hooks';
 /**
  * Хук для управления статусом дружбы.
  *
- * @param {number} targetUserId - ID пользователя, с которым устанавливается статус дружбы.
- * @param {number} currentUserId - ID текущего пользователя.
- * @returns {Object} - объект с данными о статусе дружбы.
+ * @param {Object|number} params - `{ targetUserId, currentUserId }` или targetUserId (legacy)
+ * @param {number} [currentUserIdArg] - ID текущего пользователя (legacy)
+ * @returns {Object} - объект с данными о статусе дружбы и экшенами
  */
-export const useFriendshipStatus = (targetUserId, currentUserId) => {
+export const useFriendshipStatus = (params, currentUserIdArg) => {
+  const isParamsObject =
+    typeof params === 'object' && params !== null && !Array.isArray(params);
+
+  const targetUserId = isParamsObject ? params.targetUserId : params;
+  const currentUserId = isParamsObject ? params.currentUserId : currentUserIdArg;
   const dataRef = useRef({ status: null, direction: null, friendshipId: null });
   const notify = useNotify();
 
@@ -168,10 +173,18 @@ export const useFriendshipStatus = (targetUserId, currentUserId) => {
   }, [data.friendshipId, optimisticAction, setData]);
 
   return {
+    status: data?.status ?? null,
+    direction: data?.direction ?? null,
+    friendshipId: data?.friendshipId ?? null,
     data,
     isLoading,
     error,
     refetch: refetchStatus,
+    followUser: follow,
+    unfollowUser: unfollow,
+    acceptUser: accept,
+    blockUser: block,
+    unlockUser: unlock,
     follow,
     unfollow,
     accept,

@@ -1,4 +1,4 @@
-import { ActionsBar } from '..';
+import { ActionsBar } from '../../../ui';
 import style from './EntityActions.module.css';
 
 /**

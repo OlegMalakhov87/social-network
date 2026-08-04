@@ -1,4 +1,4 @@
-import { Button } from '..';
+import { Button } from '../../../ui';
 import styles from './EmptyState.module.css';
 
 /**

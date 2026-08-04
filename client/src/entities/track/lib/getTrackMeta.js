@@ -1,4 +1,4 @@
-import { formatDate } from '../../../shared/lib';
+import { formatDate } from '../../../shared/utils';
 
 /**
  * Подготавливает данные для отображения TrackMeta.

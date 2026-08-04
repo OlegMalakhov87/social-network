@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { setupAxiosInterceptors } from '../../../shared/api';
-import { audioPlayerReducer } from '../../../widgets/audio-player';
 import { authReducer } from '../../entities/auth';
+import { setupAxiosInterceptors } from '../../shared/api';
+import { audioPlayerReducer } from '../../widgets/audio-player';
+
 
 export const store = configureStore({
   reducer: {

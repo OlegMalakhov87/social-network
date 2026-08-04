@@ -1,3 +1,2 @@
-/**   Страртовые страницы для отображения списка комментариев */
-export { CommentsList } from './ui/CommentsList';
-export { CommentsSection } from './ui/CommentsSection';
+export { CommentsList } from './ui/CommentsList'; // компонент для отображения списка комментариев
+export { CommentsSection } from './ui/CommentsSection'; //секция страницы комментариев

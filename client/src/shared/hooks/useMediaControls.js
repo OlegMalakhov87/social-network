@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { formatTime } from '../lib';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { formatDuration } from '../utils';
 
 /**
  * Хук для управления HTMLMediaElement.
@@ -7,45 +13,57 @@ import { formatTime } from '../lib';
  *
  * @param {Object} params
  * @param {React.RefObject<HTMLMediaElement>} params.mediaRef - реф на аудио/видео элемент
- * @param {number} params.stateVolume - начальная громкость
- * @param {boolean} params.autoPlay - автовоспроизведение
+ * @param {number} [params.stateVolume] - громкость из внешнего store
+ * @param {boolean} [params.stateMuted] - mute из внешнего store
+ * @param {boolean} [params.autoPlay] - автовоспроизведение при смене mediaElement
  * @param {Object} [params.options={}] - дополнительные настройки
  * @param {Function} [params.options.onEnd] - колбэк при окончании трека
+ * @param {Function} [params.options.onPlay] - колбэк при событии play
  * @param {Function} [params.options.onStateChange] - колбэк при изменении состояния
  * @returns {Object} - объект с методами управления, volume и isMuted
  */
 export const useMediaControls = ({
   mediaRef,
   stateVolume,
+  stateMuted,
   autoPlay,
   options = {},
 }) => {
-  const { onEnd, onStateChange } = options;
+  const { onEnd, onPlay: onPlayExtra, onStateChange } = options;
 
   const [mediaElement, setMediaElement] = useState(null);
-  const [volume, setVolume] = useState(stateVolume);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(stateVolume ?? 1);
+  const [isMuted, setIsMuted] = useState(stateMuted ?? false);
 
-  // Синхронизируем mediaElement с ref
   useEffect(() => {
-    setMediaElement(mediaRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaRef.current]);
+    if (stateVolume !== undefined) setVolume(stateVolume);
+  }, [stateVolume]);
 
-  // Применяем громкость и mute к элементу
+  useEffect(() => {
+    if (stateMuted !== undefined) setIsMuted(stateMuted);
+  }, [stateMuted]);
+
+  useLayoutEffect(() => {
+    if (!mediaRef?.current) return;
+    setMediaElement(mediaRef.current);
+  }, [mediaRef]);
+
   useEffect(() => {
     if (!mediaElement) return;
     mediaElement.volume = volume;
     mediaElement.muted = isMuted;
   }, [mediaElement, volume, isMuted]);
 
-  // Сохраняем актуальный onEnd в рефе, чтобы не пересоздавать слушатели
   const onEndRef = useRef(onEnd);
   useEffect(() => {
     onEndRef.current = onEnd;
   }, [onEnd]);
 
-  // Подписка на события медиа-элемента
+  const onPlayExtraRef = useRef(onPlayExtra);
+  useEffect(() => {
+    onPlayExtraRef.current = onPlayExtra;
+  }, [onPlayExtra]);
+
   useEffect(() => {
     const media = mediaElement;
     if (!media) return;
@@ -60,7 +78,10 @@ export const useMediaControls = ({
       });
     };
 
-    const onPlay = () => onStateChange?.({ isPlaying: true, isLoading: false });
+    const onPlay = () => {
+      onStateChange?.({ isPlaying: true, isLoading: false });
+      onPlayExtraRef.current?.();
+    };
     const onPause = () => onStateChange?.({ isPlaying: false });
     const onLoadedMetadata = () => {
       onStateChange?.({ duration: media.duration || 0, isLoading: false });
@@ -142,12 +163,54 @@ export const useMediaControls = ({
     (vol) => {
       const v = Math.max(0, Math.min(1, vol));
       setVolume(v);
-      if (v > 0 && isMuted) setIsMuted(false);
+      const patch = { volume: v };
+      if (v > 0 && isMuted) {
+        setIsMuted(false);
+        patch.isMuted = false;
+      }
+      onStateChange?.(patch);
     },
-    [isMuted]
+    [isMuted, onStateChange]
   );
 
-  const toggleMute = useCallback(() => setIsMuted((m) => !m), []);
+  const toggleMute = useCallback(() => {
+    setIsMuted((muted) => {
+      const next = !muted;
+      onStateChange?.({ isMuted: next });
+      return next;
+    });
+  }, [onStateChange]);
+
+  const setSource = useCallback(
+    (url) => {
+      const media = mediaElement ?? mediaRef?.current;
+      if (!media || !url) return false;
+      media.src = url;
+      media.load();
+      return true;
+    },
+    [mediaElement, mediaRef]
+  );
+
+  const clearSource = useCallback(() => {
+    const media = mediaElement ?? mediaRef?.current;
+    if (!media) return;
+    media.pause();
+    media.src = '';
+    media.removeAttribute('src');
+  }, [mediaElement, mediaRef]);
+
+  const playOnMedia = useCallback(async () => {
+    const media = mediaElement ?? mediaRef?.current;
+    if (!media) return;
+    try {
+      await media.play();
+    } catch (err) {
+      if (!['AbortError', 'NotAllowedError'].includes(err.name)) {
+        onStateChange?.({ error: 'Ошибка воспроизведения. Попробуйте позже.' });
+      }
+    }
+  }, [mediaElement, mediaRef, onStateChange]);
 
   return {
     play,
@@ -156,7 +219,11 @@ export const useMediaControls = ({
     seekPercent,
     changeVolume,
     toggleMute,
-    formatTime,
+    setSource,
+    clearSource,
+    playOnMedia,
+    formatDuration,
+    isMediaReady: Boolean(mediaElement ?? mediaRef?.current),
     volume,
     isMuted,
   };

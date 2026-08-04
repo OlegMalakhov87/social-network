@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { SettingsNav } from '..';
 import { selectUser } from '../../../entities/auth';
 import {
   AppearanceSettings,
@@ -14,7 +15,6 @@ import {
   PageLayout,
   PageLoader,
   SectionCard,
-  SettingsNav,
   Text,
 } from '../../../shared/ui';
 import style from './SettingsPage.module.css';

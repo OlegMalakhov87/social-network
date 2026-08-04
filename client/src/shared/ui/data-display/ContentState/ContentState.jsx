@@ -1,4 +1,4 @@
-import { Alert, Button, ContentEmptyState, PageLoader } from '..';
+import { Alert, Button, ContentEmptyState, PageLoader } from '../../../ui';
 import style from './ContentState.module.css';
 
 /**

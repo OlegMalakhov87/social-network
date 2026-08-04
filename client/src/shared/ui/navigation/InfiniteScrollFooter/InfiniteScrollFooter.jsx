@@ -1,5 +1,5 @@
-import { Button, Loading } from '../..';
-import { classNames } from '../../../lib';
+import { Button, Loading } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './InfiniteScrollFooter.module.css';
 
 /**

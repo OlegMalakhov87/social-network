@@ -53,7 +53,7 @@ module.exports = {
       {
         userId: 7,
         text: 'Обучающее видео - как я выучил JavaScript за 10 минут.',
-        media: '/video.mp4',
+        media: '/default-video.mp4',
         isPublic: true,
         type: 'video',
         pinned: false,
@@ -101,7 +101,7 @@ module.exports = {
       {
         userId: 13,
         text: 'Видео с уроком',
-        media: '/video.mp4',
+        media: '/default-video.mp4',
         isPublic: true,
         type: 'video',
         pinned: false,

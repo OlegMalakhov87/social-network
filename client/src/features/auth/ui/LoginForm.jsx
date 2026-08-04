@@ -5,7 +5,7 @@ import {
   selectAuthError,
   selectIsAuthLoading,
 } from '../../../entities/auth';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { email, required } from '../../../shared/lib';
 import {
   Alert,
@@ -17,6 +17,9 @@ import {
 } from '../../../shared/ui';
 import style from './RegisterForm.module.css';
 
+/**
+ * Форма входа в аккаунт.
+ */
 export const LoginForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -24,7 +27,7 @@ export const LoginForm = () => {
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
 
-  const form = useAppForm({
+  const form = useForm({
     initialValues: { email: '', password: '' },
     rules: {
       email: [required('Email обязателен'), email('Неверный формат email')],
@@ -37,6 +40,7 @@ export const LoginForm = () => {
         navigate('/profile');
       } catch (error) {
         toast.error(error || 'Ошибка авторизации');
+        throw error;
       }
     },
   });
@@ -79,27 +83,26 @@ export const LoginForm = () => {
               placeholder="Введите ваш пароль"
               disabled={form.isSubmitting || isSubmitting}
             />
-          </form>
-        }
-        actions={
-          <div className={style.actions}>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={form.isSubmitting || isSubmitting}
-            >
-              Войти
-            </Button>
 
-            <Text variant="body2" className={style.footerText}>
-              Ещё нет аккаунта?{' '}
-              <Link to="/register" className={style.link}>
-                Зарегистрироваться
-              </Link>
-            </Text>
-          </div>
+            <div className={style.actions}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={form.isSubmitting || isSubmitting}
+              >
+                Войти
+              </Button>
+
+              <Text variant="body2" className={style.footerText}>
+                Ещё нет аккаунта?{' '}
+                <Link to="/register" className={style.link}>
+                  Зарегистрироваться
+                </Link>
+              </Text>
+            </div>
+          </form>
         }
       />
     </div>

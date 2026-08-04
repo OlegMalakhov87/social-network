@@ -1,5 +1,5 @@
 import { CATEGORY_OPTIONS, NEWS_TYPES } from '../../../entities/news';
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { maxLength, minLength, required } from '../../../shared/lib';
 import {
   Button,
@@ -30,7 +30,7 @@ export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
 
   /** Форма для создания/редактирования новости с валидацией*/
-  const form = useAppForm({
+  const form = useForm({
     initialValues: {
       title: initialData?.title || '',
       content: initialData?.content || '',

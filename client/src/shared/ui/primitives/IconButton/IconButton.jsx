@@ -1,4 +1,4 @@
-import { classNames, handleKeyboardClick } from '../../../lib';
+import { classNames, handleKeyboardClick } from '../../../utils';
 import style from './IconButton.module.css';
 
 /**

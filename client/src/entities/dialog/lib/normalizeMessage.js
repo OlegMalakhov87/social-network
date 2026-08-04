@@ -1,4 +1,4 @@
-import { parseSharedEntity } from '../../../entities/sharedEntity';
+import { parseSharedEntity } from '../../../shared/utils';
 
 /**
  * Преобразует сообщение из ответа сервера в формат для Message.

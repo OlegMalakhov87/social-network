@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPhotoActions } from '..';
-import { formatDate } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
@@ -13,6 +12,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { formatDate } from '../../../shared/utils';
 import { normalizeSharedPhoto } from '../../shared-entity';
 
 /**

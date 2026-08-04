@@ -1,4 +1,4 @@
-import { classNames } from '../../../lib';
+import { classNames } from '../../../utils';
 import styles from './PageLayout.module.css';
 
 /**

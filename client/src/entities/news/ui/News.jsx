@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNewsActions } from '..';
-import { classNames, formatDate } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -13,6 +12,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { classNames, formatDate } from '../../../shared/utils';
 import { normalizeSharedNews } from '../../shared-entity';
 import style from './News.module.css';
 

@@ -1,2 +1,1 @@
-export { FriendsHeader } from './ui/FriendsHeader';
-export { FriendsGrid } from './ui/FriendsGrid';
+export { FriendsGrid } from './ui/FriendsGrid'; // компонент для отображения списка пользователей

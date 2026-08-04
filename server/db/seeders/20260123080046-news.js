@@ -47,7 +47,7 @@ module.exports = {
         category: 'Economy',
         type: 'video',
         source: 'Экономический обозреватель',
-        media: '/news-video.mp4',
+        media: '/default-video.mp4',
         viewsCount: 25,
       },
       {
@@ -83,7 +83,7 @@ module.exports = {
         category: 'Technology',
         type: 'video',
         source: 'Космический аналитик',
-        media: '/news-video.mp4',
+        media: '/default-video.mp4',
         viewsCount: 40,
       },
       {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { selectToken, selectUser } from '../../../entities/auth';
 import {
   fetchMessagesApi,
   markMessagesAsRead,
@@ -14,7 +15,6 @@ import {
   useOptimisticLike,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
-import { selectToken, selectUser } from '../../auth';
 
 /**
  * Хук для работы с сообщениями выбранного диалога.

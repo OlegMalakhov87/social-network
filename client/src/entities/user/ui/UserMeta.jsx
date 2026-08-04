@@ -1,4 +1,4 @@
-import { Avatar } from '../../../../shared/ui';
+import { Avatar } from '../../../shared/ui';
 import styles from './UserMeta.module.css';
 
 /**

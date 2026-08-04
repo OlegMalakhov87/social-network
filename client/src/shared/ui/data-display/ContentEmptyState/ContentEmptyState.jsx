@@ -1,5 +1,5 @@
+import { EmptyState } from '../../../ui';
 import style from './ContentEmptyState.module.css';
-import { EmptyState } from '..';
 
 /**
  * Универсальное пустое состояние для вкладок и страниц.

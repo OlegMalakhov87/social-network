@@ -1,5 +1,5 @@
-import { Avatar, Badge } from '../..';
-import { classNames } from '../../../lib';
+import { Avatar, Badge } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './EntityMeta.module.css';
 
 /**

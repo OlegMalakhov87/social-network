@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Message } from '../../../entities/dialog';
-import { normalizeSharedMessage } from '../../../entities/sharedEntity';
+import { normalizeSharedMessage } from '../../../entities/shared-entity';
 import { MessageForm } from '../../../features/dialogs';
-import { useShareEntity } from '../../../features/sharedEntities';
+import { useShareEntity } from '../../../features/shared-entities';
 import {
   ContentState,
   EntityHeader,

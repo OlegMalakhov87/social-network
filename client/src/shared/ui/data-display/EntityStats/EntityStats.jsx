@@ -1,5 +1,5 @@
-import { Stat } from '..';
-import { classNames } from '../../lib';
+import { Stat } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './EntityStats.module.css';
 
 /**

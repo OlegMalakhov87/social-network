@@ -1,4 +1,4 @@
-import { classNames } from '../../../lib';
+import { classNames } from '../../../utils';
 import styles from './ButtonGroup.module.css';
 
 /**
@@ -10,19 +10,9 @@ import styles from './ButtonGroup.module.css';
  * @param {string} [props.className] - дополнительный класс
  */
 
-export const ButtonGroup = ({
-  children,
-  align = 'end',
-  className,
-}) => {
+export const ButtonGroup = ({ children, align = 'end', className }) => {
   return (
-    <div
-      className={classNames(
-        styles.group,
-        styles[align],
-        className
-      )}
-    >
+    <div className={classNames(styles.group, styles[align], className)}>
       {children}
     </div>
   );

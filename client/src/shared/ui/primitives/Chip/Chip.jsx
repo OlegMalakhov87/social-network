@@ -1,5 +1,5 @@
+import { classNames } from '../../../utils';
 import styles from './Chip.module.css';
-import { classNames } from '../../../lib';
 
 /**
  * Кнопка-фильтр (например, вкладки категорий).

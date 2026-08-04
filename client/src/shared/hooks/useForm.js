@@ -104,9 +104,15 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   const register = useCallback(
     (name, extra = {}) => ({
       name,
-      value: values[name],
+      value: values[name] ?? '',
       error: fieldErrors[name],
-      onChange: (value) => setValue(name, value),
+      onChange: (e) => {
+        const next =
+          e != null && typeof e === 'object' && 'target' in e
+            ? e.target.value
+            : e;
+        setValue(name, next);
+      },
       onBlur: () => handleBlur(name),
       ...extra,
     }),

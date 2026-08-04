@@ -1,4 +1,4 @@
-import { useAppForm } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import { maxLength, minLength } from '../../../shared/lib';
 import {
   BaseCard,
@@ -20,7 +20,7 @@ import {
 
 export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
   /** Форма для добавления комментария с валидацией */
-  const form = useAppForm({
+  const form = useForm({
     initialValues: { content: '' },
     rules: () => ({
       content: [

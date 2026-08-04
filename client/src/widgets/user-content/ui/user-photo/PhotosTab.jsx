@@ -1,9 +1,9 @@
-import { Photo } from '../../../../../entities/photo';
+import { Photo } from '../../../../entities/photo';
 import {
   ContentState,
   ErrorBanner,
   InfiniteScrollFooter,
-} from '../../../../../shared/ui';
+} from '../../../../shared/ui';
 import style from './PhotosTab.module.css';
 
 /**

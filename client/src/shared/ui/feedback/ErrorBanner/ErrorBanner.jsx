@@ -1,5 +1,5 @@
-import { Alert, Button } from '..';
-import { classNames } from '../../lib';
+import { Alert, Button } from '../../../ui';
+import { classNames } from '../../../utils';
 import style from './ErrorBanner.module.css';
 
 /**

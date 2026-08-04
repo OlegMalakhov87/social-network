@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPostActions } from '..';
-import { formatDate } from '../../../shared/lib';
 import {
   BaseCard,
   ConfirmDialog,
@@ -12,6 +11,7 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { formatDate } from '../../../shared/utils';
 import { normalizeSharedPost } from '../../shared-entity';
 
 /**

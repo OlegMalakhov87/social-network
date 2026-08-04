@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useShareEntity } from '../../../features/shared-entities';
 import {
   useDialogs,
   useDialogsActions,
   useMessages,
 } from '../../../features/dialogs';
+import { useShareEntity } from '../../../features/shared-entities';
 import { useOnline, useUserProfile } from '../../../features/users';
-import { classNames } from '../../../shared/lib';
 import {
   ErrorBoundary,
   PageLayout,
   SearchField,
   SectionCard,
 } from '../../../shared/ui';
+import { classNames } from '../../../shared/utils';
 import { ChatGrid, DialogsGrid } from '../../../widgets/dialogs-list';
 import { VideoPlayer } from '../../../widgets/video-player';
 import style from './DialogsPage.module.css';
@@ -28,8 +28,8 @@ export const DialogsPage = () => {
   const [showMobileDialogs, setShowMobileDialogs] = useState(true);
   const [messageVideo, setMessageVideo] = useState(null);
 
-/** Хук для работы с расшаренными сущностями в sessionStorage.*/
-const { getSharedEntity, clearSharedEntity } = useShareEntity({});
+  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const { getSharedEntity, clearSharedEntity } = useShareEntity({});
 
   /** Получение данных о диалогах. */
   const {
