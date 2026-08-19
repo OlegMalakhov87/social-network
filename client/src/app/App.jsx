@@ -31,21 +31,80 @@ import { PageLoader, ToastProvider } from '../shared/ui';
 
 // Redux
 import {
-  fetchCurrentUser,
+  checkAuth,
   selectIsAuthenticated,
-  selectIsAuthLoading,
+  selectIsAuthenticatedAndReady,
+  selectIsAuthReady,
 } from '../entities/auth';
+
+const AppRoutes = ({ searchQuery, setSearchQuery }) => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isAuthenticatedAndReady = useSelector(selectIsAuthenticatedAndReady);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="auth_wrapper">
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </div>
+    );
+  }
+
+  if (!isAuthenticatedAndReady) {
+    return <AppShellSkeleton />;
+  }
+
+  return (
+    <div className="app_wrapper">
+      <header className="header">
+        <Header onSearchChange={setSearchQuery} />
+      </header>
+
+      <nav className="navbar">
+        <Navbar />
+      </nav>
+
+      <aside className="info">
+        <Sidebar />
+      </aside>
+
+      <main className="main">
+        <Routes>
+          <Route path="/" element={<Navigate to="/profile" replace />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/messages" element={<DialogsPage />} />
+          <Route path="/messages/:userId" element={<DialogsPage />} />
+          <Route
+            path="/friends"
+            element={<FriendsPage searchQuery={searchQuery} />}
+          />
+          <Route path="/friends/:friendId" element={<ProfilePage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/music" element={<MusicPage />} />
+          <Route path="/videos" element={<VideosPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/profile" replace />} />
+        </Routes>
+      </main>
+
+      <footer className="footer">
+        <Footer />
+      </footer>
+
+      <AudioPlayerContainer />
+    </div>
+  );
+};
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useDispatch();
+  const isAuthReady = useSelector(selectIsAuthReady);
 
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const isUserLoading = useSelector(selectIsAuthLoading);
-
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-  /** Применение темы из localStorage или системной темы */
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'system';
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -60,97 +119,21 @@ const App = () => {
     document.documentElement.setAttribute('data-theme', appliedTheme);
   }, []);
 
-  /** Проверка авторизации */
   useEffect(() => {
-    const checkAuth = async () => {
-      if (localStorage.getItem('token')) {
-        await dispatch(fetchCurrentUser());
-      }
-      setIsCheckingAuth(false);
-    };
-    checkAuth();
+    dispatch(checkAuth());
   }, [dispatch]);
 
-  // 1. Первоначальная проверка токена (до рендера чего-либо)
-  if (isCheckingAuth) {
-    return (
-      <ToastProvider>
-        <PageLoader message="Загрузка приложения..." />
-      </ToastProvider>
-    );
-  }
-
-  // 2. НЕ авторизован: показываем ТОЛЬКО форму на пустом экране
-  if (!isAuthenticated) {
-    return (
-      <AudioPlayerProvider>
-        <ToastProvider>
-          <div className="auth_wrapper">
-            <Routes>
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="/register" element={<RegisterForm />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-          </div>
-        </ToastProvider>
-      </AudioPlayerProvider>
-    );
-  }
-
-  // 3. АВТОРИЗОВАН, но данные пользователя еще грузятся -> ПОКАЗЫВАЕМ APP SHELL SKELETON
-  if (isUserLoading) {
-    return (
-      <AudioPlayerProvider>
-        <ToastProvider>
-          <AppShellSkeleton />
-        </ToastProvider>
-      </AudioPlayerProvider>
-    );
-  }
-
-  // 4. АВТОРИЗОВАН и данные загружены -> ПОКАЗЫВАЕМ ПОЛНОЦЕННЫЙ ИНТЕРФЕЙС
   return (
     <AudioPlayerProvider>
       <ToastProvider>
-        <div className="app_wrapper">
-          <header className="header">
-            <Header onSearchChange={setSearchQuery} />
-          </header>
-
-          <nav className="navbar">
-            <Navbar />
-          </nav>
-
-          <aside className="info">
-            <Sidebar />
-          </aside>
-
-          <main className="main">
-            <Routes>
-              <Route path="/" element={<Navigate to="/profile" replace />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/:userId" element={<ProfilePage />} />
-              <Route path="/messages" element={<DialogsPage />} />
-              <Route path="/messages/:userId" element={<DialogsPage />} />
-              <Route
-                path="/friends"
-                element={<FriendsPage searchQuery={searchQuery} />}
-              />
-              <Route path="/friends/:friendId" element={<ProfilePage />} />
-              <Route path="/news" element={<NewsPage />} />
-              <Route path="/music" element={<MusicPage />} />
-              <Route path="/videos" element={<VideosPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/profile" replace />} />
-            </Routes>
-          </main>
-
-          <footer className="footer">
-            <Footer />
-          </footer>
-
-          <AudioPlayerContainer />
-        </div>
+        {!isAuthReady ? (
+          <PageLoader message="Загрузка приложения..." />
+        ) : (
+          <AppRoutes
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        )}
       </ToastProvider>
     </AudioPlayerProvider>
   );

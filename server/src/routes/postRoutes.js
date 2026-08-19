@@ -35,19 +35,32 @@ postRoutes.post(
 );
 
 // Создание поста
-postRoutes.post('/', authMiddleware, validatePost, postController.createPost);
+postRoutes.post(
+  '/add',
+  authMiddleware,
+  validatePost,
+  postController.createPost
+);
 
-// Обновление поста
+// Обновление поста (владелец)
 postRoutes.put(
-  '/:postId',
+  '/:postId/update',
   validateIdParam('postId'),
   authMiddleware,
+  validatePost,
   postController.updatePost
 );
 
-// Удаление поста
+// Обновление приватности постов
+postRoutes.put(
+  '/update-privacy',
+  authMiddleware,
+  postController.updatePostPrivacy
+);
+
+// Удаление поста (владелец)
 postRoutes.delete(
-  '/:postId',
+  '/:postId/delete',
   validateIdParam('postId'),
   authMiddleware,
   postController.deletePost

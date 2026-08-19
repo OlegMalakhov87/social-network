@@ -6,11 +6,17 @@ import { api } from '../../../shared/api';
  * @param {number} params.page - номер страницы
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @param {string} params.sortKey - ключ сортировки
  * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
  */
-export const fetchMyVideoLibrary = async ({ page, limit, signal }) => {
+export const fetchMyVideoLibrary = async ({
+  page,
+  limit,
+  signal,
+  sortKey,
+} = {}) => {
   const response = await api.get(`/uservideolibrary`, {
-    params: { page, limit },
+    params: { page, limit, sortKey },
     signal,
   });
   return response.data;
@@ -23,6 +29,7 @@ export const fetchMyVideoLibrary = async ({ page, limit, signal }) => {
  * @param {number} params.page - номер страницы
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @param {string} params.sortKey - ключ сортировки
  * @returns {Promise<Object>} { items, pagination }
  */
 export const fetchUserVideoLibrary = async ({
@@ -30,11 +37,13 @@ export const fetchUserVideoLibrary = async ({
   page,
   limit,
   signal,
-}) => {
-  const response = await api.get(`/videos/profile/${userId}`, {
+  sortKey,
+} = {}) => {
+  const response = await api.get(`/uservideolibrary/${userId}`, {
     params: {
       page,
       limit,
+      sortKey,
     },
     signal,
   });
@@ -47,32 +56,30 @@ export const fetchUserVideoLibrary = async ({
  * @returns {Promise<Object>} { libraryId }
  */
 export const addVideoToLibrary = async (videoId) => {
-  const response = await api.post(`/uservideolibrary`, {
-    videoId,
+  const response = await api.post(`/uservideolibrary/${videoId}/add`);
+  return response.data;
+};
+
+/**
+ * Обновить видео из библиотеки (добавить/удалить из избранного)
+ * @param {number} libraryId – ID записи в библиотеке
+ * @param {boolean} isFavorite – состояние в избраном
+ * @returns {Promise<Object>} { libraryId }
+ */
+export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
+  const response = await api.put(`/uservideolibrary/${libraryId}/favorite`, {
+    isFavorite,
   });
   return response.data;
 };
 
 /**
- * Обновить видео из библиотеки (увеличить счетчик просмотров, добавить в избранное)
- * @param {Object} params - параметры запроса
- * @param {number} params.libraryId – ID записи в библиотеке
- * @param {boolean} params.isFavorite – состояние в избраном (true/false)
- * @param {number} params.viewsCount – счетчик просмотров личный
- * @param {Date} params.lastWatchedAt - последний просмотр (дата)
+ * Увеличить счетчик просмотров видео в библиотеке.
+ * @param {number} libraryId - ID записи в библиотеке
  * @returns {Promise<Object>} { libraryId }
  */
-export const updateVideoFromLibrary = async ({
-  libraryId,
-  isFavorite,
-  viewsCount,
-  lastWatchedAt,
-}) => {
-  const response = await api.put(`/uservideolibrary/${libraryId}`, {
-    isFavorite,
-    viewsCount,
-    lastWatchedAt,
-  });
+export const incrementViewsCount = async (libraryId) => {
+  const response = await api.put(`/uservideolibrary/${libraryId}/views`);
   return response.data;
 };
 
@@ -82,6 +89,6 @@ export const updateVideoFromLibrary = async ({
  * @returns {Promise<Object>} { libraryId }
  */
 export const deleteVideoFromLibrary = async (libraryId) => {
-  const response = await api.delete(`/uservideolibrary/${libraryId}`);
+  const response = await api.delete(`/uservideolibrary/${libraryId}/delete`);
   return response.data;
 };

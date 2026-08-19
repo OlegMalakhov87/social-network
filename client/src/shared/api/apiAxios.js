@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from '../config';
+import { dispatchAuthLogout } from './authSession';
 
 /** Axios клиент для взаимодействия с сервером. */
 export const apiAxios = axios.create({
@@ -18,7 +19,6 @@ let responseInterceptorId = null;
  * @param {import('@reduxjs/toolkit').EnhancedStore} store
  */
 export const setupAxiosInterceptors = (store) => {
-  // Удаляем предыдущие интерцепторы перед регистрацией новых
   if (requestInterceptorId !== null) {
     apiAxios.interceptors.request.eject(requestInterceptorId);
   }
@@ -32,6 +32,9 @@ export const setupAxiosInterceptors = (store) => {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
       return config;
     },
     (error) => Promise.reject(error)
@@ -40,8 +43,14 @@ export const setupAxiosInterceptors = (store) => {
   responseInterceptorId = apiAxios.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response?.status === 401) {
-        console.warn('Пользователь не авторизован');
+      const status = error.response?.status;
+      if (status === 401) {
+        const url = error.config?.url || '';
+        const isAuthRequest =
+          url.includes('/auth/login') || url.includes('/auth/register');
+        if (!isAuthRequest) {
+          dispatchAuthLogout(store);
+        }
       }
       return Promise.reject(error);
     }

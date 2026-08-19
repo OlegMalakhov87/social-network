@@ -22,6 +22,7 @@ export class ErrorBoundary extends Component {
     this.state = {
       hasError: false,
       error: null,
+      resetKey: 0,
     };
   }
 
@@ -56,10 +57,12 @@ export class ErrorBoundary extends Component {
    * Сброс ошибки.
    */
   handleReset = () => {
-    this.setState({
+    this.setState((prev) => ({
       hasError: false,
       error: null,
-    });
+      resetKey: prev.resetKey + 1,
+    }));
+    this.props.onReset?.();
   };
 
   render() {
@@ -87,6 +90,6 @@ export class ErrorBoundary extends Component {
       );
     }
 
-    return this.props.children;
+    return <div key={this.state.resetKey}>{this.props.children}</div>;
   }
 }

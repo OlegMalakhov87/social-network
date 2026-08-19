@@ -18,7 +18,7 @@ export const TrackCover = ({ track, currentTrack, isPlaying, onPlay }) => {
   return (
     <div className={style.cover}>
       <MediaPreview
-        src={track.coverUrl || track.mediaUrl || '/cover-track.webp'}
+        src={track.cover || '/cover-track.webp'}
         alt={track.title}
       />
 

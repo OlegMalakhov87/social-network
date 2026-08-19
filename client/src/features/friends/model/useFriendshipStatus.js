@@ -21,8 +21,14 @@ export const useFriendshipStatus = (params, currentUserIdArg) => {
     typeof params === 'object' && params !== null && !Array.isArray(params);
 
   const targetUserId = isParamsObject ? params.targetUserId : params;
-  const currentUserId = isParamsObject ? params.currentUserId : currentUserIdArg;
-  const dataRef = useRef({ status: null, direction: null, friendshipId: null });
+  const currentUserId = isParamsObject
+    ? params.currentUserId
+    : currentUserIdArg;
+  const dataRef = useRef({
+    friendshipStatus: null,
+    friendshipDirection: null,
+    friendshipId: null,
+  });
   const notify = useNotify();
 
   /**
@@ -39,13 +45,21 @@ export const useFriendshipStatus = (params, currentUserIdArg) => {
   } = useAbortableRequest({
     fetcher: async (signal) => {
       if (!targetUserId || !currentUserId || targetUserId === currentUserId) {
-        return { status: null, direction: null, friendshipId: null };
+        return {
+          status: null,
+          direction: null,
+          friendshipId: null,
+        };
       }
-      return await fetchFriendshipStatus(targetUserId, { signal });
+      return await fetchFriendshipStatus(targetUserId, signal);
     },
     deps: [targetUserId, currentUserId],
     options: {
-      initialData: { status: null, direction: null, friendshipId: null },
+      initialData: {
+        status: null,
+        direction: null,
+        friendshipId: null,
+      },
     },
   });
 

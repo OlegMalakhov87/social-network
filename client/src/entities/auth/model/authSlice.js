@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import {
+  authErrorMessageFromPayload,
   changePassword,
   checkAuth,
   deleteUser,
@@ -17,9 +18,10 @@ import {
 const initialState = {
   user: null,
   token: getToken(),
-  isAuthenticated: !!getToken(),
+  isAuthenticated: false,
   status: 'idle', // idle | loading | succeeded | failed
-  error: null, // Текст ошибки, полученной от сервера.
+  error: null,
+  isCheckingAuth: true,
 };
 
 const authSlice = createSlice({
@@ -54,12 +56,15 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.isCheckingAuth = false;
         saveToken(action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка авторизации';
+        state.error = authErrorMessageFromPayload(
+          action.payload,
+          'Ошибка авторизации'
+        );
       })
 
       /** Регистрация пользователя.*/
@@ -72,22 +77,27 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.isCheckingAuth = false;
         saveToken(action.payload.token);
       })
       .addCase(register.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка регистрации';
+        state.error = authErrorMessageFromPayload(
+          action.payload,
+          'Ошибка регистрации'
+        );
       })
 
       /** Получение пользователя.*/
       .addCase(fetchCurrentUser.pending, (state) => {
         state.status = 'loading';
+        state.isCheckingAuth = false;
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.isCheckingAuth = false;
       })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.status = 'failed';
@@ -99,27 +109,40 @@ const authSlice = createSlice({
           action.error.message ||
           'Не удалось получить пользователя';
         removeToken();
+        state.isCheckingAuth = false;
       })
 
       /** Проверка авторизации пользователя.*/
       .addCase(checkAuth.pending, (state) => {
         state.status = 'loading';
+        state.isCheckingAuth = true;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isCheckingAuth = false;
+        if (action.payload.skipped) {
+          state.status = 'idle';
+          state.user = null;
+          state.token = null;
+          state.isAuthenticated = false;
+          state.error = null;
+          return;
+        }
         state.status = 'succeeded';
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(checkAuth.rejected, (state, action) => {
         state.status = 'failed';
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-        state.error =
-          action.payload ||
-          action.error.message ||
-          'Пользователь не авторизирован';
+        state.isCheckingAuth = false;
+        state.error = authErrorMessageFromPayload(
+          action.payload,
+          'Сессия истекла'
+        );
         removeToken();
       })
 

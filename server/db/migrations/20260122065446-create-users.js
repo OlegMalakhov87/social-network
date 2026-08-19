@@ -53,6 +53,11 @@ module.exports = {
         allowNull: false,
         defaultValue: true,
       },
+      gender: {
+        type: Sequelize.ENUM('male', 'female'),
+        allowNull: false,
+        defaultValue: 'male',
+      },
       passwordHash: {
         type: Sequelize.STRING(60),
         allowNull: false,
@@ -76,5 +81,8 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Users');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_Users_gender";'
+    );
   },
 };

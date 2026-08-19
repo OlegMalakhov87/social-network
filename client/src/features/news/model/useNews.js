@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
@@ -20,18 +21,41 @@ import {
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
+const normalizeFilter = (value) =>
+  typeof value === 'string' && value.trim() ? value : 'all';
+
+const normalizeSearch = (value) =>
+  typeof value === 'string' ? value : '';
+
 /**
  * Хук для получения и фильтрации новостей с бесконечным скроллом.
  *
- * @param {string} filter - Фильтр
- * @param {string} searchQuery - Поисковый запрос
- * @param {string} sortKey - Ключ сортировки
+ * @param {Object|string} params - `{ filter, searchQuery, sortKey }` или filter (legacy)
+ * @param {string} [searchQueryArg=''] - поисковый запрос (legacy)
+ * @param {string} [sortKeyArg='dateDesc'] - ключ сортировки (legacy)
  * @returns {Object} - объект с данными о новостях
  */
+export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') => {
+  const isParamsObject =
+    typeof params === 'object' && params !== null && !Array.isArray(params);
 
-export const useNews = (filter, searchQuery, sortKey) => {
+  const filter = normalizeFilter(
+    isParamsObject ? params.filter : params
+  );
+  const searchQuery = normalizeSearch(
+    isParamsObject ? params.searchQuery : searchQueryArg
+  );
+  const sortKey =
+    (isParamsObject ? params.sortKey : sortKeyArg) ?? 'dateDesc';
+
   const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.id;
   const notify = useNotify('news');
+
+  const scrollDeps = useMemo(
+    () => [filter, searchQuery, sortKey, currentUserId],
+    [filter, searchQuery, sortKey, currentUserId]
+  );
 
   /** Получение новостей с бесконечным скроллом. */
   const {
@@ -45,16 +69,22 @@ export const useNews = (filter, searchQuery, sortKey) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!filter && !searchQuery) {
+      if (!currentUserId) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchNewsApi, {
-        params: { filter, q: searchQuery, page, limit, sortKey },
+        params: {
+          filter,
+          searchQuery,
+          q: searchQuery,
+          page,
+          limit,
+          sortKey,
+        },
         signal,
       });
     },
-    deps: [filter, searchQuery, sortKey],
-    onSuccess: () => notify.success('load'),
+    deps: scrollDeps,
     onError: () => notify.error('load'),
   });
 
@@ -63,10 +93,8 @@ export const useNews = (filter, searchQuery, sortKey) => {
     setItems: setNewsItems,
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
-    currentUserId: currentUser?.id,
+    currentUserId,
     targetType: 'news',
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
   /** Оптимистичный счётчик просмотров. */
@@ -82,30 +110,27 @@ export const useNews = (filter, searchQuery, sortKey) => {
     setItems: setNewsItems,
   });
 
-  /** Оптимистичный мутации (CRUD). */
-  const {
-    add: addNews,
-    edit: updateNews,
-    remove: deleteNews,
-  } = useOptimisticMutation({
-    items: newsItems,
-    setItems: setNewsItems,
-    addFn: addNewsApi,
-    editFn: updateNewsApi,
-    deleteFn: deleteNewsApi,
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
-  });
+  /** Оптимистичные мутации (CRUD). */
+  const { add: addNews, edit: updateNews, remove: deleteNews } =
+    useOptimisticMutation({
+      items: newsItems,
+      setItems: setNewsItems,
+      addFn: addNewsApi,
+      editFn: updateNewsApi,
+      deleteFn: deleteNewsApi,
+      onSuccess: (action) => {
+        notify.success(action);
+      },
+      onError: (action) => {
+        notify.error(action);
+      },
+    });
 
   /** Нормализация новостей. */
   const news = useNormalizedData({
     items: newsItems,
     normalizeFn: normalizeNews,
-    userId: currentUser?.id,
+    userId: currentUserId,
   });
 
   return {

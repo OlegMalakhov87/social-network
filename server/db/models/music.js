@@ -116,7 +116,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: true,
       },
-      playCount: {
+      playsCount: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
@@ -141,7 +141,7 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['artist'] },
         { fields: ['genre'] },
         { fields: ['isPublic'] },
-        { fields: ['playCount'] },
+        { fields: ['playsCount'] },
       ],
     }
   );

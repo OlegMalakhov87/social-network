@@ -3,17 +3,12 @@ const musicService = require('../services/musicService');
 const musicController = {
   /**
    * Получение публичной ленты треков и поиск
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getMusic: async (req, res, next) => {
     try {
-      // Объединили поиск и общую выдачу
       const result = await musicService.getMusic({
         ...req.query,
-        currentUserId: req.user?.id,
+        currentUserId: parseInt(req.user?.id),
       });
       res.status(200).json(result);
     } catch (error) {
@@ -23,21 +18,20 @@ const musicController = {
 
   /**
    * Получение библиотеки треков конкретного пользователя
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getUserMusic: async (req, res, next) => {
     try {
       const { userId } = req.params;
+      const currentUserId = req.user?.id;
+      const { page, limit, sortKey } = req.query;
       const result = await musicService.getUserMusicLibrary(
-        userId,
-        req.user?.id,
-        req.query.page,
-        req.query.limit
+        parseInt(userId),
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
       );
-      res.status(200).json(result); // Всегда 200, даже если tracks: []
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -45,15 +39,11 @@ const musicController = {
 
   /**
    * Получение одного трека по ID
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getMusicById: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const result = await musicService.getMusicById(trackId);
+      const result = await musicService.getMusicById(parseInt(trackId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -62,14 +52,14 @@ const musicController = {
 
   /**
    * Создание нового трека
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   createMusic: async (req, res, next) => {
     try {
-      const result = await musicService.createMusic(req.user.id, req.body);
+      const currentUserId = req.user?.id;
+      const result = await musicService.createMusic(
+        parseInt(currentUserId),
+        req.body
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -78,10 +68,6 @@ const musicController = {
 
   /**
    * Загрузка аудио файла для трека
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   uploadAudio: async (req, res, next) => {
     try {
@@ -98,10 +84,6 @@ const musicController = {
 
   /**
    * Загрузка обложки для трека
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   uploadCover: async (req, res, next) => {
     try {
@@ -118,15 +100,12 @@ const musicController = {
 
   /**
    * Обновление приватности треков
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   updateMusicPrivacy: async (req, res, next) => {
     try {
+      const currentUserId = req.user?.id;
       const result = await musicService.updateMusicPrivacy(
-        req.user.id,
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -137,17 +116,14 @@ const musicController = {
 
   /**
    * Обновление метаданных трека (владелец)
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   updateMusic: async (req, res, next) => {
     try {
       const { trackId } = req.params;
+      const currentUserId = req.user?.id;
       const result = await musicService.updateMusic(
-        trackId,
-        req.user.id,
+        parseInt(trackId),
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -158,15 +134,11 @@ const musicController = {
 
   /**
    * Инкремент счетчика прослушиваний
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
-  incrementPlayCount: async (req, res, next) => {
+  incrementPlaysCount: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const result = await musicService.incrementPlayCount(trackId);
+      const result = await musicService.incrementPlaysCount(parseInt(trackId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -175,15 +147,15 @@ const musicController = {
 
   /**
    * Удаление трека (владелец)
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   deleteMusic: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const result = await musicService.deleteMusic(trackId, req.user.id);
+      const currentUserId = req.user?.id;
+      const result = await musicService.deleteMusic(
+        parseInt(trackId),
+        parseInt(currentUserId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);

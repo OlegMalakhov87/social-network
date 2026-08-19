@@ -28,15 +28,22 @@ export const ContentState = ({
   onRetry,
   children,
 }) => {
+  const errorMessage =
+    error == null
+      ? null
+      : typeof error === 'string'
+        ? error
+        : error?.message || 'Не удалось загрузить данные';
+
   if (loading) {
     return <PageLoader message={loadingMessage} />;
   }
 
-  if (error && isEmpty) {
+  if (errorMessage && isEmpty) {
     return (
       <div className={style.wrapper}>
         <Alert variant="error" title="Не удалось загрузить данные">
-          {error}
+          {errorMessage}
         </Alert>
 
         {onRetry && (

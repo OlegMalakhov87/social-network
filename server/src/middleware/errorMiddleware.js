@@ -2,11 +2,6 @@ const multer = require('multer');
 
 /**
  * Middleware для обработки ошибок
- * @param {Error} err - Ошибка
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const errorMiddleware = (err, req, res, next) => {
   // Логируем ошибку в development окружении

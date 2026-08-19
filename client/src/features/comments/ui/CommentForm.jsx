@@ -1,5 +1,5 @@
 import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength } from '../../../shared/lib';
+import { maxLength, required } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -10,26 +10,24 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Форма для добавления комментария
- * @param {Object} props - пропсы компонента
+ * Компонент формы для добавления комментария
+ * @param {Object} props
  * @param {Object} props.currentUser - данные текущего пользователя
  * @param {Function} props.onSubmit - функция для отправки формы
  * @param {Function} props.onClose - функция для закрытия формы
- * @returns {React.ReactNode} - компонент CommentForm
  */
-
 export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { content: '' },
+    initialValues: { text: '' },
     rules: () => ({
-      content: [
-        minLength(1, 'Напишите комментарий'),
-        maxLength(1000, 'Максимум 1000 символов'),
+      text: [
+        required('Введите комментарий'),
+        maxLength(2000, 'Максимум 2000 символов'),
       ],
     }),
     onSubmit: (values) => {
-      onSubmit?.(values.content);
+      onSubmit?.({ text: values.text });
     },
   });
 
@@ -38,7 +36,7 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
       header={
         <EntityHeader>
           <EntityMeta
-            avatar={currentUser?.photoUrl}
+            avatar={currentUser?.avatar}
             title={currentUser?.name}
             subtitle="Напишите комментарий"
           />
@@ -47,7 +45,7 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
       content={
         <form onSubmit={form.submit}>
           <TextArea
-            {...form.register('content')}
+            {...form.register('text')}
             placeholder="Что вы думаете по этому поводу?"
             rows={3}
             disabled={form.isSubmitting}
@@ -69,9 +67,10 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
             <Button
               type="submit"
               size="sm"
-              disabled={!form.values.content?.trim() || form.isSubmitting}
+              disabled={form.isSubmitting}
+              loading={form.isSubmitting}
             >
-              {form.isSubmitting ? 'Отправка...' : 'Добавить'}
+              Добавить
             </Button>
           </ButtonGroup>
         </form>

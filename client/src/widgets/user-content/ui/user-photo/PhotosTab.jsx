@@ -40,7 +40,7 @@ export const PhotosTab = ({
   return (
     <ContentState
       loading={isLoading && photos.length === 0}
-      error={error && photos.length === 0}
+      error={photos.length === 0 ? error : null}
       isEmpty={!photos?.length}
       loadingMessage="Загружаем фотографии..."
       emptyIcon="📷"
@@ -56,6 +56,7 @@ export const PhotosTab = ({
         {photos.map((item) => {
           return (
             <Photo
+              key={item.id}
               photo={item}
               currentUser={currentUser}
               toggleLike={toggleLike}

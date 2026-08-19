@@ -106,7 +106,7 @@ export const ChatGrid = ({
             }
           >
             <EntityMeta
-              avatar={selectedUser?.photoUrl}
+              avatar={selectedUser?.avatar}
               title={selectedUser?.name}
               fallback="/userPhoto.jpg"
             />

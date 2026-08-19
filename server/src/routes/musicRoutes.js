@@ -68,7 +68,7 @@ musicRoutes.put(
   '/:trackId/play',
   validateIdParam('trackId'),
   authMiddleware,
-  musicController.incrementPlayCount
+  musicController.incrementPlaysCount
 );
 
 // Обновление приватности треков

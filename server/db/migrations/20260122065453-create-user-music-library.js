@@ -27,7 +27,7 @@ module.exports = {
         defaultValue: false,
         allowNull: false,
       },
-      playCount: {
+      playsCount: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
         allowNull: false,

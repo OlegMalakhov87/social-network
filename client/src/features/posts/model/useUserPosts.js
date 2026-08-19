@@ -16,12 +16,19 @@ import { apiFetchItems } from '../../../shared/lib';
 /**
  * Хук для получения постов пользователя с бесконечным скроллом.
  *
- * @param {number} profileUserId - ID пользователя
- * @param {number} currentUserId - ID текущего пользователя
- * @param {string} sortKey - ключ сортировки
+ * @param {Object} params - параметры запроса
+ * @param {number|null} params.profileUserId - ID пользователя
+ * @param {number|null} params.currentUserId - ID текущего пользователя
+ * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
+ * @param {string} params.sortKey - ключ сортировки
  * @returns {Object} - объект с данными о постах пользователя
  */
-export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
+export const useUserPosts = ({
+  profileUserId,
+  currentUserId,
+  isOwnProfile,
+  sortKey,
+}) => {
   const notify = useNotify('posts');
 
   /** Получение постов с бесконечным скроллом. */
@@ -36,7 +43,7 @@ export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!profileUserId) {
+      if (!profileUserId || profileUserId <= 0) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchPostsApi, {
@@ -45,11 +52,10 @@ export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
       });
     },
     deps: [profileUserId, sortKey],
-    onSuccess: () => notify.success('load'),
     onError: () => notify.error('load'),
   });
 
-  /** Оптимистичные мутации (CRUD). */
+  /** Оптимистичные мутации */
   const {
     add: addPost,
     edit: updatePost,
@@ -68,7 +74,7 @@ export const useUserPosts = (profileUserId, currentUserId, sortKey) => {
     },
   });
 
-  /** Нормализация и сортировка постов. */
+  /** Нормализация постов. */
   const posts = useNormalizedData({
     items: postsItems,
     normalizeFn: normalizePosts,

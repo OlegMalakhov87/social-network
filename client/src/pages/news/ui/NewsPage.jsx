@@ -53,8 +53,8 @@ export const NewsPage = () => {
     deleteNews,
     updateNews,
     toggleLike,
-    incrementViewCount,
-    updateCommentCount,
+    incrementViewsCount,
+    updateCommentsCount,
   } = useNews({
     filter,
     searchQuery,
@@ -67,8 +67,8 @@ export const NewsPage = () => {
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => updateCommentCount(commentTarget?.id, delta),
-    [commentTarget?.id, updateCommentCount]
+    (delta) => updateCommentsCount(commentTarget?.id, delta),
+    [commentTarget?.id, updateCommentsCount]
   );
 
   /** Обработчик для открытия модального окна с видео*/
@@ -162,7 +162,7 @@ export const NewsPage = () => {
             loadMore={loadMore}
             onPlayVideo={handleOpenVideo}
             toggleLike={toggleLike}
-            onReadMore={incrementViewCount}
+            onReadMore={incrementViewsCount}
             toggleComments={onToggleComments}
             deleteNews={deleteNews}
             updateNews={setShowNewsForm}
@@ -176,7 +176,7 @@ export const NewsPage = () => {
             targetId={commentTarget?.id}
             currentUser={currentUser}
             onChange={handleCommentChange}
-            onCloseComments={handleCloseComments}
+            onClose={handleCloseComments}
             commentsSectionRef={commentsSectionRef}
           />
         )}

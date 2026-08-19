@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * Универсальный хук для оптимистичного обновления счётчиков.
@@ -6,11 +6,21 @@ import { useCallback } from 'react';
  * @param {Object} params - параметры запроса
  * @param {Array} params.items - массив сущностей
  * @param {Function} params.setItems - функция обновления массива
- * @param {string} params.countField - поле счётчика (например, 'commentsCount', 'viewCount')
+ * @param {string} params.countField - поле счётчика
  * @param {Function} params.updateFn - асинхронная функция обновления счётчика
  * @returns {Object} - { increment, decrement, incrementWithApi }
  */
-export const useOptimisticCounter = ({items, setItems, countField, updateFn}) => {
+export const useOptimisticCounter = ({
+  items,
+  setItems,
+  countField,
+  updateFn,
+}) => {
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   const updateCounter = useCallback(
     (itemId, delta) => {
       setItems((prev) =>
@@ -30,18 +40,29 @@ export const useOptimisticCounter = ({items, setItems, countField, updateFn}) =>
 
   // Оптимистичное обновление с откатом при ошибке
   const incrementWithApi = useCallback(
-    async (itemId, delta = 1) => {
+    async (itemId, libraryId = null, delta = 1) => {
       if (!itemId) return;
 
       // Сохраняем старое значение для отката
-      const oldItems = items;
+      const oldItems = itemsRef.current;
 
       // Оптимистичное обновление
       updateCounter(itemId, delta);
 
       try {
         if (updateFn) {
-          await updateFn(itemId);
+          const result = await updateFn(libraryId ?? itemId);
+
+          // Если сервер вернул lastWatchedAt — обновляем его в состоянии
+          if (result?.lastWatchedAt) {
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === itemId
+                  ? { ...item, lastWatchedAt: result.lastWatchedAt }
+                  : item
+              )
+            );
+          }
         }
         return true;
       } catch (err) {
@@ -51,7 +72,7 @@ export const useOptimisticCounter = ({items, setItems, countField, updateFn}) =>
         return false;
       }
     },
-    [items, setItems, updateCounter, updateFn]
+    [setItems, updateCounter, updateFn]
   );
 
   return {

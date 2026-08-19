@@ -21,7 +21,7 @@ import {
  * @param {Function} props.onPlay - функция для начать воспроизведение
  * @param {Function} props.togglePlay - функция для переключения play/pause текущего трека
  * @param {Function} props.addToLibrary - функция для добавления трека в библиотеку
- * @param {Function} props.removeFromLibrary - функция для удаления трека из библиотеки
+ * @param {Function} props.deleteFromLibrary - функция для удаления трека из библиотеки
  * @param {Function} props.toggleFavorite - функция для добавления/удаления трека из избранного
  * @param {Function} props.toggleLike - функция для лайка/дизлайка трека
  * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к треку
@@ -40,7 +40,7 @@ export const Track = ({
   onPlay,
   togglePlay,
   addToLibrary,
-  removeFromLibrary,
+  deleteFromLibrary,
   toggleFavorite,
   toggleLike,
   toggleComments,
@@ -66,7 +66,7 @@ export const Track = ({
     track,
     isOwn,
     addToLibrary,
-    removeFromLibrary,
+    deleteFromLibrary,
     toggleLike,
     toggleComments,
     onUpdate: updateTrack,
@@ -87,7 +87,13 @@ export const Track = ({
                 showFavorite && (
                   <ActionChip
                     icon={track.isFavorite ? '⭐' : '☆'}
-                    onClick={() => toggleFavorite?.(track.id)}
+                    onClick={() =>
+                      toggleFavorite?.(
+                        track.id,
+                        track.libraryId,
+                        track.isFavorite
+                      )
+                    }
                   />
                 )
               }
@@ -111,7 +117,7 @@ export const Track = ({
               onPlay={handlePlay}
             />
 
-            <TrackMeta track={track} />
+            <TrackMeta track={track} mode={mode} />
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

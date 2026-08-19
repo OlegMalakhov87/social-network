@@ -33,14 +33,9 @@ export const Modal = ({
 }) => {
   const modalRef = useRef(null);
 
-  // Закрытие при клике вне компонента
-  useOutsideClick(modalRef, onClose);
-
-  // Закрытие по Escape
-  useEscapeKey(onClose);
-
-  // Блокировка скролла
-  useLockBodyScroll();
+  useOutsideClick(modalRef, onClose, isOpen);
+  useEscapeKey(onClose, isOpen);
+  useLockBodyScroll(isOpen);
 
   if (!isOpen) return null;
 

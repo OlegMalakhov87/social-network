@@ -12,10 +12,12 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        validate: { min: 1, isInt: true },
       },
       friendId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        validate: { min: 1, isInt: true },
       },
       status: {
         type: DataTypes.ENUM('pending', 'accepted', 'blocked'),

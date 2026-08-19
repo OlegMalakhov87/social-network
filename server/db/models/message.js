@@ -46,10 +46,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       isRead: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       isEdited: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       deletedBySender: {

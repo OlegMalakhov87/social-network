@@ -23,7 +23,6 @@ export const AVATAR_UPLOAD_CONFIG = {
     ),
     fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
     minImageResolution(200, 200, 'Минимальное разрешение аватара: 200x200px'),
-    aspectRatio(1, 0.1, 'Аватар должен быть квадратным'),
   ]),
   endpoint: '/profile/upload-avatar',
   fieldName: 'avatar',
@@ -76,7 +75,7 @@ export const VIDEO_THUMBNAIL_CONFIG = {
 export const POST_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/gif',
   validators: composeValidators([
-    maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
+    maxFileSize(5 * 1024 * 1024, 'Изображение не должно превышать 5MB'),
     fileType(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
     fileExtension(['.jpg', '.jpeg', '.png', '.webp', '.gif']),
   ]),
@@ -91,7 +90,7 @@ export const POST_IMAGE_UPLOAD_CONFIG = {
 export const POST_VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
-    maxFileSize(200 * 1024 * 1024, 'Видео не должно превышать 200MB'),
+    maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100MB'),
     fileType(
       ['video/mp4', 'video/webm', 'video/quicktime'],
       'Поддерживаются только MP4, WebM, MOV'
@@ -110,7 +109,7 @@ export const POST_VIDEO_UPLOAD_CONFIG = {
 export const NEWS_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp',
   validators: composeValidators([
-    maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
+    maxFileSize(5 * 1024 * 1024, 'Изображение не должно превышать 5MB'),
     fileType(
       ['image/jpeg', 'image/png', 'image/webp'],
       'Поддерживаются только JPG, PNG, WEBP'
@@ -174,7 +173,7 @@ export const TRACK_UPLOAD_CONFIG = {
     fileExtension(['.mp3', '.wav', '.ogg', '.flac']),
     maxDuration(600, 'Длительность трека не должна превышать 10 минут'),
   ]),
-  endpoint: '/tracks/upload-audio',
+  endpoint: '/music/upload-audio',
   fieldName: 'audio',
   previewType: 'audio',
 };

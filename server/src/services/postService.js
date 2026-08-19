@@ -53,9 +53,6 @@ const postService = {
       where.isPublic = true;
     }
 
-    // Безопасная сортировка
-    const order = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
-
     const { count, rows: posts } = await Post.findAndCountAll({
       where,
       include: [
@@ -72,9 +69,9 @@ const postService = {
           ],
         },
       ],
-      order,
-      limit: parseInt(limit),
-      offset: (parseInt(page) - 1) * parseInt(limit),
+      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      limit: limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
@@ -82,14 +79,16 @@ const postService = {
     return {
       posts: posts.map((post) => ({
         ...post.toJSON(),
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length,
+        likesCount: post.likes?.length ?? 0,
+        isLiked:
+          post.likes?.some((like) => like.userId === currentUserId) ?? false,
+        commentsCount: post.comments?.length ?? 0,
       })),
       pagination: {
         totalPosts: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
       isOwner,
       isFriend,
@@ -101,7 +100,7 @@ const postService = {
    * @param {number} postId - ID поста
    * @returns {Promise<Object>} - Объект с постом
    */
-  async getPostById(postId) {
+  async getPostById(postId, currentUserId) {
     const post = await Post.findByPk(postId, {
       include: [
         { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
@@ -116,26 +115,28 @@ const postService = {
     return {
       post: {
         ...post.toJSON(),
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length,
+        likesCount: post.likes?.length ?? 0,
+        isLiked:
+          post.likes?.some((like) => like.userId === currentUserId) ?? false,
+        commentsCount: post.comments?.length ?? 0,
       },
     };
   },
 
   /**
    * Создание поста
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} postData - Данные поста
    * @returns {Promise<Object>} - Объект с созданным постом
    */
-  async createPost(userId, postData) {
+  async createPost(currentUserId, postData) {
     const dbData = {
-      userId,
+      userId: currentUserId,
       text: postData.text || null,
-      isPublic: postData.isPublic || true,
+      isPublic: postData.isPublic ?? true,
       type: postData.type || 'text',
       media: postData.media || null,
-      pinned: postData.pinned || false,
+      pinned: postData.pinned ?? false,
     };
 
     const post = await Post.create(dbData);
@@ -186,7 +187,7 @@ const postService = {
     }
 
     // Маппинг полей для обновления
-    const updates = {};
+    const updates = { isEdited: true };
     if (updateData.text !== undefined) {
       updates.text = updateData.text.trim();
     }
@@ -228,7 +229,7 @@ const postService = {
       );
     }
 
-    // Оптимизация: обновляем и возвращаем результат одним запросом (PostgreSQL)
+    // Обновляем пост и возвращаем результат одним запросом
     const [, updatedRows] = await Post.update(updates, {
       where: { id: postId },
       returning: true,
@@ -242,18 +243,41 @@ const postService = {
   },
 
   /**
+   * Обновление приватности постов
+   * @param {number} currentUserId - ID пользователя, обновляющего посты
+   * @param {Object} updates - Обновляемые данные
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async updatePostPrivacy(currentUserId, updates) {
+    const posts = await Post.findAll({ where: { userId: currentUserId } });
+    if (posts.length === 0) {
+      throw createError('Посты не найдены', 404, 'POSTS_NOT_FOUND');
+    }
+    if (updates.isPublic !== undefined) {
+      posts.forEach((post) => {
+        post.isPublic = updates.isPublic;
+        return post.save();
+      });
+    }
+    return {
+      message: 'Приватность постов успешно обновлена',
+      posts: posts.length,
+    };
+  },
+
+  /**
    * Удаление поста
    * @param {number} postId - ID поста
-   * @param {number} userId - ID текущего пользователя
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - Объект с сообщением об удалении
    */
-  async deletePost(postId, userId) {
+  async deletePost(postId, currentUserId) {
     const post = await Post.findByPk(postId);
     if (!post) {
       throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
     }
 
-    if (post.userId !== userId) {
+    if (post.userId !== currentUserId) {
       throw createError('Вы не можете удалить этот пост', 403, 'FORBIDDEN');
     }
 

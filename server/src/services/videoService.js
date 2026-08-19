@@ -76,7 +76,7 @@ const videoService = {
         as: 'libraryItems',
         where: { userId: currentUserId },
         required: false,
-        attributes: ['id', 'isFavorite', 'viewsCount', 'lastWatchedAt'],
+        attributes: ['id'],
       });
     }
 
@@ -96,11 +96,9 @@ const videoService = {
         ...videoData,
         isInLibrary: !!libraryEntry,
         libraryId: libraryEntry?.id || null,
-        isFavorite: libraryEntry?.isFavorite || false,
-        viewsCount: libraryEntry?.viewsCount || 0,
+        viewsCount: videoData?.viewsCount || 0,
         commentsCount: videoData.comments?.length || 0,
-        lastWatchedAt: libraryEntry?.lastWatchedAt || null,
-        libraryItems: undefined,
+        libraryItems: undefined, // Убираем мусор из ответа
       };
     });
 
@@ -111,175 +109,6 @@ const videoService = {
         totalPages: Math.ceil(count / parseInt(limit)),
         currentPage: parseInt(page),
         hasMore: parseInt(page) * parseInt(limit) < count,
-      },
-    };
-  },
-
-  /**
-   * Получить библиотеку видео конкретного пользователя
-   * @param {number} profileUserId - ID пользователя, библиотеку которого запрашивают
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество видео на странице
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async getUserVideosLibrary(
-    profileUserId,
-    currentUserId,
-    page = 1,
-    limit = 30,
-    sortKey = 'dateDesc'
-  ) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    let isFriend = false;
-    if (currentUserId && currentUserId !== parseInt(profileUserId)) {
-      const friendship = await Friend.findOne({
-        where: {
-          [Op.or]: [
-            {
-              userId: currentUserId,
-              friendId: profileUserId,
-              status: 'accepted',
-            },
-            {
-              userId: profileUserId,
-              friendId: currentUserId,
-              status: 'accepted',
-            },
-          ],
-        },
-      });
-      isFriend = !!friendship;
-    }
-
-    // Формируем условие приватности для видео
-    const videoWhere = {};
-    if (currentUserId !== parseInt(profileUserId)) {
-      videoWhere[Op.or] = [{ isPublic: true }];
-      if (isFriend) videoWhere[Op.or].push({ isPublic: false });
-    }
-
-    const { count, rows: libraryEntries } =
-      await UserVideoLibrary.findAndCountAll({
-        where: { userId: parseInt(profileUserId) },
-        include: [
-          {
-            model: Video,
-            as: 'video',
-            where: videoWhere,
-            required: true,
-            include: [
-              {
-                model: User,
-                as: 'uploader',
-                attributes: ['id', 'name', 'avatar'],
-              },
-              { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-              {
-                model: Comment,
-                as: 'comments',
-                limit: 100,
-                order: [['createdAt', 'ASC']],
-                include: [
-                  {
-                    model: User,
-                    as: 'author',
-                    attributes: ['id', 'name', 'avatar'],
-                  },
-                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-                ],
-              },
-            ],
-          },
-        ],
-        order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-        limit: parseInt(limit),
-        offset,
-        distinct: true,
-      });
-
-    // Создаем Map для быстрого поиска видео в библиотеке текущего пользователя
-    let currentUserLibraryMap = new Map();
-    if (
-      currentUserId &&
-      currentUserId !== parseInt(profileUserId) &&
-      libraryEntries.length > 0
-    ) {
-      const videoIds = libraryEntries.map((entry) => entry.videoId);
-      const myEntries = await UserVideoLibrary.findAll({
-        where: { userId: currentUserId, videoId: { [Op.in]: videoIds } },
-        attributes: ['videoId', 'id'],
-        raw: true,
-      });
-      currentUserLibraryMap = new Map(myEntries.map((e) => [e.videoId, e.id]));
-    }
-
-    // Форматируем ответ
-    const formattedVideos = libraryEntries.map((entry) => {
-      const videoData = entry.video?.toJSON() || {};
-      const myLibraryId = currentUserLibraryMap.get(entry.videoId);
-
-      return {
-        ...videoData,
-        // Данные для кнопки текущего пользователя
-        isInLibrary: !!myLibraryId,
-        libraryId: myLibraryId || null,
-        // Данные из библиотеки просматриваемого профиля
-        libraryId: entry.id,
-        viewsCount: entry.viewsCount || 0,
-        commentsCount: videoData.comments?.length || 0,
-        lastWatchedAt: entry.lastWatchedAt,
-        libraryCreatedAt: entry.createdAt,
-      };
-    });
-
-    return {
-      videos: formattedVideos,
-      pagination: {
-        totalVideos: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
-      },
-      meta: {
-        profileUserId: parseInt(profileUserId),
-        currentUserId: currentUserId || null,
-        isOwnProfile: currentUserId === parseInt(profileUserId),
-        isFriend,
-      },
-    };
-  },
-
-  /**
-   * Получить видео по ID
-   * @param {number} videoId - ID видео
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async getVideoById(videoId) {
-    const video = await Video.findByPk(videoId, {
-      include: [
-        { model: User, as: 'uploader', attributes: ['id', 'name', 'avatar'] },
-        {
-          model: Like,
-          as: 'likes',
-          attributes: ['id', 'userId'],
-        },
-        {
-          model: Comment,
-          as: 'comments',
-          attributes: ['id', 'userId'],
-        },
-      ],
-    });
-
-    if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
-
-    return {
-      video: {
-        ...video.toJSON(),
-        likesCount: video.likes?.length || 0,
-        commentsCount: video.comments?.length || 0,
       },
     };
   },
@@ -300,10 +129,10 @@ const videoService = {
     if (
       !dbData.title ||
       !dbData.url ||
-      !dbData.uploadedBy ||
-      !dbData.viewsCount ||
+      dbData.uploadedBy == null ||
+      dbData.viewsCount == null ||
       !dbData.category ||
-      !dbData.isPublic
+      typeof dbData.isPublic !== 'boolean'
     ) {
       throw createError(
         'Поля title, url, uploadedBy, viewsCount, category, isPublic обязательны',

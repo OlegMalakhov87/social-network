@@ -14,7 +14,7 @@ module.exports = {
         genre: 'Rock',
         description: 'Хит из альбома Night Visions',
         isPublic: true,
-        playCount: 100,
+        playsCount: 100,
       },
       {
         uploadedBy: 2,
@@ -28,7 +28,7 @@ module.exports = {
         genre: 'Pop',
         description: 'Грэмми-победитель 2020 года',
         isPublic: true,
-        playCount: 50,
+        playsCount: 50,
       },
       {
         uploadedBy: 3,
@@ -42,7 +42,7 @@ module.exports = {
         genre: 'Rock',
         description: 'Легендарная песня',
         isPublic: true,
-        playCount: 20,
+        playsCount: 60,
       },
       {
         uploadedBy: 4,
@@ -56,7 +56,7 @@ module.exports = {
         genre: 'Pop',
         description: 'Философская баллада о мире и гармонии',
         isPublic: false,
-        playCount: 10,
+        playsCount: 70,
       },
       {
         uploadedBy: 5,
@@ -70,7 +70,7 @@ module.exports = {
         genre: 'Jazz',
         description: 'Инструментальный джазовый шедевр в размере 5/4',
         isPublic: true,
-        playCount: 5,
+        playsCount: 50,
       },
       {
         uploadedBy: 6,
@@ -84,7 +84,7 @@ module.exports = {
         genre: 'Pop',
         description: 'Иконический трек короля поп-музыки',
         isPublic: true,
-        playCount: 30,
+        playsCount: 80,
       },
       {
         uploadedBy: 7,
@@ -98,7 +98,7 @@ module.exports = {
         genre: 'Rock',
         description: 'Гимн поколения 90-х',
         isPublic: false,
-        playCount: 40,
+        playsCount: 90,
       },
       {
         uploadedBy: 8,
@@ -112,7 +112,7 @@ module.exports = {
         genre: 'Classical',
         description: 'Вечная классика французского импрессионизма',
         isPublic: true,
-        playCount: 25,
+        playsCount: 55,
       },
       {
         uploadedBy: 9,
@@ -126,7 +126,7 @@ module.exports = {
         genre: 'Hip-Hop',
         description: 'Мотивирующий трек из фильма 8 Миль',
         isPublic: true,
-        playCount: 15,
+        playsCount: 65,
       },
       {
         uploadedBy: 10,
@@ -140,7 +140,7 @@ module.exports = {
         genre: 'Rock',
         description: 'Эпическая рок-баллада с культовым гитарным соло',
         isPublic: false,
-        playCount: 5,
+        playsCount: 75,
       },
       {
         uploadedBy: 11,
@@ -154,7 +154,7 @@ module.exports = {
         genre: 'Pop',
         description: 'Ретро-синтпоп хит с ностальгическим звучанием 80-х',
         isPublic: true,
-        playCount: 10,
+        playsCount: 85,
       },
       {
         uploadedBy: 12,
@@ -168,7 +168,7 @@ module.exports = {
         genre: 'Rock',
         description: 'Легендарная песня о калифорнийской мечте',
         isPublic: true,
-        playCount: 60,
+        playsCount: 95,
       },
     ]);
   },

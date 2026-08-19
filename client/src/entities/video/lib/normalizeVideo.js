@@ -1,12 +1,9 @@
 /**
- * Преобразует видео из ответа сервера в формат для VideoCard.
- *
+ * Преобразует видео Videos с сервера в формат компонента Video / VideoPlayer.
  * @param {Object} raw - видео из ответа сервера
- * @param {number|null} currentUserId - ID текущего пользователя
  * @returns {Object} - нормализованные данные видео
  */
-
-export const normalizeVideo = (raw, currentUserId) => {
+export const normalizeVideo = (raw) => {
   if (!raw || typeof raw !== 'object') {
     return {
       id: null,
@@ -15,9 +12,10 @@ export const normalizeVideo = (raw, currentUserId) => {
       duration: null,
       size: null,
       year: null,
-      videoUrl: '',
-      thumbnailUrl: '',
+      url: '',
+      thumbnail: '',
       category: '',
+      isPublic: false,
       isInLibrary: false,
       libraryId: null,
       viewsCount: 0,
@@ -36,25 +34,27 @@ export const normalizeVideo = (raw, currentUserId) => {
     duration: raw.duration,
     size: raw.size,
     year: raw.year,
-    videoUrl: raw.videoUrl,
-    thumbnailUrl: raw.thumbnailUrl,
+    url: raw.url,
+    thumbnail: raw.thumbnail,
     category: raw.category,
     isPublic: raw.isPublic,
     viewsCount: raw.viewsCount ?? 0,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
     date: raw.updatedAt ?? raw.createdAt,
-    libraryCreatedAt: raw.libraryCreatedAt,
-    uploaderName: raw.uploader?.name,
+    uploader: raw.uploader,
 
     isInLibrary: raw.isInLibrary ?? false,
     isFavorite: raw.isFavorite ?? false,
     libraryId: raw.libraryId ?? null,
+    libraryCreatedAt: raw.libraryCreatedAt ?? null,
     lastWatchedAt: raw.lastWatchedAt ?? null,
-    profileLibraryId: raw.profileLibraryId ?? raw.libraryId ?? null,
+    profileLibraryId: raw.profileLibraryId ?? null,
 
-    likesCount: raw.likes?.length ?? 0,
-    isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+    likesCount: raw.likesCount ?? 0,
+    isLiked: raw.isLiked ?? false,
 
-    commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
+    commentsCount: raw.commentsCount ?? 0,
     comments: raw.comments || [],
   };
 };

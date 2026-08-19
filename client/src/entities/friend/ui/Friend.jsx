@@ -79,7 +79,7 @@ export const Friend = ({
         header={
           <EntityHeader>
             <Avatar
-              src={friend.photoUrl}
+              src={friend.avatar}
               alt={friend.name}
               size="xl"
               clickable={true}

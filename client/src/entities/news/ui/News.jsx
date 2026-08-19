@@ -101,7 +101,7 @@ export const News = ({
         content={
           <EntityContent>
             <Text
-              linkifyText={true}
+              linkify={true}
               className={classNames(style.text, expanded && style.expanded)}
             >
               {news.content}

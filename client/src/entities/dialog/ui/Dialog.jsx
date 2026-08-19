@@ -23,7 +23,7 @@ export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
       aria-label={`Открыть диалог с ${user.name}`}
     >
       <EntityMeta
-        avatar={user.photoUrl}
+        avatar={user.avatar}
         title={user.name}
         subtitle={
           lastMessage ? (

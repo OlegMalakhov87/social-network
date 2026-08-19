@@ -35,8 +35,10 @@ export const ProfilePage = () => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const commentsSectionRef = useRef(null);
+  const onVideoStartRef = useRef(null);
 
-  const { userId: userIdParam } = useParams();
+  const { userId: userIdParam, friendId: friendIdParam } = useParams();
+  const profileIdParam = userIdParam ?? friendIdParam;
 
   /** Управление фильтрацией и сортировкой */
   const {
@@ -58,8 +60,8 @@ export const ProfilePage = () => {
     items,
     isLoadingProfile,
     toggleLikeItem,
-    deleteItemOptimistic,
-    addItemOptimistic,
+    deleteFromLibrary,
+    addToLibrary,
     incrementCounter,
     toggleFavoriteItem,
     updateCommentCount,
@@ -90,7 +92,7 @@ export const ProfilePage = () => {
   } = useUserContentFilter({
     activeTab,
     sortKey,
-    userIdParam,
+    userIdParam: profileIdParam,
   });
 
   /** Получение статуса пользователя (в сети или нет) */
@@ -117,7 +119,19 @@ export const ProfilePage = () => {
     useAudioPlayer();
 
   /** Обработчик для открытия модального окна с видео*/
-  const handleOpenVideo = useCallback((video) => setSelectedVideo(video), []);
+  const handleOpenVideo = useCallback((video) => {
+    if (!video || typeof video === 'function') return;
+    setSelectedVideo(video);
+  }, []);
+
+  const setOnVideoStart = useCallback((handler) => {
+    onVideoStartRef.current = handler;
+  }, []);
+
+  const handleVideoPlayStart = useCallback((video) => {
+    onVideoStartRef.current?.(video);
+  }, []);
+
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
@@ -134,7 +148,7 @@ export const ProfilePage = () => {
     [commentTarget?.id, updateCommentCount]
   );
 
-  /** Обработчик для отправки формы */
+  /** Обработчик для отправки формы добавления/редактирования поста*/
   const handleFormSubmit = useCallback(
     async (values, isEdit, postId) => {
       if (isEdit && postId) {
@@ -147,7 +161,7 @@ export const ProfilePage = () => {
     [addPost, updatePost]
   );
 
-  /** Обработчик для закрытия формы */
+  /** Обработчик для закрытия формы добавления/редактирования поста*/
   const handleCloseForm = useCallback(() => {
     setShowPostForm(null);
   }, []);
@@ -162,68 +176,34 @@ export const ProfilePage = () => {
   }, [commentTarget?.id, commentTarget?.type]);
 
   /**  Состояние загрузки всей страницы */
-  if (isLoadingProfile || (userIdParam && !targetUser)) {
+  if (isLoadingProfile || (profileIdParam && !targetUser)) {
     return <PageLoader message="Загружаем профиль..." />;
   }
 
-  /**  Получение пропсов для выбранной вкладки */
-  const tab = PROFILE_TABS_MAP.find(({ id }) => id === activeTab);
-  if (!tab) return null;
+  if (!PROFILE_TABS_MAP.some(({ id }) => id === activeTab)) {
+    return null;
+  }
 
-  const tabProps = tab?.getProps({
+  /** Контекст для getProfileTabContent */
+  const tabContext = {
     currentUser,
     targetUser,
     toggleComments: onToggleComments,
     isOwnProfile,
     toggleLike: toggleLikeItem,
-    posts: {
-      items,
+    items,
+    ...(activeTab === 'posts' && {
       isLoading: isLoadingPosts,
       isLoadingMore: isLoadingMorePosts,
       error: errorPosts,
       onPlayVideo: handleOpenVideo,
-      deletePost: deletePost,
+      deletePost,
       updatePost: setShowPostForm,
       hasMore: hasMorePosts,
       loadMore: loadMorePosts,
       refetch: refetchPosts,
-    },
-    tracks: {
-      items,
-      isLoading: isLoadingTracks,
-      isLoadingMore: isLoadingMoreTracks,
-      error: errorTracks,
-      mode: 'profile',
-      currentTrack: currentTrack,
-      isPlaying: isPlaying,
-      onPlay: playTrack,
-      onTrackStart: setOnTrackStart,
-      togglePlay: togglePlay,
-      addOptimistic: addItemOptimistic,
-      removeOptimistic: deleteItemOptimistic,
-      updatePlayCount: incrementCounter,
-      toggleFavorite: toggleFavoriteItem,
-      hasMore: hasMoreTracks,
-      loadMore: loadMoreTracks,
-      refetch: refetchTracks,
-    },
-    videos: {
-      items,
-      isLoading: isLoadingVideos,
-      isLoadingMore: isLoadingMoreVideos,
-      error: errorVideos,
-      mode: 'profile',
-      onPlayVideo: handleOpenVideo,
-      addOptimistic: addItemOptimistic,
-      removeOptimistic: deleteItemOptimistic,
-      updateViewCount: incrementCounter,
-      toggleFavorite: toggleFavoriteItem,
-      hasMore: hasMoreVideos,
-      loadMore: loadMoreVideos,
-      refetch: refetchVideos,
-    },
-    photos: {
-      items,
+    }),
+    ...(activeTab === 'photos' && {
       isLoading: isLoadingPosts,
       isLoadingMore: isLoadingMorePosts,
       error: errorPosts,
@@ -231,11 +211,43 @@ export const ProfilePage = () => {
       hasMore: hasMorePosts,
       loadMore: loadMorePosts,
       refetch: refetchPosts,
-    },
-  });
+    }),
+    ...(activeTab === 'tracks' && {
+      isLoading: isLoadingTracks,
+      isLoadingMore: isLoadingMoreTracks,
+      error: errorTracks,
+      mode: 'profile',
+      currentTrack,
+      isPlaying,
+      onPlay: playTrack,
+      onTrackStart: setOnTrackStart,
+      togglePlay,
+      addOptimistic: addToLibrary,
+      deleteOptimistic: deleteFromLibrary,
+      updatePlaysCount: incrementCounter,
+      toggleFavorite: toggleFavoriteItem,
+      hasMore: hasMoreTracks,
+      loadMore: loadMoreTracks,
+      refetch: refetchTracks,
+    }),
+    ...(activeTab === 'videos' && {
+      isLoading: isLoadingVideos,
+      isLoadingMore: isLoadingMoreVideos,
+      error: errorVideos,
+      mode: 'profile',
+      onPlayVideo: handleOpenVideo,
+      onVideoStart: setOnVideoStart,
+      addToLibrary: addToLibrary,
+      deleteFromLibrary: deleteFromLibrary,
+      updateLibraryViewsCount: incrementCounter,
+      toggleFavorite: toggleFavoriteItem,
+      hasMore: hasMoreVideos,
+      loadMore: loadMoreVideos,
+      refetch: refetchVideos,
+    }),
+  };
 
-  /**  Рендер выбранной вкладки */
-  const tabContent = getProfileTabContent({ activeTab, tabProps });
+  const tabContent = getProfileTabContent({ activeTab, tabProps: tabContext });
 
   return (
     <ErrorBoundary>
@@ -245,6 +257,7 @@ export const ProfilePage = () => {
           targetUser={targetUser}
           currentUser={currentUser}
           isOwnProfile={isOwnProfile}
+          error={userError}
           onFollow={followUser}
           onUnfollow={unfollowUser}
           onAccept={acceptUser}
@@ -253,8 +266,7 @@ export const ProfilePage = () => {
           friendshipStatus={friendshipStatus}
           friendshipDirection={friendshipDirection}
           friendshipId={friendshipId}
-          error={userError}
-          online={userOnline}
+          userOnline={userOnline}
         />
 
         {/* Вкладки с контентом */}
@@ -303,14 +315,18 @@ export const ProfilePage = () => {
             targetType={commentTarget?.type}
             targetId={commentTarget?.id}
             currentUser={currentUser}
-            updateCommentCount={handleCommentChange}
-            closeComments={handleCloseComments}
+            onChange={handleCommentChange}
+            onClose={handleCloseComments}
             commentsSectionRef={commentsSectionRef}
           />
         )}
 
         {selectedVideo && (
-          <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
+          <VideoPlayer
+            video={selectedVideo}
+            onClose={handleCloseVideo}
+            onPlayStart={handleVideoPlayStart}
+          />
         )}
       </PageLayout>
     </ErrorBoundary>

@@ -2,71 +2,104 @@ import { useCallback } from 'react';
 import { useNotify } from './';
 
 /**
- * Простой хук для оптимистичного добавления/удаления из библиотеки на общих страницах каталога (Music, Video).
+ * Оптимистичное добавление/удаление из библиотеки.
  *
- * @param {Object} params - параметры запроса
- * @param {Function} params.setItems - функция для установки элементов
- * @param {Function} params.addFn - функция для добавления в библиотеку
- * @param {Function} params.removeFn - функция для удаления из библиотеки
- * @param {string} params.entityType - тип сущности
- * @returns {Object} - { addToLibrary, removeFromLibrary }
+ * @param {Object} params
+ * @param {Function} params.setItems - функция для установки массива элементов
+ * @param {Function} params.addFn - функция для добавления элемента в библиотеку
+ * @param {Function} params.deleteFn - функция для удаления элемента из библиотеки
+ * @param {string} params.entityType - название вкладки
+ * @param {Function} params.mapOnAdd - функция для получения дополнительных полей при добавлении
+ * @param {Function} params.mapOnRemove - функция для получения дополнительных полей при удалении
+ * @returns {Object} - объект с функциями для добавления и удаления из библиотеки
  */
-
 export const useOptimisticLibraryToggle = ({
   setItems,
   addFn,
-  removeFn,
+  deleteFn,
   entityType,
+  mapOnAdd,
+  mapOnRemove,
 }) => {
   const notify = useNotify(entityType);
 
+  /** Функция для добавления элемента в библиотеку */
   const addToLibrary = useCallback(
     async (itemId) => {
+      if (!itemId) return;
+
       setItems((prev) =>
-        prev.map((t) => (t.id === itemId ? { ...t, isInLibrary: true } : t))
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...(mapOnAdd?.() ?? {}),
+              }
+            : item
+        )
       );
+
       try {
         const result = await addFn(itemId);
-        setItems((prev) =>
-          prev.map((t) =>
-            t.id === itemId ? { ...t, libraryId: result.libraryItem?.id } : t
-          )
-        );
+        const libraryId = result?.libraryItem?.id ?? result?.libraryId ?? null;
+
+        if (libraryId) {
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === itemId ? { ...item, libraryId } : item
+            )
+          );
+        }
+
         notify.success('add');
       } catch (err) {
         setItems((prev) =>
-          prev.map((t) => (t.id === itemId ? { ...t, isInLibrary: false } : t))
+          prev.map((item) =>
+            item.id === itemId
+              ? { ...item, isInLibrary: false, libraryId: null }
+              : item
+          )
         );
         notify.error('add');
         console.error('Ошибка добавления в библиотеку', err);
       }
     },
-    [setItems, addFn, notify]
+    [setItems, addFn, mapOnAdd, notify]
   );
 
-  const removeFromLibrary = useCallback(
+  /** Функция для удаления элемента из библиотеки */
+  const deleteFromLibrary = useCallback(
     async (libraryId, itemId) => {
-      if (!libraryId) return;
+      if (!libraryId || !itemId) return;
+
       setItems((prev) =>
-        prev.map((t) =>
-          t.id === itemId ? { ...t, isInLibrary: false, libraryId: null } : t
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...(mapOnRemove?.() ?? {}),
+              }
+            : item
         )
       );
+
       try {
-        await removeFn(libraryId);
+        await deleteFn(libraryId);
         notify.success('delete');
       } catch (err) {
         setItems((prev) =>
-          prev.map((t) =>
-            t.id === itemId ? { ...t, isInLibrary: true, libraryId } : t
+          prev.map((item) =>
+            item.id === itemId
+              ? { ...item, isInLibrary: true, libraryId }
+              : item
           )
         );
         notify.error('delete');
         console.error('Ошибка удаления из библиотеки', err);
       }
     },
-    [setItems, removeFn, notify]
+    [setItems, deleteFn, mapOnRemove, notify]
   );
 
-  return { addToLibrary, removeFromLibrary };
+  return { addToLibrary, deleteFromLibrary };
 };

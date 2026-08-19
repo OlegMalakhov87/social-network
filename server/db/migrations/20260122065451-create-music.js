@@ -58,7 +58,7 @@ module.exports = {
         allowNull: false,
         defaultValue: true,
       },
-      playCount: {
+      playsCount: {
         type: Sequelize.INTEGER,
         allowNull: false,
         defaultValue: 0,
@@ -81,7 +81,7 @@ module.exports = {
     await queryInterface.addIndex('Music', ['genre']);
     await queryInterface.addIndex('Music', ['artist']);
     await queryInterface.addIndex('Music', ['isPublic']);
-    await queryInterface.addIndex('Music', ['playCount']);
+    await queryInterface.addIndex('Music', ['playsCount']);
   },
 
   async down(queryInterface, Sequelize) {

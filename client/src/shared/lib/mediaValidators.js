@@ -92,17 +92,32 @@ export const aspectRatio =
       const img = new Image();
       img.src = URL.createObjectURL(file);
 
-      img.onload = () => {
-        URL.revokeObjectURL(img.src);
-        const actualRatio = img.width / img.height;
-        const isValid = Math.abs(actualRatio - ratio) <= tolerance;
-        resolve(
-          isValid
-            ? null
-            : message ||
-                `Соотношение сторон должно быть примерно ${ratio.toFixed(2)}`
-        );
-      };
+    img.onload = () => {
+      URL.revokeObjectURL(img.src);
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      if (!w || !h) {
+        resolve('Не удалось прочитать размеры изображения');
+        return;
+      }
+      const actualRatio = w / h;
+      const relativeDiff =
+        ratio === 1
+          ? Math.abs(w - h) / Math.max(w, h)
+          : Math.abs(actualRatio - ratio) / ratio;
+      const isValid =
+        ratio === 1
+          ? relativeDiff <= tolerance
+          : Math.abs(actualRatio - ratio) <= tolerance;
+      resolve(
+        isValid
+          ? null
+          : message ||
+              (ratio === 1
+                ? 'Изображение должно быть примерно квадратным'
+                : `Соотношение сторон должно быть примерно ${ratio.toFixed(2)}`)
+      );
+    };
 
       img.onerror = () => {
         URL.revokeObjectURL(img.src);

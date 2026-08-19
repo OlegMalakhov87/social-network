@@ -78,6 +78,8 @@ export const changePasswordApi = async (credentials) => {
  * @returns {Promise<{Object}>}
  */
 export const uploadAvatarApi = async (file) => {
-  const response = await api.post('/profile/upload-avatar', file);
+  const formData = new FormData();
+  formData.append('avatar', file);
+  const response = await api.post('/profile/upload-avatar', formData);
   return response.data;
 };

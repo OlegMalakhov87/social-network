@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const fs = require('fs').promises;
+const path = require('path');
 const { User, Friend } = require('../../db/models');
 const { Op } = require('sequelize');
 const { clients } = require('../websocket');
@@ -225,7 +227,12 @@ const userService = {
     }
 
     // Если старый аватар существует и это не дефолтная картинка, удаляем его с диска
-    if (user.avatar && !user.avatar.includes('avatar.png')) {
+    const isDefaultAvatar =
+      !user.avatar ||
+      user.avatar.includes('avatar.png') ||
+      user.avatar.includes('user.png');
+
+    if (!isDefaultAvatar) {
       const oldFilePath = path.join(__dirname, '../../', user.avatar);
 
       try {

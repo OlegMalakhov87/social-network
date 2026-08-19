@@ -1,32 +1,37 @@
 /**
- * Получение действий профиля.
+ * Действия на карточке профиля (дружба + сообщение).
  *
- * @param {Object} friendshipButton - конфигурация кнопки действия над дружбой
- * @param {Function} onMessage - обработчик клика по кнопке "Написать сообщение"
- * @param {boolean} isOwnProfile - флаг, определяющий, является ли текущий пользователь владельцем профиля
- * @returns {Array<Object>} - массив действий профиля
+ * @param {Object} params
+ * @param {boolean} params.isOwnProfile
+ * @param {Object|null} params.friendshipButton - из getFriendshipButtonConfig
+ * @param {Function} [params.onMessage]
  */
-
-export const getProfileActions = (
+export const getProfileActions = ({
+  isOwnProfile,
   friendshipButton,
   onMessage,
-  isOwnProfile
-) => {
-  if (!friendshipButton && !onMessage) return [];
+}) => {
+  if (isOwnProfile) return [];
 
-  const actions = [
-    !isOwnProfile &&
-      friendshipButton && {
-        key: 'friendship',
-        ...friendshipButton,
-      },
-    {
+  const actions = [];
+
+  if (friendshipButton) {
+    actions.push({
+      key: 'friendship',
+      text: friendshipButton.text,
+      variant: friendshipButton.variant,
+      onClick: friendshipButton.action,
+    });
+  }
+
+  if (onMessage) {
+    actions.push({
       key: 'message',
       text: 'Написать сообщение',
       variant: 'secondary',
       onClick: onMessage,
-    },
-  ];
+    });
+  }
 
-  return actions.filter(Boolean);
+  return actions;
 };

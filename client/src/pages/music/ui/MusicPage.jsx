@@ -27,7 +27,7 @@ export const MusicPage = () => {
 
   /** Управление фильтрацией и сортировкой */
   const {
-    genre: filter,
+    filter,
     searchQuery,
     setSearchQuery,
     sortKey,
@@ -50,9 +50,9 @@ export const MusicPage = () => {
     updateTrack,
     deleteTrack,
     addToLibrary,
-    removeFromLibrary,
-    incrementPlayCount,
-    updateCommentCount,
+    deleteFromLibrary,
+    updateGlobalPlaysCount,
+    updateCommentsCount,
   } = useMusic({ filter, searchQuery, sortKey });
 
   /** Управление аудиоплеером */
@@ -65,8 +65,8 @@ export const MusicPage = () => {
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => updateCommentCount(commentTarget?.id, delta),
-    [commentTarget?.id, updateCommentCount]
+    (delta) => updateCommentsCount(commentTarget?.id, delta),
+    [commentTarget?.id, updateCommentsCount]
   );
 
   /** Обработчик для отправки формы */
@@ -149,25 +149,26 @@ export const MusicPage = () => {
           <TracksTab
             tracks={tracks}
             mode="general"
+            hasMore={hasMore}
+            loadMore={loadMore}
             currentUser={currentUser}
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
-            hasMore={hasMore}
             error={error}
-            loadMore={loadMore}
-            onRetry={refetch}
             currentTrack={currentTrack}
             isPlaying={isPlaying}
             onPlay={playTrack}
             togglePlay={togglePlay}
             onTrackStart={setOnTrackStart}
-            addOptimistic={addToLibrary}
-            removeOptimistic={removeFromLibrary}
-            updateTrack={setShowTrackForm}
-            deleteTrack={deleteTrack}
-            incrementPlayCount={incrementPlayCount}
             toggleLike={toggleLike}
-            onToggleComments={onToggleComments}
+            addOptimistic={addToLibrary}
+            deleteOptimistic={deleteFromLibrary}
+            deleteTrack={deleteTrack}
+            updateTrack={setShowTrackForm}
+            updateGlobalPlaysCount={updateGlobalPlaysCount}
+            toggleComments={onToggleComments}
+            onRetry={refetch}
+            updateCommentsCount={updateCommentsCount}
           />
         </SectionCard>
 
@@ -177,7 +178,7 @@ export const MusicPage = () => {
             targetId={commentTarget?.id}
             currentUser={currentUser}
             onChange={handleCommentChange}
-            onCloseComments={handleCloseComments}
+            onClose={handleCloseComments}
             commentsSectionRef={commentsSectionRef}
           />
         )}

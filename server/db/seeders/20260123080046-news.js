@@ -13,6 +13,7 @@ module.exports = {
         source: 'Комсомольская правда',
         media: '/news-image.webp',
         viewsCount: 10,
+        isEdited: false,
       },
       {
         uploadedBy: 12,
@@ -25,6 +26,7 @@ module.exports = {
         source: '7 дней',
         media: null,
         viewsCount: 15,
+        isEdited: false,
       },
       {
         uploadedBy: 11,
@@ -37,6 +39,7 @@ module.exports = {
         source: 'Медицинский эксперт',
         media: null,
         viewsCount: 20,
+        isEdited: false,
       },
       {
         uploadedBy: 4,
@@ -49,6 +52,7 @@ module.exports = {
         source: 'Экономический обозреватель',
         media: '/default-video.mp4',
         viewsCount: 25,
+        isEdited: false,
       },
       {
         uploadedBy: 5,
@@ -61,6 +65,7 @@ module.exports = {
         source: 'Экологический корреспондент',
         media: '/news-image.webp',
         viewsCount: 30,
+        isEdited: false,
       },
       {
         uploadedBy: 6,
@@ -73,6 +78,7 @@ module.exports = {
         source: 'Культурный обозреватель',
         media: null,
         viewsCount: 35,
+        isEdited: false,
       },
       {
         uploadedBy: 7,
@@ -85,6 +91,7 @@ module.exports = {
         source: 'Космический аналитик',
         media: '/default-video.mp4',
         viewsCount: 40,
+        isEdited: false,
       },
       {
         uploadedBy: 8,
@@ -97,6 +104,7 @@ module.exports = {
         source: 'Спорт экспресс',
         media: null,
         viewsCount: 45,
+        isEdited: false,
       },
       {
         uploadedBy: 9,
@@ -109,6 +117,7 @@ module.exports = {
         source: 'Новости спорта',
         media: null,
         viewsCount: 50,
+        isEdited: false,
       },
       {
         uploadedBy: 10,
@@ -121,6 +130,7 @@ module.exports = {
         source: 'IT индустрия',
         media: null,
         viewsCount: 15,
+        isEdited: false,
       },
       {
         uploadedBy: 14,
@@ -133,6 +143,7 @@ module.exports = {
         source: 'Никольское кольцо',
         media: '/news-image.webp',
         viewsCount: 20,
+        isEdited: false,
       },
       {
         uploadedBy: 2,
@@ -145,6 +156,7 @@ module.exports = {
         source: 'Доктор Живаго',
         media: null,
         viewsCount: 25,
+        isEdited: false,
       },
       {
         uploadedBy: 3,
@@ -157,6 +169,7 @@ module.exports = {
         source: 'Культурная столица',
         media: '/news-image.webp',
         viewsCount: 30,
+        isEdited: false,
       },
     ]);
   },

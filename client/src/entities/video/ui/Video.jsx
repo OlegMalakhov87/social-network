@@ -25,7 +25,7 @@ import {
  * @param {Function} props.updateVideo - функция для обновления видео
  * @param {Function} props.deleteVideo - функция для удаления видео
  * @param {Function} props.addToLibrary - функция для добавления видео в библиотеку
- * @param {Function} props.removeFromLibrary - функция для удаления видео из библиотеки
+ * @param {Function} props.deleteFromLibrary - функция для удаления видео из библиотеки
  */
 
 export const Video = ({
@@ -37,7 +37,7 @@ export const Video = ({
   mode,
   onPlay,
   addToLibrary,
-  removeFromLibrary,
+  deleteFromLibrary,
   toggleLike,
   toggleFavorite,
   toggleComments,
@@ -55,7 +55,7 @@ export const Video = ({
     video,
     isOwn,
     addToLibrary,
-    removeFromLibrary,
+    deleteFromLibrary,
     toggleLike,
     toggleComments,
     onUpdate: updateVideo,
@@ -76,7 +76,13 @@ export const Video = ({
                 showFavorite && (
                   <ActionChip
                     icon={video.isFavorite ? '⭐' : '☆'}
-                    onClick={() => toggleFavorite?.(video.id)}
+                    onClick={() =>
+                      toggleFavorite?.(
+                        video.id,
+                        video.libraryId,
+                        video.isFavorite
+                      )
+                    }
                   />
                 )
               }

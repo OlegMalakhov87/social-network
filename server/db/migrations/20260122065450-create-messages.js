@@ -28,10 +28,12 @@ module.exports = {
       },
       isRead: {
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       isEdited: {
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       deletedBySender: {

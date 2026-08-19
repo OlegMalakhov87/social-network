@@ -38,7 +38,7 @@ const authService = {
    * @returns {Promise<Object>} - Объект с пользователем и токеном
    */
   async register(userData) {
-    const { name, email, password, nickname, age } = userData;
+    const { name, email, password, age, gender } = userData;
 
     // Проверяем, нет ли уже такого email в базе данных
     const existingUser = await User.findOne({ where: { email } });
@@ -55,8 +55,8 @@ const authService = {
       name,
       email,
       passwordHash,
-      nickname: nickname || null,
-      age: age || null,
+      age,
+      gender,
     });
 
     // Генерируем токен
@@ -127,4 +127,4 @@ const authService = {
   },
 };
 
-module.exports = { authService };
+module.exports = { authService, createError };

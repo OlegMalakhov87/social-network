@@ -9,6 +9,7 @@ module.exports = {
         isPublic: true,
         type: 'image',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 2,
@@ -17,6 +18,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 3,
@@ -25,6 +27,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 4,
@@ -33,6 +36,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 5,
@@ -41,6 +45,7 @@ module.exports = {
         isPublic: false,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 6,
@@ -49,6 +54,7 @@ module.exports = {
         isPublic: false,
         type: 'image',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 7,
@@ -57,6 +63,7 @@ module.exports = {
         isPublic: true,
         type: 'video',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 8,
@@ -65,6 +72,7 @@ module.exports = {
         isPublic: true,
         type: 'image',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 9,
@@ -73,6 +81,7 @@ module.exports = {
         isPublic: true,
         type: 'image',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 10,
@@ -81,6 +90,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 11,
@@ -89,6 +99,7 @@ module.exports = {
         isPublic: false,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 12,
@@ -97,6 +108,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 13,
@@ -105,6 +117,7 @@ module.exports = {
         isPublic: true,
         type: 'video',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 14,
@@ -113,6 +126,7 @@ module.exports = {
         isPublic: true,
         type: 'image',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 15,
@@ -121,6 +135,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
 
       {
@@ -130,6 +145,7 @@ module.exports = {
         isPublic: false,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 17,
@@ -138,6 +154,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 18,
@@ -146,6 +163,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 1,
@@ -154,6 +172,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 2,
@@ -162,6 +181,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 3,
@@ -170,6 +190,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 4,
@@ -178,6 +199,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 5,
@@ -186,6 +208,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 6,
@@ -194,6 +217,7 @@ module.exports = {
         isPublic: false,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 7,
@@ -202,6 +226,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 8,
@@ -210,6 +235,7 @@ module.exports = {
         isPublic: false,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
       {
         userId: 9,
@@ -218,6 +244,7 @@ module.exports = {
         isPublic: true,
         type: 'text',
         pinned: false,
+        isEdited: false,
       },
     ]);
   },

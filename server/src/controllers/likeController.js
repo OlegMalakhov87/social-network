@@ -2,40 +2,32 @@ const likeService = require('../services/likeService');
 
 const likeController = {
   /**
-   * Поставить лайк сущности
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Получить все лайки сущности
    */
-  addLike: async (req, res, next) => {
+  getLikesByTarget: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
-      const result = await likeService.addLike(
-        req.user.id,
+      const result = await likeService.getLikesByTarget(
         targetType,
-        targetId
+        parseInt(targetId)
       );
-      res.status(201).json(result);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
   },
 
   /**
-   * Убрать лайк с сущности
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Получить все лайки пользователя
    */
-  removeLike: async (req, res, next) => {
+  getUserLikes: async (req, res, next) => {
     try {
-      const { targetType, targetId } = req.params;
-      const result = await likeService.removeLike(
-        req.user.id,
-        targetType,
-        targetId
+      const { userId } = req.params;
+      const { page, limit } = req.query;
+      const result = await likeService.getUserLikes(
+        parseInt(userId),
+        parseInt(page),
+        parseInt(limit)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -45,18 +37,14 @@ const likeController = {
 
   /**
    * Проверить, поставлен ли лайк сущности
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   checkLike: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
       const result = await likeService.checkLike(
-        req.user.id,
+        parseInt(req.user.id),
         targetType,
-        targetId
+        parseInt(targetId)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -65,34 +53,33 @@ const likeController = {
   },
 
   /**
-   * Получить все лайки сущности
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Поставить лайк сущности
    */
-  getLikesByTarget: async (req, res, next) => {
+  addLike: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
-      const result = await likeService.getLikesByTarget(targetType, targetId);
-      res.status(200).json(result);
+      const result = await likeService.addLike(
+        parseInt(req.user.id),
+        targetType,
+        parseInt(targetId)
+      );
+      res.status(201).json(result);
     } catch (error) {
       next(error);
     }
   },
 
   /**
-   * Получить все лайки пользователя
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Удалить лайк у сущности
    */
-  getUserLikes: async (req, res, next) => {
+  deleteLike: async (req, res, next) => {
     try {
-      const { userId } = req.params;
-      const { page, limit } = req.query;
-      const result = await likeService.getUserLikes(userId, page, limit);
+      const { targetType, targetId } = req.params;
+      const result = await likeService.deleteLike(
+        parseInt(req.user.id),
+        targetType,
+        parseInt(targetId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);

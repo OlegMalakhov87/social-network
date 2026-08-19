@@ -1,28 +1,22 @@
 /**
- * Конфигурация полей формы регистрации.
+ * Поля формы регистрации.
  */
 export const FORM_FIELDS = [
   { name: 'name', label: 'Имя', type: 'text', placeholder: 'Введите ваше имя' },
-  {
-    name: 'nickname',
-    label: 'Никнейм',
-    type: 'text',
-    placeholder: '@username',
-    half: true,
-  },
-  {
-    name: 'age',
-    label: 'Возраст',
-    type: 'number',
-    placeholder: '18',
-    half: true,
-  },
   {
     name: 'email',
     label: 'Email',
     type: 'email',
     placeholder: 'email@example.com',
   },
+  {
+    name: 'age',
+    label: 'Возраст',
+    type: 'number',
+    placeholder: 'Введите ваш возраст',
+    half: true,
+  },
+ 
   {
     name: 'password',
     label: 'Пароль',
@@ -37,6 +31,9 @@ export const FORM_FIELDS = [
   },
 ];
 
+/**
+ * Опции для выбора пола.
+ */
 export const GENDER_OPTIONS = [
   { value: 'male', label: 'Мужской' },
   { value: 'female', label: 'Женский' },

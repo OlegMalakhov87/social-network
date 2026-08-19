@@ -11,8 +11,8 @@ const { createError } = require('./authService');
 const SORT_MAP = {
   dateDesc: [['createdAt', 'DESC']],
   dateAsc: [['createdAt', 'ASC']],
-  viewsDesc: [['playCount', 'DESC']],
-  viewsAsc: [['playCount', 'ASC']],
+  viewsDesc: [['playsCount', 'DESC']],
+  viewsAsc: [['playsCount', 'ASC']],
 };
 const userMusicLibraryService = {
   /**
@@ -20,15 +20,19 @@ const userMusicLibraryService = {
    * @param {number} userId - ID пользователя
    * @param {number} page - Номер страницы
    * @param {number} limit - Количество треков на странице
+   * @param {string} sortKey - Ключ сортировки
    * @returns {Promise<Object>}
    */
-  async getMyLibrary(userId, page = 1, limit = 30, sortKey = 'dateDesc') {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
+  async getMyMusicLibrary(
+    currentUserId,
+    page = 1,
+    limit = 30,
+    sortKey = 'dateDesc'
+  ) {
     // Ищем все записи в библиотеке
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
-        where: { userId: parseInt(userId) },
+        where: { userId: currentUserId },
         include: [
           {
             model: Music,
@@ -58,8 +62,8 @@ const userMusicLibraryService = {
           },
         ],
         order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-        limit: parseInt(limit),
-        offset,
+        limit: limit,
+        offset: (page - 1) * limit,
         distinct: true,
       });
 
@@ -69,12 +73,14 @@ const userMusicLibraryService = {
       return {
         ...trackData,
         isInLibrary: true,
-        libraryId: entry.id,
-        isFavorite: entry.isFavorite,
-        playCount: entry.playCount,
+        libraryId: entry.id ?? null,
+        isFavorite: entry.isFavorite ?? false,
+        playsCount: entry.playsCount ?? 0,
         libraryCreatedAt: entry.createdAt,
-        commentsCount: entry.comments?.length,
-        likesCount: entry.likes?.length,
+        commentsCount: entry.comments?.length ?? 0,
+        likesCount: entry.likes?.length ?? 0,
+        isLiked:
+          entry.likes?.some((like) => like.userId === currentUserId) ?? false,
       };
     });
 
@@ -82,20 +88,20 @@ const userMusicLibraryService = {
       tracks,
       pagination: {
         totalTracks: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
   },
 
   /**
    * Добавить трек в библиотеку
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID пользователя
    * @param {number} trackId - ID трека
    * @returns {Promise<Object>}
    */
-  async addToLibrary(userId, trackId) {
+  async addToMusicLibrary(currentUserId, trackId) {
     // Проверяем, существует ли трек
     const track = await Music.findByPk(trackId, { attributes: ['id'] });
     if (!track) {
@@ -105,8 +111,8 @@ const userMusicLibraryService = {
     try {
       // Ищем или создаем запись в библиотеке
       const [libraryItem, created] = await UserMusicLibrary.findOrCreate({
-        where: { userId: parseInt(userId), trackId: parseInt(trackId) },
-        defaults: { isFavorite: false, playCount: 0 },
+        where: { userId: currentUserId, trackId: trackId },
+        defaults: { isFavorite: false, playsCount: 0 },
       });
 
       // Если запись не создана, выбрасываем ошибку
@@ -120,13 +126,7 @@ const userMusicLibraryService = {
 
       // Ищем запись в библиотеке с треком
       const itemWithMusic = await UserMusicLibrary.findByPk(libraryItem.id, {
-        include: [
-          {
-            model: Music,
-            as: 'track',
-            attributes: ['id', 'title', 'artist', 'audio', 'cover'],
-          },
-        ],
+        include: [{ model: Music, as: 'track', attributes: ['id', 'title'] }],
       });
 
       // Возвращаем запись в библиотеке с треком
@@ -145,18 +145,18 @@ const userMusicLibraryService = {
   },
 
   /**
-   * Обновить запись в библиотеке
-   * @param {number} userId - ID пользователя
+   * Обновить запись в библиотеке (избранное)
+   * @param {number} currentUserId - ID пользователя
    * @param {number} libraryId - ID записи в библиотеке
-   * @param {Object} updates - Обновляемые данные
+   * @param {boolean} isFavorite - Состояние избранного
    * @returns {Promise<Object>}
    */
-  async updateLibraryItem(userId, libraryId, updates) {
+  async updateFavoriteTrack(currentUserId, libraryId, isFavorite) {
     // Обновляем запись в библиотеке
     const [affectedCount, updatedRows] = await UserMusicLibrary.update(
-      updates,
+      { isFavorite },
       {
-        where: { id: parseInt(libraryId), userId: parseInt(userId) },
+        where: { id: libraryId, userId: currentUserId },
         returning: true,
         plain: true,
         include: [{ model: Music, as: 'track', attributes: ['id', 'title'] }],
@@ -172,35 +172,54 @@ const userMusicLibraryService = {
       );
     }
 
-    // Если обновляется счетчик прослушиваний, увеличиваем и глобальный счетчик трека
-    if (updates.playCount !== undefined) {
-      // Увеличиваем счетчик прослушиваний трека
-      await Music.increment('playCount', {
-        by: 1,
-        where: { id: updatedRows.trackId },
-      });
-    }
-
     // Возвращаем обновленную запись в библиотеке
     return { libraryItem: updatedRows.toJSON() };
   },
 
   /**
-   * Удалить запись из библиотеки
-   * @param {number} userId - ID пользователя
+   * Увеличить счетчик прослушиваний трека в библиотеке
    * @param {number} libraryId - ID записи в библиотеке
    * @returns {Promise<Object>}
    */
-  async removeFromLibrary(userId, libraryId) {
-    // Удаляем запись из библиотеки
-    const deletedCount = await UserMusicLibrary.destroy({
-      where: { id: parseInt(libraryId), userId: parseInt(userId) },
+  async incrementPlaysCount(libraryId) {
+    // Находим запись в библиотеке
+    const libraryItem = await UserMusicLibrary.findByPk(libraryId);
+    if (!libraryItem) {
+      throw createError(
+        'Запись в библиотеке не найдена',
+        404,
+        'LIBRARY_ITEM_NOT_FOUND'
+      );
+    }
+    // Увеличиваем счетчик прослушиваний трека в библиотеке
+    await libraryItem.increment('playsCount', { by: 1 });
+    await libraryItem.reload();
+
+    // Попутно увеличиваем глобальный счетчик прослушиваний трека в таблице Music
+    await Music.increment('playsCount', {
+      by: 1,
+      where: { id: libraryItem.trackId },
     });
 
-    // Если запись не удалена, выбрасываем ошибку
+    return { libraryId, playsCount: libraryItem.playsCount };
+  },
+
+  /**
+   * Удалить трек из библиотеки
+   * @param {number} currentUserId - ID пользователя
+   * @param {number} libraryId - ID записи в библиотеке
+   * @returns {Promise<Object>}
+   */
+  async deleteMusicFromLibrary(currentUserId, libraryId) {
+    // Удаляем трек из библиотеки
+    const deletedCount = await UserMusicLibrary.destroy({
+      where: { id: libraryId, userId: currentUserId },
+    });
+
+    // Если трек не удален, выбрасываем ошибку
     if (deletedCount === 0) {
       throw createError(
-        'Запись в библиотеке не найдена или нет прав',
+        'Трек в библиотеке не найден или нет прав',
         404,
         'LIBRARY_ITEM_NOT_FOUND'
       );

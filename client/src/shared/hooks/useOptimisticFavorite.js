@@ -6,9 +6,9 @@ import { useCallback } from 'react';
  * @param {Object} params - параметры запроса
  * @param {Function} params.setItems - функция обновления массива
  * @param {Function} params.updateFavoriteFn - функция обновления избранного
- * @param {string} params.targetType - тип сущности (video, track)
- * @param {Function} params.onSuccess - функция обработки успеха.
- * @param {Function} params.onError - функция обработки ошибки
+ * @param {string} params.targetType - тип сущности
+ * @param {Function} [params.onSuccess] - функция обработки успеха.
+ * @param {Function} [params.onError] - функция обработки ошибки
  * @returns {Function} - функция для добавления/удаления из избранного
  */
 export const useOptimisticFavorite = ({
@@ -19,7 +19,7 @@ export const useOptimisticFavorite = ({
   onError,
 }) => {
   const toggleFavorite = useCallback(
-    async (itemId, libraryId, currentlyFavorite, count, lastWatchedAt) => {
+    async (itemId, libraryId, currentlyFavorite) => {
       if (!itemId || !libraryId) return;
       const newFavorite = !currentlyFavorite;
       setItems((prev) =>
@@ -30,12 +30,6 @@ export const useOptimisticFavorite = ({
       try {
         const result = await updateFavoriteFn(libraryId, {
           isFavorite: newFavorite,
-          ...(targetType === 'video'
-            ? { viewCount: count }
-            : { playCount: count }),
-          ...(targetType === 'video'
-            ? { lastWatchedAt: lastWatchedAt }
-            : undefined),
         });
         onSuccess?.(newFavorite ? 'add' : 'delete', result);
         return result;

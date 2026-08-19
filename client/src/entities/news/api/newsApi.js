@@ -1,4 +1,6 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
+import { mapNewsFormToApi } from '../lib/mapNewsPayload';
 
 /**
  * Получить все новости с возможностью фильтрации по категории и поиску.
@@ -49,8 +51,8 @@ export const fetchNewsById = async (newsId) => {
  * @returns {Promise<Object>} { news }
  */
 export const addNewsApi = async (data) => {
-  const response = await api.post('/news', data);
-  return response.data;
+  const response = await api.post('/news', mapNewsFormToApi(data));
+  return unwrapApiEntity(response.data, ['news']);
 };
 
 /**
@@ -60,8 +62,8 @@ export const addNewsApi = async (data) => {
  * @returns {Promise<Object>} { news }
  */
 export const updateNewsApi = async (newsId, updates) => {
-  const response = await api.put(`/news/${newsId}`, updates);
-  return response.data;
+  const response = await api.put(`/news/${newsId}`, mapNewsFormToApi(updates));
+  return unwrapApiEntity(response.data, ['news']);
 };
 
 /**

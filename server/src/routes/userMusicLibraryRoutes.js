@@ -9,30 +9,39 @@ const userMusicLibraryRoutes = Router();
 userMusicLibraryRoutes.get(
   '/',
   authMiddleware,
-  userMusicLibraryController.getMyLibrary
+  userMusicLibraryController.getMyMusicLibrary
 );
 
 // Добавить трек в библиотеку
 userMusicLibraryRoutes.post(
-  '/',
+  '/:trackId/add',
+  validateIdParam('trackId'),
   authMiddleware,
-  userMusicLibraryController.addToLibrary
+  userMusicLibraryController.addToMusicLibrary
 );
 
-// Обновить запись в библиотеке (лайк, счетчик прослушиваний)
+// Обновить запись в библиотеке (избранное)
 userMusicLibraryRoutes.put(
-  '/:libraryId',
+  '/:libraryId/favorite',
   validateIdParam('libraryId'),
   authMiddleware,
-  userMusicLibraryController.updateLibraryItem
+  userMusicLibraryController.updateFavoriteTrack
+);
+
+// Увеличить счетчик прослушиваний трека из библиотеки
+userMusicLibraryRoutes.put(
+  '/:libraryId/plays',
+  validateIdParam('libraryId'),
+  authMiddleware,
+  userMusicLibraryController.incrementPlaysCount
 );
 
 // Удалить трек из библиотеки
 userMusicLibraryRoutes.delete(
-  '/:libraryId',
+  '/:libraryId/delete',
   validateIdParam('libraryId'),
   authMiddleware,
-  userMusicLibraryController.removeFromLibrary
+  userMusicLibraryController.deleteMusicFromLibrary
 );
 
 module.exports = userMusicLibraryRoutes;

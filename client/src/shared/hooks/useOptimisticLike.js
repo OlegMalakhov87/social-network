@@ -8,9 +8,7 @@ import { useCallback } from 'react';
  * @param {Function} params.addLikeFn - функция добавления лайка (async)
  * @param {Function} params.deleteLikeFn - функция удаления лайка (async)
  * @param {number|string} params.currentUserId - ID текущего пользователя
- * @param {string} params.targetType - тип сущности (Post, News, Comment, etc.)
- * @param {Function} params.onSuccess - функция обработки успеха.
- * @param {Function} params.onError - функция обработки ошибки
+ * @param {string} params.targetType - тип сущности (posts, tracks, videos, news, comments, messages)
  * @returns {Function} - функция для добавления/удаления лайка
  */
 export const useOptimisticLike = ({
@@ -19,12 +17,12 @@ export const useOptimisticLike = ({
   deleteLikeFn,
   currentUserId,
   targetType,
-  onSuccess,
-  onError,
 }) => {
   const toggleLike = useCallback(
     async (itemId, currentlyLiked) => {
       if (!currentUserId || !itemId) return;
+
+      const delta = currentlyLiked ? -1 : 1;
 
       setItems((prev) =>
         prev.map((item) => {
@@ -32,25 +30,31 @@ export const useOptimisticLike = ({
 
           return {
             ...item,
-            likes: currentlyLiked
-              ? (item.likes || []).filter(
-                  (like) => like.userId !== currentUserId
-                )
-              : [...(item.likes || []), { userId: currentUserId }],
+            likesCount: Math.max(0, (item.likesCount ?? 0) + delta),
+            isLiked: !currentlyLiked,
           };
         })
       );
 
       try {
-        let result;
-        if (currentlyLiked) {
-          result = await deleteLikeFn(targetType, itemId);
-          onSuccess?.('unlike', result);
-        } else {
-          result = await addLikeFn(targetType, itemId);
-          onSuccess?.('like', result);
+        const response = currentlyLiked
+          ? await deleteLikeFn(targetType, itemId)
+          : await addLikeFn(targetType, itemId);
+        if (typeof response?.likesCount === 'number') {
+          setItems((prev) =>
+            prev.map((item) => {
+              if (item.id !== itemId) return item;
+
+              return {
+                ...item,
+                likesCount: response.likesCount,
+                isLiked: !currentlyLiked,
+              };
+            })
+          );
         }
-        return result;
+
+        return true;
       } catch (err) {
         setItems((prev) =>
           prev.map((item) => {
@@ -58,28 +62,18 @@ export const useOptimisticLike = ({
 
             return {
               ...item,
-              likes: currentlyLiked
-                ? [...(item.likes || []), { userId: currentUserId }]
-                : (item.likes || []).filter(
-                    (like) => like.userId !== currentUserId
-                  ),
+              likesCount: Math.max(0, (item.likesCount ?? 0) - delta),
+              isLiked: currentlyLiked,
             };
           })
         );
+
         console.error(`Ошибка лайка ${targetType}:`, err);
-        onError?.(currentlyLiked ? 'unlike' : 'like', err);
+
         return false;
       }
     },
-    [
-      setItems,
-      addLikeFn,
-      deleteLikeFn,
-      currentUserId,
-      targetType,
-      onSuccess,
-      onError,
-    ]
+    [setItems, addLikeFn, deleteLikeFn, currentUserId, targetType]
   );
 
   return toggleLike;

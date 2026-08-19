@@ -2,10 +2,6 @@ const { body, param, query, validationResult } = require('express-validator');
 
 /**
  * Валидация для регистрации пользователя
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateRegister = [
   body('name')
@@ -20,11 +16,6 @@ const validateRegister = [
     .withMessage('Пароль обязателен')
     .isLength({ min: 6 })
     .withMessage('Пароль должен быть не менее 6 символов'),
-  body('nickname')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Никнейм от 2 до 50 символов'),
   body('age')
     .optional()
     .isInt({ min: 14, max: 99 })
@@ -43,10 +34,6 @@ const validateRegister = [
 
 /**
  * Валидация для входа в систему
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateLogin = [
   body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
@@ -65,10 +52,6 @@ const validateLogin = [
 
 /**
  * Валидация для обновления пользователя
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateUser = [
   body('name')
@@ -106,6 +89,7 @@ const validateUser = [
     .isLength({ min: 5, max: 25 })
     .withMessage('Телефон от 5 до 25 символов'),
   body('isPublic')
+    .optional()
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   (req, res, next) => {
@@ -122,24 +106,24 @@ const validateUser = [
 
 /**
  * Валидация для постов
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validatePost = [
   body('text')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 1, max: 5000 })
-    .withMessage('Текст до 5000 символов'),
+    .withMessage('Текст от 1 до 5000 символов'),
   body('isPublic')
+    .optional()
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('type')
     .isIn(['text', 'image', 'video'])
     .withMessage('Тип поста должен быть text, image или video'),
-  body('pinned').isBoolean().withMessage('pinned должен быть true или false'),
+  body('pinned')
+    .optional()
+    .isBoolean()
+    .withMessage('pinned должен быть true или false'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -154,21 +138,16 @@ const validatePost = [
 
 /**
  * Валидация для комментариев
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateComment = [
   body('text')
     .notEmpty()
     .trim()
-    .withMessage('Текст обязателен')
     .isLength({ min: 1, max: 2000 })
-    .withMessage('Текст до 2000 символов'),
+    .withMessage('Текст обязателен и должен быть от 1 до 2000 символов'),
   body('targetType')
-    .isIn(['Post', 'Music', 'Video', 'News'])
-    .withMessage('Тип сущности должен быть Post, Music, Video или News'),
+    .isIn(['posts', 'tracks', 'videos', 'news'])
+    .withMessage('Тип сущности должен быть posts, tracks, videos или news'),
   body('targetId')
     .isInt({ min: 1 })
     .toInt()
@@ -186,19 +165,15 @@ const validateComment = [
 ];
 
 /**
- * Валидация для лайков
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
+ * Валидация для лайков (targetType и targetId в URL, не в body)
  */
 const validateLike = [
-  body('targetType')
-    .isIn(['Post', 'Music', 'Video', 'News', 'Comment', 'Message'])
+  param('targetType')
+    .isIn(['posts', 'tracks', 'videos', 'news', 'comments', 'messages'])
     .withMessage(
-      'Тип сущности должен быть Post, Music, Video, News, Comment или Message'
+      'Тип сущности должен быть posts, tracks, videos, news, comments или messages'
     ),
-  body('targetId')
+  param('targetId')
     .isInt({ min: 1 })
     .toInt()
     .withMessage('ID сущности должен быть числом'),
@@ -216,10 +191,6 @@ const validateLike = [
 
 /**
  * Валидация для сообщений
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateMessage = [
   body('senderId').isInt({ min: 1 }).toInt(),
@@ -243,10 +214,6 @@ const validateMessage = [
 
 /**
  * Валидация для музыки
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateMusic = [
   body('title')
@@ -303,10 +270,11 @@ const validateMusic = [
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Обложка до 500 символов'),
-  body('playCount')
+  body('playsCount')
+    .optional()
     .isInt({ min: 0 })
     .toInt()
-    .withMessage('Количество просмотров должно быть числом'),
+    .withMessage('Количество проигрываний должно быть числом'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -321,10 +289,6 @@ const validateMusic = [
 
 /**
  * Валидация для видео
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateVideo = [
   body('title')
@@ -371,6 +335,7 @@ const validateVideo = [
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('viewsCount')
+    .optional()
     .isInt({ min: 0 })
     .toInt()
     .withMessage('Количество просмотров должно быть числом'),
@@ -388,10 +353,6 @@ const validateVideo = [
 
 /**
  * Валидация для новостей
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const validateNews = [
   body('title')
@@ -432,6 +393,7 @@ const validateNews = [
     .isLength({ min: 1, max: 500 })
     .withMessage('Медиа до 500 символов'),
   body('viewsCount')
+    .optional()
     .isInt({ min: 0 })
     .toInt()
     .withMessage('Количество просмотров должно быть числом'),
@@ -449,8 +411,6 @@ const validateNews = [
 
 /**
  * Валидация ID в параметрах
- * @param {string} paramName - Название параметра
- * @returns {Array} - Массив middleware
  */
 const validateIdParam = (paramName) => [
   param(paramName)

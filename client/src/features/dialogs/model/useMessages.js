@@ -71,7 +71,11 @@ export function useMessages(userId) {
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        reconnectAttempts = 0; // Сбрасываем счетчик при успешном подключении
+        reconnectAttempts = 0;
+      };
+
+      ws.onerror = (event) => {
+        console.error('Ошибка WebSocket соединения:', event);
       };
 
       ws.onmessage = (e) => {
@@ -123,10 +127,6 @@ export function useMessages(userId) {
           );
         }
       };
-    };
-
-    ws.onerror = (error) => {
-      console.error('Ошибка WebSocket соединения:', error);
     };
 
     connect();

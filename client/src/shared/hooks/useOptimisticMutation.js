@@ -60,6 +60,13 @@ export const useOptimisticMutation = ({
 
       try {
         const result = await editFn(id, data);
+
+        if (result && result[idField] != null) {
+          setItems((prev) =>
+            prev.map((item) => (item[idField] === id ? result : item))
+          );
+        }
+
         onSuccess?.('edit', result);
         return true;
       } catch (err) {
@@ -95,5 +102,9 @@ export const useOptimisticMutation = ({
     [items, setItems, deleteFn, idField, onSuccess, onError]
   );
 
-  return { addItem, editItem, removeItem };
+  return {
+    add: addItem,
+    edit: editItem,
+    remove: removeItem,
+  };
 };

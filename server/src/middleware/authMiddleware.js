@@ -1,21 +1,18 @@
 const jwt = require('jsonwebtoken');
-const { AppError } = require('../services/authService');
+const { createError } = require('../services/authService');
 
 /**
  * Middleware для проверки авторизации пользователя
- * @param {Object} req - Объект запроса
- * @param {Object} res - Объект ответа
- * @param {Function} next - Функция для перехода к следующему middleware
- * @returns {Promise<void>}
  */
 const authMiddleware = (req, res, next) => {
   try {
     // Получаем токен из заголовка authorization
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError(
+      throw createError(
         'Токен не предоставлен или имеет неверный формат',
-        401
+        401,
+        'INVALID_TOKEN'
       );
     }
 
@@ -30,10 +27,12 @@ const authMiddleware = (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return next(new AppError('Недействительный токен', 401));
+      return next(createError('Недействительный токен', 401, 'INVALID_TOKEN'));
     }
     if (error.name === 'TokenExpiredError') {
-      return next(new AppError('Срок действия токена истек', 401));
+      return next(
+        createError('Срок действия токена истек', 401, 'TOKEN_EXPIRED')
+      );
     }
     next(error);
   }

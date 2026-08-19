@@ -1,23 +1,4 @@
 /* =======================================================
-    GLOBAL RESET & BASE
-   ======================================================= */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-  font-family: var(--font-family);
-  background-color: var(--surface-page);
-  color: var(--text-primary);
-}
-
-/* =======================================================
        AUTH LAYOUT (Для неавторизованных пользователей)
        Центрирует форму входа/регистрации по центру экрана
       ======================================================= */
@@ -39,8 +20,9 @@ body {
   min-height: 100vh;
   margin: 0 auto;
   gap: 2px;
+  align-items: start;
   grid-template-columns: 200px 1fr 250px;
-  grid-template-rows: var(--header-height) 1fr auto;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     'h h h'
     'n m i'
@@ -69,15 +51,12 @@ body {
   color: var(--text-on-nav);
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   padding: var(--space-2);
-  overflow-y: auto;
 }
 
 .main {
   grid-area: m;
   background-color: var(--surface-page);
-  min-height: calc(100vh - 120px);
   padding: var(--space-2);
-  overflow-y: auto;
 }
 
 .info {
@@ -85,7 +64,6 @@ body {
   background-color: var(--surface-secondary);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: var(--space-2);
-  overflow-y: auto;
 }
 
 .footer {
@@ -109,7 +87,7 @@ body {
 @media screen and (max-width: 768px) {
   .app_wrapper {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--header-height) auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     grid-template-areas:
       'h'
       'n'
@@ -126,7 +104,6 @@ body {
   }
 
   .main {
-    min-height: auto;
     padding: var(--space-4);
   }
 }

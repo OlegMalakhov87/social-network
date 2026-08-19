@@ -1,26 +1,27 @@
+import { extractPaginatedItems } from './extractPaginatedItems';
+
 /**
  * Вспомогательная функция для запроса данных с пагинацией.
- * Все fetch-функции должны возвращать { items, pagination }.
+ * Fetch может вернуть { items } или типичные ключи сервера (posts, tracks, …).
  *
- * @param {Function} fetchApi - функция для запроса данных (принимает { page, limit, ...params, signal })
- * @param {Object} params - дополнительные параметры (filter, searchQuery, etc.)
- * @param {AbortSignal} signal - сигнал отмены запроса
- * @returns {Promise<Object>} - объект с данными
+ * @param {Function} fetchApi
+ * @param {{ params: Object, signal?: AbortSignal }} options
+ * @returns {Promise<{ items: Array, hasMore: boolean }>}
  */
 export const apiFetchItems = async (fetchApi, { params, signal }) => {
-  const { searchQuery, filter, ...restParams } = params;
+  const { q, filter, ...restParams } = params;
 
   const data = await fetchApi({
     ...restParams,
-    ...(filter?.trim() && { filter }),
-    ...(searchQuery?.trim() && { q: searchQuery }),
+    ...(filter?.trim?.() && { filter }),
+    ...(q?.trim?.() && { q }),
     signal,
   });
 
-  const items = Array.isArray(data?.items) ? data.items : [];
+  const { items, pagination } = extractPaginatedItems(data);
 
   return {
     items,
-    hasMore: data?.pagination?.hasMore ?? false,
+    hasMore: pagination?.hasMore ?? false,
   };
 };

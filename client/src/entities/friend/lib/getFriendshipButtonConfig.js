@@ -1,50 +1,62 @@
 /**
- * Определяет конфигурацию кнопки действий с дружбой на основе текущего статуса.
- * Возвращает объект, готовый для передачи в пропсы компонента Button.
+ * Определяет конфигурацию кнопки действий с дружбой.
  *
  * @param {Object} params
- * @param {Object} params.friend - пользователь/друг
- * @param {Function} params.onFollow - функция отправки заявки в друзья
- * @param {Function} params.onUnfollow - функция отмены заявки или удаления из друзей
- * @param {Function} params.onAccept - функция принятия входящей заявки
- * @param {Function} params.onUnlock - функция разблокировки пользователя
- * @param {Function} params.onBlock - функция блокировки пользователя
- *
- * @returns {Object} { text, hoverText, variant, action, disabled }
+ * @param {Object} [params.friend] - друг из списка (friendship* на объекте)
+ * @param {Object} [params.targetUser] - пользователь профиля
+ * @param {string|null} [params.friendshipStatus]
+ * @param {string|null} [params.friendshipDirection]
+ * @param {number|null} [params.friendshipId]
  */
 export const getFriendshipButtonConfig = ({
   friend,
+  targetUser,
+  friendshipStatus,
+  friendshipDirection,
+  friendshipId,
   onFollow,
   onUnfollow,
   onAccept,
   onUnlock,
   onBlock,
 }) => {
-  if (!friend?.id) return null;
+  const subject =
+    friend ??
+    (targetUser
+      ? {
+          ...targetUser,
+          friendshipStatus,
+          friendshipDirection,
+          friendshipId,
+        }
+      : null);
+
+  if (!subject?.id) return null;
 
   let config = {
     text: 'Добавить в друзья',
     hoverText: 'Отправить заявку',
     variant: 'primary',
-    action: () => onFollow?.(friend.id),
+    action: () => onFollow?.(subject.id),
     disabled: false,
   };
 
-  if (friend.friendshipStatus === 'accepted') {
+  if (subject.friendshipStatus === 'accepted') {
     config = {
       text: 'В друзьях',
       hoverText: 'Заблокировать',
       variant: 'secondary',
-      action: () => onBlock?.(),
+      action: () => onBlock?.(subject.id),
       disabled: false,
     };
-  } else if (friend.friendshipStatus === 'pending') {
-    if (friend.friendshipDirection === 'incoming') {
+  } else if (subject.friendshipStatus === 'pending') {
+    if (subject.friendshipDirection === 'incoming') {
       config = {
         text: 'Новая заявка',
         hoverText: 'Принять заявку',
         variant: 'primary',
-        action: () => onAccept?.(friend.friendshipId, friend.id),
+        action: () =>
+          onAccept?.(subject.friendshipId, subject.id),
         disabled: false,
       };
     } else {
@@ -52,17 +64,19 @@ export const getFriendshipButtonConfig = ({
         text: 'Заявка отправлена',
         hoverText: 'Отменить',
         variant: 'ghost',
-        action: () => onUnfollow?.(friend.friendshipId, friend.id),
+        action: () =>
+          onUnfollow?.(subject.friendshipId, subject.id),
         disabled: false,
       };
     }
-  } else if (friend.friendshipStatus === 'blocked') {
-    if (friend.friendshipDirection === 'incoming') {
+  } else if (subject.friendshipStatus === 'blocked') {
+    if (subject.friendshipDirection === 'incoming') {
       config = {
         text: 'Заблокирован',
         hoverText: 'Разблокировать',
         variant: 'ghost',
-        action: () => onAccept?.(friend.friendshipId, friend.id),
+        action: () =>
+          onAccept?.(subject.friendshipId, subject.id),
         disabled: false,
       };
     } else {
@@ -70,7 +84,8 @@ export const getFriendshipButtonConfig = ({
         text: 'Вас заблокировали',
         hoverText: 'Удалить',
         variant: 'ghost',
-        action: () => onUnlock?.(friend.friendshipId, friend.id),
+        action: () =>
+          onUnlock?.(subject.friendshipId, subject.id),
         disabled: false,
       };
     }

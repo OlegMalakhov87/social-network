@@ -10,123 +10,68 @@ const {
 } = require('../../db/models');
 const { createError } = require('./authService');
 
-// Словарь моделей для динамической проверки существования целевой сущности
-const TARGET_MODELS = {
-  Post,
-  Music,
-  Video,
-  News,
-  Comment,
-  Message,
+/**
+ * Маппинг типов сущностей на модели и типы в БД
+ */
+const TARGET_TYPES = {
+  posts: {
+    model: Post,
+    dbType: 'Post',
+  },
+
+  tracks: {
+    model: Music,
+    dbType: 'Music',
+  },
+
+  videos: {
+    model: Video,
+    dbType: 'Video',
+  },
+
+  news: {
+    model: News,
+    dbType: 'News',
+  },
+
+  comments: {
+    model: Comment,
+    dbType: 'Comment',
+  },
+
+  messages: {
+    model: Message,
+    dbType: 'Message',
+  },
+};
+
+/**
+ * Маппинг типов сущностей на типы в БД
+ */
+const GROUPED_TYPES = {
+  Post: 'posts',
+  Music: 'tracks',
+  Video: 'videos',
+  News: 'news',
+  Comment: 'comments',
+  Message: 'messages',
 };
 
 const likeService = {
   /**
-   * Поставить лайк сущности
-   * @param {number} userId - ID пользователя
-   * @param {string} targetType - Тип сущности
-   * @param {number} targetId - ID сущности
-   * @returns {Promise<Object>}
-   */
-  async addLike(userId, targetType, targetId) {
-    if (!TARGET_MODELS[targetType]) {
-      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
-    }
-
-    const TargetModel = TARGET_MODELS[targetType];
-    const targetExists = await TargetModel.findByPk(targetId, {
-      attributes: ['id'],
-    });
-
-    if (!targetExists) {
-      throw createError('Целевая сущность не найдена', 404, 'TARGET_NOT_FOUND');
-    }
-
-    try {
-      const like = await Like.create({
-        userId: parseInt(userId),
-        targetType,
-        targetId: parseInt(targetId),
-      });
-
-      const likeWithUser = await Like.findByPk(like.id, {
-        include: [
-          { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
-        ],
-      });
-
-      return { like: likeWithUser.toJSON() };
-    } catch (error) {
-      if (error.name === 'SequelizeUniqueConstraintError') {
-        throw createError('Лайк уже поставлен', 400, 'ALREADY_LIKED');
-      }
-      throw error;
-    }
-  },
-
-  /**
-   * Убрать лайк с сущности
-   * @param {number} userId - ID пользователя
-   * @param {string} targetType - Тип сущности
-   * @param {number} targetId - ID сущности
-   * @returns {Promise<Object>}
-   */
-  async removeLike(userId, targetType, targetId) {
-    if (!TARGET_MODELS[targetType]) {
-      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
-    }
-
-    const deletedCount = await Like.destroy({
-      where: {
-        userId: parseInt(userId),
-        targetType,
-        targetId: parseInt(targetId),
-      },
-    });
-
-    if (deletedCount === 0) {
-      throw createError('Лайк не найден или уже удален', 404, 'LIKE_NOT_FOUND');
-    }
-
-    return { message: 'Лайк успешно убран', targetType, targetId };
-  },
-
-  /**
-   * Проверить, поставлен ли лайк сущности
-   * @param {number} userId - ID пользователя
-   * @param {string} targetType - Тип сущности
-   * @param {number} targetId - ID сущности
-   * @returns {Promise<Object>}
-   */
-  async checkLike(userId, targetType, targetId) {
-    if (!TARGET_MODELS[targetType]) {
-      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
-    }
-
-    const like = await Like.findOne({
-      where: {
-        userId: parseInt(userId),
-        targetType,
-        targetId: parseInt(targetId),
-      },
-    });
-
-    return { hasLiked: !!like };
-  },
-
-  /**
-   * Получить все лайки сущности
+   * Получить все лайки сущности (для админки, может быть когда нибудь пригодится)
    * @param {string} targetType - Тип сущности
    * @param {number} targetId - ID сущности
    * @returns {Promise<Object>}
    */
   async getLikesByTarget(targetType, targetId) {
-    if (!TARGET_MODELS[targetType]) {
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
 
-    const likes = await Like.findAll({
-      where: { targetType, targetId: parseInt(targetId) },
+    const { count, rows } = await Like.findAndCountAll({
+      where: { targetType: target.dbType, targetId },
       include: [
         { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
       ],
@@ -136,63 +81,167 @@ const likeService = {
     return {
       targetType,
       targetId,
-      count: likes.length,
-      likes: likes.map((l) => l.toJSON()),
+      count,
+      likes: rows.map((l) => l.toJSON()),
     };
   },
 
   /**
-   * Получить все лайки пользователя
+   * Получить все лайки пользователя (для админки, может быть когда нибудь пригодится)
    * @param {number} userId - ID пользователя
    * @param {number} page - Номер страницы
    * @param {number} limit - Количество лайков на странице
    * @returns {Promise<Object>}
    */
-  async getUserLikes(userId, page = 1, limit = 50) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
+  async getUserLikes(userId, page = 1, limit = 30) {
     const { count, rows: likes } = await Like.findAndCountAll({
-      where: { userId: parseInt(userId) },
+      where: { userId },
       include: [
         { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
       ],
       order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset,
+      limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
-    const grouped = {
-      posts: likes
-        .filter((l) => l.targetType === 'Post')
-        .map((l) => l.toJSON()),
-      music: likes
-        .filter((l) => l.targetType === 'Music')
-        .map((l) => l.toJSON()),
-      videos: likes
-        .filter((l) => l.targetType === 'Video')
-        .map((l) => l.toJSON()),
-      news: likes.filter((l) => l.targetType === 'News').map((l) => l.toJSON()),
-      comments: likes
-        .filter((l) => l.targetType === 'Comment')
-        .map((l) => l.toJSON()),
-      messages: likes
-        .filter((l) => l.targetType === 'Message')
-        .map((l) => l.toJSON()),
+    const groupedLikes = {
+      posts: [],
+      tracks: [],
+      videos: [],
+      news: [],
+      comments: [],
+      messages: [],
     };
 
+    for (const like of likes) {
+      const type = GROUPED_TYPES[like.targetType];
+
+      if (type) {
+        groupedLikes[type].push(like.toJSON());
+      }
+    }
+
     return {
-      userId: parseInt(userId),
+      userId,
       totalLikes: count,
-      likes: likes.map((l) => l.toJSON()),
-      grouped,
+      groupedLikes,
       pagination: {
         totalLikes: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
+  },
+
+  /**
+   * Проверить, поставлен ли лайк сущности (для админки, может быть когда нибудь пригодится)
+   * @param {number} userId - ID пользователя
+   * @param {string} targetType - Тип сущности
+   * @param {number} targetId - ID сущности
+   * @returns {Promise<Object>}
+   */
+  async checkLike(userId, targetType, targetId) {
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
+      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
+    }
+
+    const like = await Like.findOne({
+      where: {
+        userId,
+        targetType: target.dbType,
+        targetId: targetId,
+      },
+    });
+
+    return { hasLiked: !!like };
+  },
+
+  /**
+   * Поставить лайк сущности
+   * @param {number} userId - ID пользователя
+   * @param {string} targetType - Тип сущности
+   * @param {number} targetId - ID сущности
+   * @returns {Promise<Object>}
+   */
+  async addLike(userId, targetType, targetId) {
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
+      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
+    }
+
+    const targetEntity = await target.model.findByPk(targetId, {
+      attributes: ['id'],
+    });
+
+    if (!targetEntity) {
+      throw createError('Сущность не найдена', 404, 'ENTITY_NOT_FOUND');
+    }
+
+    try {
+      const like = await Like.create({
+        userId,
+        targetType: target.dbType,
+        targetId,
+      });
+
+      const likeWithUser = await Like.findByPk(like.id, {
+        include: [
+          { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
+        ],
+      });
+
+      const likesCount = await Like.count({
+        where: {
+          targetType: target.dbType,
+          targetId,
+        },
+      });
+
+      return { like: likeWithUser.toJSON(), likesCount };
+    } catch (error) {
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw createError('Лайк уже поставлен', 400, 'ALREADY_LIKED');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Удалить лайк у сущности
+   * @param {number} userId - ID пользователя
+   * @param {string} targetType - Тип сущности
+   * @param {number} targetId - ID сущности
+   * @returns {Promise<Object>}
+   */
+  async deleteLike(userId, targetType, targetId) {
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
+      throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
+    }
+
+    const deletedCount = await Like.destroy({
+      where: {
+        userId,
+        targetType: target.dbType,
+        targetId,
+      },
+    });
+
+    if (deletedCount === 0) {
+      throw createError('Лайк не найден или уже удален', 404, 'LIKE_NOT_FOUND');
+    }
+
+    const likesCount = await Like.count({
+      where: {
+        targetType: target.dbType,
+        targetId,
+      },
+    });
+
+    return { message: 'Лайк успешно удален', targetType, targetId, likesCount };
   },
 };
 

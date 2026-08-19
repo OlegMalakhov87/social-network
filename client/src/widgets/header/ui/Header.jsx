@@ -30,8 +30,8 @@ export const Header = ({ onSearchChange }) => {
     }
   };
 
-  const handleLogout = async () => {
-    await dispatch(logout()).unwrap();
+  const handleLogout = () => {
+    dispatch(logout());
     navigate('/login');
   };
 

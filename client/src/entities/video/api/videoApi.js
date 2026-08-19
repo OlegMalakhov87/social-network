@@ -8,15 +8,24 @@ import { api } from '../../../shared/api';
  * @param {string} params.filter - фильтр по категории
  * @param {string} [params.q] - поисковый запрос
  * @param {AbortSignal} params.signal - сигнал отмены запроса
+ * @param {string} params.sortKey - ключ сортировки
  * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
  */
-export const fetchVideosApi = async ({ page, limit, filter, q, signal }) => {
+export const fetchVideosApi = async ({
+  page,
+  limit,
+  filter,
+  q,
+  signal,
+  sortKey,
+}) => {
   const response = await api.get('/videos', {
     params: {
       page,
       limit,
       category: filter === 'all' ? undefined : filter,
       q: q?.trim() || undefined,
+      sortKey,
     },
     signal,
   });
@@ -25,11 +34,11 @@ export const fetchVideosApi = async ({ page, limit, filter, q, signal }) => {
 
 /**
  * Загрузить новое видео.
- * @param {Object} formData – поля видео (title, description, videoUrl, category, size, year, duration)
+ * @param {Object} formData – поля видео
  * @returns {Promise<Object>} { video }
  */
 export const addVideoApi = async (formData) => {
-  const response = await api.post('/videos', formData);
+  const response = await api.post('/videos/add', formData);
   return response.data;
 };
 
@@ -40,7 +49,7 @@ export const addVideoApi = async (formData) => {
  * @returns {Promise<Object>} { video }
  */
 export const updateVideoApi = async (videoId, updates) => {
-  const response = await api.put(`/videos/${videoId}`, updates);
+  const response = await api.put(`/videos/${videoId}/update`, updates);
   return response.data;
 };
 
@@ -49,17 +58,17 @@ export const updateVideoApi = async (videoId, updates) => {
  * @param {boolean} isPublic - видимость видео
  * @returns {Promise<Object>} { isPublic }
  */
-export const updateVideosPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/videos/privacy`, { isPublic });
+export const updateVideosPrivacyApi = async ({ isPublic }) => {
+  const response = await api.put(`/videos/update-privacy`, { isPublic });
   return response.data;
 };
 
 /**
- * Обновить счетчик просмотров видео.
+ * Инкрементировать счетчик просмотров видео.
  * @param {number} videoId - ID видео
  * @returns {Promise<Object>} { video }
  */
-export const incrementVideoViewCount = async (videoId) => {
+export const incrementVideoViewsCountApi = async (videoId) => {
   const response = await api.put(`/videos/${videoId}/views`);
   return response.data;
 };
@@ -70,6 +79,6 @@ export const incrementVideoViewCount = async (videoId) => {
  * @returns {Promise<Object>} { videoId }
  */
 export const deleteVideoApi = async (videoId) => {
-  const response = await api.delete(`/videos/${videoId}`);
+  const response = await api.delete(`/videos/${videoId}/delete`);
   return response.data;
 };

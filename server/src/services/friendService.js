@@ -1,6 +1,7 @@
 const { Friend, User } = require('../../db/models');
 const { Op } = require('sequelize');
 const { createError } = require('./authService');
+const { Agent } = require('node:http');
 
 // Вспомогательная функция для получения данных "друга" (того, кто не является currentUserId)
 const getOtherUser = (friendship, currentUserId) => {
@@ -38,7 +39,17 @@ const friendService = {
     // Получить пользователей только для текущей страницы
     const { count, rows: users } = await User.findAndCountAll({
       where,
-      attributes: ['id', 'name', 'nickname', 'avatar', 'isPublic'],
+      attributes: [
+        'id',
+        'name',
+        'nickname',
+        'avatar',
+        'age',
+        'address',
+        'job',
+        'status',
+        'isPublic',
+      ],
       limit: parseInt(limit),
       offset,
       order: [['createdAt', 'DESC']],
@@ -105,11 +116,15 @@ const friendService = {
    * Получить статус дружбы между двумя пользователями
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number} targetUserId - ID пользователя, с которым проверяем статус дружбы
-   * @returns {Promise<Object>} { status, direction, friendshipId }
+   * @returns {Promise<Object>} { friendshipStatus, friendshipDirection, friendshipId }
    */
   async getFriendshipStatus(currentUserId, targetUserId) {
     if (currentUserId === targetUserId) {
-      return { status: null, direction: null, friendshipId: null };
+      return {
+        friendshipStatus: null,
+        friendshipDirection: null,
+        friendshipId: null,
+      };
     }
 
     const friendship = await Friend.findOne({
@@ -122,12 +137,17 @@ const friendService = {
     });
 
     if (!friendship) {
-      return { status: null, direction: null, friendshipId: null };
+      return {
+        friendshipStatus: null,
+        friendshipDirection: null,
+        friendshipId: null,
+      };
     }
 
     return {
-      status: friendship.status,
-      direction: friendship.userId === currentUserId ? 'outgoing' : 'incoming',
+      friendshipStatus: friendship.status,
+      friendshipDirection:
+        friendship.userId === currentUserId ? 'outgoing' : 'incoming',
       friendshipId: friendship.id,
     };
   },
@@ -184,8 +204,8 @@ const friendService = {
 
     return {
       friendshipId: friendship.id,
-      status: 'pending',
-      direction: 'outgoing',
+      friendshipStatus: 'pending',
+      friendshipDirection: 'outgoing',
     };
   },
 
@@ -210,7 +230,7 @@ const friendService = {
     }
 
     await friendship.update({ status: 'accepted' });
-    return { friendshipId: friendship.id, status: 'accepted' };
+    return { friendshipId: friendship.id, friendshipStatus: 'accepted' };
   },
 
   /**

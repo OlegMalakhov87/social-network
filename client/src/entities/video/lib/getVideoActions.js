@@ -7,7 +7,7 @@
  * @param {Function} params.toggleLike - функция для лайка/дизлайка видео
  * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к видео
  * @param {Function} params.addToLibrary - функция для добавления видео в библиотеку
- * @param {Function} params.removeFromLibrary - функция для удаления видео из библиотеки
+ * @param {Function} params.deleteFromLibrary - функция для удаления видео из библиотеки
  * @param {Function} params.onUpdate - функция для обновления видео
  * @returns {Array<Object>} - массив действий карточки видео
  */
@@ -17,7 +17,7 @@ export const getVideoActions = ({
   toggleLike,
   toggleComments,
   addToLibrary,
-  removeFromLibrary,
+  deleteFromLibrary,
   onUpdate,
 }) => {
   if (!video) return [];
@@ -50,7 +50,7 @@ export const getVideoActions = ({
     });
   }
 
-  if (video.isPublic !== false && isOwn) {
+  if (video.isPublic !== false) {
     actions.push({
       key: 'library',
       icon: video.isInLibrary ? '📚' : '➕',
@@ -58,7 +58,7 @@ export const getVideoActions = ({
       ariaLabel: 'Библиотека',
       onClick: () =>
         video.isInLibrary
-          ? removeFromLibrary?.(video.libraryId, video.id)
+          ? deleteFromLibrary?.(video.libraryId, video.id)
           : addToLibrary?.(video.id),
     });
   } else {

@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
+  clearError,
+  getAuthErrorDisplay,
   login,
   selectAuthError,
   selectIsAuthLoading,
@@ -22,10 +25,13 @@ import style from './RegisterForm.module.css';
  */
 export const LoginForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const toast = useToast();
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const form = useForm({
     initialValues: { email: '', password: '' },
@@ -36,10 +42,13 @@ export const LoginForm = () => {
     onSubmit: async (values) => {
       try {
         await dispatch(login(values)).unwrap();
-        toast.success('Добро пожаловать!');
-        navigate('/profile');
       } catch (error) {
-        toast.error(error || 'Ошибка авторизации');
+        toast.error(getAuthErrorDisplay(error, 'Ошибка авторизации'));
+        if (error?.fieldErrors) {
+          const fieldErr = new Error('validation');
+          fieldErr.fieldErrors = error.fieldErrors;
+          throw fieldErr;
+        }
         throw error;
       }
     },
@@ -56,6 +65,8 @@ export const LoginForm = () => {
                 variant="error"
                 title="Ошибка входа"
                 className={style.alert}
+                closable={true}
+                onClose={() => dispatch(clearError())}
               >
                 {authError}
               </Alert>
@@ -72,6 +83,7 @@ export const LoginForm = () => {
               label="Email"
               type="email"
               {...form.register('email')}
+              error={form.errors.email}
               placeholder="email@example.com"
               disabled={form.isSubmitting || isSubmitting}
             />
@@ -80,6 +92,7 @@ export const LoginForm = () => {
               label="Пароль"
               type="password"
               {...form.register('password')}
+              error={form.errors.password}
               placeholder="Введите ваш пароль"
               disabled={form.isSubmitting || isSubmitting}
             />

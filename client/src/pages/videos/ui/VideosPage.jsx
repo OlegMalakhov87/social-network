@@ -21,13 +21,14 @@ import { VideoPlayer } from '../../../widgets/video-player';
  * Страница видео – отображает каталог видео с фильтрацией, поиском и сортировкой.
  */
 export const VideosPage = () => {
-  const [videoToEdit, setVideoToEdit] = useState(null);
+  const [showVideoForm, setShowVideoForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const commentsSectionRef = useRef(null);
+  const onVideoStartRef = useRef(null);
 
   /** Управление фильтрацией и сортировкой */
   const {
-    category: filter,
+    filter,
     searchQuery,
     setSearchQuery,
     sortKey,
@@ -46,27 +47,39 @@ export const VideosPage = () => {
     loadMore,
     refetch,
     toggleLike,
+    addToLibrary,
+    deleteFromLibrary,
+    updateGlobalViewsCount,
+    updateCommentsCount,
     addVideo,
     updateVideo,
     deleteVideo,
-    addToLibrary,
-    removeFromLibrary,
-    incrementViewCount,
-    updateCommentCount,
   } = useVideos({ filter, searchQuery, sortKey });
 
   /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel('Video', sortKey, filter);
+    useCommentsPanel('videos', sortKey, filter);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => updateCommentCount(commentTarget?.id, delta),
-    [commentTarget?.id, updateCommentCount]
+    (delta) => updateCommentsCount(commentTarget?.id, delta),
+    [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для открытия модального окна с видео*/
-  const handleOpenVideo = useCallback((video) => setSelectedVideo(video), []);
+  /** Обработчик для открытия модального окна с видео */
+  const handleOpenVideo = useCallback((video) => {
+    if (!video || typeof video === 'function') return;
+    setSelectedVideo(video);
+  }, []);
+
+  const setOnVideoStart = useCallback((handler) => {
+    onVideoStartRef.current = handler;
+  }, []);
+
+  const handleVideoPlayStart = useCallback((video) => {
+    onVideoStartRef.current?.(video);
+  }, []);
+  
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
@@ -78,12 +91,17 @@ export const VideosPage = () => {
       } else {
         await addVideo?.(values);
       }
-      setVideoToEdit(null);
+      setShowVideoForm(null);
     },
     [addVideo, updateVideo]
   );
 
-  /** Скролл к секции комментариев при открытии */
+  /** Обработчик для закрытия формы */
+  const handleCloseForm = useCallback(() => {
+    setShowVideoForm(null);
+  }, []);
+
+  /** Скролл к секции комментариев при открытии панели */
   useEffect(() => {
     if (!commentTarget?.id || !commentTarget?.type) return;
     commentsSectionRef.current?.scrollIntoView({
@@ -102,7 +120,7 @@ export const VideosPage = () => {
               icon="➕"
               variant="primary"
               size="md"
-              onClick={() => setVideoToEdit('create')}
+              onClick={() => setShowVideoForm('create')}
               ariaLabel="Добавить видео"
             />
           )
@@ -129,34 +147,37 @@ export const VideosPage = () => {
             }
           />
 
-          {videoToEdit && currentUser && (
+          {showVideoForm && currentUser && (
             <VideoForm
               key={
-                videoToEdit === 'create' ? 'create' : `edit-${videoToEdit.id}`
+                showVideoForm === 'create'
+                  ? 'create'
+                  : `edit-${showVideoForm.id}`
               }
-              initialData={videoToEdit === 'create' ? null : videoToEdit}
-              onClose={handleCloseVideo}
+              initialData={showVideoForm === 'create' ? null : showVideoForm}
+              onClose={handleCloseForm}
               onSubmit={handleFormSubmit}
             />
           )}
 
           <VideosTab
             videos={videos}
-            mode="general"
             currentUser={currentUser}
+            toggleComments={onToggleComments}
+            toggleLike={toggleLike}
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
-            hasMore={hasMore}
             error={error}
+            mode="general"
+            onPlayVideo={handleOpenVideo}
+            onVideoStart={setOnVideoStart}
+            addToLibrary={addToLibrary}
+            deleteFromLibrary={deleteFromLibrary}
+            hasMore={hasMore}
             loadMore={loadMore}
             onRetry={refetch}
-            onPlayVideo={handleOpenVideo}
-            toggleLike={toggleLike}
-            onToggleComments={onToggleComments}
-            addOptimistic={addToLibrary}
-            removeOptimistic={removeFromLibrary}
-            updateGlobalViewCount={incrementViewCount}
-            updateVideo={setVideoToEdit}
+            updateGlobalViewsCount={updateGlobalViewsCount}
+            updateVideo={setShowVideoForm}
             deleteVideo={deleteVideo}
           />
         </SectionCard>
@@ -167,12 +188,16 @@ export const VideosPage = () => {
             targetId={commentTarget?.id}
             currentUser={currentUser}
             onChange={handleCommentChange}
-            onCloseComments={handleCloseComments}
+            onClose={handleCloseComments}
             commentsSectionRef={commentsSectionRef}
           />
         )}
         {selectedVideo && (
-          <VideoPlayer video={selectedVideo} onClose={handleCloseVideo} />
+          <VideoPlayer
+            video={selectedVideo}
+            onClose={handleCloseVideo}
+            onPlayStart={handleVideoPlayStart}
+          />
         )}
       </PageLayout>
     </ErrorBoundary>

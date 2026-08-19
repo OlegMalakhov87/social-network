@@ -47,7 +47,7 @@ export const PostsTab = ({
       loading={
         (isLoading && posts.length === 0) || (!currentUser && !targetUser)
       }
-      error={error && posts.length === 0}
+      error={posts.length === 0 ? error : null}
       isEmpty={!posts?.length}
       loadingMessage="Загружаем посты..."
       emptyIcon="📝"
@@ -63,6 +63,7 @@ export const PostsTab = ({
         {posts.map((item) => {
           return (
             <Post
+              key={item.id}
               post={item}
               targetUser={targetUser}
               currentUser={currentUser}

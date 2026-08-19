@@ -75,6 +75,11 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
+      isEdited: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
 
     {

@@ -13,7 +13,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: true,
-        viewsCount: 30,
+        viewsCount: 100,
       },
       {
         uploadedBy: 2,
@@ -26,7 +26,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: true,
-        viewsCount: 20,
+        viewsCount: 150,
       },
       {
         uploadedBy: 3,
@@ -39,7 +39,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: false,
-        viewsCount: 10,
+        viewsCount: 200,
       },
       {
         uploadedBy: 4,
@@ -52,7 +52,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Movie',
         isPublic: true,
-        viewsCount: 5,
+        viewsCount: 50,
       },
       {
         uploadedBy: 5,
@@ -65,7 +65,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Movie',
         isPublic: true,
-        viewsCount: 35,
+        viewsCount: 60,
       },
       {
         uploadedBy: 6,
@@ -78,7 +78,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: true,
-        viewsCount: 25,
+        viewsCount: 70,
       },
       {
         uploadedBy: 7,
@@ -91,7 +91,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: false,
-        viewsCount: 10,
+        viewsCount: 80,
       },
       {
         uploadedBy: 8,
@@ -104,7 +104,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Travel',
         isPublic: true,
-        viewsCount: 15,
+        viewsCount: 90,
       },
       {
         uploadedBy: 9,
@@ -117,7 +117,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Movie',
         isPublic: true,
-        viewsCount: 10,
+        viewsCount: 100,
       },
       {
         uploadedBy: 10,
@@ -130,7 +130,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Movie',
         isPublic: true,
-        viewsCount: 100,
+        viewsCount: 110,
       },
       {
         uploadedBy: 11,
@@ -143,7 +143,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Sports',
         isPublic: true,
-        viewsCount: 60,
+        viewsCount: 120,
       },
       {
         uploadedBy: 12,
@@ -156,7 +156,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Openings',
         isPublic: false,
-        viewsCount: 40,
+        viewsCount: 130,
       },
       {
         uploadedBy: 8,
@@ -169,7 +169,7 @@ module.exports = {
         thumbnail: '/default-thumbnail.mp4',
         category: 'Sports',
         isPublic: false,
-        viewsCount: 20,
+        viewsCount: 140,
       },
     ]);
   },

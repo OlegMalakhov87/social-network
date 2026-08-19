@@ -4,21 +4,29 @@ import { parseSharedEntity } from '../../../shared/utils';
  * Преобразует сообщение из ответа сервера в формат для Message.
  *
  * @param {Object} raw - сырое сообщение с сервера
- * @param {number|null} currentUserId - ID текущего пользователя
  * @returns {Object} - объект нормализованного сообщения
  */
-export const normalizeMessage = (raw, currentUserId) => ({
-  id: raw.id,
-  text: raw.message,
-  createDate: raw.createdAt,
-  updateDate: raw.updatedAt,
-  isRead: raw.isRead,
-  isEdited: raw.isEdited,
-  senderId: raw.senderId,
-  receiverId: raw.receiverId,
+export const normalizeMessage = (raw) => {
+  if (!raw || typeof raw !== 'object') return raw;
 
-  likesCount: raw.likes?.length ?? 0,
-  isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+  return {
+    id: raw.id,
+    content: raw.content,
+    createDate: raw.createdAt,
+    updateDate: raw.updatedAt,
+    date: raw.updatedAt ?? raw.createdAt,
+    isRead: raw.isRead,
+    isEdited: raw.isEdited,
+    senderId: raw.senderId,
+    receiverId: raw.receiverId,
+    deletedBySender: raw.deletedBySender,
+    deletedByReceiver: raw.deletedByReceiver,
 
-  sharedEntity: parseSharedEntity(raw.message),
-});
+    author: raw.author,
+
+    likesCount: raw.likesCount ?? 0,
+    isLiked: raw.isLiked ?? false,
+
+    sharedEntity: parseSharedEntity(raw.content),
+  };
+};

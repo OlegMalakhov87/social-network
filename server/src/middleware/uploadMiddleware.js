@@ -8,6 +8,7 @@ const ensureDirExists = (dir) => {
     fs.mkdirSync(dir, { recursive: true });
   }
 };
+
 /** Хранение файлов на диске */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -41,6 +42,7 @@ const fileFilter = (req, file, cb) => {
     'video/mp4',
     'video/webm',
     'video/ogg',
+    'video/quicktime',
     'audio/mpeg',
     'audio/ogg',
     'audio/wav',

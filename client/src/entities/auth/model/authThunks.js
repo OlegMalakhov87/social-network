@@ -1,14 +1,15 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { parseAuthApiError } from '..';
 import {
   changePasswordApi,
   deleteCurrentUser,
   getCurrentUser,
-  getToken,
   loginUser,
   registerUser,
   updateCurrentUser,
   uploadAvatarApi,
-} from '..';
+} from '../api/authApi';
+import { getToken } from '../lib/authStorage';
 
 /** Авторизация пользователя. */
 export const login = createAsyncThunk(
@@ -18,9 +19,7 @@ export const login = createAsyncThunk(
       const data = await loginUser(credentials);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error || error.message || 'Ошибка авторизации'
-      );
+      return thunkAPI.rejectWithValue(parseAuthApiError(error));
     }
   }
 );
@@ -33,9 +32,7 @@ export const register = createAsyncThunk(
       const data = await registerUser(userData);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error || error.message || 'Ошибка регистрации'
-      );
+      return thunkAPI.rejectWithValue(parseAuthApiError(error));
     }
   }
 );
@@ -63,17 +60,13 @@ export const checkAuth = createAsyncThunk(
   async (_, thunkAPI) => {
     const token = getToken();
     if (!token) {
-      return thunkAPI.rejectWithValue('Токен отсутствует');
+      return { skipped: true, user: null, token: null };
     }
     try {
       const data = await getCurrentUser();
-      return data;
+      return { user: data.user, token };
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Сессия истекла, превышен лимит ожидания'
-      );
+      return thunkAPI.rejectWithValue(parseAuthApiError(error));
     }
   }
 );

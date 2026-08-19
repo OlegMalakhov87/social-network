@@ -18,7 +18,7 @@ export const VideoThumbnail = ({ video, isPlaying, currentVideo, onPlay }) => {
   return (
     <div className={style.thumbnail}>
       <MediaPreview
-        src={video.thumbnailUrl || video.mediaUrl || '/thumbnail-video.webp'}
+        src={video.thumbnail || '/thumbnail-video.webp'}
         alt={video.title}
       />
 
@@ -27,7 +27,7 @@ export const VideoThumbnail = ({ video, isPlaying, currentVideo, onPlay }) => {
           icon={playing ? '⏸️' : '▶️'}
           variant="overlay"
           size="lg"
-          onClick={() => onPlay?.()}
+          onClick={() => onPlay?.(video)}
           ariaLabel={playing ? 'Поставить на паузу' : 'Воспроизвести видео'}
         />
 

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createAbortableFetch } from '../lib';
 
+const isRequestCanceled = (err) =>
+  err?.name === 'AbortError' ||
+  err?.name === 'CanceledError' ||
+  err?.code === 'ERR_CANCELED';
+
 /**
  * Универсальный хук для бесконечной загрузки с пагинацией.
  *
@@ -28,14 +33,24 @@ export const useInfiniteScroll = ({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
-  // Создаём fetcher-объекты один раз и храним в refs
   const firstPageFetcherRef = useRef(null);
   const loadMoreFetcherRef = useRef(null);
+  const fetchFnRef = useRef(fetchFn);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
 
   if (!firstPageFetcherRef.current) firstPageFetcherRef.current = createAbortableFetch();
   if (!loadMoreFetcherRef.current) loadMoreFetcherRef.current = createAbortableFetch();
 
-  // Загрузка первой страницы
+  useEffect(() => {
+    fetchFnRef.current = fetchFn;
+  }, [fetchFn]);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  }, [onSuccess, onError]);
+
   const loadFirstPage = useCallback(async () => {
     const controller = firstPageFetcherRef.current.createController();
 
@@ -45,26 +60,29 @@ export const useInfiniteScroll = ({
     setHasMore(true);
 
     try {
-      const result = await fetchFn({ page: 1, limit, signal: controller.signal });
+      const result = await fetchFnRef.current({
+        page: 1,
+        limit,
+        signal: controller.signal,
+      });
 
       if (controller.signal.aborted) return;
 
       setItems(result.items);
       setHasMore(result.hasMore ?? false);
-      onSuccess?.(result);
+      onSuccessRef.current?.(result);
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (isRequestCanceled(err)) return;
       setError(err);
       console.error('Ошибка загрузки данных:', err);
-      onError?.(err);
+      onErrorRef.current?.(err);
     } finally {
       if (!controller.signal.aborted) {
         setIsLoading(false);
       }
     }
-  }, [fetchFn, limit, onSuccess, onError]);
+  }, [limit]);
 
-  // Загрузка следующей страницы
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
 
@@ -76,25 +94,29 @@ export const useInfiniteScroll = ({
     const nextPage = page + 1;
 
     try {
-      const result = await fetchFn({ page: nextPage, limit, signal: controller.signal });
+      const result = await fetchFnRef.current({
+        page: nextPage,
+        limit,
+        signal: controller.signal,
+      });
 
       if (controller.signal.aborted) return;
 
       setItems((prev) => [...prev, ...result.items]);
       setPage(nextPage);
       setHasMore(result.hasMore ?? false);
-      onSuccess?.(result);
+      onSuccessRef.current?.(result);
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (isRequestCanceled(err)) return;
       setError(err);
       console.error('Ошибка загрузки данных:', err);
-      onError?.(err);
+      onErrorRef.current?.(err);
     } finally {
       if (!controller.signal.aborted) {
         setIsLoadingMore(false);
       }
     }
-  }, [page, limit, isLoading, isLoadingMore, hasMore, fetchFn, onSuccess, onError]);
+  }, [page, limit, isLoading, isLoadingMore, hasMore]);
 
   const refetch = useCallback(async () => {
     await loadFirstPage();
@@ -111,12 +133,10 @@ export const useInfiniteScroll = ({
     loadMoreFetcherRef.current.cleanup();
   }, [initialItems]);
 
-  // Авто-запуск при изменении deps
   useEffect(() => {
     loadFirstPage();
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Очистка при размонтировании
   useEffect(() => {
     return () => {
       firstPageFetcherRef.current?.cleanup();

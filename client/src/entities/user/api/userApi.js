@@ -2,13 +2,14 @@ import { api } from '../../../shared/api';
 
 /**
  * Получить пользователя по ID.
- * @param {number} userId - ID пользователя
- * @param {AbortSignal} signal - сигнал отмены запроса
+ * @param {Object} params - параметры запроса
+ * @param {number} params.userId - ID пользователя
+ * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @returns {Promise<Object>} - пользователь
  */
-export const fetchUserById = async (userId, signal) => {
+export const fetchUserById = async ({ userId, signal } = {}) => {
   const response = await api.get(`/profile/${userId}`, { signal });
-  return response.data;
+  return response.data?.user ?? response.data;
 };
 
 /**

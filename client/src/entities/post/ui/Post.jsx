@@ -69,25 +69,27 @@ export const Post = ({
         header={
           <EntityHeader>
             <EntityMeta
-              avatar={targetUser?.photoUrl}
-              title={targetUser?.name}
-              subtitle={formatDate(post.updatedAt || post.createdAt)}
+              avatar={post.author?.avatar ?? targetUser?.avatar}
+              title={post.author?.name ?? targetUser?.name}
+              subtitle={formatDate(
+                post.updatedAt || post.createdAt || post.date
+              )}
             />
           </EntityHeader>
         }
         content={
           <EntityContent>
-            {post.mediaUrl && (
+            {post.media && (
               <MediaPreview
                 item={post}
-                src={post.mediaUrl}
+                src={post.media}
                 alt={post.type === 'image' ? 'Фото' : 'Видео'}
                 onClick={
                   post.type === 'video' ? () => onPlay?.(post) : undefined
                 }
               />
             )}
-            {post.text && <Text linkifyText={true}>{post.text}</Text>}
+            {post.text && <Text linkify={true}>{post.text}</Text>}
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

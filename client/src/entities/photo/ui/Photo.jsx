@@ -79,11 +79,9 @@ export const Photo = ({
         }
         content={
           <EntityContent>
-            {photo?.mediaUrl && (
-              <MediaPreview src={photo?.mediaUrl} alt="Фото" />
-            )}
+            {photo?.media && <MediaPreview src={photo?.media} alt="Фото" />}
 
-            {photo?.text && <Text linkifyText>{photo?.text}</Text>}
+            {photo?.text && <Text linkify={true}>{photo?.text}</Text>}
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

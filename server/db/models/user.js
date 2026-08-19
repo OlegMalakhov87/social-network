@@ -156,6 +156,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: true,
       },
+      gender: {
+        type: DataTypes.ENUM('male', 'female'),
+        allowNull: false,
+        defaultValue: 'male',
+      },
       passwordHash: {
         type: DataTypes.STRING(60),
         allowNull: false,

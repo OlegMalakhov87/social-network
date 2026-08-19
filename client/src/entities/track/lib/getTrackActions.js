@@ -7,7 +7,7 @@
  * @param {Function} params.toggleLike - функция для лайка/дизлайка трека
  * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к треку
  * @param {Function} params.addToLibrary - функция для добавления трека в библиотеку
- * @param {Function} params.removeFromLibrary - функция для удаления трека из библиотеки
+ * @param {Function} params.deleteFromLibrary - функция для удаления трека из библиотеки
  * @param {Function} params.onUpdate - функция для обновления трека
  * @returns {Array<Object>} - массив действий для карточки трека
  */
@@ -17,7 +17,7 @@ export const getTrackActions = ({
   toggleLike,
   toggleComments,
   addToLibrary,
-  removeFromLibrary,
+  deleteFromLibrary,
   onUpdate,
 }) => {
   if (!track) return [];
@@ -50,7 +50,7 @@ export const getTrackActions = ({
     });
   }
 
-  if (track.isPublic !== false && isOwn) {
+  if (track.isPublic !== false) {
     actions.push({
       key: 'library',
       icon: track.isInLibrary ? '📚' : '➕',
@@ -59,7 +59,7 @@ export const getTrackActions = ({
 
       onClick: () =>
         track.isInLibrary
-          ? removeFromLibrary?.(track.libraryId, track.id)
+          ? deleteFromLibrary?.(track.libraryId, track.id)
           : addToLibrary?.(track.id),
     });
   } else {

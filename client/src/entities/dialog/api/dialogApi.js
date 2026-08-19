@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { normalizeDialog } from '../lib/normalizeDialog';
 
 /**
  * Получить список диалогов
@@ -18,7 +19,11 @@ export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
     },
     signal,
   });
-  return response.data;
+  const dialogs = response.data?.dialogs ?? [];
+  return {
+    dialogs: dialogs.map(normalizeDialog),
+    pagination: response.data?.pagination ?? { hasMore: false },
+  };
 };
 
 /**
@@ -38,7 +43,10 @@ export const fetchMessagesApi = async ({ userId, page, limit, signal }) => {
     },
     signal,
   });
-  return response.data;
+  return {
+    messages: response.data?.messages ?? [],
+    pagination: response.data?.pagination ?? {},
+  };
 };
 
 /**

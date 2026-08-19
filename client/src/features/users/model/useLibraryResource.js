@@ -1,175 +1,130 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
-import { updateTrackFromLibrary } from '../../../entities/track';
-import { updateVideoFromLibrary } from '../../../entities/video';
 import {
-  useNotify,
-  useOptimisticCommentCount,
+  addTrackToLibrary,
+  deleteTrackFromLibrary,
+  incrementPlaysCount,
+  updateFavoriteTrack,
+} from '../../../entities/track';
+import {
+  addVideoToLibrary,
+  deleteVideoFromLibrary,
+  incrementViewsCount,
+  updateFavoriteVideo ,
+} from '../../../entities/video';
+import {
   useOptimisticCounter,
   useOptimisticFavorite,
+  useOptimisticLibraryToggle,
   useOptimisticLike,
 } from '../../../shared/hooks';
 
 /**
- * Хук для управления ресурсами библиотеки.
+ * Хук для управления библиотекой и лайками/счётчиками для вкладок «Музыка» и «Видео».
  *
  * @param {Object} params - параметры запроса
- * @param {Array} params.items - массив сущностей.
- * @param {number} params.userId - ID текущего пользователя.
- * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля.
- * @param {string} params.activeTab - текущая вкладка.
- * @param {Object} params.refetch - объект с функциями для обновления ресурсов.
- * @param {Function} params.setItems - функция для обновления items.
- * @param {Function} params.getAddStateTransform - функция для получения состояния добавления.
- * @param {Function} params.getRemoveStateTransform - функция для получения состояния удаления.
- * @param {Function} params.addFn - функция для добавления в библиотеку.
- * @param {Function} params.removeFn - функция для удаления из библиотеки.
+ * @param {Array} params.items - массив элементов
+ * @param {number} params.userId - ID пользователя
+ * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
+ * @param {Function} params.setItems - функция для установки массива элементов
+ * @param {boolean} params.isTracks - является ли текущая вкладка вкладкой «Музыка»
+ * @param {boolean} params.isVideos - является ли текущая вкладка вкладкой «Видео»
+ * @param {string} params.currentTab - название текущей вкладки
+ * @param {string} params.activeTab - название активной вкладки
+ * @param {Function} params.getAddStateTransform - функция для получения состояния добавления элемента
+ * @param {Function} params.getRemoveStateTransform - функция для получения состояния удаления элемента
+ * @returns {Object} - объект с функциями для управления библиотекой и лайками/счётчиками
  */
 export const useLibraryResource = ({
   items,
   userId,
   isOwnProfile,
-  refetch,
   setItems,
+  isTracks,
+  isVideos,
+  currentTab,
+  activeTab,
   getAddStateTransform,
   getRemoveStateTransform,
-  addFn,
-  removeFn,
-  activeTab,
 }) => {
-  const notify = useNotify();
-  /**
-   *Оптимистичное добавление сущности в библиотеку.
-   * @param {number} itemId – ID сущности.
-   * @returns {Promise<void>} - promise для добавления сущности в библиотеку
-   */
-  const addItemOptimistic = useCallback(
-    async (itemId) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                ...(isOwnProfile ? getAddStateTransform() : {}),
-                isInLibrary: true,
-              }
-            : item
-        )
-      );
-
-      try {
-        const result = await addFn(itemId);
-        if (result?.libraryItem?.id) {
-          setItems((prev) =>
-            prev.map((item) =>
-              item.id === itemId
-                ? { ...item, libraryId: result.libraryItem.id }
-                : item
-            )
-          );
-        }
-        notify.success('add');
-      } catch (err) {
-        console.error('Ошибка добавления в библиотеку профиля:', err);
-        notify.error('add');
-        // Откат
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId ? { ...item, isInLibrary: false } : item
-          )
-        );
-        refetch?.();
-      }
-    },
-    [setItems, isOwnProfile, getAddStateTransform, addFn, refetch, notify]
+  const isActive = Boolean(items) && Boolean(setItems);
+  /** Функция для получения состояния добавления элемента */
+  const mapOnAdd = useCallback(
+    () => (isOwnProfile ? (getAddStateTransform?.() ?? {}) : {}),
+    [isOwnProfile, getAddStateTransform]
   );
 
-  const deleteItemOptimistic = useCallback(
-    async (libraryId, itemId) => {
-      if (!itemId || !libraryId) return;
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                ...(isOwnProfile ? getRemoveStateTransform() : {}),
-                isInLibrary: false,
-                libraryId: null,
-              }
-            : item
-        )
-      );
-
-      try {
-        await removeFn(libraryId);
-        notify.success('delete');
-      } catch (err) {
-        console.error('Ошибка удаления из библиотеки профиля:', err);
-        notify.error('delete');
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === itemId
-              ? { ...item, isInLibrary: true, libraryId }
-              : item
-          )
-        );
-        refetch?.();
-      }
-    },
-    [setItems, isOwnProfile, getRemoveStateTransform, removeFn, refetch, notify]
+  /** Функция для получения состояния удаления элемента */
+  const mapOnRemove = useCallback(
+    () => (isOwnProfile ? (getRemoveStateTransform?.() ?? {}) : {}),
+    [isOwnProfile, getRemoveStateTransform]
   );
 
-  /** Оптимистичное управление лайками. */
+  /** Хук для управления библиотекой */
+  const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
+    setItems: isActive ? setItems : () => {},
+    addFn: currentTab
+      ? isTracks
+        ? addTrackToLibrary
+        : addVideoToLibrary
+      : null,
+    deleteFn: currentTab
+      ? isTracks
+        ? deleteTrackFromLibrary
+        : deleteVideoFromLibrary
+      : null,
+    entityType: currentTab ? (isTracks ? 'tracks' : 'videos') : null,
+    mapOnAdd,
+    mapOnRemove,
+  });
+
+  /** Хук для управления лайками */
   const toggleLikeItem = useOptimisticLike({
     setItems,
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
     currentUserId: userId,
-    targetType: activeTab,
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
+    targetType: activeTab === 'photos' ? 'posts' : activeTab,
   });
 
-  /** Оптимистичный счётчик просмотров. */
+  /** Хук для управления счётчиками */
   const { incrementWithApi: incrementCounter } = useOptimisticCounter({
-    items,
-    setItems,
-    countField: activeTab === 'videos' ? 'viewCount' : 'playCount',
-    updateFn:
-      activeTab === 'videos' ? updateVideoFromLibrary : updateTrackFromLibrary,
-    targetType: activeTab,
+    items: isActive ? items : [],
+    setItems: isActive ? setItems : () => {},
+    countField: currentTab ? (isVideos ? 'viewsCount' : 'playsCount') : null,
+    updateFn: currentTab
+      ? isVideos
+        ? incrementViewsCount
+        : incrementPlaysCount
+      : null,
+    targetType: currentTab ? (isVideos ? 'videos' : 'tracks') : null,
   });
 
-  /** Оптимистичное управление избранным. */
+  /** Хук для управления избранным */
   const toggleFavoriteItem = useOptimisticFavorite({
-    setItems,
-    updateFavoriteFn:
-      activeTab === 'videos' ? updateVideoFromLibrary : updateTrackFromLibrary,
-    targetType: activeTab,
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
+    setItems: isActive ? setItems : () => {},
+    updateFavoriteFn: currentTab
+      ? isTracks
+        ? updateFavoriteTrack
+        : updateFavoriteVideo
+      : null,
+    targetType: currentTab ? (isTracks ? 'tracks' : 'videos') : null,
   });
 
-  /** Оптимистичный счётчик комментариев. */
-  const updateCommentCount = useOptimisticCommentCount({
-    setItems,
-  });
-
-  return {
-    toggleLikeItem,
-    deleteItemOptimistic,
-    addItemOptimistic,
-    incrementCounter,
-    toggleFavoriteItem,
-    updateCommentCount,
-  };
+  return useMemo(
+    () => ({
+      toggleLikeItem,
+      addToLibrary,
+      deleteFromLibrary,
+      incrementCounter,
+      toggleFavoriteItem,
+    }),
+    [
+      toggleLikeItem,
+      addToLibrary,
+      deleteFromLibrary,
+      incrementCounter,
+      toggleFavoriteItem,
+    ]
+  );
 };

@@ -16,8 +16,16 @@ module.exports = (sequelize, DataTypes) => {
 
   UserVideoLibrary.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false },
-      videoId: { type: DataTypes.INTEGER, allowNull: false },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: { min: 1, isInt: true },
+      },
+      videoId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: { min: 1, isInt: true },
+      },
       isFavorite: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

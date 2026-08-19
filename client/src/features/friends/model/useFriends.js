@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { selectUser } from '../../../entities/auth';
 import {
   acceptFriendRequest,
   blockUser,
@@ -11,16 +12,24 @@ import {
 } from '../../../entities/friend';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
-import { selectUser } from '../../../entities/auth';
 
 /**
  * Хук для загрузки списка друзей/заявок с фильтрацией, поиском и бесконечным скроллом.
  *
- * @param {string} filter – Фильтр
- * @param {string} searchQuery – Поисковый запрос
+ * @param {Object|string} params - параметры запроса
+ * @param {string} [searchQueryArg=''] поисковый запрос
  * @returns {Object} - объект с данными о друзьях
  */
-export const useFriends = (filter, searchQuery) => {
+export const useFriends = (params, searchQueryArg = '') => {
+  const isParamsObject =
+    typeof params === 'object' && params !== null && !Array.isArray(params);
+
+  const filter = isParamsObject ? (params.filter ?? 'all') : params;
+
+  const searchQuery = isParamsObject
+    ? (params.searchQuery ?? '')
+    : searchQueryArg;
+
   const currentUser = useSelector(selectUser);
   const notify = useNotify('friends');
 
@@ -36,19 +45,18 @@ export const useFriends = (filter, searchQuery) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if ((!filter && !searchQuery) || !currentUser) {
+      if (!currentUser?.id) {
         return { items: [], hasMore: false };
       }
       return fetchFriendsApi({
-        filter,
+        filter: filter || 'all',
         q: searchQuery,
         page,
         limit,
         signal,
       });
     },
-    deps: [filter, searchQuery, currentUser],
-    onSuccess: () => notify.success('load'),
+    deps: [filter, searchQuery, currentUser?.id],
     onError: () => notify.error('load'),
   });
 

@@ -52,7 +52,6 @@ export const useUserVideoLibrary = ({
       );
     },
     deps: [profileUserId, sortKey],
-    onSuccess: () => notify.success('load'),
     onError: () => notify.error('load'),
   });
 

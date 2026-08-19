@@ -10,6 +10,7 @@ import {
 import {
   Avatar,
   BaseCard,
+  EntityContent,
   EntityInfoList,
   StatusBadge,
 } from '../../../shared/ui';
@@ -21,6 +22,7 @@ import {
  * @param {Object|null} props.targetUser - пользователь, профиль которого отображается.
  * @param {Object|null} props.currentUser - текущий пользователь.
  * @param {boolean} props.isOwnProfile - флаг владельца профиля.
+ * @param {Error|null} props.error - ошибка.
  * @param {string|null} props.friendshipStatus - статус дружбы.
  * @param {string|null} props.friendshipDirection - направление дружбы.
  * @param {number|null} props.friendshipId - id дружбы.
@@ -36,6 +38,7 @@ export const UserProfileCard = ({
   targetUser,
   currentUser,
   isOwnProfile,
+  error,
   friendshipStatus,
   friendshipDirection,
   friendshipId,
@@ -92,11 +95,7 @@ export const UserProfileCard = ({
       content={
         <>
           <ProfileIdentity>
-            <Avatar
-              size="xl"
-              src={targetUser?.photoUrl}
-              alt={targetUser?.name}
-            />
+            <Avatar size="xl" src={targetUser?.avatar} alt={targetUser?.name} />
             {!isOwnProfile && (
               <>
                 <StatusBadge
@@ -108,7 +107,9 @@ export const UserProfileCard = ({
               </>
             )}
           </ProfileIdentity>
-          <EntityInfoList items={infoFields} />
+          <EntityContent>
+            <EntityInfoList items={infoFields} />
+          </EntityContent>
         </>
       }
     />

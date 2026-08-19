@@ -1,18 +1,18 @@
-import { useFetchComments } from '../../../features/comments';
+import { CommentsList } from '..';
+import { CommentForm, useFetchComments } from '../../../features/comments';
 import { SORT_OPTIONS } from '../../../shared/config';
 import { useFilterControls } from '../../../shared/hooks';
 import { Dropdown, IconButton, SectionCard } from '../../../shared/ui';
-import { CommentsList } from '..';
 
 /**
  * Секция комментариев. Стартовый компонент для отображения списка комментариев.
  *
  * @param {Object} props
- * @param {string} props.targetType - тип цели комментариев.
- * @param {number} props.targetId - ID цели комментариев.
+ * @param {string} props.targetType - тип сущности комментариев.
+ * @param {number} props.targetId - ID сущности комментариев.
  * @param {Object} props.currentUser - текущий пользователь.
  * @param {Function} props.onChange - функция для обновления количества комментариев.
- * @param {Function} props.onCloseComments - функция для закрытия секции комментариев.
+ * @param {Function} props.onClose - функция для закрытия секции комментариев.
  * @param {React.Ref<HTMLDivElement>} props.commentsSectionRef - ссылка на секцию комментариев.
  */
 export const CommentsSection = ({
@@ -20,7 +20,7 @@ export const CommentsSection = ({
   targetId,
   currentUser,
   onChange,
-  onCloseComments,
+  onClose,
   commentsSectionRef,
 }) => {
   /** Управление фильтрацией и сортировкой */
@@ -42,13 +42,13 @@ export const CommentsSection = ({
     error,
     loadMore,
     refetch,
-  } = useFetchComments(
+  } = useFetchComments({
     targetType,
     targetId,
-    currentUser?.id,
+    currentUserId: currentUser?.id,
     onChange,
-    sortKey
-  );
+    sortKey,
+  });
 
   return (
     <SectionCard
@@ -65,7 +65,7 @@ export const CommentsSection = ({
             icon="✕"
             variant="ghost"
             size="sm"
-            onClick={onCloseComments}
+            onClick={onClose}
             ariaLabel="Закрыть комментарии"
           />
         </>
@@ -79,12 +79,15 @@ export const CommentsSection = ({
         error={error}
         currentUser={currentUser}
         loadMore={loadMore}
-        onCommentSubmit={addComment}
-        onEditComment={updateComment}
-        onDeleteComment={deleteComment}
-        toggleLikeComment={toggleLike}
-        onCloseComments={onCloseComments}
+        onEdit={updateComment}
+        onDelete={deleteComment}
+        toggleLike={toggleLike}
         onRetry={refetch}
+      />
+      <CommentForm
+        currentUser={currentUser}
+        onSubmit={addComment}
+        onClose={onClose}
       />
     </SectionCard>
   );

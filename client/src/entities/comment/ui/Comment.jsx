@@ -41,7 +41,7 @@ export const Comment = ({
   toggleLike,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(comment?.content || '');
+  const [editText, setEditText] = useState(comment?.text || '');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   if (!comment?.id || !author) return null;
@@ -65,7 +65,7 @@ export const Comment = ({
   };
 
   const handleCancel = () => {
-    setEditText(comment.content);
+    setEditText(comment.text);
     setIsEditing(false);
   };
 
@@ -86,7 +86,7 @@ export const Comment = ({
                   aria-label={`Профиль ${author.name}`}
                 >
                   <Avatar
-                    src={author.photoUrl}
+                    src={author.avatar}
                     alt={author.name}
                     fallback="/user.png"
                   />
@@ -102,7 +102,7 @@ export const Comment = ({
                   )}
                 </Link>
               }
-              subtitle={formatDate(comment.updatedAt || comment.createdAt)}
+              subtitle={formatDate(comment.date)}
             />
           </EntityHeader>
         }
@@ -130,7 +130,7 @@ export const Comment = ({
                 </ButtonGroup>
               </>
             ) : (
-              <Text linkifyText={true}>{comment.content}</Text>
+              <Text linkify={true}>{comment.text}</Text>
             )}
           </EntityContent>
         }

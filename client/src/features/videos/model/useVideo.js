@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
@@ -7,7 +8,7 @@ import {
   deleteVideoApi,
   deleteVideoFromLibrary,
   fetchVideosApi,
-  incrementVideoViewCount,
+  incrementVideoViewsCountApi,
   normalizeVideo,
   updateVideoApi,
 } from '../../../entities/video';
@@ -23,19 +24,42 @@ import {
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
+const normalizeFilter = (value) =>
+  typeof value === 'string' && value.trim() ? value : 'all';
+
+const normalizeSearch = (value) => (typeof value === 'string' ? value : '');
+
 /**
- * Хук для получения и отображения видео на странице видео.
+ * Хук для получения и отображения видео на странице видео с бесконечным скроллом.
  *
- * @param {string} filter - фильтр по категории
- * @param {string} searchQuery - поисковый запрос
- * @param {string} sortKey - ключ сортировки
+ * @param {Object|string} params - `{ filter, searchQuery, sortKey }` или filter (legacy)
+ * @param {string} [searchQueryArg=''] - поисковый запрос (legacy)
+ * @param {string} [sortKeyArg='dateDesc'] - ключ сортировки (legacy)
  * @returns {Object} - объект с данными о видео
  */
-export const useVideos = (filter, searchQuery, sortKey) => {
+export const useVideos = (
+  params,
+  searchQueryArg = '',
+  sortKeyArg = 'dateDesc'
+) => {
+  const isParamsObject =
+    typeof params === 'object' && params !== null && !Array.isArray(params);
+
+  const filter = normalizeFilter(isParamsObject ? params.filter : params);
+  const searchQuery = normalizeSearch(
+    isParamsObject ? params.searchQuery : searchQueryArg
+  );
+  const sortKey = (isParamsObject ? params.sortKey : sortKeyArg) ?? 'dateDesc';
+
   const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.id;
   const notify = useNotify('videos');
 
-  /** Получение видео с бесконечным скроллом */
+  const scrollDeps = useMemo(
+    () => [filter, searchQuery, sortKey, currentUserId],
+    [filter, searchQuery, sortKey, currentUserId]
+  );
+
   const {
     items: videosItems,
     setItems: setVideosItems,
@@ -47,13 +71,13 @@ export const useVideos = (filter, searchQuery, sortKey) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!filter && !searchQuery) {
+      if (!currentUserId) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchVideosApi, {
         params: {
           filter,
-          searchQuery,
+          q: searchQuery,
           page,
           limit,
           sortKey,
@@ -61,39 +85,32 @@ export const useVideos = (filter, searchQuery, sortKey) => {
         signal,
       });
     },
-    deps: [filter, searchQuery, sortKey],
-    onSuccess: () => notify.success('load'),
+    deps: scrollDeps,
     onError: () => notify.error('load'),
   });
 
-  /** Оптимистичный переключатель библиотеки */
-  const { addToLibrary, removeFromLibrary } = useOptimisticLibraryToggle({
+  const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
     setItems: setVideosItems,
     addFn: addVideoToLibrary,
-    removeFn: deleteVideoFromLibrary,
+    deleteFn: deleteVideoFromLibrary,
     entityType: 'videos',
   });
 
-  /** Оптимистичный лайк */
   const toggleLike = useOptimisticLike({
     setItems: setVideosItems,
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
-    currentUserId: currentUser?.id,
+    currentUserId,
     targetType: 'videos',
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
-  /** Оптимистичный счётчик прослушиваний. */
-  const { incrementWithApi: incrementViewCount } = useOptimisticCounter({
+  const { incrementWithApi: updateGlobalViewsCount } = useOptimisticCounter({
     items: videosItems,
     setItems: setVideosItems,
-    countField: 'viewCount',
-    updateFn: incrementVideoViewCount,
+    countField: 'viewsCount',
+    updateFn: incrementVideoViewsCountApi,
   });
 
-  /** Оптимистичные мутации (CRUD) */
   const {
     add: addVideo,
     edit: updateVideo,
@@ -108,19 +125,16 @@ export const useVideos = (filter, searchQuery, sortKey) => {
     onError: (action) => notify.error(action),
   });
 
-  /** Оптимистичный счётчик комментариев. */
-  const updateCommentCount = useOptimisticCommentCount({
+  const updateCommentsCount = useOptimisticCommentCount({
     setItems: setVideosItems,
   });
 
-  /** Нормализация видео */
   const videos = useNormalizedData({
     items: videosItems,
     normalizeFn: (item) => ({
-      ...normalizeVideo(item, currentUser?.id),
+      ...normalizeVideo(item, currentUserId),
       profileLibraryId: null,
     }),
-    userId: currentUser?.id,
   });
 
   return {
@@ -134,9 +148,9 @@ export const useVideos = (filter, searchQuery, sortKey) => {
     refetch,
     toggleLike,
     addToLibrary,
-    removeFromLibrary,
-    incrementViewCount,
-    updateCommentCount,
+    deleteFromLibrary,
+    updateGlobalViewsCount,
+    updateCommentsCount,
     addVideo,
     updateVideo,
     deleteVideo,

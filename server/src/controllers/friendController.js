@@ -3,10 +3,6 @@ const friendService = require('../services/friendService');
 const friendController = {
   /**
    * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   getUsersWithFriendshipStatus: async (req, res, next) => {
     try {
@@ -25,10 +21,6 @@ const friendController = {
 
   /**
    * Получить статус дружбы между двумя пользователями
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   getFriendshipStatus: async (req, res, next) => {
     try {
@@ -45,10 +37,6 @@ const friendController = {
 
   /**
    * Отправить заявку в друзья
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   sendRequest: async (req, res, next) => {
     try {
@@ -65,10 +53,6 @@ const friendController = {
 
   /**
    * Принять заявку в друзья
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   acceptRequest: async (req, res, next) => {
     try {
@@ -85,10 +69,6 @@ const friendController = {
 
   /**
    * Отклонить заявку в друзья
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   rejectRequest: async (req, res, next) => {
     try {
@@ -105,10 +85,6 @@ const friendController = {
 
   /**
    * Удалить дружбу
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   deleteFriendship: async (req, res, next) => {
     try {
@@ -125,10 +101,6 @@ const friendController = {
 
   /**
    * Заблокировать пользователя
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   blockUser: async (req, res, next) => {
     try {

@@ -10,12 +10,39 @@ const {
 const { Op } = require('sequelize');
 const { createError } = require('./authService');
 
-// Словарь моделей для проверки существования целевой сущности
-const TARGET_MODELS = {
-  Post,
-  Music,
-  Video,
-  News,
+/**
+ * Маппинг типов сущностей на модели и типы в БД
+ */
+const TARGET_TYPES = {
+  posts: {
+    model: Post,
+    dbType: 'Post',
+  },
+
+  tracks: {
+    model: Music,
+    dbType: 'Music',
+  },
+
+  videos: {
+    model: Video,
+    dbType: 'Video',
+  },
+
+  news: {
+    model: News,
+    dbType: 'News',
+  },
+};
+
+/**
+ * Маппинг типов сущностей на типы в БД
+ */
+const GROUPED_TYPES = {
+  Post: 'posts',
+  Music: 'tracks',
+  Video: 'videos',
+  News: 'news',
 };
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
@@ -33,20 +60,25 @@ const commentService = {
    * @param {number} targetId - ID сущности
    * @param {number} page - Номер страницы
    * @param {number} limit - Количество комментариев на странице
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} { comments, pagination }
    */
-  async getCommentsByTarget(targetType, targetId, page = 1, limit = 30, sortKey = 'dateDesc') {
-    const validTypes = Object.keys(TARGET_MODELS);
-    if (!validTypes.includes(targetType)) {
+  async getCommentsByTarget(
+    targetType,
+    targetId,
+    page = 1,
+    limit = 30,
+    currentUserId,
+    sortKey = 'dateDesc'
+  ) {
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
-
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
     const { count, rows: comments } = await Comment.findAndCountAll({
       where: {
-        targetType,
-        targetId: parseInt(targetId),
+        targetType: target.dbType,
+        targetId,
       },
       include: [
         {
@@ -61,8 +93,8 @@ const commentService = {
         },
       ],
       order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-      limit: parseInt(limit),
-      offset,
+      limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
@@ -70,13 +102,51 @@ const commentService = {
       // Обогащаем комментарии данными о количестве лайков
       comments: comments.map((comment) => ({
         ...comment.toJSON(),
-        likesCount: comment.likes.length,
+        likesCount: comment.likes?.length ?? 0,
+        isLiked:
+          comment.likes?.some((like) => like.userId === currentUserId) ?? false,
       })),
       pagination: {
         totalComments: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
+      },
+    };
+  },
+
+  /**
+   * Получение комментариев пользователя (для админки)
+   * @param {number} userId - ID пользователя
+   * @param {number} page - Номер страницы
+   * @param {number} limit - Количество комментариев на странице
+   * @param {string} sortKey - Ключ сортировки
+   * @returns {Promise<Object>} { userId, comments, pagination }
+   */
+  async getUserComments(userId, page = 1, limit = 30, sortKey = 'dateDesc') {
+    const { count, rows: comments } = await Comment.findAndCountAll({
+      where: { userId },
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'name', 'avatar'],
+        },
+      ],
+      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      limit,
+      offset: (page - 1) * limit,
+      distinct: true,
+    });
+
+    return {
+      userId,
+      comments: comments.map((comment) => comment.toJSON()),
+      pagination: {
+        totalComments: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
   },
@@ -105,43 +175,6 @@ const commentService = {
   },
 
   /**
-   * Получение комментариев пользователя
-   * @param {number} userId - ID пользователя
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество комментариев на странице
-   * @returns {Promise<Object>} { userId, comments, pagination }
-   */
-  async getUserComments(userId, page = 1, limit = 50) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    const { count, rows: comments } = await Comment.findAndCountAll({
-      where: { userId: parseInt(userId) },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'avatar'],
-        },
-      ],
-      order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset,
-      distinct: true,
-    });
-
-    return {
-      userId: parseInt(userId),
-      comments: comments.map((c) => c.toJSON()),
-      pagination: {
-        totalComments: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
-      },
-    };
-  },
-
-  /**
    * Создание комментария
    * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} commentData - Данные комментария
@@ -158,25 +191,25 @@ const commentService = {
       );
     }
 
-    if (!Object.keys(TARGET_MODELS).includes(targetType)) {
+    // Динамическая проверка существования сущности
+    const target = TARGET_TYPES[targetType];
+    if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
-
-    // Динамическая проверка существования сущности
-    const TargetModel = TARGET_MODELS[targetType];
-    const targetExists = await TargetModel.findByPk(targetId, {
+    const targetEntity = await target.model.findByPk(targetId, {
       attributes: ['id'],
     });
 
-    if (!targetExists) {
-      throw createError('Целевая сущность не найдена', 404, 'TARGET_NOT_FOUND');
+    if (!targetEntity) {
+      throw createError('Сущность не найдена', 404, 'ENTITY_NOT_FOUND');
     }
 
     const comment = await Comment.create({
       userId: currentUserId,
-      targetType,
-      targetId: parseInt(targetId),
+      targetType: target.dbType,
+      targetId,
       text: text.trim(),
+      isEdited: false,
     });
 
     const commentWithAuthor = await Comment.findByPk(comment.id, {
@@ -206,7 +239,7 @@ const commentService = {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
 
-    // Проверка прав внутри сервиса
+    // Проверка прав
     if (comment.userId !== currentUserId) {
       throw createError(
         'Вы не можете редактировать этот комментарий',
@@ -225,7 +258,7 @@ const commentService = {
 
     // Обновляем и возвращаем результат одним запросом
     const [, updatedRows] = await Comment.update(
-      { text: updateData.text.trim() },
+      { text: updateData.text.trim(), isEdited: true },
       {
         where: { id: commentId },
         returning: true,
@@ -256,7 +289,7 @@ const commentService = {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
 
-    // Проверка прав внутри сервиса
+    // Проверка прав
     if (comment.userId !== currentUserId) {
       throw createError(
         'Вы не можете удалить этот комментарий',

@@ -3,22 +3,19 @@ const postService = require('../services/postService');
 const postController = {
   /**
    * Получение постов пользователя
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getUserPosts: async (req, res, next) => {
     try {
       const { userId } = req.params;
-      const { page, limit } = req.query;
-      const currentUserId = req.user.id;
+      const { page, limit, sortKey } = req.query;
+      const currentUserId = req.user?.id;
 
       const result = await postService.getUserPosts(
-        userId,
-        currentUserId,
-        page,
-        limit
+        parseInt(userId),
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
       );
       res.status(200).json(result);
     } catch (error) {
@@ -28,15 +25,15 @@ const postController = {
 
   /**
    * Получение поста по ID
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getPostById: async (req, res, next) => {
     try {
       const { postId } = req.params;
-      const result = await postService.getPostById(postId);
+      const currentUserId = req.user?.id;
+      const result = await postService.getPostById(
+        parseInt(postId),
+        parseInt(currentUserId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -45,14 +42,14 @@ const postController = {
 
   /**
    * Создание поста
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   createPost: async (req, res, next) => {
     try {
-      const result = await postService.createPost(req.user.id, req.body);
+      const currentUserId = req.user?.id;
+      const result = await postService.createPost(
+        parseInt(currentUserId),
+        req.body
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -61,10 +58,6 @@ const postController = {
 
   /**
    * Загрузка медиа файла
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   uploadMedia: async (req, res, next) => {
     try {
@@ -82,18 +75,31 @@ const postController = {
 
   /**
    * Обновление поста
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   updatePost: async (req, res, next) => {
     try {
       const { postId } = req.params;
+      const currentUserId = req.user?.id;
       // Проверка прав внутри сервиса, передаем userId
       const result = await postService.updatePost(
-        postId,
-        req.user.id,
+        parseInt(postId),
+        parseInt(currentUserId),
+        req.body
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Обновление приватности постов
+   */
+  updatePostPrivacy: async (req, res, next) => {
+    try {
+      const currentUserId = req.user?.id;
+      const result = await postService.updatePostPrivacy(
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -104,15 +110,15 @@ const postController = {
 
   /**
    * Удаление поста
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   deletePost: async (req, res, next) => {
     try {
       const { postId } = req.params;
-      const result = await postService.deletePost(postId, req.user.id);
+      const currentUserId = req.user?.id;
+      const result = await postService.deletePost(
+        parseInt(postId),
+        parseInt(currentUserId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);

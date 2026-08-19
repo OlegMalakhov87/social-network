@@ -44,7 +44,7 @@ export const getPostActions = ({
     },
   ];
 
-  if (post.visibility === 'public') {
+  if (post.isPublic !== false) {
     actions.push({
       key: 'share',
       icon: '↗️',

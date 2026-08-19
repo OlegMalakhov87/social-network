@@ -1,6 +1,6 @@
 import { POST_TYPES, VISIBILITY_OPTIONS } from '../../../entities/post';
 import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength, required } from '../../../shared/lib';
+import { maxLength, required } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -31,18 +31,21 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
-      message: initialData?.message || '',
-      visibility: initialData?.visibility || 'public',
+      text: initialData?.text || '',
+      isPublic: initialData?.isPublic || true,
       type: initialData?.type || 'text',
-      mediaUrl: initialData?.mediaUrl || '',
+      media: initialData?.media || null,
+      pinned: initialData?.pinned || false,
     },
     rules: (values) => ({
-      message: [
-        required('Введите текст'),
-        minLength(10, 'Минимально 10 символов'),
-        maxLength(5000, 'Максимум 5000 символов'),
-      ],
-      mediaUrl: values.type !== 'text' ? [required('Загрузите медиафайл')] : [],
+      text:
+        values.type === 'text'
+          ? [
+              required('Введите текст'),
+              maxLength(5000, 'Максимум 5000 символов'),
+            ]
+          : [],
+      media: values.type !== 'text' ? [required('Загрузите медиафайл')] : [],
     }),
     onSubmit: (values) => {
       onSubmit?.(values, isEdit, initialData?.id);
@@ -52,12 +55,12 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(POST_IMAGE_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('mediaUrl', data.mediaUrl),
+    onSuccess: (data) => form.setValue('media', data.media),
   });
 
   /** Хук для загрузки видео */
   const videoUpload = useFileUpload(POST_VIDEO_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('mediaUrl', data.mediaUrl),
+    onSuccess: (data) => form.setValue('media', data.media),
   });
 
   /** Флаг загрузки */
@@ -72,7 +75,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Обработчик изменения типа поста */
   const handleTypeChange = (value) => {
     form.setValue('type', value);
-    form.setValue('mediaUrl', '');
+    form.setValue('media', '');
     imageUpload.reset();
     videoUpload.reset();
   };
@@ -90,7 +93,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
 
           {/* Поле ввода сообщения */}
           <TextArea
-            {...form.register('message')}
+            {...form.register('text')}
             placeholder="Поделитесь своими новостями"
             rows={3}
             disabled={form.isSubmitting || isUploading}
@@ -109,7 +112,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
               preview={activeUpload.preview}
               isUploading={activeUpload.isUploading}
               progress={activeUpload.progress}
-              error={activeUpload.error}
+              error={activeUpload.error || form.errors.media}
               onChange={activeUpload.handleFileChange}
               disabled={form.isSubmitting || isUploading}
             />
@@ -117,7 +120,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
 
           {/* Выбор видимости */}
           <Select
-            {...form.register('visibility')}
+            {...form.register('isPublic')}
             options={VISIBILITY_OPTIONS}
             disabled={form.isSubmitting || isUploading}
           />

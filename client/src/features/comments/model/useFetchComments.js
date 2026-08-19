@@ -13,13 +13,12 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
-import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения комментариев с бесконечным скроллом.
  *
  * @param {Object} params - параметры запроса
- * @param {string} params.targetType - тип сущности (Post, News, Comment)
+ * @param {string} params.targetType - тип сущности
  * @param {number} params.targetId - ID сущности
  * @param {number} params.currentUserId - ID текущего пользователя
  * @param {Function} params.onChange - колбэк для обновления счётчика комментариев
@@ -50,13 +49,16 @@ export const useFetchComments = ({
       if (!targetType || !targetId) {
         return { items: [], hasMore: false };
       }
-      return apiFetchItems(fetchCommentsApi, {
-        params: { targetType, targetId, page, limit, sortKey },
+      return fetchCommentsApi({
+        targetType,
+        targetId,
+        page,
+        limit,
+        sortKey,
         signal,
       });
     },
     deps: [targetType, targetId, sortKey],
-    onSuccess: () => notify.success('load'),
     onError: () => notify.error('load'),
   });
 
@@ -66,9 +68,7 @@ export const useFetchComments = ({
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
     currentUserId: currentUserId,
-    targetType: 'comment',
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
+    targetType: 'comments',
   });
 
   /** Оптимистичный мутации (CRUD). */
@@ -80,15 +80,19 @@ export const useFetchComments = ({
     items: commentsItems,
     setItems: setCommentsItems,
     addFn: async (data) => {
-      const res = await addCommentApi(data);
+      const res = await addCommentApi({
+        targetType,
+        targetId,
+        text: data.text,
+      });
       onChange?.(+1);
-      return res;
+      return res?.comment ?? res;
     },
     editFn: updateCommentApi,
     deleteFn: async (commentId) => {
       const res = await deleteCommentApi(commentId);
       onChange?.(-1);
-      return res;
+      return res?.comment ?? res;
     },
     onSuccess: (action) => {
       notify.success(action);
@@ -98,11 +102,10 @@ export const useFetchComments = ({
     },
   });
 
-  /** Нормализация и сортировка комментариев. */
+  /** Нормализация комментариев. */
   const comments = useNormalizedData({
     items: commentsItems,
     normalizeFn: normalizeComment,
-    userId: currentUserId,
   });
 
   return {

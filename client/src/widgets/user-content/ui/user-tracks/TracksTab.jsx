@@ -25,13 +25,13 @@ import style from './TracksTab.module.css';
  * @param {Function} props.togglePlay - переключение трека (пауза/плей)
  * @param {Function} props.onTrackStart - увеличение счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере
  * @param {Function} props.addOptimistic - добавить трек в библиотеку
- * @param {Function} props.removeOptimistic - удалить из библиотеки
+ * @param {Function} props.deleteOptimistic - удалить из библиотеки
  * @param {Function} props.deleteTrack - удалить трек
  * @param {Function} props.updateTrack - обновить трек
- * @param {Function} props.updatePlayCount - обновить личный счетчик прослушиваний
- * @param {Function} props.incrementPlayCount - обновить глобальный счетчик прослушиваний
+ * @param {Function} props.updatePlaysCount - обновить личный счетчик прослушиваний
+ * @param {Function} props.updateGlobalPlaysCount - обновить глобальный счетчик прослушиваний
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
- * @param {Function} props.onToggleComments - открыть комментарии
+ * @param {Function} props.toggleComments - открыть комментарии
  * @param {Function} props.onRetry - повторить загрузку
  */
 
@@ -52,13 +52,13 @@ export const TracksTab = ({
   onTrackStart,
   toggleLike,
   addOptimistic,
-  removeOptimistic,
+  deleteOptimistic,
   deleteTrack,
   updateTrack,
-  updatePlayCount,
-  incrementPlayCount,
+  updatePlaysCount,
+  updateGlobalPlaysCount,
   toggleFavorite,
-  onToggleComments,
+  toggleComments,
   onRetry,
 }) => {
   const tracksRef = useRef(tracks);
@@ -75,28 +75,28 @@ export const TracksTab = ({
       const profileLibraryId =
         currentTrackInList?.profileLibraryId || track.profileLibraryId;
 
-      const playCount = currentTrackInList?.playCount ?? track?.playCount;
-      const newPlayCount = (playCount ?? 0) + 1;
+      const playsCount = currentTrackInList?.playsCount ?? track?.playsCount;
+      const newPlaysCount = (playsCount ?? 0) + 1;
 
       if (profileLibraryId) {
-        updatePlayCount?.(
+        updatePlaysCount?.(
           track?.id,
           profileLibraryId,
           currentTrackInList?.isFavorite ?? track?.isFavorite,
-          newPlayCount
+          newPlaysCount
         );
       } else {
-        incrementPlayCount?.(track?.id);
+        updateGlobalPlaysCount?.(track?.id);
       }
     });
 
     return () => onTrackStart(null);
-  }, [onTrackStart, updatePlayCount, incrementPlayCount]);
+  }, [onTrackStart, updatePlaysCount, updateGlobalPlaysCount]);
 
   return (
     <ContentState
       loading={isLoading && tracks.length === 0}
-      error={error && tracks.length === 0}
+      error={tracks.length === 0 ? error : null}
       isEmpty={!tracks?.length}
       loadingMessage="Загружаем треки..."
       emptyIcon="🎵"
@@ -112,22 +112,23 @@ export const TracksTab = ({
         {tracks.map((item) => {
           return (
             <Track
+              key={item.id}
               track={item}
-              isPlaying={isPlaying}
-              currentTrack={currentTrack}
-              onPlay={onPlay}
-              togglePlay={togglePlay}
               allTracks={tracks}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
               currentUser={currentUser}
               isOwnProfile={isOwnProfile}
               mode={mode}
+              onPlay={onPlay}
+              togglePlay={togglePlay}
               addToLibrary={addOptimistic}
-              removeFromLibrary={removeOptimistic}
-              toggleLike={toggleLike}
-              onDelete={deleteTrack}
-              toggleComments={onToggleComments}
+              deleteFromLibrary={deleteOptimistic}
               toggleFavorite={toggleFavorite}
+              toggleLike={toggleLike}
+              toggleComments={toggleComments}
               updateTrack={updateTrack}
+              onDelete={deleteTrack}
             />
           );
         })}

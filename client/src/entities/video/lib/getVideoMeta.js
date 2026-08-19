@@ -1,4 +1,4 @@
-import { formatDate } from '../../../shared/utils';
+import { formatDate, formatSize } from '../../../shared/utils';
 
 /**
  * Подготавливает данные для отображения VideoMeta.
@@ -11,7 +11,7 @@ export const getVideoMeta = (video, mode) => {
   return {
     details: [
       { label: 'Категория', value: video.category },
-      { label: 'Размер', value: video.size },
+      { label: 'Размер', value: formatSize(video.size) },
       { label: 'Год', value: video.year },
     ],
 

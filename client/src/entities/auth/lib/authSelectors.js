@@ -110,4 +110,17 @@ export const selectHasToken = (state) => Boolean(state.auth.token);
  * @param {Object} state
  * @returns {boolean}
  */
-export const selectIsAuthReady = (state) => state.auth.status !== 'loading';
+export const selectIsAuthReady = (state) => !state.auth.isCheckingAuth;
+
+/**
+ * Проверить, авторизован ли пользователь и завершена ли проверка авторизации.
+ *
+ * @param {Object} state
+ * @returns {boolean}
+ */
+export const selectIsAuthenticatedAndReady = (state) =>
+  Boolean(
+    selectIsAuthenticated(state) &&
+      selectIsAuthReady(state) &&
+      selectHasUser(state)
+  );

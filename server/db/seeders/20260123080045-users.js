@@ -13,6 +13,7 @@ module.exports = {
         phone: '+79161234567',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -26,6 +27,7 @@ module.exports = {
         phone: '+79167654321',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -39,6 +41,7 @@ module.exports = {
         phone: '+79165557788',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -52,6 +55,7 @@ module.exports = {
         phone: '+79536788832',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -65,6 +69,7 @@ module.exports = {
         phone: '+79112345678',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
 
@@ -79,6 +84,7 @@ module.exports = {
         phone: '+79134567890',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -92,6 +98,7 @@ module.exports = {
         phone: '+79123456789',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -105,6 +112,7 @@ module.exports = {
         phone: '+79156548842',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -118,6 +126,7 @@ module.exports = {
         phone: '+79876543210',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -131,6 +140,7 @@ module.exports = {
         phone: '+79164557698',
         avatar: '/user.png',
         isPublic: false,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -144,6 +154,7 @@ module.exports = {
         phone: '+79159853221',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -157,6 +168,7 @@ module.exports = {
         phone: '+79195678901',
         avatar: '/user.png',
         isPublic: false,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -170,6 +182,7 @@ module.exports = {
         phone: '+79102345678',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -183,6 +196,7 @@ module.exports = {
         phone: '+79178901234',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -196,6 +210,7 @@ module.exports = {
         phone: '+79187890123',
         avatar: '/user.png',
         isPublic: false,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -209,6 +224,7 @@ module.exports = {
         phone: '+79145678901',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
       {
@@ -222,6 +238,7 @@ module.exports = {
         phone: '+79135567890',
         avatar: '/user.png',
         isPublic: false,
+        gender: 'male',
         passwordHash: 123,
       },
       {
@@ -235,6 +252,7 @@ module.exports = {
         phone: '+79123756789',
         avatar: '/user.png',
         isPublic: true,
+        gender: 'female',
         passwordHash: 123,
       },
     ]);

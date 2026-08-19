@@ -34,18 +34,18 @@ export const Message = ({
   onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(message.text);
+  const [editText, setEditText] = useState(message.content);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   if (!message?.id) return null;
 
   const handleStartEdit = () => {
-    setEditText(message.text);
+    setEditText(message.content);
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
-    setEditText(message.text);
+    setEditText(message.content);
     setIsEditing(false);
   };
 
@@ -108,7 +108,7 @@ export const Message = ({
             <SharedEntityCard entity={sharedEntity} onPlayMedia={onPlayMedia} />
           ) : (
             <Text linkifyText={true} className={style.messageContent}>
-              {message.text}
+              {message.content}
             </Text>
           )}
 

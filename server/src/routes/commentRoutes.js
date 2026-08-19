@@ -8,7 +8,15 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const commentRoutes = Router();
 
-// Получение комментариев пользователя
+// Получение комментариев для конкретной сущности
+commentRoutes.get(
+  '/:targetType/:targetId',
+  validateIdParam('targetId'),
+  authMiddleware,
+  commentController.getAllCommentsTarget
+);
+
+// Получение комментариев пользователя (для админки)
 commentRoutes.get(
   '/user/:userId',
   validateIdParam('userId'),
@@ -24,17 +32,9 @@ commentRoutes.get(
   commentController.getCommentById
 );
 
-// Получение комментариев для конкретной сущности
-commentRoutes.get(
-  '/:targetType/:targetId',
-  validateIdParam('targetId'),
-  authMiddleware,
-  commentController.getAllCommentsTarget
-);
-
 // Создание комментария
 commentRoutes.post(
-  '/',
+  '/add',
   authMiddleware,
   validateComment,
   commentController.createComment
@@ -42,7 +42,7 @@ commentRoutes.post(
 
 // Обновление комментария
 commentRoutes.put(
-  '/:commentId',
+  '/:commentId/update',
   validateIdParam('commentId'),
   authMiddleware,
   validateComment,
@@ -51,7 +51,7 @@ commentRoutes.put(
 
 // Удаление комментария
 commentRoutes.delete(
-  '/:commentId',
+  '/:commentId/delete',
   validateIdParam('commentId'),
   authMiddleware,
   commentController.deleteComment

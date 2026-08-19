@@ -3,21 +3,40 @@ const commentService = require('../services/commentService');
 const commentController = {
   /**
    * Получение комментариев для конкретной сущности
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getAllCommentsTarget: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
-      const { page, limit } = req.query;
+      const { page, limit, sortKey } = req.query;
+      const currentUserId = req.user?.id;
 
       const result = await commentService.getCommentsByTarget(
         targetType,
-        targetId,
-        page,
-        limit
+        parseInt(targetId),
+        parseInt(page),
+        parseInt(limit),
+        parseInt(currentUserId),
+        sortKey
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Получение комментариев пользователя (для админки)
+   */
+  getAllCommentsUser: async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const { page, limit, sortKey } = req.query;
+
+      const result = await commentService.getUserComments(
+        userId,
+        parseInt(page),
+        parseInt(limit),
+        sortKey
       );
       res.status(200).json(result);
     } catch (error) {
@@ -27,34 +46,11 @@ const commentController = {
 
   /**
    * Получение комментария по ID
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   getCommentById: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const result = await commentService.getCommentById(commentId);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Получение комментариев пользователя
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
-   */
-  getAllCommentsUser: async (req, res, next) => {
-    try {
-      const { userId } = req.params;
-      const { page, limit } = req.query;
-
-      const result = await commentService.getUserComments(userId, page, limit);
+      const result = await commentService.getCommentById(parseInt(commentId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -63,14 +59,14 @@ const commentController = {
 
   /**
    * Создание комментария
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   createComment: async (req, res, next) => {
     try {
-      const result = await commentService.createComment(req.user.id, req.body);
+      const currentUserId = req.user?.id;
+      const result = await commentService.createComment(
+        parseInt(currentUserId),
+        req.body
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -79,17 +75,14 @@ const commentController = {
 
   /**
    * Обновление комментария
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   updateComment: async (req, res, next) => {
     try {
       const { commentId } = req.params;
+      const currentUserId = req.user?.id;
       const result = await commentService.updateComment(
-        commentId,
-        req.user.id,
+        parseInt(commentId),
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -100,15 +93,15 @@ const commentController = {
 
   /**
    * Удаление комментария
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   deleteComment: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const result = await commentService.deleteComment(commentId, req.user.id);
+      const currentUserId = req.user?.id;
+      const result = await commentService.deleteComment(
+        parseInt(commentId),
+        parseInt(currentUserId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);

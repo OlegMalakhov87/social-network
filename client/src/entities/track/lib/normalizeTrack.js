@@ -1,12 +1,9 @@
 /**
- * Преобразует треки из ответа сервера в формат для Track.
- *
- * @param {Object} raw - треки из ответа сервера
- * @param {number|null} currentUserId - ID текущего пользователя
+ * Преобразует трек с сервера в формат компонента Track / AudioPlayer.
+ * @param {Object} raw - трек из ответа сервера
  * @returns {Object} - нормализованные данные трека
  */
-
-export const normalizeTrack = (raw, currentUserId) => {
+export const normalizeTrack = (raw) => {
   if (!raw || typeof raw !== 'object') {
     return {
       id: null,
@@ -15,9 +12,11 @@ export const normalizeTrack = (raw, currentUserId) => {
       album: '',
       year: null,
       duration: null,
-      fileUrl: '',
+      audio: '',
+      cover: '',
       genre: '',
       description: '',
+      isPublic: false,
       isInLibrary: false,
       libraryId: null,
       playsCount: 0,
@@ -36,24 +35,27 @@ export const normalizeTrack = (raw, currentUserId) => {
     album: raw.album,
     year: raw.year,
     duration: raw.duration,
-    fileUrl: raw.fileUrl,
+    audio: raw.audio,
+    cover: raw.cover,
     genre: raw.genre,
     description: raw.description,
     isPublic: raw.isPublic,
     playsCount: raw.playsCount ?? 0,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
     date: raw.updatedAt ?? raw.createdAt,
-    libraryCreatedAt: raw.libraryCreatedAt,
-    uploaderName: raw.uploader?.name,
+    uploader: raw.uploader,
 
     isInLibrary: raw.isInLibrary ?? false,
     isFavorite: raw.isFavorite ?? false,
     libraryId: raw.libraryId ?? null,
+    libraryCreatedAt: raw.libraryCreatedAt ?? null,
     profileLibraryId: raw.profileLibraryId ?? raw.libraryId ?? null,
 
-    likesCount: raw.likes?.length ?? 0,
-    isLiked: raw.likes?.some((like) => like.userId === currentUserId) ?? false,
+    likesCount: raw.likesCount ?? 0,
+    isLiked: raw.isLiked ?? false,
 
-    commentsCount: raw.commentsCount ?? raw.comments?.length ?? 0,
+    commentsCount: raw.commentsCount ?? 0,
     comments: raw.comments || [],
   };
 };

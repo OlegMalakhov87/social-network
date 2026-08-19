@@ -6,14 +6,22 @@ import { api } from '../../../shared/api';
  * @param {number} params.userId - ID пользователя
  * @param {number} params.page - номер страницы
  * @param {number} params.limit - количество на странице
+ * @param {string} params.sortKey - ключ сортировки
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @returns {Promise<Object>} { items, pagination }
  */
-export const fetchPostsApi = async ({ userId, page, limit, signal } = {}) => {
+export const fetchPostsApi = async ({
+  userId,
+  page,
+  limit,
+  sortKey,
+  signal,
+} = {}) => {
   const response = await api.get(`/posts/${userId}`, {
     params: {
       page,
       limit,
+      sortKey,
     },
     signal,
   });
@@ -35,22 +43,22 @@ export const fetchPostById = async (postId) => {
 
 /**
  * Добавить пост.
- * @param {Object} data - поля поста (message, visibility, type, mediaUrl)
+ * @param {Object} data - поля поста 
  * @returns {Promise<Object>} { post }
  */
 export const addPostApi = async (data) => {
-  const response = await api.post('/posts', data);
+  const response = await api.post('/posts/add', data);
   return response.data;
 };
 
 /**
  * Обновить пост по ID.
  * @param {number} postId - ID поста
- * @param {Object} updates - поля поста (message, visibility, type, mediaUrl)
+ * @param {Object} updates - поля поста 
  * @returns {Promise<Object>} { post }
  */
 export const updatePostApi = async (postId, updates) => {
-  const response = await api.put(`/posts/${postId}`, updates);
+  const response = await api.put(`/posts/${postId}/update`, updates);
   return response.data;
 };
 
@@ -60,7 +68,7 @@ export const updatePostApi = async (postId, updates) => {
  * @returns {Promise<Object>} { isPublic }
  */
 export const updatePostsPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/posts/privacy`, { isPublic });
+  const response = await api.put(`/posts/update-privacy`, { isPublic });
   return response.data;
 };
 
@@ -70,6 +78,6 @@ export const updatePostsPrivacyApi = async (isPublic) => {
  * @returns {Promise<Object>} { postId }
  */
 export const deletePostApi = async (postId) => {
-  const response = await api.delete(`/posts/${postId}`);
+  const response = await api.delete(`/posts/${postId}/delete`);
   return response.data;
 };

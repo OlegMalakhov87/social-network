@@ -8,46 +8,48 @@ const {
 
 const likeRoutes = Router();
 
-// Проверить, поставил ли текущий пользователь лайк
-likeRoutes.get(
-  '/check/:targetType/:targetId',
-  validateIdParam('targetId'),
-  authMiddleware,
-  likeController.checkLike
-);
-
 // Получить все лайки конкретной сущности
 likeRoutes.get(
   '/:targetType/:targetId',
   validateIdParam('targetId'),
   authMiddleware,
+  validateLike,
   likeController.getLikesByTarget
+);
+
+// Получить все лайки пользователя
+likeRoutes.get(
+  '/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  likeController.getUserLikes
+);
+
+// Проверить, поставил ли текущий пользователь лайк
+likeRoutes.get(
+  ':targetType/:targetId/check',
+  validateIdParam('targetId'),
+  authMiddleware,
+  validateLike,
+  likeController.checkLike
 );
 
 // Поставить лайк
 likeRoutes.post(
-  '/:targetType/:targetId',
+  '/:targetType/:targetId/add',
   validateIdParam('targetId'),
   authMiddleware,
   validateLike,
   likeController.addLike
 );
 
-// Убрать лайк
+// Удалить лайк
 likeRoutes.delete(
-  '/:targetType/:targetId',
+  '/:targetType/:targetId/delete',
   validateIdParam('targetId'),
   authMiddleware,
   validateLike,
-  likeController.removeLike
-);
-
-// Получить все лайки пользователя
-likeRoutes.get(
-  '/user/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  likeController.getUserLikes
+  likeController.deleteLike
 );
 
 module.exports = likeRoutes;

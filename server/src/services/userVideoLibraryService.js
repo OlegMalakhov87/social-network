@@ -4,7 +4,10 @@ const {
   User,
   Like,
   Comment,
+  Friend,
 } = require('../../db/models');
+const { Op } = require('sequelize');
+const { sequelize } = require('../../db/models');
 const { createError } = require('./authService');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
@@ -16,19 +19,33 @@ const SORT_MAP = {
 };
 const userVideoLibraryService = {
   /**
-   * Получить мою библиотеку
+   * Получить мою видео библиотеку
    * @param {number} userId - ID пользователя
    * @param {number} page - Номер страницы
    * @param {number} limit - Количество видео на странице
+   * @param {string} sortKey - Ключ сортировки
    * @returns {Promise<Object>}
    */
-  async getMyLibrary(userId, page = 1, limit = 30, sortKey = 'dateDesc') {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
+  async getMyVideoLibrary(
+    currentUserId,
+    page = 1,
+    limit = 30,
+    sortKey = 'dateDesc'
+  ) {
     // Ищем все записи в библиотеке
     const { count, rows: libraryEntries } =
       await UserVideoLibrary.findAndCountAll({
-        where: { userId: parseInt(userId) },
+        where: { userId: currentUserId },
+        attributes: [
+          'id',
+          'userId',
+          'videoId',
+          'isFavorite',
+          'viewsCount',
+          'lastWatchedAt',
+          'createdAt',
+          'updatedAt',
+        ],
         include: [
           {
             model: Video,
@@ -58,24 +75,27 @@ const userVideoLibraryService = {
           },
         ],
         order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-        limit: parseInt(limit),
-        offset,
+        limit: limit,
+        offset: (page - 1) * limit,
         distinct: true,
       });
 
     // Форматируем ответ, объединяя данные библиотеки и видео и добавляя количество комментариев и лайков
     const videos = libraryEntries.map((entry) => {
       const videoData = entry.video?.toJSON() || {};
+
       return {
         ...videoData,
         isInLibrary: true,
         libraryId: entry.id,
+        profileLibraryId: entry.id,
         isFavorite: entry.isFavorite,
         viewsCount: entry.viewsCount,
         lastWatchedAt: entry.lastWatchedAt,
         libraryCreatedAt: entry.createdAt,
-        commentsCount: entry.comments?.length,
-        likesCount: entry.likes?.length,
+        commentsCount: videoData.comments?.length,
+        likesCount: videoData.likes?.length,
+        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
       };
     });
 
@@ -83,20 +103,167 @@ const userVideoLibraryService = {
       videos,
       pagination: {
         totalVideos: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
+      },
+    };
+  },
+
+  /**
+   * Получить библиотеку видео конкретного пользователя
+   * @param {number} profileUserId - ID пользователя, библиотеку которого запрашивают
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {number} page - Номер страницы
+   * @param {number} limit - Количество видео на странице
+   * @param {string} sortKey - Ключ сортировки
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async getUserVideosLibrary(
+    profileUserId,
+    currentUserId,
+    page = 1,
+    limit = 30,
+    sortKey = 'dateDesc'
+  ) {
+    let isFriend = false;
+    if (currentUserId && currentUserId !== profileUserId) {
+      const friendship = await Friend.findOne({
+        where: {
+          [Op.or]: [
+            {
+              userId: currentUserId,
+              friendId: profileUserId,
+              status: 'accepted',
+            },
+            {
+              userId: profileUserId,
+              friendId: currentUserId,
+              status: 'accepted',
+            },
+          ],
+        },
+      });
+      isFriend = !!friendship;
+    }
+
+    // Формируем условие приватности для видео
+    const videoWhere = {};
+    if (currentUserId !== profileUserId) {
+      videoWhere[Op.or] = [{ isPublic: true }];
+      if (isFriend) videoWhere[Op.or].push({ isPublic: false });
+    }
+
+    const { count, rows: libraryEntries } =
+      await UserVideoLibrary.findAndCountAll({
+        where: { userId: profileUserId },
+        attributes: [
+          'id',
+          'userId',
+          'videoId',
+          'isFavorite',
+          'viewsCount',
+          'lastWatchedAt',
+          'createdAt',
+          'updatedAt',
+        ],
+        include: [
+          {
+            model: Video,
+            as: 'video',
+            where: videoWhere,
+            required: true,
+            include: [
+              {
+                model: User,
+                as: 'uploader',
+                attributes: ['id', 'name', 'avatar'],
+              },
+              { model: Like, as: 'likes', attributes: ['id', 'userId'] },
+              {
+                model: Comment,
+                as: 'comments',
+                limit: 100,
+                order: [['createdAt', 'ASC']],
+                include: [
+                  {
+                    model: User,
+                    as: 'author',
+                    attributes: ['id', 'name', 'avatar'],
+                  },
+                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
+                ],
+              },
+            ],
+          },
+        ],
+        order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+        limit: limit,
+        offset: (page - 1) * limit,
+        distinct: true,
+      });
+
+    // Создаем Map для быстрого поиска видео в библиотеке текущего пользователя
+    let currentUserLibraryMap = new Map();
+    if (
+      currentUserId &&
+      currentUserId !== profileUserId &&
+      libraryEntries.length > 0
+    ) {
+      const videoIds = libraryEntries.map((entry) => entry.videoId);
+      const myEntries = await UserVideoLibrary.findAll({
+        where: { userId: currentUserId, videoId: { [Op.in]: videoIds } },
+        attributes: ['videoId', 'id'],
+        raw: true,
+      });
+      currentUserLibraryMap = new Map(myEntries.map((e) => [e.videoId, e.id]));
+    }
+
+    // Форматируем ответ
+    const formattedVideos = libraryEntries.map((entry) => {
+      const videoData = entry.video?.toJSON() || {};
+      const myLibraryId = currentUserLibraryMap.get(entry.videoId);
+
+      return {
+        ...videoData,
+        // Данные для кнопки текущего пользователя
+        isInLibrary: !!myLibraryId,
+        libraryId: myLibraryId,
+        // Данные из библиотеки просматриваемого профиля
+        profileLibraryId: entry.id,
+        viewsCount: entry.viewsCount,
+        commentsCount: videoData.comments?.length,
+        likesCount: videoData.likes?.length,
+        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
+        lastWatchedAt: entry.lastWatchedAt,
+        libraryCreatedAt: entry.createdAt,
+      };
+    });
+
+    return {
+      videos: formattedVideos,
+      pagination: {
+        totalVideos: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
+      },
+      meta: {
+        profileUserId: profileUserId,
+        currentUserId: currentUserId || null,
+        isOwnProfile: currentUserId === profileUserId,
+        isFriend,
       },
     };
   },
 
   /**
    * Добавить видео в библиотеку
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID пользователя
    * @param {number} videoId - ID видео
    * @returns {Promise<Object>}
    */
-  async addToLibrary(userId, videoId) {
+  async addToVideoLibrary(currentUserId, videoId) {
     // Проверяем, существует ли видео
     const video = await Video.findByPk(videoId, { attributes: ['id'] });
     if (!video) {
@@ -106,7 +273,7 @@ const userVideoLibraryService = {
     // Ищем или создаем запись в библиотеке
     try {
       const [libraryItem, created] = await UserVideoLibrary.findOrCreate({
-        where: { userId: parseInt(userId), videoId: parseInt(videoId) },
+        where: { userId: currentUserId, videoId: videoId },
         defaults: {
           isFavorite: false,
           viewsCount: 0,
@@ -129,11 +296,11 @@ const userVideoLibraryService = {
           {
             model: Video,
             as: 'video',
-            attributes: ['id', 'title', 'thumbnail', 'url'],
+            attributes: ['id', 'title'],
           },
         ],
       });
-
+      console.log('itemWithVideo:', itemWithVideo[0]?.toJSON());
       // Возвращаем запись в библиотеке с видео
       return { libraryItem: itemWithVideo.toJSON() };
     } catch (error) {
@@ -150,35 +317,22 @@ const userVideoLibraryService = {
   },
 
   /**
-   * Обновить запись в библиотеке
-   * @param {number} userId - ID пользователя
+   * Обновить запись в библиотеке (избранное)
+   * @param {number} currentUserId - ID пользователя
    * @param {number} libraryId - ID записи в библиотеке
-   * @param {Object} updates - Обновляемые данные
+   * @param {boolean} isFavorite - Состояние избранного
    * @returns {Promise<Object>}
    */
-  async updateLibraryItem(userId, libraryId, updates) {
+  async updateFavoriteVideo(currentUserId, libraryId, isFavorite) {
     const dbUpdates = {};
-    if (updates.isFavorite !== undefined)
-      dbUpdates.isFavorite = updates.isFavorite;
-    if (updates.lastWatchedAt !== undefined)
-      dbUpdates.lastWatchedAt = updates.lastWatchedAt;
-    if (updates.viewsCount !== undefined) {
-      dbUpdates.viewsCount = updates.viewsCount;
-    }
-
+    dbUpdates.isFavorite = isFavorite;
+    // Обновляем запись в библиотеке
     const [affectedCount, updatedRows] = await UserVideoLibrary.update(
       dbUpdates,
       {
-        where: { id: parseInt(libraryId), userId: parseInt(userId) },
+        where: { id: libraryId, userId: currentUserId },
         returning: true,
         plain: true,
-        include: [
-          {
-            model: Video,
-            as: 'video',
-            attributes: ['id', 'title', 'thumbnail', 'viewsCount'],
-          },
-        ],
       }
     );
 
@@ -191,34 +345,84 @@ const userVideoLibraryService = {
       );
     }
 
-    // Если фронтенд сообщает о новом просмотре, увеличиваем глобальный счетчик просмотров видео
-    if (updates.viewsCount !== undefined) {
-      await Video.increment('viewsCount', {
-        by: 1,
-        where: { id: updatedRows.videoId },
-      });
-    }
-
     // Возвращаем обновленную запись в библиотеке
     return { libraryItem: updatedRows.toJSON() };
   },
 
   /**
-   * Удалить запись из библиотеки
-   * @param {number} userId - ID пользователя
+   * Увеличить счетчики просмотров видео и обновить последний просмотр в библиотеке.
    * @param {number} libraryId - ID записи в библиотеке
    * @returns {Promise<Object>}
    */
-  async removeFromLibrary(userId, libraryId) {
-    // Удаляем запись из библиотеки
-    const deletedCount = await UserVideoLibrary.destroy({
-      where: { id: parseInt(libraryId), userId: parseInt(userId) },
+  async incrementViewsCount(libraryId) {
+    // Находим запись в библиотеке
+    const libraryItem = await UserVideoLibrary.findOne({
+      where: { id: libraryId },
     });
 
-    // Если запись не удалена, выбрасываем ошибку
+    if (!libraryItem) {
+      throw createError(
+        'Запись в библиотеке не найдена',
+        404,
+        'LIBRARY_ITEM_NOT_FOUND'
+      );
+    }
+
+    const now = new Date().toISOString();
+
+    const result = await sequelize.transaction(async (transaction) => {
+      // Увеличиваем счётчик в библиотеке и обновляем последний просмотр
+      await UserVideoLibrary.update(
+        {
+          viewsCount: sequelize.literal('"viewsCount" + 1'),
+          lastWatchedAt: now,
+        },
+        {
+          where: { id: libraryId },
+          transaction,
+        }
+      );
+
+      // Увеличиваем глобальный счётчик просмотров видео
+      await Video.increment('viewsCount', {
+        by: 1,
+        where: { id: libraryItem.videoId },
+        transaction,
+      });
+
+      // Получаем обновлённые значения
+      const updatedItem = await UserVideoLibrary.findOne({
+        where: { id: libraryId },
+        attributes: ['viewsCount', 'lastWatchedAt'],
+        transaction,
+      });
+
+      return {
+        libraryId,
+        viewsCount: updatedItem.viewsCount,
+        lastWatchedAt: updatedItem.lastWatchedAt,
+      };
+    });
+
+    return result;
+  },
+
+  /**
+   * Удалить видео из библиотеки
+   * @param {number} currentUserId - ID пользователя
+   * @param {number} libraryId - ID записи в библиотеке
+   * @returns {Promise<Object>}
+   */
+  async deleteVideoFromLibrary(currentUserId, libraryId) {
+    // Удаляем видео из библиотеки
+    const deletedCount = await UserVideoLibrary.destroy({
+      where: { id: libraryId, userId: currentUserId },
+    });
+
+    // Если видео не удалено, выбрасываем ошибку
     if (deletedCount === 0) {
       throw createError(
-        'Запись в библиотеке не найдена или нет прав',
+        'Видео в библиотеке не найдено или нет прав',
         404,
         'LIBRARY_ITEM_NOT_FOUND'
       );

@@ -2,19 +2,17 @@ const userMusicLibraryService = require('../services/userMusicLibraryService');
 
 const userMusicLibraryController = {
   /**
-   * Получить мою библиотеку
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Получить мою библиотеку треков
    */
-  getMyLibrary: async (req, res, next) => {
+  getMyMusicLibrary: async (req, res, next) => {
     try {
-      const { page, limit } = req.query;
-      const result = await userMusicLibraryService.getMyLibrary(
-        req.user.id,
-        page,
-        limit
+      const { page, limit, sortKey } = req.query;
+      const currentUserId = req.user?.id;
+      const result = await userMusicLibraryService.getMyMusicLibrary(
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
       );
       res.status(200).json(result);
     } catch (error) {
@@ -24,17 +22,14 @@ const userMusicLibraryController = {
 
   /**
    * Добавить трек в библиотеку
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
-  addToLibrary: async (req, res, next) => {
+  addToMusicLibrary: async (req, res, next) => {
     try {
-      const { trackId } = req.body;
-      const result = await userMusicLibraryService.addToLibrary(
-        req.user.id,
-        trackId
+      const { trackId } = req.params;
+      const currentUserId = req.user?.id;
+      const result = await userMusicLibraryService.addToMusicLibrary(
+        parseInt(currentUserId),
+        parseInt(trackId)
       );
       res.status(201).json(result);
     } catch (error) {
@@ -43,26 +38,17 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Обновить запись в библиотеке
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Обновить запись в библиотеке (избранное)
    */
-  updateLibraryItem: async (req, res, next) => {
+  updateFavoriteTrack: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const { isFavorite, playCount } = req.body;
-
-      // Собираем только те поля, которые действительно переданы
-      const updates = {};
-      if (isFavorite !== undefined) updates.isFavorite = isFavorite;
-      if (playCount !== undefined) updates.playCount = playCount;
-
-      const result = await userMusicLibraryService.updateLibraryItem(
-        req.user.id,
-        libraryId,
-        updates
+      const { isFavorite } = req.body;
+      const currentUserId = req.user?.id;
+      const result = await userMusicLibraryService.updateFavoriteTrack(
+        parseInt(currentUserId),
+        parseInt(libraryId),
+        isFavorite
       );
       res.status(200).json(result);
     } catch (error) {
@@ -71,18 +57,30 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Удалить запись из библиотеки
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Увеличить счетчик прослушиваний трека в библиотеке
    */
-  removeFromLibrary: async (req, res, next) => {
+  incrementPlaysCount: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const result = await userMusicLibraryService.removeFromLibrary(
-        req.user.id,
-        libraryId
+      const result = await userMusicLibraryService.incrementPlaysCount(
+        parseInt(libraryId)
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Удалить трек из библиотеки
+   */
+  deleteMusicFromLibrary: async (req, res, next) => {
+    try {
+      const { libraryId } = req.params;
+      const currentUserId = req.user?.id;
+      const result = await userMusicLibraryService.deleteMusicFromLibrary(
+        parseInt(currentUserId),
+        parseInt(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {

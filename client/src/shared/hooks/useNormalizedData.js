@@ -6,10 +6,10 @@ import { useMemo } from 'react';
  * @param {Object} params
  * @param {Array} params.items - сырые данные с сервера
  * @param {Function} params.normalizeFn - функция нормализации одного элемента
- * @param {number|string} params.userId - ID текущего пользователя
+ * @param {number|string} [params.userId] - ID текущего пользователя
  * @returns {Array} - нормализованный массив
  */
-export const useNormalizedData = ({ items, normalizeFn, userId }) => {
+export const useNormalizedData = ({ items, normalizeFn, userId = null }) => {
   return useMemo(() => {
     if (!Array.isArray(items) || items.length === 0) return [];
 

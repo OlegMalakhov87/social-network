@@ -7,7 +7,6 @@ export const POST_TYPES = [
 
 /** Массив видимости постов */
 export const VISIBILITY_OPTIONS = [
-  { value: 'public', label: 'Публичный (все)' },
-  { value: 'friends', label: 'Только друзья' },
-  { value: 'private', label: 'Только я' },
+  { value: true, label: 'Публичный' },
+  { value: false, label: 'Приватный' },
 ];

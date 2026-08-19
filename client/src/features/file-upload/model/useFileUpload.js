@@ -45,10 +45,8 @@ export const useFileUpload = (config, options = {}) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Сброс предыдущих ошибок
     setError(null);
 
-    // 1. Валидация (синхронная + асинхронная через composeValidators)
     const validationError = await config.validators(file);
     if (validationError) {
       setError(validationError);
@@ -58,12 +56,12 @@ export const useFileUpload = (config, options = {}) => {
       return;
     }
 
-    // 2. Создание превью
+    // Создание превью
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
     setIsUploading(true);
 
-    // 3. Отправка на сервер
+    // Отправка на сервер
     try {
       let result;
       if (uploadFn) {
@@ -81,6 +79,7 @@ export const useFileUpload = (config, options = {}) => {
               setProgress(percent);
             }
           },
+          timeout: 120000,
         });
         result = response.data;
       }
@@ -95,10 +94,10 @@ export const useFileUpload = (config, options = {}) => {
       onError?.(errorMessage);
       setPreview(null);
     } finally {
-      // 4. Очистка памяти (предотвращает утечки)
+      // Очистка памяти (предотвращает утечки)
       URL.revokeObjectURL(objectUrl);
       setIsUploading(false);
-      e.target.value = ''; // Сброс input для повторного выбора того же файла
+      e.target.value = '';
     }
   };
 

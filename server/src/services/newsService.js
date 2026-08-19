@@ -165,9 +165,9 @@ const newsService = {
       !dbData.text ||
       !dbData.author ||
       !dbData.category ||
-      !dbData.uploadedBy ||
+      dbData.uploadedBy == null ||
       !dbData.type ||
-      !dbData.viewsCount
+      dbData.viewsCount == null
     ) {
       throw createError(
         'Поля title, text, author, category, uploadedBy, type, viewsCount обязательны',

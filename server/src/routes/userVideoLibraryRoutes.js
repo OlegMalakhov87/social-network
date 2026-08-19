@@ -9,30 +9,47 @@ const userVideoLibraryRoutes = Router();
 userVideoLibraryRoutes.get(
   '/',
   authMiddleware,
-  userVideoLibraryController.getMyLibrary
+  userVideoLibraryController.getMyVideoLibrary
+);
+
+// Получить библиотеку другого пользователя
+userVideoLibraryRoutes.get(
+  '/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  userVideoLibraryController.getUserVideosLibrary
 );
 
 // Добавить видео в библиотеку
 userVideoLibraryRoutes.post(
-  '/',
+  '/:videoId/add',
+  validateIdParam('videoId'),
   authMiddleware,
-  userVideoLibraryController.addToLibrary
+  userVideoLibraryController.addToVideoLibrary
 );
 
-// Обновить запись в библиотеке (избранное, счетчик просмотров, время просмотра)
+// Обновить запись в библиотеке (избранное)
 userVideoLibraryRoutes.put(
-  '/:libraryId',
+  '/:libraryId/favorite',
   validateIdParam('libraryId'),
   authMiddleware,
-  userVideoLibraryController.updateLibraryItem
+  userVideoLibraryController.updateFavoriteVideo
+);
+
+// Увеличить счетчик просмотров видео в библиотеке
+userVideoLibraryRoutes.put(
+  '/:libraryId/views',
+  validateIdParam('libraryId'),
+  authMiddleware,
+  userVideoLibraryController.incrementViewsCount
 );
 
 // Удалить видео из библиотеки
 userVideoLibraryRoutes.delete(
-  '/:libraryId',
+  '/:libraryId/delete',
   validateIdParam('libraryId'),
   authMiddleware,
-  userVideoLibraryController.removeFromLibrary
+  userVideoLibraryController.deleteVideoFromLibrary
 );
 
 module.exports = userVideoLibraryRoutes;

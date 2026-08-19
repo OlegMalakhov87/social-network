@@ -1,25 +1,21 @@
 /**
- * Преобразует сырой комментарий с сервера в формат для CommentCard.
- *
- * @param {Object} raw - один комментарий из ответа API (с author и likes)
- * @param {number|null} currentUserId - id текущего пользователя
- * @returns {Object} - нормализованный комментарий
+ * Преобразует комментарий с сервера в формат CommentsList / Comment.
  */
-export const normalizeComment = (raw, currentUserId) => {
+export const normalizeComment = (raw) => {
+  if (!raw || typeof raw !== 'object') return raw;
+
   return {
-    comment: {
-      id: raw.id,
-      userId: raw.userId,
-      targetType: raw.targetType,
-      targetId: raw.targetId,
-      content: raw.content,
-      date: raw.updatedAt ?? raw.createdAt,
-
-      author: raw.author,
-
-      likesCount: raw.likesCount ?? raw.likes?.length ?? 0,
-      isLiked:
-        raw.likes?.some((like) => like.userId === currentUserId) ?? false,
-    },
+    id: raw.id,
+    userId: raw.userId,
+    targetType: raw.targetType,
+    targetId: raw.targetId,
+    text: raw.text,
+    isEdited: raw.isEdited,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+    date: raw.updatedAt ?? raw.createdAt,
+    author: raw.author,
+    likesCount: raw.likesCount ?? 0,
+    isLiked: raw.isLiked ?? false,
   };
 };

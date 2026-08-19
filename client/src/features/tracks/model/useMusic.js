@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
@@ -7,7 +8,7 @@ import {
   deleteTrackApi,
   deleteTrackFromLibrary,
   fetchTracksApi,
-  incrementTrackPlayCount,
+  incrementTrackPlaysCount,
   normalizeTrack,
   updateTrackApi,
 } from '../../../entities/track';
@@ -23,19 +24,42 @@ import {
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
+const normalizeFilter = (value) =>
+  typeof value === 'string' && value.trim() ? value : 'all';
+
+const normalizeSearch = (value) => (typeof value === 'string' ? value : '');
+
 /**
  * Хук для получения и управления треками на странице музыки с бесконечным скроллом.
  *
- * @param {string} filter - фильтр по жанру
- * @param {string} searchQuery - поисковый запрос
- * @param {string} sortKey - ключ сортировки из SORT_OPTIONS
+ * @param {Object|string} params - `{ filter, searchQuery, sortKey }` или filter (legacy)
+ * @param {string} [searchQueryArg=''] - поисковый запрос (legacy)
+ * @param {string} [sortKeyArg='dateDesc'] - ключ сортировки (legacy)
  * @returns {Object} - объект с данными о треках
  */
-export const useMusic = (filter, searchQuery, sortKey) => {
+export const useMusic = (
+  params,
+  searchQueryArg = '',
+  sortKeyArg = 'dateDesc'
+) => {
+  const isParamsObject =
+    typeof params === 'object' && params !== null && !Array.isArray(params);
+
+  const filter = normalizeFilter(isParamsObject ? params.filter : params);
+  const searchQuery = normalizeSearch(
+    isParamsObject ? params.searchQuery : searchQueryArg
+  );
+  const sortKey = (isParamsObject ? params.sortKey : sortKeyArg) ?? 'dateDesc';
+
   const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.id;
   const notify = useNotify('tracks');
 
-  /** Получение треков с бесконечным скроллом */
+  const scrollDeps = useMemo(
+    () => [filter, searchQuery, sortKey, currentUserId],
+    [filter, searchQuery, sortKey, currentUserId]
+  );
+
   const {
     items: tracksItems,
     setItems: setTracksItems,
@@ -47,13 +71,13 @@ export const useMusic = (filter, searchQuery, sortKey) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!filter && !searchQuery) {
+      if (!currentUserId) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchTracksApi, {
         params: {
           filter,
-          searchQuery,
+          q: searchQuery,
           page,
           limit,
           sortKey,
@@ -61,39 +85,32 @@ export const useMusic = (filter, searchQuery, sortKey) => {
         signal,
       });
     },
-    deps: [filter, searchQuery, sortKey],
-    onSuccess: () => notify.success('load'),
+    deps: scrollDeps,
     onError: () => notify.error('load'),
   });
 
-  /** Оптимистичный переключатель библиотеки */
-  const { addToLibrary, removeFromLibrary } = useOptimisticLibraryToggle({
+  const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
     setItems: setTracksItems,
     addFn: addTrackToLibrary,
-    removeFn: deleteTrackFromLibrary,
+    deleteFn: deleteTrackFromLibrary,
     entityType: 'tracks',
   });
 
-  /** Оптимистичный лайк */
   const toggleLike = useOptimisticLike({
     setItems: setTracksItems,
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
-    currentUserId: currentUser?.id,
+    currentUserId,
     targetType: 'tracks',
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
-  /** Оптимистичный счётчик прослушиваний. */
-  const { incrementWithApi: incrementPlayCount } = useOptimisticCounter({
+  const { incrementWithApi: updateGlobalPlaysCount } = useOptimisticCounter({
     items: tracksItems,
     setItems: setTracksItems,
-    countField: 'playCount',
-    updateFn: incrementTrackPlayCount,
+    countField: 'playsCount',
+    updateFn: incrementTrackPlaysCount,
   });
 
-  /** Оптимистичные мутации (CRUD) */
   const {
     add: addTrack,
     edit: updateTrack,
@@ -108,19 +125,17 @@ export const useMusic = (filter, searchQuery, sortKey) => {
     onError: (action) => notify.error(action),
   });
 
-  /** Оптимистичный счётчик комментариев. */
-  const updateCommentCount = useOptimisticCommentCount({
+  const updateCommentsCount = useOptimisticCommentCount({
     setItems: setTracksItems,
   });
 
-  /** Нормализация треков */
   const tracks = useNormalizedData({
     items: tracksItems,
     normalizeFn: (item) => ({
-      ...normalizeTrack(item, currentUser?.id),
+      ...normalizeTrack(item, currentUserId),
       profileLibraryId: null,
     }),
-    userId: currentUser?.id,
+    userId: currentUserId,
   });
 
   return {
@@ -137,8 +152,8 @@ export const useMusic = (filter, searchQuery, sortKey) => {
     updateTrack,
     deleteTrack,
     addToLibrary,
-    removeFromLibrary,
-    incrementPlayCount,
-    updateCommentCount,
+    deleteFromLibrary,
+    updateGlobalPlaysCount,
+    updateCommentsCount,
   };
 };

@@ -2,19 +2,38 @@ const userVideoLibraryService = require('../services/userVideoLibraryService');
 
 const userVideoLibraryController = {
   /**
-   * Получить мою библиотеку
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Получить мою библиотеку видео
    */
-  getMyLibrary: async (req, res, next) => {
+  getMyVideoLibrary: async (req, res, next) => {
     try {
-      const { page, limit } = req.query;
-      const result = await userVideoLibraryService.getMyLibrary(
-        req.user.id,
-        page,
-        limit
+      const { page, limit, sortKey } = req.query;
+      const currentUserId = req.user?.id;
+      const result = await userVideoLibraryService.getMyVideoLibrary(
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Получить библиотеку другого пользователя
+   */
+  getUserVideosLibrary: async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const { page, limit, sortKey } = req.query;
+      const currentUserId = req.user?.id;
+      const result = await userVideoLibraryService.getUserVideosLibrary(
+        parseInt(userId),
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
       );
       res.status(200).json(result);
     } catch (error) {
@@ -24,17 +43,14 @@ const userVideoLibraryController = {
 
   /**
    * Добавить видео в библиотеку
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
-  addToLibrary: async (req, res, next) => {
+  addToVideoLibrary: async (req, res, next) => {
     try {
-      const { videoId } = req.body;
-      const result = await userVideoLibraryService.addToLibrary(
-        req.user.id,
-        videoId
+      const { videoId } = req.params;
+      const currentUserId = req.user?.id;
+      const result = await userVideoLibraryService.addToVideoLibrary(
+        parseInt(currentUserId),
+        parseInt(videoId)
       );
       res.status(201).json(result);
     } catch (error) {
@@ -43,26 +59,17 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Обновить запись в библиотеке
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Обновить запись в библиотеке (избранное)
    */
-  updateLibraryItem: async (req, res, next) => {
+  updateFavoriteVideo: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const { isFavorite, viewsCount, lastWatchedAt } = req.body;
-
-      const updates = {};
-      if (isFavorite !== undefined) updates.isFavorite = isFavorite;
-      if (viewsCount !== undefined) updates.viewsCount = viewsCount;
-      if (lastWatchedAt !== undefined) updates.lastWatchedAt = lastWatchedAt;
-
-      const result = await userVideoLibraryService.updateLibraryItem(
-        req.user.id,
-        libraryId,
-        updates
+      const { isFavorite } = req.body;
+      const currentUserId = req.user?.id;
+      const result = await userVideoLibraryService.updateFavoriteVideo(
+        parseInt(currentUserId),
+        parseInt(libraryId),
+        isFavorite
       );
       res.status(200).json(result);
     } catch (error) {
@@ -71,18 +78,30 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Удалить запись из библиотеки
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
+   * Увеличить счетчик просмотров видео в библиотеке
    */
-  removeFromLibrary: async (req, res, next) => {
+  incrementViewsCount: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const result = await userVideoLibraryService.removeFromLibrary(
-        req.user.id,
-        libraryId
+      const result = await userVideoLibraryService.incrementViewsCount(
+        parseInt(libraryId)
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Удалить видео из библиотеки
+   */
+  deleteVideoFromLibrary: async (req, res, next) => {
+    try {
+      const { libraryId } = req.params;
+      const currentUserId = req.user?.id;
+      const result = await userVideoLibraryService.deleteVideoFromLibrary(
+        parseInt(currentUserId),
+        parseInt(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {

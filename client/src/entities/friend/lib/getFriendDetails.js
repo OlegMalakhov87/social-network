@@ -12,8 +12,8 @@ export const getFriendDetails = (friend) => {
       value: friend.age || '—',
     },
     {
-      label: 'Город',
-      value: friend.city || '—',
+      label: 'Адрес',
+      value: friend.address || '—',
     },
     {
       label: 'Работа',

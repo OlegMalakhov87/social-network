@@ -101,6 +101,11 @@ module.exports = (sequelize, DataTypes) => {
           isInt: true,
         },
       },
+      isEdited: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

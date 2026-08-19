@@ -15,8 +15,8 @@ const { createError } = require('./authService');
 const SORT_MAP = {
   dateDesc: [['createdAt', 'DESC']],
   dateAsc: [['createdAt', 'ASC']],
-  viewsDesc: [['playCount', 'DESC']],
-  viewsAsc: [['playCount', 'ASC']],
+  viewsDesc: [['playsCount', 'DESC']],
+  viewsAsc: [['playsCount', 'ASC']],
 };
 
 const musicService = {
@@ -39,7 +39,6 @@ const musicService = {
     currentUserId,
     sortKey = 'dateDesc',
   } = {}) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
     const where = { isPublic: true }; // По умолчанию показываем только публичные
 
     if (genre && genre !== 'all') {
@@ -78,7 +77,7 @@ const musicService = {
         as: 'libraryItems',
         where: { userId: currentUserId },
         required: false,
-        attributes: ['id', 'isFavorite', 'playCount'],
+        attributes: ['id'],
       });
     }
 
@@ -87,7 +86,7 @@ const musicService = {
       include: includes,
       order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
       limit: parseInt(limit),
-      offset,
+      offset: (parseInt(page) - 1) * parseInt(limit),
       distinct: true,
     });
 
@@ -98,9 +97,9 @@ const musicService = {
         ...trackData,
         isInLibrary: !!libraryEntry,
         libraryId: libraryEntry?.id || null,
-        isFavorite: libraryEntry?.isFavorite || false,
-        playsCount: libraryEntry?.playCount || 0,
+        playsCount: trackData?.playsCount || 0,
         commentsCount: trackData.comments?.length || 0,
+        likesCount: trackData.likes?.length || 0,
         libraryItems: undefined, // Убираем мусор из ответа
       };
     });
@@ -132,11 +131,9 @@ const musicService = {
     limit = 30,
     sortKey = 'dateDesc'
   ) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
     // Проверяем дружбу (нужно для фильтрации приватных треков)
     let isFriend = false;
-    if (currentUserId && currentUserId !== parseInt(profileUserId)) {
+    if (currentUserId && currentUserId !== profileUserId) {
       const friendship = await Friend.findOne({
         where: {
           [Op.or]: [
@@ -158,18 +155,17 @@ const musicService = {
 
     // Формируем условие приватности для треков
     const trackWhere = {};
-    if (currentUserId !== parseInt(profileUserId)) {
-      // Если не владелец: показываем публичные, ИЛИ приватные (только если друзья)
+    if (currentUserId !== profileUserId) {
       trackWhere[Op.or] = [{ isPublic: true }];
       if (isFriend) {
         trackWhere[Op.or].push({ isPublic: false });
       }
     }
 
-    // Получаем записи из библиотеки ПРОФИЛЯ
+    // Получаем записи из библиотеки пользователя
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
-        where: { userId: parseInt(profileUserId) },
+        where: { userId: profileUserId },
         include: [
           {
             model: Music,
@@ -201,8 +197,8 @@ const musicService = {
           },
         ],
         order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-        limit: parseInt(limit),
-        offset,
+        limit: limit,
+        offset: (page - 1) * limit,
         distinct: true,
       });
 
@@ -210,7 +206,7 @@ const musicService = {
     let currentUserLibraryMap = new Map();
     if (
       currentUserId &&
-      currentUserId !== parseInt(profileUserId) &&
+      currentUserId !== profileUserId &&
       libraryEntries.length > 0
     ) {
       const trackIds = libraryEntries.map((entry) => entry.trackId);
@@ -230,12 +226,13 @@ const musicService = {
       return {
         ...trackData,
         // Данные для кнопки текущего пользователя
-        isInLibrary: !!myLibraryId,
+        isInLibrary: !!myLibraryId || false,
         libraryId: myLibraryId || null,
         // Данные из библиотеки просматриваемого профиля
         libraryId: entry.id,
-        playsCount: entry.playCount || 0,
+        playsCount: entry.playsCount || 0,
         commentsCount: trackData.comments?.length || 0,
+        likesCount: entry.likes?.length || 0,
         libraryCreatedAt: entry.createdAt,
       };
     });
@@ -244,14 +241,14 @@ const musicService = {
       tracks: formattedTracks,
       pagination: {
         totalTracks: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
       meta: {
-        profileUserId: parseInt(profileUserId),
+        profileUserId: profileUserId,
         currentUserId: currentUserId || null,
-        isOwnProfile: currentUserId === parseInt(profileUserId),
+        isOwnProfile: currentUserId === profileUserId,
         isFriend,
       },
     };
@@ -294,28 +291,28 @@ const musicService = {
 
   /**
    * Создание нового трека
-   * @param {number} userId - ID пользователя, создающего трек
+   * @param {number} currentUserId - ID пользователя, создающего трек
    * @param {Object} musicData - Данные трека
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async createMusic(userId, musicData) {
+  async createMusic(currentUserId, musicData) {
     const dbData = {
       ...musicData,
-      uploadedBy: userId,
-      playCount: 0,
+      uploadedBy: currentUserId,
+      playsCount: 0,
     };
 
     if (
-      !dbData.title ||
-      !dbData.audio ||
-      !dbData.artist ||
       !dbData.uploadedBy ||
-      !dbData.playCount ||
+      !dbData.title ||
+      !dbData.artist ||
+      !dbData.audio ||
       !dbData.genre ||
-      !dbData.isPublic
+      typeof dbData.isPublic !== 'boolean' ||
+      !dbData.playsCount
     ) {
       throw createError(
-        'Поля title, audio, artist, uploadedBy, playCount, genre, isPublic обязательны',
+        'Поля uploadedBy, title, artist, audio, genre, playsCount, isPublic обязательны',
         400,
         'MISSING_FIELDS'
       );
@@ -325,10 +322,10 @@ const musicService = {
 
     // Автоматически добавляем в библиотеку создателя
     await UserMusicLibrary.create({
-      userId,
+      userId: currentUserId,
       trackId: track.id,
       isFavorite: true,
-      playCount: 0,
+      playsCount: 0,
     });
 
     return { track: track.toJSON() };
@@ -336,12 +333,14 @@ const musicService = {
 
   /**
    * Обновление приватности треков
-   * @param {number} userId - ID пользователя, обновляющего треки
+   * @param {number} currentUserId - ID пользователя, обновляющего треки
    * @param {Object} updates - Обновляемые данные
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateMusicPrivacy(userId, updates) {
-    const tracks = await Music.findAll({ where: { uploadedBy: userId } });
+  async updateMusicPrivacy(currentUserId, updates) {
+    const tracks = await Music.findAll({
+      where: { uploadedBy: currentUserId },
+    });
     if (tracks.length === 0) {
       throw createError('Треки не найдены', 404, 'TRACKS_NOT_FOUND');
     }
@@ -360,17 +359,17 @@ const musicService = {
   /**
    * Обновление метаданных трека (владелец)
    * @param {number} trackId - ID трека
-   * @param {number} userId - ID пользователя, обновляющего трек
+   * @param {number} currentUserId - ID пользователя, обновляющего трек
    * @param {Object} updates - Обновляемые данные
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateMusic(trackId, userId, updates) {
+  async updateMusic(trackId, currentUserId, updates) {
     const track = await Music.findByPk(trackId);
     if (!track) {
       throw createError('Композиция не найдена', 404, 'TRACK_NOT_FOUND');
     }
 
-    if (track.uploadedBy !== userId) {
+    if (track.uploadedBy !== currentUserId) {
       throw createError(
         'Вы не можете редактировать эту композицию',
         403,
@@ -444,27 +443,27 @@ const musicService = {
    * @param {number} trackId - ID трека
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async incrementPlayCount(trackId) {
+  async incrementPlaysCount(trackId) {
     const track = await Music.findByPk(trackId);
     if (!track) {
       throw createError('Композиция не найдена', 404, 'TRACK_NOT_FOUND');
     }
 
-    await track.increment('playCount', { by: 1 });
+    await track.increment('playsCount', { by: 1 });
     await track.reload();
 
-    return { success: true, playCount: track.playCount };
+    return { success: true, playsCount: track.playsCount };
   },
 
   /**
    * Удаление трека (владелец)
    * @param {number} trackId - ID трека
-   * @param {number} userId - ID пользователя, удаляющего трек
+   * @param {number} currentUserId - ID пользователя, удаляющего трек
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async deleteMusic(trackId, userId) {
+  async deleteMusic(trackId, currentUserId) {
     const deletedCount = await Music.destroy({
-      where: { id: trackId, uploadedBy: userId },
+      where: { id: trackId, uploadedBy: currentUserId },
     });
 
     if (deletedCount === 0) {

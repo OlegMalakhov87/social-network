@@ -34,7 +34,7 @@ export const getPhotoActions = ({
     },
   ];
 
-  if (photo.visibility === 'public') {
+  if (photo.isPublic === true) {
     actions.push({
       key: 'share',
       icon: '↗️',
