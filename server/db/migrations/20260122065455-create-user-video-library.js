@@ -27,15 +27,15 @@ module.exports = {
         defaultValue: false,
         allowNull: false,
       },
-      viewsCount: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-        allowNull: false,
-      },
       lastWatchedAt: {
         type: Sequelize.DATE,
         allowNull: true,
         defaultValue: null,
+      },
+      viewsCount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,

@@ -5,7 +5,7 @@ import styles from './Toast.module.css';
  * Контейнер уведомлений.
  *
  * @param {Object} props
- * @param {Array<{id:string,message:string,type:string}>} props.toasts - массив уведомлений (идентификатор, текст, тип)
+ * @param {Array<Object>} props.toasts - массив уведомлений (идентификатор, текст, тип)
  * @param {Function} props.removeToast - функция удаления уведомления
  */
 

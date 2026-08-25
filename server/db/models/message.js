@@ -20,6 +20,12 @@ module.exports = (sequelize, DataTypes) => {
   }
   Message.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       senderId: {
         type: DataTypes.INTEGER,
         allowNull: false,

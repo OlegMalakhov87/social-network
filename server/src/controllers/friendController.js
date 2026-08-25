@@ -6,13 +6,14 @@ const friendController = {
    */
   getUsersWithFriendshipStatus: async (req, res, next) => {
     try {
-      const { page, limit, q } = req.query;
-      const result = await friendService.getUsersWithFriendshipStatus(
-        req.user.id,
-        page,
-        limit,
-        q
-      );
+      const { page, limit, category, q } = req.query;
+      const result = await friendService.getUsersWithFriendshipStatus({
+        currentUserId: parseInt(req.user?.id),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        category,
+        q,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -25,10 +26,10 @@ const friendController = {
   getFriendshipStatus: async (req, res, next) => {
     try {
       const { userId } = req.params;
-      const result = await friendService.getFriendshipStatus(
-        req.user.id,
-        parseInt(userId)
-      );
+      const result = await friendService.getFriendshipStatus({
+        currentUserId: parseInt(req.user?.id),
+        targetUserId: parseInt(userId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -41,10 +42,10 @@ const friendController = {
   sendRequest: async (req, res, next) => {
     try {
       const { friendId } = req.body;
-      const result = await friendService.sendRequest(
-        req.user.id,
-        parseInt(friendId)
-      );
+      const result = await friendService.sendRequest({
+        currentUserId: parseInt(req.user?.id),
+        friendId: parseInt(friendId),
+      });
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -57,10 +58,10 @@ const friendController = {
   acceptRequest: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
-      const result = await friendService.acceptRequest(
-        req.user.id,
-        parseInt(friendshipId)
-      );
+      const result = await friendService.acceptRequest({
+        currentUserId: parseInt(req.user?.id),
+        friendshipId: parseInt(friendshipId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -68,15 +69,15 @@ const friendController = {
   },
 
   /**
-   * Отклонить заявку в друзья
+   * Отклонить/отменить заявку в друзья
    */
   rejectRequest: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
-      const result = await friendService.rejectRequest(
-        req.user.id,
-        parseInt(friendshipId)
-      );
+      const result = await friendService.rejectRequest({
+        currentUserId: parseInt(req.user?.id),
+        friendshipId: parseInt(friendshipId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -89,10 +90,10 @@ const friendController = {
   deleteFriendship: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
-      const result = await friendService.deleteFriendship(
-        req.user.id,
-        parseInt(friendshipId)
-      );
+      const result = await friendService.deleteFriendship({
+        currentUserId: parseInt(req.user?.id),
+        friendshipId: parseInt(friendshipId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -105,10 +106,10 @@ const friendController = {
   blockUser: async (req, res, next) => {
     try {
       const { friendId } = req.body;
-      const result = await friendService.blockUser(
-        req.user.id,
-        parseInt(friendId)
-      );
+      const result = await friendService.blockUser({
+        currentUserId: parseInt(req.user?.id),
+        friendId: parseInt(friendId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

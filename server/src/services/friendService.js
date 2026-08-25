@@ -1,33 +1,27 @@
 const { Friend, User } = require('../../db/models');
 const { Op } = require('sequelize');
-const { createError } = require('./authService');
-const { Agent } = require('node:http');
-
-// Вспомогательная функция для получения данных "друга" (того, кто не является currentUserId)
-const getOtherUser = (friendship, currentUserId) => {
-  return friendship.userId === currentUserId
-    ? friendship.friend
-    : friendship.user;
-};
+const createError = require('../utils/createError');
 
 const friendService = {
   /**
    * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} page - номер страницы
-   * @param {number} limit - количество на странице
-   * @param {string} q - поисковый запрос
+   *
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.page - номер страницы
+   * @param {number} params.limit - количество на странице
+   * @param {string} params.category - категория друзей
+   * @param {string} [params.q] - поисковый запрос
    * @returns {Promise<Object>} { users, pagination }
    */
-  async getUsersWithFriendshipStatus(
+  async getUsersWithFriendshipStatus({
     currentUserId,
     page = 1,
     limit = 30,
-    q = ''
-  ) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    category = 'all',
+    q = '',
+  }) {
     const where = { id: { [Op.ne]: currentUserId } };
-
     if (q && q.trim().length >= 2) {
       const searchTerm = `%${q.trim()}%`;
       where[Op.or] = [
@@ -43,22 +37,26 @@ const friendService = {
         'id',
         'name',
         'nickname',
-        'avatar',
+        'avatarUrl',
         'age',
         'address',
         'job',
         'status',
+        'phone',
         'isPublic',
+        'gender',
+        'createdAt',
+        'updatedAt',
       ],
-      limit: parseInt(limit),
-      offset,
+      limit: limit,
+      offset: (page - 1) * limit,
       order: [['createdAt', 'DESC']],
     });
 
     if (users.length === 0) {
       return {
         users: [],
-        pagination: { total: 0, page: parseInt(page), pages: 0 },
+        pagination: { total: 0, page, pages: 0 },
       };
     }
 
@@ -96,9 +94,9 @@ const friendService = {
       const info = friendshipMap.get(user.id) || {};
       return {
         ...user.toJSON(),
-        friendshipStatus: info.status || null,
-        friendshipDirection: info.direction || null,
-        friendshipId: info.friendshipId || null,
+        friendshipStatus: info.status,
+        friendshipDirection: info.direction,
+        friendshipId: info.friendshipId,
       };
     });
 
@@ -106,45 +104,82 @@ const friendService = {
       users: enrichedUsers,
       pagination: {
         total: count,
-        page: parseInt(page),
-        pages: Math.ceil(count / parseInt(limit)),
+        page,
+        pages: Math.ceil(count / limit),
       },
     };
   },
 
   /**
-   * Получить статус дружбы между двумя пользователями
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} targetUserId - ID пользователя, с которым проверяем статус дружбы
-   * @returns {Promise<Object>} { friendshipStatus, friendshipDirection, friendshipId }
+   * Получить пользователя с информацией о статусе дружбы между двумя пользователями
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.targetUserId - ID пользователя, с которым проверяем статус дружбы
+   * @returns {Promise<Object>} { user, friendshipStatus, friendshipDirection, friendshipId }
    */
-  async getFriendshipStatus(currentUserId, targetUserId) {
-    if (currentUserId === targetUserId) {
-      return {
-        friendshipStatus: null,
-        friendshipDirection: null,
-        friendshipId: null,
-      };
-    }
-
-    const friendship = await Friend.findOne({
-      where: {
-        [Op.or]: [
-          { userId: currentUserId, friendId: targetUserId },
-          { userId: targetUserId, friendId: currentUserId },
-        ],
-      },
+  async getFriendshipStatus({ currentUserId, targetUserId }) {
+    const isOwner = currentUserId === targetUserId;
+    const targetUser = await User.findByPk(targetUserId, {
+      attributes: { exclude: ['passwordHash'] },
     });
 
-    if (!friendship) {
+    if (!targetUser) {
+      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
+    }
+
+    if (isOwner) {
       return {
+        ...targetUser.toJSON(),
         friendshipStatus: null,
         friendshipDirection: null,
         friendshipId: null,
       };
     }
 
+    // Проверка на дружбу с пользователем которого просматриваем
+    let isFriend = false;
+    let friendship = null;
+
+    if (!isOwner) {
+      friendship = await Friend.findOne({
+        where: {
+          [Op.or]: [
+            { userId: currentUserId, friendId: targetUserId },
+            { userId: targetUserId, friendId: currentUserId },
+          ],
+        },
+      });
+    }
+
+    isFriend = friendship?.status === 'accepted';
+
+    // Проверяем, может ли текущий пользователь увидеть полный профиль целевого пользователя
+    const canSeeFullProfile =
+      isOwner || isFriend || targetUser.isPublic === true;
+
+    // Выбираем атрибуты для возврата
+    const attributesToReturn = canSeeFullProfile
+      ? { exclude: ['passwordHash'] }
+      : ['id', 'name', 'avatarUrl', 'isPublic', 'createdAt'];
+
+    // Получаем пользователя с нужными атрибутами
+    const user = await User.findByPk(targetUserId, {
+      attributes: attributesToReturn,
+    });
+
+    // Если связи нет, возвращаем только профиль пользователя
+    if (!friendship) {
+      return {
+        ...user.toJSON(),
+        friendshipStatus: null,
+        friendshipDirection: null,
+        friendshipId: null,
+      };
+    }
+
+    // Возвращаем профиль пользователя с информацией о дружбе
     return {
+      ...user.toJSON(),
       friendshipStatus: friendship.status,
       friendshipDirection:
         friendship.userId === currentUserId ? 'outgoing' : 'incoming',
@@ -154,11 +189,12 @@ const friendService = {
 
   /**
    * Отправить заявку в друзья
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} friendId - ID пользователя, которому отправляем заявку
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.friendId - ID пользователя, которому отправляем заявку
    * @returns {Promise<Object>} { friendshipId, status, direction }
    */
-  async sendRequest(currentUserId, friendId) {
+  async sendRequest({ currentUserId, friendId }) {
     if (currentUserId === friendId) {
       throw createError(
         'Нельзя добавить себя в друзья',
@@ -211,11 +247,12 @@ const friendService = {
 
   /**
    * Принять заявку в друзья
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} friendshipId - ID заявки
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.friendshipId - ID заявки
    * @returns {Promise<Object>} { friendshipId, status }
    */
-  async acceptRequest(currentUserId, friendshipId) {
+  async acceptRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
     if (!friendship)
       throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
@@ -230,36 +267,45 @@ const friendService = {
     }
 
     await friendship.update({ status: 'accepted' });
-    return { friendshipId: friendship.id, friendshipStatus: 'accepted' };
+    return {
+      friendshipId: friendship.id,
+      friendshipStatus: 'accepted',
+      friendshipDirection: 'incoming',
+    };
   },
 
   /**
-   * Отклонить заявку в друзья
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} friendshipId - ID заявки
+   * Отклонить/отменить заявку в друзья
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.friendshipId - ID заявки
    * @returns {Promise<Object>} { message, friendshipId }
    */
-  async rejectRequest(currentUserId, friendshipId) {
+  async rejectRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
     if (!friendship)
       throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
 
-    // Отклонить может только получатель (friendId)
-    if (friendship.friendId !== currentUserId) {
-      throw createError('Вы не можете отклонить эту заявку', 403, 'FORBIDDEN');
+    // Отклонить/отменить заявку может только получатель или отправитель
+    if (
+      friendship.friendId !== currentUserId &&
+      friendship.userId !== currentUserId
+    ) {
+      throw createError('Вы не можете удалить эту заявку', 403, 'FORBIDDEN');
     }
 
     await friendship.destroy();
-    return { message: 'Заявка отклонена', friendshipId };
+    return { message: 'Заявка удалена', friendshipId };
   },
 
   /**
    * Удалить дружбу
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} friendshipId - ID дружбы
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.friendshipId - ID дружбы
    * @returns {Promise<Object>} { message, friendshipId }
    */
-  async deleteFriendship(currentUserId, friendshipId) {
+  async deleteFriendship({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
     if (!friendship)
       throw createError('Запись не найдена', 404, 'RELATIONSHIP_NOT_FOUND');
@@ -278,11 +324,12 @@ const friendService = {
 
   /**
    * Заблокировать пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} friendId - ID пользователя, которого блокируем
+   * @param {Object} params - параметры запроса
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.friendId - ID пользователя, которого блокируем
    * @returns {Promise<Object>} { message, friendshipId }
    */
-  async blockUser(currentUserId, friendId) {
+  async blockUser({ currentUserId, friendId }) {
     if (currentUserId === friendId) {
       throw createError('Нельзя заблокировать себя', 400, 'SELF_BLOCK');
     }

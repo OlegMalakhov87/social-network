@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('News', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       uploadedBy: {
         type: Sequelize.INTEGER,
@@ -30,10 +30,12 @@ module.exports = {
       author: {
         type: Sequelize.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
       },
       category: {
         type: Sequelize.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
       },
       type: {
         type: Sequelize.ENUM('text', 'image', 'video'),
@@ -44,7 +46,7 @@ module.exports = {
         type: Sequelize.STRING(100),
         allowNull: true,
       },
-      media: {
+      newsUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
       },

@@ -36,7 +36,7 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
       header={
         <EntityHeader>
           <EntityMeta
-            avatar={currentUser?.avatar}
+            avatar={currentUser?.avatarUrl}
             title={currentUser?.name}
             subtitle="Напишите комментарий"
           />

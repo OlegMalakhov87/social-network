@@ -8,7 +8,7 @@ const {
 } = require('../../db/models');
 const { Op } = require('sequelize');
 const { sequelize } = require('../../db/models');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -20,7 +20,7 @@ const SORT_MAP = {
 const userVideoLibraryService = {
   /**
    * Получить мою видео библиотеку
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID пользователя
    * @param {number} page - Номер страницы
    * @param {number} limit - Количество видео на странице
    * @param {string} sortKey - Ключ сортировки
@@ -54,7 +54,7 @@ const userVideoLibraryService = {
               {
                 model: User,
                 as: 'uploader',
-                attributes: ['id', 'name', 'avatar'],
+                attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
               {
@@ -66,7 +66,7 @@ const userVideoLibraryService = {
                   {
                     model: User,
                     as: 'author',
-                    attributes: ['id', 'name', 'avatar'],
+                    attributes: ['id', 'name', 'avatarUrl'],
                   },
                   { model: Like, as: 'likes', attributes: ['id', 'userId'] },
                 ],
@@ -88,7 +88,6 @@ const userVideoLibraryService = {
         ...videoData,
         isInLibrary: true,
         libraryId: entry.id,
-        profileLibraryId: entry.id,
         isFavorite: entry.isFavorite,
         viewsCount: entry.viewsCount,
         lastWatchedAt: entry.lastWatchedAt,
@@ -177,7 +176,7 @@ const userVideoLibraryService = {
               {
                 model: User,
                 as: 'uploader',
-                attributes: ['id', 'name', 'avatar'],
+                attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
               {
@@ -189,7 +188,7 @@ const userVideoLibraryService = {
                   {
                     model: User,
                     as: 'author',
-                    attributes: ['id', 'name', 'avatar'],
+                    attributes: ['id', 'name', 'avatarUrl'],
                   },
                   { model: Like, as: 'likes', attributes: ['id', 'userId'] },
                 ],
@@ -277,7 +276,7 @@ const userVideoLibraryService = {
         defaults: {
           isFavorite: false,
           viewsCount: 0,
-          lastWatchedAt: new Date().toISOString(),
+          lastWatchedAt: null,
         },
       });
 
@@ -300,7 +299,7 @@ const userVideoLibraryService = {
           },
         ],
       });
-      console.log('itemWithVideo:', itemWithVideo[0]?.toJSON());
+
       // Возвращаем запись в библиотеке с видео
       return { libraryItem: itemWithVideo.toJSON() };
     } catch (error) {
@@ -356,9 +355,7 @@ const userVideoLibraryService = {
    */
   async incrementViewsCount(libraryId) {
     // Находим запись в библиотеке
-    const libraryItem = await UserVideoLibrary.findOne({
-      where: { id: libraryId },
-    });
+    const libraryItem = await UserVideoLibrary.findByPk(libraryId);
 
     if (!libraryItem) {
       throw createError(
@@ -383,7 +380,7 @@ const userVideoLibraryService = {
         }
       );
 
-      // Увеличиваем глобальный счётчик просмотров видео
+      // Попутно увеличиваем глобальный счётчик просмотров видео
       await Video.increment('viewsCount', {
         by: 1,
         where: { id: libraryItem.videoId },

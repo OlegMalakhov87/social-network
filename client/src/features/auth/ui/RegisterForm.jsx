@@ -4,12 +4,20 @@ import { Link } from 'react-router-dom';
 import { FORM_FIELDS, GENDER_OPTIONS } from '..';
 import {
   clearError,
-  getAuthErrorDisplay,
   register,
   selectIsAuthLoading,
 } from '../../../entities/auth';
-import { useForm } from '../../../shared/hooks';
-import { custom, email, match, minLength, required } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import {
+  custom,
+  email,
+  getApiErrorDisplay,
+  integer,
+  match,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -17,7 +25,6 @@ import {
   Input,
   Select,
   Text,
-  useToast,
 } from '../../../shared/ui';
 import style from './RegisterForm.module.css';
 
@@ -26,7 +33,7 @@ import style from './RegisterForm.module.css';
  */
 export const RegisterForm = () => {
   const dispatch = useDispatch();
-  const toast = useToast();
+  const notify = useNotify();
   const isSubmitting = useSelector(selectIsAuthLoading);
 
   useEffect(() => {
@@ -44,7 +51,11 @@ export const RegisterForm = () => {
       agreeTerms: false,
     },
     rules: {
-      name: [required('Имя обязательно'), minLength(2, 'Минимум 2 символа')],
+      name: [
+        required('Имя обязательно'),
+        minLength(1, 'Минимум 1 символа'),
+        maxLength(100, 'Максимум 100 символов'),
+      ],
       email: [required('Email обязателен'), email('Неверный формат email')],
       password: [
         required('Пароль обязателен'),
@@ -54,34 +65,17 @@ export const RegisterForm = () => {
         required('Подтвердите пароль'),
         match('password', 'Пароли не совпадают'),
       ],
-      age: [
-        custom((value) => {
-          if (value === '' || value == null) return true;
-          const n = Number(value);
-          return Number.isInteger(n) && n >= 14 && n <= 99;
-        }, 'От 14 до 99 лет'),
-      ],
+      age: [integer(1, 100, 'Возраст должен быть числом от 1 до 100 лет')],
+      gender: [required('Укажите свой пол')],
       agreeTerms: [
         custom((value) => value === true, 'Необходимо согласие с условиями'),
       ],
     },
     onSubmit: async (values) => {
       try {
-        const { confirmPassword, agreeTerms, ...rest } = values;
-        const registerData = { ...rest };
-        if (registerData.age === '' || registerData.age == null) {
-          delete registerData.age;
-        } else {
-          registerData.age = Number(registerData.age);
-        }
-        await dispatch(register(registerData)).unwrap();
+        await dispatch(register(values)).unwrap();
       } catch (error) {
-        toast.error(getAuthErrorDisplay(error, 'Ошибка при регистрации'));
-        if (error?.fieldErrors) {
-          const fieldErr = new Error('validation');
-          fieldErr.fieldErrors = error.fieldErrors;
-          throw fieldErr;
-        }
+        notify.error(getApiErrorDisplay(error, 'Ошибка при регистрации'));
         throw error;
       }
     },
@@ -119,7 +113,7 @@ export const RegisterForm = () => {
             </div>
 
             <Select
-              label="Пол"
+              label="Пол *"
               {...form.register('gender')}
               options={GENDER_OPTIONS}
               disabled={form.isSubmitting || isSubmitting}

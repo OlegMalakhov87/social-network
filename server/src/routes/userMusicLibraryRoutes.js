@@ -5,11 +5,19 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const userMusicLibraryRoutes = Router();
 
-// Получить мою библиотеку
+// Получить мою библиотеку треков
 userMusicLibraryRoutes.get(
   '/',
   authMiddleware,
   userMusicLibraryController.getMyMusicLibrary
+);
+
+// Получить библиотеку выбранного пользователя
+userMusicLibraryRoutes.get(
+  '/:userId',
+  validateIdParam('userId'),
+  authMiddleware,
+  userMusicLibraryController.getUserMusicLibrary
 );
 
 // Добавить трек в библиотеку

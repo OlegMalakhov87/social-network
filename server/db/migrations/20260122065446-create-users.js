@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Users', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       nickname: {
         type: Sequelize.STRING(100),
@@ -16,6 +16,7 @@ module.exports = {
       name: {
         type: Sequelize.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
       },
       age: {
         type: Sequelize.INTEGER,
@@ -43,10 +44,10 @@ module.exports = {
         unique: true,
         allowNull: true,
       },
-      avatar: {
+      avatarUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: '/user.png',
+        defaultValue: '/default-user.png',
       },
       isPublic: {
         type: Sequelize.BOOLEAN,

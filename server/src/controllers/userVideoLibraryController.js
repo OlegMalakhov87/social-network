@@ -21,7 +21,7 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Получить библиотеку другого пользователя
+   * Получить библиотеку выбранного пользователя
    */
   getUserVideosLibrary: async (req, res, next) => {
     try {

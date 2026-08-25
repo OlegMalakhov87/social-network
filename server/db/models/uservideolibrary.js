@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
 
   UserVideoLibrary.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -31,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
         allowNull: false,
       },
+      lastWatchedAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+        allowNull: true,
+      },
       viewsCount: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -39,11 +50,6 @@ module.exports = (sequelize, DataTypes) => {
           min: 0,
           isInt: true,
         },
-      },
-      lastWatchedAt: {
-        type: DataTypes.DATE,
-        defaultValue: null,
-        allowNull: true,
       },
     },
     {

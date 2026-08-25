@@ -3,6 +3,16 @@ import { FORM_FIELDS } from '..';
 import { updateUser, uploadAvatar } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import {
+  email,
+  getApiErrorDisplay,
+  integer,
+  maxLength,
+  minLength,
+  phone,
+  required,
+  slug,
+} from '../../../shared/lib';
+import {
   Avatar,
   Button,
   ButtonGroup,
@@ -12,15 +22,13 @@ import {
   Input,
 } from '../../../shared/ui';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
-import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
-
+import { SettingsSection } from './SettingsSection';
 /**
  * Компонент формы редактирования профиля.
  *
  * @param {Object} props
  * @param {Object} props.currentUser - текущий пользователь.
- * @returns {JSX.Element}
  */
 export const EditProfileForm = ({ currentUser }) => {
   const dispatch = useDispatch();
@@ -29,21 +37,37 @@ export const EditProfileForm = ({ currentUser }) => {
   /** Форма для редактирования профиля */
   const form = useForm({
     initialValues: {
-      name: currentUser?.name || '',
-      nickname: currentUser?.nickname || '',
-      email: currentUser?.email || '',
-      phone: currentUser?.phone || '',
-      age: currentUser?.age || '',
-      address: currentUser?.address || '',
-      job: currentUser?.job || '',
-      status: currentUser?.status || '',
+      name: currentUser?.name ?? '',
+      nickname: currentUser?.nickname ?? '',
+      email: currentUser?.email ?? '',
+      phone: currentUser?.phone ?? '',
+      age: currentUser?.age ?? null,
+      address: currentUser?.address ?? '',
+      job: currentUser?.job ?? '',
+      status: currentUser?.status ?? '',
+    },
+    rules: {
+      name: [
+        required('Имя обязательно'),
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(100, 'Максимум 100 символов'),
+      ],
+      nickname: [maxLength(100, 'Максимум 100 символов'), slug()],
+      email: [required('Email обязательно'), email('Неверный формат email')],
+      phone: [phone()],
+      age: [integer(1, 100, 'Возраст должен быть числом от 1 до 100 лет')],
+      address: [maxLength(500, 'Максимум 500 символов')],
+      job: [maxLength(100, 'Максимум 100 символов')],
+      status: [maxLength(500, 'Максимум 500 символов')],
+      gender: [required('Пол обязательно')],
     },
     onSubmit: async (values) => {
       try {
         await dispatch(updateUser(values)).unwrap();
         notify.success('Профиль успешно обновлён');
       } catch (error) {
-        notify.error(error || 'Ошибка обновления профиля');
+        notify.error(getApiErrorDisplay(error, 'Ошибка обновления профиля'));
+        throw error;
       }
     },
   });
@@ -72,12 +96,7 @@ export const EditProfileForm = ({ currentUser }) => {
         leftSlot={
           <EntityMeta
             avatar={
-              <Avatar
-                src={preview || currentUser?.avatar}
-                size="xl"
-                fallback="/avatar.png"
-                alt="Аватар"
-              />
+              <Avatar src={preview || currentUser?.avatarUrl} size="xl" />
             }
             title={form.values.name}
             subtitle={form.values.email}
@@ -113,7 +132,7 @@ export const EditProfileForm = ({ currentUser }) => {
           ))}
         </div>
 
-        <ButtonGroup className={style.actions}>
+        <ButtonGroup>
           <Button
             type="button"
             variant="secondary"

@@ -56,6 +56,11 @@ export const useFileUpload = (config, options = {}) => {
       return;
     }
 
+    if (preview) {
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
+
     // Создание превью
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
@@ -94,8 +99,6 @@ export const useFileUpload = (config, options = {}) => {
       onError?.(errorMessage);
       setPreview(null);
     } finally {
-      // Очистка памяти (предотвращает утечки)
-      URL.revokeObjectURL(objectUrl);
       setIsUploading(false);
       e.target.value = '';
     }

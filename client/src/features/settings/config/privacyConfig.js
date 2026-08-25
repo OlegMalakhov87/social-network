@@ -17,25 +17,25 @@ export const VISIBILITY_OPTIONS = [
 export const PRIVACY_SETTINGS_CONFIG = [
   {
     key: 'profile',
-    label: 'Кто видит мой профиль',
+    label: 'Кто видит мой профиль *',
     options: VISIBILITY_OPTIONS,
     updateFn: updateUserPrivacyApi,
   },
   {
     key: 'posts',
-    label: 'Кто видит мои посты',
+    label: 'Кто видит мои посты *',
     options: VISIBILITY_OPTIONS,
     updateFn: updatePostsPrivacyApi,
   },
   {
     key: 'tracks',
-    label: 'Кто видит мои треки',
+    label: 'Кто видит мои треки *',
     options: VISIBILITY_OPTIONS,
     updateFn: updateTracksPrivacyApi,
   },
   {
     key: 'videos',
-    label: 'Кто видит мои видео',
+    label: 'Кто видит мои видео *',
     options: VISIBILITY_OPTIONS,
     updateFn: updateVideosPrivacyApi,
   },

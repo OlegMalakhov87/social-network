@@ -8,7 +8,7 @@ const {
   Comment,
   Message,
 } = require('../../db/models');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 /**
  * Маппинг типов сущностей на модели и типы в БД
@@ -73,7 +73,7 @@ const likeService = {
     const { count, rows } = await Like.findAndCountAll({
       where: { targetType: target.dbType, targetId },
       include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'user', attributes: ['id', 'name', 'avatarUrl'] },
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -97,7 +97,7 @@ const likeService = {
     const { count, rows: likes } = await Like.findAndCountAll({
       where: { userId },
       include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'user', attributes: ['id', 'name', 'avatarUrl'] },
       ],
       order: [['createdAt', 'DESC']],
       limit,
@@ -189,7 +189,7 @@ const likeService = {
 
       const likeWithUser = await Like.findByPk(like.id, {
         include: [
-          { model: User, as: 'user', attributes: ['id', 'name', 'avatar'] },
+          { model: User, as: 'user', attributes: ['id', 'name', 'avatarUrl'] },
         ],
       });
 

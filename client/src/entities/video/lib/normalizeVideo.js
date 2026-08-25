@@ -4,27 +4,7 @@
  * @returns {Object} - нормализованные данные видео
  */
 export const normalizeVideo = (raw) => {
-  if (!raw || typeof raw !== 'object') {
-    return {
-      id: null,
-      title: '',
-      description: '',
-      duration: null,
-      size: null,
-      year: null,
-      url: '',
-      thumbnail: '',
-      category: '',
-      isPublic: false,
-      isInLibrary: false,
-      libraryId: null,
-      viewsCount: 0,
-      likesCount: 0,
-      isLiked: false,
-      commentsCount: 0,
-      comments: [],
-    };
-  }
+  if (!raw || typeof raw !== 'object') return raw;
 
   return {
     id: raw.id,
@@ -41,7 +21,6 @@ export const normalizeVideo = (raw) => {
     viewsCount: raw.viewsCount ?? 0,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    date: raw.updatedAt ?? raw.createdAt,
     uploader: raw.uploader,
 
     isInLibrary: raw.isInLibrary ?? false,

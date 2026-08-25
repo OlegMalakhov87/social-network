@@ -123,6 +123,26 @@
   pointer-events: none;
 }
 
+.hasHover {
+  display: inline;
+}
+
+.button:hover .hasHover {
+  display: none;
+}
+
+.defaultText {
+  display: inline;
+}
+
+.hoverText {
+  display: none;
+}
+
+.button:hover .hoverText {
+  display: inline;
+}
+
 .spinner {
   width: var(--space-4);
   height: var(--space-4);

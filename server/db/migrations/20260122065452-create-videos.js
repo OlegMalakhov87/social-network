@@ -18,6 +18,7 @@ module.exports = {
       title: {
         type: Sequelize.STRING(100),
         allowNull: false,
+        defaultValue: 'Untitled',
       },
       description: {
         type: Sequelize.TEXT,
@@ -35,19 +36,23 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
       },
-      url: {
+      videoUrl: {
         type: Sequelize.STRING(500),
         allowNull: false,
         defaultValue: '/default-video.mp4',
       },
-      thumbnail: {
+      thumbnailUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: '/default-thumbnail.mp4',
+      },
+      previewUrl: {
+        type: Sequelize.STRING(500),
+        allowNull: true,
       },
       category: {
         type: Sequelize.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
       },
       isPublic: {
         type: Sequelize.BOOLEAN,

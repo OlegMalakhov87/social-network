@@ -1,6 +1,12 @@
 import { CATEGORY_OPTIONS } from '../../../entities/video';
-import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength, required } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import {
+  getApiErrorDisplay,
+  integer,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -12,6 +18,7 @@ import {
   TextArea,
 } from '../../../shared/ui';
 import {
+  VIDEO_PREVIEW_CONFIG,
   VIDEO_THUMBNAIL_CONFIG,
   VIDEO_UPLOAD_CONFIG,
   useFileUpload,
@@ -26,39 +33,45 @@ import {
  */
 export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
+  const notify = useNotify();
   /** Форма для добавления/редактирования видео с валидацией */
   const form = useForm({
     initialValues: {
-      title: initialData?.title || '',
-      description: initialData?.description || '',
-      year: initialData?.year || '',
-      videoUrl: initialData?.videoUrl || '',
-      thumbnailUrl: initialData?.thumbnailUrl || '',
-      category: initialData?.category || '',
+      title: initialData?.title ?? '',
+      description: initialData?.description ?? '',
+      year: initialData?.year ?? '',
+      videoUrl: initialData?.videoUrl ?? '',
+      previewUrl: initialData?.previewUrl ?? '',
+      thumbnailUrl: initialData?.thumbnailUrl ?? '',
+      category: initialData?.category ?? '',
       isPublic: initialData?.isPublic ?? true,
+      viewsCount: initialData?.viewsCount ?? 0,
     },
     rules: () => ({
       title: [
         required('Введите название'),
-        minLength(10, 'Минимально 10 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      description: [
-        required('Введите описание'),
-        minLength(10, 'Минимально 10 символов'),
-        maxLength(1000, 'Максимум 1000 символов'),
-      ],
+      description: [maxLength(2000, 'Максимум 2000 символов')],
       year: [
-        minLength(4, 'Минимально 4 символа'),
-        maxLength(4, 'Максимум 4 символа'),
+        integer(
+          1900,
+          new Date().getFullYear(),
+          'Год должен быть от 1900 до текущего'
+        ),
       ],
       videoUrl: [required('Загрузите видео')],
-      thumbnailUrl: [required('Загрузите обложку')],
       category: [required('Выберите категорию')],
     }),
-    onSubmit: (values) => {
-      onSubmit?.(values, isEdit, initialData?.id);
-      onClose?.();
+    onSubmit: async (values) => {
+      try {
+        await onSubmit?.(values, isEdit, initialData?.id);
+        onClose?.();
+      } catch (error) {
+        notify.error(getApiErrorDisplay(error, 'Ошибка добавления видео'));
+        throw error;
+      }
     },
   });
 
@@ -72,8 +85,16 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSuccess: (data) => form.setValue('thumbnailUrl', data.thumbnailUrl),
   });
 
+  /** Хук для загрузки превью */
+  const previewUpload = useFileUpload(VIDEO_PREVIEW_CONFIG, {
+    onSuccess: (data) => form.setValue('previewUrl', data.previewUrl),
+  });
+
   /** Флаг загрузки */
-  const isUploading = videoUpload.isUploading || thumbnailUpload.isUploading;
+  const isUploading =
+    videoUpload.isUploading ||
+    thumbnailUpload.isUploading ||
+    previewUpload.isUploading;
 
   return (
     <Modal
@@ -96,6 +117,12 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           rows={3}
           disabled={form.isSubmitting || isUploading}
         />
+        <Input
+          label="Год"
+          {...form.register('year')}
+          placeholder="Год выпуска видео"
+          disabled={form.isSubmitting || isUploading}
+        />
 
         <FileInput
           accept={VIDEO_UPLOAD_CONFIG.accept}
@@ -104,34 +131,46 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           preview={videoUpload.preview}
           isUploading={videoUpload.isUploading}
           progress={videoUpload.progress}
-          error={videoUpload.error}
+          error={videoUpload.error || form.errors.videoUrl}
           onChange={videoUpload.handleFileChange}
           disabled={form.isSubmitting || isUploading}
         />
 
         <FileInput
           accept={VIDEO_THUMBNAIL_CONFIG.accept}
-          label="Превью (обложка)"
-          buttonText="Выбрать превью"
+          label="Обложка"
+          buttonText="Выбрать обложку"
           preview={thumbnailUpload.preview}
           isUploading={thumbnailUpload.isUploading}
           progress={thumbnailUpload.progress}
-          error={thumbnailUpload.error}
+          error={thumbnailUpload.error || form.errors.thumbnailUrl}
           onChange={thumbnailUpload.handleFileChange}
           disabled={form.isSubmitting || isUploading}
         />
 
+        <FileInput
+          accept={VIDEO_PREVIEW_CONFIG.accept}
+          label="Превью"
+          buttonText="Выбрать превью"
+          preview={previewUpload.preview}
+          isUploading={previewUpload.isUploading}
+          progress={previewUpload.progress}
+          error={previewUpload.error || form.errors.previewUrl}
+          onChange={previewUpload.handleFileChange}
+          disabled={form.isSubmitting || isUploading}
+        />
+
         <Select
-          label="Категория"
+          label="Категория *"
           {...form.register('category')}
           options={CATEGORY_OPTIONS}
           disabled={form.isSubmitting || isUploading}
         />
 
         <Checkbox
-          id="isPublic"
+          id="isPublic "
           name="isPublic"
-          label="Публичное видео (видно всем)"
+          label="Публичное видео (видно всем) *"
           checked={form.values.isPublic}
           onChange={(e) => form.setValue('isPublic', e.target.checked)}
           disabled={form.isSubmitting || isUploading}

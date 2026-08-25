@@ -28,6 +28,8 @@ import style from './News.module.css';
  * @param {Function} props.onDelete - функция для удаления новости
  * @param {Function} props.onUpdate - функция для обновления новости
  * @param {Function} props.onPlay - функция для воспроизведения видео новости
+ * @param {Object} props.currentNews - текущая новость
+ * @param {boolean} props.isPlaying - воспроизводится ли новость
  * @returns {JSX.Element} - компонент карточки новости
  */
 
@@ -40,6 +42,8 @@ export const News = ({
   onDelete,
   onUpdate,
   onPlay,
+  currentNews,
+  isPlaying,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
@@ -89,12 +93,14 @@ export const News = ({
           </EntityHeader>
         }
         cover={
-          news.mediaUrl && (
+          news.newsUrl && (
             <MediaPreview
               item={news}
-              src={news.mediaUrl}
+              currentItem={currentNews}
+              isPlaying={isPlaying}
+              src={news.newsUrl}
               alt={news.title}
-              onClick={news.type === 'video' ? () => onPlay?.(news) : undefined}
+              onClick={onPlay}
             />
           )
         }
@@ -104,16 +110,20 @@ export const News = ({
               linkify={true}
               className={classNames(style.text, expanded && style.expanded)}
             >
-              {news.content}
+              {news.text}
             </Text>
 
-            {news.content && news.content.length > 50 && (
+            {news.text && news.text.length > 50 && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>
             )}
 
-            <EntityMeta title={news.author} subtitle={news.source} />
+            <EntityMeta
+              avatar={news.uploader?.avatarUrl}
+              title={news.uploader?.name}
+              subtitle={news.source}
+            />
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

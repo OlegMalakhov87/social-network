@@ -13,7 +13,7 @@ import styles from './UserMeta.module.css';
  * @param {'sm'|'md'|'lg'} [props.avatarSize='md'] - размер аватара (по умолчанию 'md')
  */
 export const UserMeta = ({
-  avatar,
+  avatarUrl,
   name,
   subtitle,
   extra,
@@ -21,7 +21,7 @@ export const UserMeta = ({
 }) => {
   return (
     <div className={styles.root}>
-      <Avatar src={avatar} size={avatarSize} alt={name} />
+      <Avatar src={avatarUrl} size={avatarSize} alt={name} />
 
       <div className={styles.content}>
         <div className={styles.nameRow}>

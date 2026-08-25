@@ -31,6 +31,12 @@ module.exports = (sequelize, DataTypes) => {
   }
   News.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       uploadedBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -59,6 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       author: {
         type: DataTypes.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -67,8 +74,9 @@ module.exports = (sequelize, DataTypes) => {
       category: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
         validate: {
-          len: [1, 50],
+          len: [1, 20],
           notEmpty: true,
         },
       },
@@ -82,9 +90,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 100],
+          notEmpty: true,
         },
       },
-      media: {
+      newsUrl: {
         type: DataTypes.STRING(500),
         allowNull: true,
         validate: {

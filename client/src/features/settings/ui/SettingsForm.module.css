@@ -33,12 +33,6 @@
   border-bottom: 1px solid var(--border-primary);
 }
 
-.actions {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border-primary);
-}
-
 .dangerZone {
   margin-top: var(--space-8);
   padding-top: var(--space-5);

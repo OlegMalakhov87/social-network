@@ -9,20 +9,6 @@ const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const userRoutes = Router();
 
-// Поиск пользователей
-userRoutes.get('/search', authMiddleware, userController.searchUsers);
-
-// Получение всех пользователей
-userRoutes.get('/', authMiddleware, userController.getAllUsers);
-
-// Получение пользователя по ID
-userRoutes.get(
-  '/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  userController.getUserById
-);
-
 // Проверка онлайн статуса пользователей
 userRoutes.post(
   '/online-status',
@@ -30,14 +16,11 @@ userRoutes.post(
   userController.checkOnlineBulk
 );
 
-// Создание пользователя
-userRoutes.post('/', validateUser, userController.createUser);
-
 // Загрузка аватара пользователя
 userRoutes.post(
   '/upload-avatar',
   authMiddleware,
-  upload.single('avatar'),
+  upload.single('avatarUrl'),
   handleUploadError,
   userController.uploadAvatar
 );
@@ -49,6 +32,9 @@ userRoutes.patch(
   validateUser,
   userController.updateUser
 );
+
+// Обновление приватности пользователя
+userRoutes.put('/update-privacy', authMiddleware, userController.updatePrivacy);
 
 // Удаление пользователя
 userRoutes.delete('/delete', authMiddleware, userController.deleteUser);

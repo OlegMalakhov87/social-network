@@ -8,13 +8,12 @@ export const normalizePosts = (raw) => {
     id: raw.id,
     userId: raw.userId,
     text: raw.text,
-    media: raw.media,
+    postUrl: raw.postUrl,
     isPublic: raw.isPublic,
     type: raw.type,
     pinned: raw.pinned,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    date: raw.updatedAt ?? raw.createdAt,
 
     author: raw.author,
 

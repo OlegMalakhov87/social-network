@@ -12,6 +12,7 @@ import styles from './Button.module.css';
  * @param {boolean} [props.fullWidth=false] - Растянуть кнопку на всю ширину.
  * @param {boolean} [props.loading=false] - Показывать состояние загрузки.
  * @param {boolean} [props.disabled=false] - Заблокировать кнопку.
+ * @param {string} [props.hoverText=''] - Текст при наведении.
  * @param {React.ReactNode} [props.leftIcon] - Иконка слева.
  * @param {React.ReactNode} [props.rightIcon] - Иконка справа.
  * @param {Function} [props.onClick] - Обработчик нажатия.
@@ -26,6 +27,7 @@ export const Button = ({
   fullWidth = false,
   loading = false,
   disabled = false,
+  hoverText,
   leftIcon,
   rightIcon,
   className = '',
@@ -53,7 +55,13 @@ export const Button = ({
 
       {!loading && leftIcon && <span className={styles.icon}>{leftIcon}</span>}
 
-      <span>{children}</span>
+      <span
+        className={classNames(styles.defaultText, hoverText && styles.hasHover)}
+      >
+        {children}
+      </span>
+
+      {hoverText && <span className={styles.hoverText}>{hoverText}</span>}
 
       {!loading && rightIcon && (
         <span className={styles.icon}>{rightIcon}</span>

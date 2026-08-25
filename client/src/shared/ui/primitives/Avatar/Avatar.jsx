@@ -7,7 +7,7 @@ import styles from './Avatar.module.css';
  *
  * @param {Object} props
  * @param {string} props.src - URL изображения.
- * @param {string} [props.fallback='/images/avatar-placeholder.webp'] - Запасное изображение.
+ * @param {string} [props.fallback='/default-user.png'] - Запасное изображение.
  * @param {string} [props.alt='Avatar'] - Альтернативный текст.
  * @param {'xs'|'sm'|'md'|'lg'|'xl'} [props.size='md'] - Размер аватара.
  * @param {'circle'|'rounded'|'square'} [props.variant='circle'] - Форма.
@@ -18,8 +18,8 @@ import styles from './Avatar.module.css';
  */
 export const Avatar = ({
   src,
-  fallback = '/support.png',
-  alt = 'Фото',
+  fallback = '/default-user.png',
+  alt = 'Аватар',
   size = 'md',
   variant = 'circle',
   status = null,
@@ -42,7 +42,7 @@ export const Avatar = ({
       onKeyDown={clickable ? (e) => handleKeyboardClick(e, onClick) : undefined}
     >
       <Image
-        src={src}
+        src={src || fallback}
         fallback={fallback}
         alt={alt}
         loading="lazy"

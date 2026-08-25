@@ -9,20 +9,29 @@ const ensureDirExists = (dir) => {
   }
 };
 
+const getDestination = (fieldName, mimetype) => {
+  const base = 'uploads/';
+
+  if (fieldName === 'avatarUrl') return base + 'images/avatars/';
+  if (fieldName === 'thumbnailUrl') return base + 'images/thumbnails/';
+  if (fieldName === 'coverUrl') return base + 'images/covers/';
+  if (fieldName === 'postUrl' && mimetype.startsWith('image/'))
+    return base + 'images/posts/';
+  if (fieldName === 'postUrl' && mimetype.startsWith('video/'))
+    return base + 'videos/posts/';
+  if (fieldName === 'newsUrl' && mimetype.startsWith('image/'))
+    return base + 'images/news/';
+  if (fieldName === 'newsUrl' && mimetype.startsWith('video/'))
+    return base + 'videos/news/';
+  if (fieldName === 'videoUrl') return base + 'videos/video/';
+  if (fieldName === 'previewUrl') return base + 'videos/previews/';
+  if (fieldName === 'audioUrl') return base + 'audio/tracks/';
+};
+
 /** Хранение файлов на диске */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let uploadPath = 'uploads/';
-    if (file.mimetype.startsWith('image/')) {
-      uploadPath += 'images/';
-    } else if (file.mimetype.startsWith('video/')) {
-      uploadPath += 'videos/';
-    } else if (file.mimetype.startsWith('audio/')) {
-      uploadPath += 'audio/';
-    } else {
-      uploadPath += 'other/';
-    }
-
+    const uploadPath = getDestination(file.fieldname, file.mimetype);
     ensureDirExists(uploadPath);
     cb(null, uploadPath);
   },
@@ -39,6 +48,7 @@ const fileFilter = (req, file, cb) => {
     'image/png',
     'image/webp',
     'image/gif',
+    'image/jpg',
     'video/mp4',
     'video/webm',
     'video/ogg',
@@ -67,12 +77,10 @@ const upload = multer({
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res
-        .status(400)
-        .json({
-          error: 'Файл слишком большой (макс. 100MB)',
-          code: 'FILE_TOO_LARGE',
-        });
+      return res.status(400).json({
+        error: 'Файл слишком большой (макс. 100MB)',
+        code: 'FILE_TOO_LARGE',
+      });
     }
     return res.status(400).json({ error: err.message, code: 'MULTER_ERROR' });
   }

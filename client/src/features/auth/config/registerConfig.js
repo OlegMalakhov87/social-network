@@ -2,10 +2,15 @@
  * Поля формы регистрации.
  */
 export const FORM_FIELDS = [
-  { name: 'name', label: 'Имя', type: 'text', placeholder: 'Введите ваше имя' },
+  {
+    name: 'name',
+    label: 'Имя *',
+    type: 'text',
+    placeholder: 'Введите ваше имя',
+  },
   {
     name: 'email',
-    label: 'Email',
+    label: 'Email *',
     type: 'email',
     placeholder: 'email@example.com',
   },
@@ -16,16 +21,16 @@ export const FORM_FIELDS = [
     placeholder: 'Введите ваш возраст',
     half: true,
   },
- 
+
   {
     name: 'password',
-    label: 'Пароль',
+    label: 'Пароль *',
     type: 'password',
     placeholder: 'Минимум 6 символов',
   },
   {
     name: 'confirmPassword',
-    label: 'Подтвердите пароль',
+    label: 'Подтвердите пароль *',
     type: 'password',
     placeholder: 'Повторите пароль',
   },

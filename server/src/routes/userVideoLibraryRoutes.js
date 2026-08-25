@@ -12,7 +12,7 @@ userVideoLibraryRoutes.get(
   userVideoLibraryController.getMyVideoLibrary
 );
 
-// Получить библиотеку другого пользователя
+// Получить библиотеку выбранного пользователя
 userVideoLibraryRoutes.get(
   '/:userId',
   validateIdParam('userId'),

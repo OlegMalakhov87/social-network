@@ -42,6 +42,12 @@ module.exports = (sequelize, DataTypes) => {
 
   Video.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       uploadedBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -53,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
       title: {
         type: DataTypes.STRING(100),
         allowNull: false,
+        defaultValue: 'Untitled',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -71,7 +78,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           min: 1,
-          max: 7200,
+          max: 1800,
           isInt: true,
         },
       },
@@ -92,19 +99,31 @@ module.exports = (sequelize, DataTypes) => {
           isInt: true,
         },
       },
-      url: {
+      videoUrl: {
         type: DataTypes.STRING(500),
         allowNull: false,
         defaultValue: '/default-video.mp4',
       },
-      thumbnail: {
+      thumbnailUrl: {
         type: DataTypes.STRING(500),
         allowNull: true,
-        defaultValue: '/default-thumbnail.mp4',
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
+      },
+      previewUrl: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
       },
       category: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
         validate: {
           len: [1, 50],
           notEmpty: true,

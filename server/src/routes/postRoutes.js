@@ -29,7 +29,7 @@ postRoutes.get(
 postRoutes.post(
   '/upload-media',
   authMiddleware,
-  upload.single('media'),
+  upload.single('postUrl'),
   handleUploadError,
   postController.uploadMedia
 );

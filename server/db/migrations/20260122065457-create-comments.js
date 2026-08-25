@@ -16,8 +16,8 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       targetType: {
-        allowNull: false,
         type: Sequelize.ENUM('Post', 'Music', 'Video', 'News'),
+        allowNull: false,
       },
       targetId: {
         type: Sequelize.INTEGER,

@@ -25,6 +25,8 @@ import { normalizeSharedPost } from '../../shared-entity';
  * @param {Function} props.onDelete - функция для удаления поста
  * @param {Function} props.onUpdate - функция для обновления поста
  * @param {Function} props.toggleComments - функция для открытия комментариев поста
+ * @param {Object} props.currentPost - текущий пост
+ * @param {boolean} props.isPlaying - воспроизводится ли пост
  * @returns {JSX.Element} - компонент карточки поста
  */
 export const Post = ({
@@ -36,6 +38,8 @@ export const Post = ({
   onDelete,
   onUpdate,
   toggleComments,
+  currentPost,
+  isPlaying,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
@@ -69,24 +73,22 @@ export const Post = ({
         header={
           <EntityHeader>
             <EntityMeta
-              avatar={post.author?.avatar ?? targetUser?.avatar}
+              avatar={post.author?.avatarUrl ?? targetUser?.avatarUrl}
               title={post.author?.name ?? targetUser?.name}
-              subtitle={formatDate(
-                post.updatedAt || post.createdAt || post.date
-              )}
+              subtitle={formatDate(post.updatedAt || post.createdAt)}
             />
           </EntityHeader>
         }
         content={
           <EntityContent>
-            {post.media && (
+            {post.postUrl && (
               <MediaPreview
                 item={post}
-                src={post.media}
+                src={post.postUrl}
                 alt={post.type === 'image' ? 'Фото' : 'Видео'}
-                onClick={
-                  post.type === 'video' ? () => onPlay?.(post) : undefined
-                }
+                onClick={onPlay}
+                currentItem={currentPost}
+                isPlaying={isPlaying}
               />
             )}
             {post.text && <Text linkify={true}>{post.text}</Text>}

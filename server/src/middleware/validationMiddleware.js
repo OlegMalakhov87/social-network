@@ -6,10 +6,11 @@ const { body, param, query, validationResult } = require('express-validator');
 const validateRegister = [
   body('name')
     .notEmpty()
+    .isString()
     .withMessage('Имя обязательно')
     .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Имя от 2 до 100 символов'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Имя от 1 до 100 символов'),
   body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
   body('password')
     .notEmpty()
@@ -18,8 +19,13 @@ const validateRegister = [
     .withMessage('Пароль должен быть не менее 6 символов'),
   body('age')
     .optional()
-    .isInt({ min: 14, max: 99 })
-    .withMessage('Некорректный возраст'),
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Возраст от 1 до 100 лет'),
+  body('gender')
+    .notEmpty()
+    .withMessage('Пол обязателен')
+    .isIn(['male', 'female'])
+    .withMessage('Пол должен быть male или female'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -55,43 +61,62 @@ const validateLogin = [
  */
 const validateUser = [
   body('name')
-    .optional()
+    .notEmpty()
+    .withMessage('Имя обязательно')
+    .isString()
     .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Имя от 2 до 100 символов'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Имя от 1 до 100 символов'),
+  body('avatarUrl')
+    .notEmpty()
+    .withMessage('Аватар URL обязателен')
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Аватар URL до 500 символов'),
   body('nickname')
     .optional()
+    .isString()
     .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Никнейм от 2 до 50 символов'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Никнейм от 1 до 100 символов'),
   body('age')
     .optional()
-    .isInt({ min: 14, max: 99 })
-    .withMessage('Некорректный возраст'),
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Возраст от 1 до 100 лет'),
+  body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
   body('address')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
     .withMessage('Адрес до 500 символов'),
   body('job')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Должность до 100 символов'),
   body('status')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
     .withMessage('Статус до 500 символов'),
   body('phone')
     .optional()
+    .isString()
     .trim()
-    .isLength({ min: 5, max: 25 })
-    .withMessage('Телефон от 5 до 25 символов'),
+    .isLength({ min: 12, max: 18 })
+    .withMessage('Телефон от 12 до 18 символов'),
   body('isPublic')
-    .optional()
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
+  body('gender')
+    .notEmpty()
+    .withMessage('Пол обязателен')
+    .isIn(['male', 'female'])
+    .withMessage('Пол должен быть male или female'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -109,21 +134,26 @@ const validateUser = [
  */
 const validatePost = [
   body('text')
-    .optional({ checkFalsy: true })
+    .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 5000 })
     .withMessage('Текст от 1 до 5000 символов'),
   body('isPublic')
-    .optional()
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('type')
     .isIn(['text', 'image', 'video'])
     .withMessage('Тип поста должен быть text, image или video'),
-  body('pinned')
+  body('pinned').isBoolean().withMessage('pinned должен быть true или false'),
+  body('postUrl')
     .optional()
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Пост URL до 500 символов'),
+  body('isEdited')
     .isBoolean()
-    .withMessage('pinned должен быть true или false'),
+    .withMessage('isEdited должен быть true или false'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -142,6 +172,7 @@ const validatePost = [
 const validateComment = [
   body('text')
     .notEmpty()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 2000 })
     .withMessage('Текст обязателен и должен быть от 1 до 2000 символов'),
@@ -152,6 +183,9 @@ const validateComment = [
     .isInt({ min: 1 })
     .toInt()
     .withMessage('ID сущности должен быть числом'),
+  body('isEdited')
+    .isBoolean()
+    .withMessage('isEdited должен быть true или false'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -165,7 +199,7 @@ const validateComment = [
 ];
 
 /**
- * Валидация для лайков (targetType и targetId в URL, не в body)
+ * Валидация для лайков
  */
 const validateLike = [
   param('targetType')
@@ -193,13 +227,29 @@ const validateLike = [
  * Валидация для сообщений
  */
 const validateMessage = [
-  body('senderId').isInt({ min: 1 }).toInt(),
-  body('content').notEmpty().trim().isLength({ min: 1, max: 2000 }),
-  body('receiverId').isInt({ min: 1 }).toInt(),
-  body('isRead').isBoolean(),
-  body('isEdited').isBoolean(),
-  body('deletedBySender').isBoolean(),
-  body('deletedByReceiver').isBoolean(),
+  body('senderId')
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('senderId должен быть числом'),
+  body('content')
+    .notEmpty()
+    .trim()
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Текст обязателен и должен быть от 1 до 2000 символов'),
+  body('receiverId')
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('receiverId должен быть числом'),
+  body('isRead').isBoolean().withMessage('isRead должен быть true или false'),
+  body('isEdited')
+    .isBoolean()
+    .withMessage('isEdited должен быть true или false'),
+  body('deletedBySender')
+    .isBoolean()
+    .withMessage('deletedBySender должен быть true или false'),
+  body('deletedByReceiver')
+    .isBoolean()
+    .withMessage('deletedByReceiver должен быть true или false'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -218,18 +268,21 @@ const validateMessage = [
 const validateMusic = [
   body('title')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Заголовок обязателен')
     .isLength({ min: 1, max: 100 })
     .withMessage('Заголовок до 100 символов'),
   body('artist')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Исполнитель обязателен')
     .isLength({ min: 1, max: 100 })
     .withMessage('Исполнитель до 100 символов'),
   body('album')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Альбом до 100 символов'),
@@ -239,42 +292,42 @@ const validateMusic = [
     .toInt(),
   body('duration')
     .optional()
-    .isInt({ min: 1, max: 3600 })
-    .toInt()
-    .withMessage('Длительность должна быть числом'),
-  body('size')
-    .optional()
-    .isInt({ min: 1024 })
-    .toInt()
-    .withMessage('Размер должен быть числом'),
-  body('genre')
+    .isInt({ min: 1, max: 600 })
+    .withMessage('Длительность должна быть от 1 до 600 секунд')
+    .toInt(),
+  body('audioUrl')
     .notEmpty()
-    .trim()
-    .withMessage('Жанр обязателен')
-    .isLength({ min: 1, max: 50 })
-    .withMessage('Жанр до 50 символов'),
-  body('audio')
     .isString()
+    .trim()
+    .withMessage('Аудио URL обязателен')
     .isLength({ min: 1, max: 500 })
-    .withMessage('Аудио до 500 символов'),
+    .withMessage('Аудио URL до 500 символов'),
+  body('coverUrl')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Обложка URL до 500 символов'),
+  body('category')
+    .notEmpty()
+    .isString()
+    .trim()
+    .withMessage('Категория обязательна')
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Категория до 50 символов'),
   body('isPublic')
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('description')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 2000 })
     .withMessage('Описание до 2000 символов'),
-  body('cover')
-    .optional()
-    .isString()
-    .isLength({ min: 1, max: 500 })
-    .withMessage('Обложка до 500 символов'),
   body('playsCount')
-    .optional()
     .isInt({ min: 0 })
     .toInt()
-    .withMessage('Количество проигрываний должно быть числом'),
+    .withMessage('Количество проигрываний не может быть отрицательным числом'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -293,20 +346,22 @@ const validateMusic = [
 const validateVideo = [
   body('title')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Заголовок обязателен')
     .isLength({ min: 1, max: 100 })
     .withMessage('Заголовок до 100 символов'),
   body('description')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 2000 })
     .withMessage('Описание до 2000 символов'),
   body('duration')
     .optional()
-    .isInt({ min: 1, max: 7200 })
+    .isInt({ min: 1, max: 1800 })
     .toInt()
-    .withMessage('Длительность должна быть числом'),
+    .withMessage('Длительность должна быть от 1 до 1800 секунд'),
   body('size')
     .optional()
     .isInt({ min: 1024 })
@@ -316,17 +371,25 @@ const validateVideo = [
     .optional()
     .isInt({ min: 1900, max: new Date().getFullYear() })
     .toInt(),
-  body('url')
+  body('videoUrl')
+    .notEmpty()
     .isString()
+    .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('URL до 500 символов'),
+    .withMessage('Видео URL до 500 символов'),
   body('thumbnailUrl')
     .optional()
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Обложка до 500 символов'),
+  body('previewUrl')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Превью до 500 символов'),
   body('category')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Категория обязательна')
     .isLength({ min: 1, max: 50 })
@@ -335,7 +398,7 @@ const validateVideo = [
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('viewsCount')
-    .optional()
+    .optional({ checkFalsy: true })
     .isInt({ min: 0 })
     .toInt()
     .withMessage('Количество просмотров должно быть числом'),
@@ -356,24 +419,28 @@ const validateVideo = [
  */
 const validateNews = [
   body('title')
-    .optional()
+    .notEmpty()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Заголовок до 100 символов'),
   body('text')
-    .optional()
+    .notEmpty()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 5000 })
     .withMessage('Текст до 5000 символов'),
   body('date').optional().isDate().withMessage('Некорректная дата'),
   body('author')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Автор обязателен')
     .isLength({ min: 1, max: 100 })
     .withMessage('Автор до 100 символов'),
   body('category')
     .notEmpty()
+    .isString()
     .trim()
     .withMessage('Категория обязательна')
     .isLength({ min: 1, max: 50 })
@@ -384,19 +451,23 @@ const validateNews = [
     .withMessage('Тип должен быть text, image или video'),
   body('source')
     .optional()
+    .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Источник до 100 символов'),
-  body('media')
+  body('newsUrl')
     .optional()
     .isString()
+    .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Медиа до 500 символов'),
+    .withMessage('Новость URL до 500 символов'),
   body('viewsCount')
-    .optional()
     .isInt({ min: 0 })
     .toInt()
     .withMessage('Количество просмотров должно быть числом'),
+  body('isEdited')
+    .isBoolean()
+    .withMessage('isEdited должен быть true или false'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

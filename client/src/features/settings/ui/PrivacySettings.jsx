@@ -16,7 +16,7 @@ const DEFAULT_PRIVACY = {
  * Компонент формы настроек приватности.
  *
  */
-export const PrivacySettings = ({currentUser}) => {
+export const PrivacySettings = () => {
   const notify = useNotify();
   const [savingKeys, setSavingKeys] = useState(new Set());
   const [privacy, setPrivacy] = useState(DEFAULT_PRIVACY);

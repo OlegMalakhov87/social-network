@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { parseAuthApiError } from '..';
+import { parseApiError } from '../../../shared/lib';
 import {
   changePasswordApi,
   deleteCurrentUser,
@@ -19,7 +19,7 @@ export const login = createAsyncThunk(
       const data = await loginUser(credentials);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(parseAuthApiError(error));
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -32,7 +32,7 @@ export const register = createAsyncThunk(
       const data = await registerUser(userData);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(parseAuthApiError(error));
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -66,7 +66,11 @@ export const checkAuth = createAsyncThunk(
       const data = await getCurrentUser();
       return { user: data.user, token };
     } catch (error) {
-      return thunkAPI.rejectWithValue(parseAuthApiError(error));
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error ||
+          error.message ||
+          'Не удалось получить пользователя'
+      );
     }
   }
 );
@@ -79,11 +83,7 @@ export const updateUser = createAsyncThunk(
       const data = await updateCurrentUser(userData);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Не удалось обновить профиль'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -131,7 +131,7 @@ export const uploadAvatar = createAsyncThunk(
       return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.error || 'Ошибка загрузки фото'
+        error.response?.data?.error || error.message || 'Ошибка загрузки фото'
       );
     }
   }

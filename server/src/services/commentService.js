@@ -8,7 +8,7 @@ const {
   News,
 } = require('../../db/models');
 const { Op } = require('sequelize');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 /**
  * Маппинг типов сущностей на модели и типы в БД
@@ -84,7 +84,7 @@ const commentService = {
         {
           model: User,
           as: 'author',
-          attributes: ['id', 'name', 'avatar'],
+          attributes: ['id', 'name', 'avatarUrl'],
         },
         {
           model: Like,
@@ -130,7 +130,7 @@ const commentService = {
         {
           model: User,
           as: 'author',
-          attributes: ['id', 'name', 'avatar'],
+          attributes: ['id', 'name', 'avatarUrl'],
         },
       ],
       order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
@@ -162,7 +162,7 @@ const commentService = {
         {
           model: User,
           as: 'author',
-          attributes: ['id', 'name', 'avatar'],
+          attributes: ['id', 'name', 'avatarUrl'],
         },
       ],
     });
@@ -217,7 +217,7 @@ const commentService = {
         {
           model: User,
           as: 'author',
-          attributes: ['id', 'name', 'avatar'],
+          attributes: ['id', 'name', 'avatarUrl'],
         },
       ],
     });
@@ -267,7 +267,7 @@ const commentService = {
           {
             model: User,
             as: 'author',
-            attributes: ['id', 'name', 'avatar'],
+            attributes: ['id', 'name', 'avatarUrl'],
           },
         ],
       }

@@ -18,10 +18,12 @@ module.exports = {
       title: {
         type: Sequelize.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
       },
       artist: {
         type: Sequelize.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
       },
       album: {
         type: Sequelize.STRING(100),
@@ -35,19 +37,20 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
       },
-      audio: {
+      audioUrl: {
         type: Sequelize.STRING(500),
         allowNull: false,
-        defaultValue: '/audio-track.mp3',
+        defaultValue: '/default-audio.mp3',
       },
-      cover: {
+      coverUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: '/cover-track.webp',
+        defaultValue: null,
       },
-      genre: {
+      category: {
         type: Sequelize.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
       },
       description: {
         type: Sequelize.TEXT,
@@ -78,7 +81,7 @@ module.exports = {
     await queryInterface.addIndex('Music', ['uploadedBy']);
     await queryInterface.addIndex('Music', ['createdAt']);
     await queryInterface.addIndex('Music', ['title']);
-    await queryInterface.addIndex('Music', ['genre']);
+    await queryInterface.addIndex('Music', ['category']);
     await queryInterface.addIndex('Music', ['artist']);
     await queryInterface.addIndex('Music', ['isPublic']);
     await queryInterface.addIndex('Music', ['playsCount']);

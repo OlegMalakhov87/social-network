@@ -24,17 +24,10 @@
   transition: var(--transition-normal);
 }
 
-.play {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: var(--space-7);
-  height: var(--space-7);
-  border-radius: var(--radius-full);
-  background: var(--color-white);
-  color: var(--color-primary);
-  font-size: var(--font-xl);
-  box-shadow: var(--shadow-md);
+.badge {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
 }
 
 .clickable:hover .overlay {

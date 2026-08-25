@@ -45,9 +45,9 @@ export const Header = ({ onSearchChange }) => {
             className={style.logoLink}
           >
             <Image
-              src="/revivo-50.png"
-              alt="Revivo Logo"
-              fallback="/revivo-50.png"
+              src="/logo.png"
+              alt="Logo"
+              fallback="/logo.png"
               className={style.logoImage}
             />
           </NavLink>

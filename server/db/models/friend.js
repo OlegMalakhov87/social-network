@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
   }
   Friend.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,

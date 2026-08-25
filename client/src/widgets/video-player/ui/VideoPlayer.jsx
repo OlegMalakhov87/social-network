@@ -37,7 +37,7 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
     onPlayStart?.(video);
   }, [video, onPlayStart]);
 
-  const videoUrl = video?.url || video?.media;
+  const videoUrl = video?.videoUrl || video?.postUrl || video?.newsUrl;
 
   if (!videoUrl) {
     return (

@@ -1,18 +1,22 @@
 const videoService = require('../services/videoService');
+const videoPreviewService = require('../services/videoPreviewService');
+const mediaService = require('../services/mediaService');
 
 const videoController = {
   /**
    * Получение публичной ленты видео и поиск
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   getVideos: async (req, res, next) => {
     try {
+      const { page, limit, category, q, sortKey } = req.query;
+      const currentUserId = req.user?.id;
       const result = await videoService.getVideos({
-        ...req.query,
-        currentUserId: req.user?.id,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        category,
+        q,
+        currentUserId: parseInt(currentUserId),
+        sortKey,
       });
       res.status(200).json(result);
     } catch (error) {
@@ -21,54 +25,15 @@ const videoController = {
   },
 
   /**
-   * Получение видео пользователя
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  getUserVideos: async (req, res, next) => {
-    try {
-      const { userId } = req.params;
-      const result = await videoService.getUserVideosLibrary(
-        userId,
-        req.user?.id,
-        req.query.page,
-        req.query.limit
-      );
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Получение видео по ID
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  getVideoById: async (req, res, next) => {
-    try {
-      const { videoId } = req.params;
-      const result = await videoService.getVideoById(videoId);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Создание видео
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   createVideo: async (req, res, next) => {
     try {
-      const result = await videoService.createVideo(req.user.id, req.body);
+      const currentUserId = req.user?.id;
+      const result = await videoService.createVideo(
+        parseInt(currentUserId),
+        req.body
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -77,15 +42,12 @@ const videoController = {
 
   /**
    * Обновление приватности видео
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<void>}
    */
   updateVideoPrivacy: async (req, res, next) => {
     try {
+      const currentUserId = req.user?.id;
       const result = await videoService.updateVideoPrivacy(
-        req.user.id,
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -96,17 +58,14 @@ const videoController = {
 
   /**
    * Обновление видео
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   updateVideo: async (req, res, next) => {
     try {
       const { videoId } = req.params;
+      const currentUserId = req.user?.id;
       const result = await videoService.updateVideo(
-        videoId,
-        req.user.id,
+        parseInt(videoId),
+        parseInt(currentUserId),
         req.body
       );
       res.status(200).json(result);
@@ -117,15 +76,11 @@ const videoController = {
 
   /**
    * Инкремент счетчика просмотров видео
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   incrementViewCount: async (req, res, next) => {
     try {
       const { videoId } = req.params;
-      const result = await videoService.incrementViewCount(videoId);
+      const result = await videoService.incrementViewCount(parseInt(videoId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -134,15 +89,15 @@ const videoController = {
 
   /**
    * Удаление видео (владелец)
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   deleteVideo: async (req, res, next) => {
     try {
       const { videoId } = req.params;
-      const result = await videoService.deleteVideo(videoId, req.user.id);
+      const currentUserId = req.user?.id;
+      const result = await videoService.deleteVideo(
+        parseInt(videoId),
+        parseInt(currentUserId)
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -151,10 +106,6 @@ const videoController = {
 
   /**
    * Загрузка видео файла
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
    */
   uploadVideo: async (req, res, next) => {
     try {
@@ -162,18 +113,41 @@ const videoController = {
         return res
           .status(400)
           .json({ error: 'Видеофайл не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ url: `/${req.file.path}` });
+
+      const videoPath = req.file.path;
+
+      const videoMetadata = await mediaService.getMetadata(videoPath);
+
+      // Проверяем, загружены ли пользовательские превью и обложка
+      const hasCustomPreview = req.body.previewUrl;
+      const hasCustomThumbnail = req.body.thumbnailUrl;
+
+      let previewPath = null;
+      let thumbnailPath = null;
+
+      if (!hasCustomPreview) {
+        previewPath = await videoPreviewService.generatePreview(videoPath, videoMetadata.duration);
+      }
+
+      if (!hasCustomThumbnail) {
+        thumbnailPath = await videoPreviewService.generateThumbnail(videoPath, videoMetadata.duration);
+      }
+
+      // Генерируем превью и обложку видео.
+      res.status(200).json({
+        videoUrl: `/${videoPath}`,
+        previewUrl: `/${previewPath}`,
+        thumbnailUrl: `/${thumbnailPath}`,
+        duration: videoMetadata.duration,
+        size: videoMetadata.size,
+      });
     } catch (error) {
       next(error);
     }
   },
 
   /**
-   * Загрузка превью видео
-   * @param {Object} req - Объект запроса
-   * @param {Object} res - Объект ответа
-   * @param {Function} next - Функция для перехода к следующему middleware
-   * @returns {Promise<Object>} - Объект с результатом
+   * Загрузка обложки видео
    */
   uploadThumbnail: async (req, res, next) => {
     try {
@@ -181,7 +155,22 @@ const videoController = {
         return res
           .status(400)
           .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ thumbnail: `/${req.file.path}` });
+      res.status(200).json({ thumbnailUrl: `/${req.file.path}` });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка превью видео
+   */
+  uploadPreview: async (req, res, next) => {
+    try {
+      if (!req.file)
+        return res
+          .status(400)
+          .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
+      res.status(200).json({ previewUrl: `/${req.file.path}` });
     } catch (error) {
       next(error);
     }

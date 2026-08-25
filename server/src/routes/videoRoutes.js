@@ -16,18 +16,27 @@ videoRoutes.get('/', authMiddleware, videoController.getVideos);
 videoRoutes.post(
   '/upload-video',
   authMiddleware,
-  upload.single('video'),
+  upload.single('videoUrl'),
   handleUploadError,
   videoController.uploadVideo
 );
 
-// Загрузка превью видео файла
+// Загрузка обложки видео файла
 videoRoutes.post(
   '/upload-thumbnail',
   authMiddleware,
-  upload.single('thumbnail'),
+  upload.single('thumbnailUrl'),
   handleUploadError,
   videoController.uploadThumbnail
+);
+
+// Загрузка превью видео файла
+videoRoutes.post(
+  '/upload-preview',
+  authMiddleware,
+  upload.single('previewUrl'),
+  handleUploadError,
+  videoController.uploadPreview
 );
 
 // Создание видео

@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { normalizeFriendshipStatus } from '../lib/normalizeFriendshipStatus';
 
 /**
  * Получить список всех пользователей со статусом связи.
@@ -11,12 +10,18 @@ import { normalizeFriendshipStatus } from '../lib/normalizeFriendshipStatus';
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @returns {Promise<Object>} { friends, pagination }
  */
-export const fetchFriendsApi = async ({ page, limit, filter, q, signal }={}) => {
+export const fetchFriendsApi = async ({
+  page,
+  limit,
+  filter,
+  q,
+  signal,
+} = {}) => {
   const response = await api.get('/friends/with-friendship-status', {
     params: {
       page,
       limit,
-      status: filter === 'all' ? undefined : filter,
+      category: filter === 'all' ? undefined : filter,
       q: q?.trim() || undefined,
     },
     signal,
@@ -36,8 +41,7 @@ export const fetchFriendsApi = async ({ page, limit, filter, q, signal }={}) => 
  */
 export const fetchFriendshipStatus = async (targetUserId, signal) => {
   const response = await api.get(`/friends/status/${targetUserId}`, { signal });
-  const payload = response.data?.friendship ?? response.data;
-  return normalizeFriendshipStatus(payload);
+  return response.data;
 };
 
 /**

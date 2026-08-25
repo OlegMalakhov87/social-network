@@ -2,14 +2,14 @@
  * Действия на карточке профиля (дружба + сообщение).
  *
  * @param {Object} params
- * @param {boolean} params.isOwnProfile
- * @param {Object|null} params.friendshipButton - из getFriendshipButtonConfig
- * @param {Function} [params.onMessage]
+ * @param {boolean} params.isOwnProfile - является ли профиль своим
+ * @param {Object|null} params.friendshipButton - конфигурация кнопки дружбы из getFriendshipButtonConfig
+ * @param {Function} [params.onSendMessage] - функция для отправки сообщения
  */
 export const getProfileActions = ({
   isOwnProfile,
   friendshipButton,
-  onMessage,
+  onSendMessage,
 }) => {
   if (isOwnProfile) return [];
 
@@ -19,17 +19,19 @@ export const getProfileActions = ({
     actions.push({
       key: 'friendship',
       text: friendshipButton.text,
+      hoverText: friendshipButton.hoverText,
       variant: friendshipButton.variant,
       onClick: friendshipButton.action,
     });
   }
 
-  if (onMessage) {
+  if (onSendMessage) {
     actions.push({
       key: 'message',
       text: 'Написать сообщение',
+      hoverText: 'Отправить сообщение',
       variant: 'secondary',
-      onClick: onMessage,
+      onClick: onSendMessage,
     });
   }
 

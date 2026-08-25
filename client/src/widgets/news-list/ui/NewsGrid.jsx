@@ -17,10 +17,12 @@ import style from './NewsGrid.module.css';
  * @param {Function} props.loadMore - функция для загрузки следующей страницы новостей
  * @param {Function} props.onRetry - функция для повторной загрузки новостей
  * @param {Function} props.onReadMore - функция для увеличения количества просмотров новости
- * @param {Function} props.onPlayVideo - функция для воспроизведения видео новости
+ * @param {Function} props.onPlayNews - функция для воспроизведения новости
  * @param {Function} props.toggleComments - функция для открытия комментариев
  * @param {Function} props.deleteNews - функция для удаления новости
  * @param {Function} props.updateNews - функция для обновления новости
+ * @param {Object} props.currentNews - текущая новость
+ * @param {boolean} props.isPlaying - воспроизводится ли новость
  */
 
 export const NewsGrid = ({
@@ -37,7 +39,9 @@ export const NewsGrid = ({
   deleteNews,
   updateNews,
   onReadMore,
-  onPlayVideo,
+  onPlayNews,
+  currentNews,
+  isPlaying,
 }) => {
   return (
     <ContentState
@@ -59,7 +63,9 @@ export const NewsGrid = ({
               currentUser={currentUser}
               toggleLike={toggleLike}
               onReadMore={onReadMore}
-              onPlay={onPlayVideo}
+              onPlay={onPlayNews}
+              currentNews={currentNews}
+              isPlaying={isPlaying}
               toggleComments={toggleComments}
               onDelete={deleteNews}
               onUpdate={updateNews}

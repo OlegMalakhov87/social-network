@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsAuthReady, selectUser } from '../../../entities/auth';
+import { useFriendshipStatus } from '../../../features/friends';
 import { useOptimisticCommentCount } from '../../../shared/hooks';
 import { useUserPosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
-import { useLibraryResource, useUserProfile } from '../../users';
+import { useLibraryResource } from '../../users';
 import { useUserVideoLibrary } from '../../videos';
 
 /**
@@ -36,23 +37,24 @@ export const useUserContentFilter = ({
   }, [userIdParam, currentUser?.id, isAuthReady]);
 
   /**
-   * Проверяем, является ли текущий пользователь владельцем профиля
-   */
-  const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;
-
-  /**
    * Получаем целевого пользователя с сервера
    */
   const {
     user: apiUser,
-    isLoading: userLoading,
-    error: userError,
-    refetch: refetchUser,
-  } = useUserProfile(profileUserId);
+    userLoading,
+    userError,
+    refetchUser,
+    followUser,
+    unfollowUser,
+    acceptUser,
+    blockUser,
+    unlockUser,
+  } = useFriendshipStatus(profileUserId);
 
-  /**
-   * Получаем целевого пользователя
-   */
+  //Проверяем, является ли текущий пользователь владельцем профиля
+  const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;
+
+  // Целевой пользователь
   const targetUser = isOwnProfile ? currentUser : apiUser;
 
   /**
@@ -153,8 +155,8 @@ export const useUserContentFilter = ({
   const videoAddTransform = useCallback(
     () => ({
       viewsCount: 0,
-      lastWatchedAt: new Date().toISOString(),
       libraryCreatedAt: new Date().toISOString(),
+      lastWatchedAt: null,
       isFavorite: false,
       isInLibrary: true,
     }),
@@ -259,6 +261,11 @@ export const useUserContentFilter = ({
     isOwnProfile,
     userError,
     refetchUser,
+    followUser,
+    unfollowUser,
+    acceptUser,
+    blockUser,
+    unlockUser,
     items: filteredItems,
     isLoadingProfile:
       (userLoading && !isOwnProfile) || (!isAuthReady && isOwnProfile),

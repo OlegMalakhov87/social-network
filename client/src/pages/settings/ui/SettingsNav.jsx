@@ -5,9 +5,9 @@ import style from './SettingsPage.module.css';
  * Навигация по разделам настроек: вертикальные кнопки на десктопе, Tabs на мобильных.
  *
  * @param {Object} props
- * @param {Array<{id:string,label:string,icon?:string}>} props.items
- * @param {string} props.activeTab
- * @param {(id: string) => void} props.onChange
+ * @param {Array} props.items - массив объектов с id, label и icon
+ * @param {string} props.activeTab - id активного раздела
+ * @param {Function} props.onChange - функция для изменения активного раздела
  */
 export const SettingsNav = ({ items, activeTab, onChange }) => {
   return (

@@ -42,6 +42,12 @@ module.exports = (sequelize, DataTypes) => {
 
   Music.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       uploadedBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -53,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
       title: {
         type: DataTypes.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -61,6 +68,7 @@ module.exports = (sequelize, DataTypes) => {
       artist: {
         type: DataTypes.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -81,23 +89,27 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           min: 1,
-          max: 3600,
+          max: 600,
           isInt: true,
         },
       },
-      audio: {
+      audioUrl: {
         type: DataTypes.STRING(500),
         allowNull: false,
-        defaultValue: '/audio-track.mp3',
+        defaultValue: '/default-audio.mp3',
       },
-      cover: {
+      coverUrl: {
         type: DataTypes.STRING(500),
         allowNull: true,
-        defaultValue: '/cover-track.webp',
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
       },
-      genre: {
+      category: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        defaultValue: 'other',
         validate: {
           len: [1, 50],
           notEmpty: true,

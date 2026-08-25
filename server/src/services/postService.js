@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { Post, User, Friend, Like, Comment } = require('../../db/models');
 const { Op } = require('sequelize');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -56,7 +56,7 @@ const postService = {
     const { count, rows: posts } = await Post.findAndCountAll({
       where,
       include: [
-        { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
         { model: Like, as: 'likes', attributes: ['id', 'userId'] },
         {
           model: Comment,
@@ -64,7 +64,11 @@ const postService = {
           limit: 100,
           order: [['createdAt', 'DESC']],
           include: [
-            { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'name', 'avatarUrl'],
+            },
             { model: Like, as: 'likes', attributes: ['id', 'userId'] },
           ],
         },
@@ -103,7 +107,7 @@ const postService = {
   async getPostById(postId, currentUserId) {
     const post = await Post.findByPk(postId, {
       include: [
-        { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
         { model: Like, as: 'likes', attributes: ['id', 'userId'] },
         { model: Comment, as: 'comments', attributes: ['id', 'userId'] },
       ],
@@ -144,7 +148,7 @@ const postService = {
     // Получаем созданный пост с автором одним запросом
     const postWithAuthor = await Post.findByPk(post.id, {
       include: [
-        { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
       ],
     });
 
@@ -235,7 +239,7 @@ const postService = {
       returning: true,
       plain: true,
       include: [
-        { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
       ],
     });
 

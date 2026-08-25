@@ -18,6 +18,8 @@ export const getVideosTabProps = (ctx) => ({
   mode: ctx.mode,
   onPlayVideo: ctx.onPlayVideo,
   onVideoStart: ctx.onVideoStart,
+  currentVideo: ctx.currentVideo,
+  isPlaying: ctx.isPlaying,
   addToLibrary: ctx.addToLibrary,
   deleteFromLibrary: ctx.deleteFromLibrary,
   updateLibraryViewsCount: ctx.updateLibraryViewsCount,

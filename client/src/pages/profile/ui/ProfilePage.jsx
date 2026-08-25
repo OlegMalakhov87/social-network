@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCommentsPanel } from '../../../features/comments';
-import { useFriendshipStatus } from '../../../features/friends';
 import { PostForm } from '../../../features/posts';
-import { useOnline, useUserContentFilter } from '../../../features/users';
+import { useUserContentFilter } from '../../../features/users';
 import { SORT_OPTIONS } from '../../../shared/config';
 import { useFilterControls } from '../../../shared/hooks';
 import {
@@ -21,7 +20,7 @@ import {
   PROFILE_TABS_MAP,
   getProfileTabContent,
 } from '../../../widgets/user-content';
-import { UserProfileCard } from '../../../widgets/user-profile';
+import { Profile } from '../../../widgets/user-profile';
 import { VideoPlayer } from '../../../widgets/video-player';
 import style from './ProfilePage.module.css';
 
@@ -36,9 +35,7 @@ export const ProfilePage = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const commentsSectionRef = useRef(null);
   const onVideoStartRef = useRef(null);
-
-  const { userId: userIdParam, friendId: friendIdParam } = useParams();
-  const profileIdParam = userIdParam ?? friendIdParam;
+  const { userId: userIdParam } = useParams();
 
   /** Управление фильтрацией и сортировкой */
   const {
@@ -57,6 +54,12 @@ export const ProfilePage = () => {
     targetUser,
     isOwnProfile,
     userError,
+    refetchUser,
+    followUser,
+    unfollowUser,
+    acceptUser,
+    blockUser,
+    unlockUser,
     items,
     isLoadingProfile,
     toggleLikeItem,
@@ -92,26 +95,7 @@ export const ProfilePage = () => {
   } = useUserContentFilter({
     activeTab,
     sortKey,
-    userIdParam: profileIdParam,
-  });
-
-  /** Получение статуса пользователя (в сети или нет) */
-  const onlineMap = useOnline(targetUser?.id);
-  const userOnline = onlineMap.get(targetUser?.id) ?? false;
-
-  // Получение статуса дружбы с текущим пользователем + экшены для управления статусом дружбы
-  const {
-    status: friendshipStatus,
-    direction: friendshipDirection,
-    friendshipId,
-    followUser,
-    unfollowUser,
-    acceptUser,
-    blockUser,
-    unlockUser,
-  } = useFriendshipStatus({
-    targetUserId: targetUser?.id,
-    currentUserId: currentUser?.id,
+    userIdParam,
   });
 
   // Экшены для управления аудиоплеером + состояние аудиоплеера
@@ -120,14 +104,16 @@ export const ProfilePage = () => {
 
   /** Обработчик для открытия модального окна с видео*/
   const handleOpenVideo = useCallback((video) => {
-    if (!video || typeof video === 'function') return;
+    if (!video) return;
     setSelectedVideo(video);
   }, []);
 
+  /** Колбэк для запуска видео*/
   const setOnVideoStart = useCallback((handler) => {
     onVideoStartRef.current = handler;
   }, []);
 
+  /** Обработчик для запуска видео*/
   const handleVideoPlayStart = useCallback((video) => {
     onVideoStartRef.current?.(video);
   }, []);
@@ -176,12 +162,8 @@ export const ProfilePage = () => {
   }, [commentTarget?.id, commentTarget?.type]);
 
   /**  Состояние загрузки всей страницы */
-  if (isLoadingProfile || (profileIdParam && !targetUser)) {
+  if (isLoadingProfile || (userIdParam && !targetUser)) {
     return <PageLoader message="Загружаем профиль..." />;
-  }
-
-  if (!PROFILE_TABS_MAP.some(({ id }) => id === activeTab)) {
-    return null;
   }
 
   /** Контекст для getProfileTabContent */
@@ -196,7 +178,9 @@ export const ProfilePage = () => {
       isLoading: isLoadingPosts,
       isLoadingMore: isLoadingMorePosts,
       error: errorPosts,
-      onPlayVideo: handleOpenVideo,
+      onPlayPost: handleOpenVideo,
+      currentPost: selectedVideo,
+      isPlaying: Boolean(selectedVideo),
       deletePost,
       updatePost: setShowPostForm,
       hasMore: hasMorePosts,
@@ -237,6 +221,8 @@ export const ProfilePage = () => {
       mode: 'profile',
       onPlayVideo: handleOpenVideo,
       onVideoStart: setOnVideoStart,
+      currentVideo: selectedVideo,
+      isPlaying: Boolean(selectedVideo),
       addToLibrary: addToLibrary,
       deleteFromLibrary: deleteFromLibrary,
       updateLibraryViewsCount: incrementCounter,
@@ -247,26 +233,24 @@ export const ProfilePage = () => {
     }),
   };
 
+  /** Получение контента вкладки */
   const tabContent = getProfileTabContent({ activeTab, tabProps: tabContext });
 
   return (
     <ErrorBoundary>
       <PageLayout className={style.profile}>
         {/* Карточка профиля */}
-        <UserProfileCard
+        <Profile
           targetUser={targetUser}
           currentUser={currentUser}
           isOwnProfile={isOwnProfile}
           error={userError}
+          refetchUser={refetchUser}
           onFollow={followUser}
           onUnfollow={unfollowUser}
           onAccept={acceptUser}
           onUnlock={unlockUser}
           onBlock={blockUser}
-          friendshipStatus={friendshipStatus}
-          friendshipDirection={friendshipDirection}
-          friendshipId={friendshipId}
-          userOnline={userOnline}
         />
 
         {/* Вкладки с контентом */}
@@ -282,7 +266,7 @@ export const ProfilePage = () => {
                   currentSort={sortKey}
                   onChange={setSortKey}
                 />
-
+                {/* Кнопка для добавления поста */}
                 {isOwnProfile && activeTab === 'posts' && (
                   <IconButton
                     icon="➕"
@@ -296,6 +280,7 @@ export const ProfilePage = () => {
             }
           />
 
+          {/* Форма для добавления/редактирования поста */}
           {showPostForm && currentUser && (
             <PostForm
               key={
@@ -307,9 +292,11 @@ export const ProfilePage = () => {
             />
           )}
 
+          {/* Контент вкладки */}
           {tabContent}
         </SectionCard>
 
+        {/* Комментарии */}
         {commentTarget && currentUser && (
           <CommentsSection
             targetType={commentTarget?.type}
@@ -321,6 +308,7 @@ export const ProfilePage = () => {
           />
         )}
 
+        {/* Видеоплеер */}
         {selectedVideo && (
           <VideoPlayer
             video={selectedVideo}

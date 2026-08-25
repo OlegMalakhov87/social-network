@@ -75,21 +75,21 @@ export const ChangePasswordForm = () => {
     <SettingsSection title="Смена пароля">
       <form onSubmit={form.submit} className={style.form}>
         <Input
-          label="Текущий пароль"
+          label="Текущий пароль *"
           type="password"
           fullWidth
           {...form.register('currentPassword')}
           disabled={form.isSubmitting}
         />
         <Input
-          label="Новый пароль"
+          label="Новый пароль *"
           type="password"
           fullWidth
           {...form.register('newPassword')}
           disabled={form.isSubmitting}
         />
         <Input
-          label="Подтвердите пароль"
+          label="Подтвердите пароль *"
           type="password"
           fullWidth
           {...form.register('confirmPassword')}

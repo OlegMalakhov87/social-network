@@ -22,42 +22,40 @@ import {
  *
  * @param {Object} props - пропсы компонента
  * @param {Object} [props.initialData] - данные новости для редактирования
- * @param {string} props.userName - имя текущего пользователя
  * @param {Function} props.onClose - функция для закрытия формы
  * @param {Function} props.onSubmit - функция для отправки формы
  */
-export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
+export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
 
   /** Форма для создания/редактирования новости с валидацией*/
   const form = useForm({
     initialValues: {
       title: initialData?.title || '',
-      content: initialData?.content || '',
+      text: initialData?.text || '',
       category: initialData?.category || '',
       source: initialData?.source || '',
       type: initialData?.type || 'text',
-      author: initialData?.author || userName,
-      mediaUrl: initialData?.mediaUrl || '',
+      newsUrl: initialData?.newsUrl || '',
     },
     rules: (values) => ({
       title: [
         required('Введите заголовок'),
-        minLength(10, 'Минимально 10 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      content: [
+      text: [
         required('Введите текст новости'),
-        minLength(50, 'Минимально 50 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(5000, 'Максимум 5000 символов'),
       ],
       category: [required('Выберите категорию')],
       source: [
         required('Введите название издания'),
-        minLength(10, 'Минимально 10 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      mediaUrl: values.type !== 'text' ? [required('Загрузите медиафайл')] : [],
+      newsUrl: values.type !== 'text' ? [required('Загрузите медиа-файл')] : [],
     }),
     onSubmit: (values) => {
       onSubmit?.(values, isEdit, initialData?.id);
@@ -67,12 +65,12 @@ export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
 
   /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(NEWS_IMAGE_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('mediaUrl', data.mediaUrl),
+    onSuccess: (data) => form.setValue('newsUrl', data.newsUrl),
   });
 
   /** Хук для загрузки видео */
   const videoUpload = useFileUpload(NEWS_VIDEO_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('mediaUrl', data.mediaUrl),
+    onSuccess: (data) => form.setValue('newsUrl', data.newsUrl),
   });
 
   /** Флаг загрузки */
@@ -88,7 +86,7 @@ export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
   /** Обработчик изменения типа новости */
   const handleTypeChange = (value) => {
     form.setValue('type', value);
-    form.setValue('mediaUrl', '');
+    form.setValue('newsUrl', '');
     imageUpload.reset();
     videoUpload.reset();
   };
@@ -109,7 +107,7 @@ export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
 
         <TextArea
           label="Текст новости *"
-          {...form.register('content')}
+          {...form.register('text')}
           placeholder="Введите текст новости"
           rows={3}
           disabled={form.isSubmitting || isUploading}
@@ -149,7 +147,7 @@ export const NewsForm = ({ initialData = {}, userName, onClose, onSubmit }) => {
             preview={activeUpload.preview}
             isUploading={activeUpload.isUploading}
             progress={activeUpload.progress}
-            error={activeUpload.error}
+            error={activeUpload.error || form.errors.newsUrl}
             onChange={activeUpload.handleFileChange}
             disabled={form.isSubmitting || isUploading}
           />

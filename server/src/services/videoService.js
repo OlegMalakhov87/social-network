@@ -6,10 +6,9 @@ const {
   Like,
   Comment,
   UserVideoLibrary,
-  Friend,
 } = require('../../db/models');
 const { Op } = require('sequelize');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -39,11 +38,9 @@ const videoService = {
     currentUserId,
     sortKey = 'dateDesc',
   } = {}) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
     const where = { isPublic: true }; // По умолчанию показываем только публичные
-
     if (category && category !== 'all') {
-      where.category = category;
+      where.category = { [Op.iLike]: category };
     }
 
     if (q && q.trim().length >= 2) {
@@ -55,7 +52,7 @@ const videoService = {
     }
 
     const includes = [
-      { model: User, as: 'uploader', attributes: ['id', 'name', 'avatar'] },
+      { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
       { model: Like, as: 'likes', attributes: ['id', 'userId'] },
       {
         model: Comment,
@@ -63,7 +60,11 @@ const videoService = {
         limit: 100,
         order: [['createdAt', 'ASC']],
         include: [
-          { model: User, as: 'author', attributes: ['id', 'name', 'avatar'] },
+          {
+            model: User,
+            as: 'author',
+            attributes: ['id', 'name', 'avatarUrl'],
+          },
           { model: Like, as: 'likes', attributes: ['id', 'userId'] },
         ],
       },
@@ -84,8 +85,8 @@ const videoService = {
       where,
       include: includes,
       order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-      limit: parseInt(limit),
-      offset,
+      limit: limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
@@ -95,9 +96,11 @@ const videoService = {
       return {
         ...videoData,
         isInLibrary: !!libraryEntry,
-        libraryId: libraryEntry?.id || null,
-        viewsCount: videoData?.viewsCount || 0,
-        commentsCount: videoData.comments?.length || 0,
+        libraryId: libraryEntry?.id,
+        viewsCount: videoData?.viewsCount,
+        commentsCount: videoData.comments?.length,
+        likesCount: videoData.likes?.length,
+        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
         libraryItems: undefined, // Убираем мусор из ответа
       };
     });
@@ -106,9 +109,9 @@ const videoService = {
       videos: formattedVideos,
       pagination: {
         totalVideos: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
   },
@@ -126,21 +129,6 @@ const videoService = {
       uploadedBy: userId,
     };
 
-    if (
-      !dbData.title ||
-      !dbData.url ||
-      dbData.uploadedBy == null ||
-      dbData.viewsCount == null ||
-      !dbData.category ||
-      typeof dbData.isPublic !== 'boolean'
-    ) {
-      throw createError(
-        'Поля title, url, uploadedBy, viewsCount, category, isPublic обязательны',
-        400,
-        'MISSING_FIELDS'
-      );
-    }
-
     const video = await Video.create(dbData);
 
     // Автоматически добавляем в библиотеку создателя
@@ -149,7 +137,7 @@ const videoService = {
       videoId: video.id,
       isFavorite: true,
       viewsCount: 0,
-      lastWatchedAt: new Date(),
+      lastWatchedAt: null,
     });
 
     return { video: video.toJSON() };
@@ -162,24 +150,23 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateVideoPrivacy(userId, updates) {
-    const videos = await Video.findAll({ where: { uploadedBy: userId } });
-    if (videos.length === 0) {
+    const [affectedCount] = await Video.update(
+      { isPublic: updates.isPublic },
+      { where: { uploadedBy: userId } }
+    );
+
+    if (affectedCount === 0) {
       throw createError('Видео не найдены', 404, 'VIDEOS_NOT_FOUND');
     }
-    if (updates.isPublic !== undefined) {
-      videos.forEach((video) => {
-        video.isPublic = updates.isPublic;
-        return video.save();
-      });
-    }
+
     return {
       message: 'Приватность видео успешно обновлена',
-      videos: videos.length,
+      videos: affectedCount,
     };
   },
 
   /**
-   * Обновление видео
+   * Обновление видео (владелец)
    * @param {number} videoId - ID видео
    * @param {number} userId - ID пользователя, обновляющего видео
    * @param {Object} updates - Обновляемые данные
@@ -196,49 +183,57 @@ const videoService = {
         'FORBIDDEN'
       );
 
-    // Маппинг полей для обновления
-    const dbUpdates = {};
-    if (updates.title !== undefined) dbUpdates.title = updates.title.trim();
-    if (updates.description !== undefined)
-      dbUpdates.description = updates.description.trim() || null;
-    if (updates.category !== undefined)
-      dbUpdates.category = updates.category.trim();
-    if (updates.year !== undefined) dbUpdates.year = updates.year;
-    if (updates.isPublic !== undefined) dbUpdates.isPublic = updates.isPublic;
+    const dbUpdates = { ...updates };
 
     // Логика очистки старого видео файла
-    if (updates.url !== undefined) {
-      const newUrl = updates.url;
+    if (updates.videoUrl !== undefined) {
+      const newVideoUrl = updates.videoUrl;
       if (
-        newUrl !== video.url &&
-        video.url &&
-        !video.url.includes('/default-video.mp4')
+        newVideoUrl !== video.videoUrl &&
+        !video.videoUrl.includes('/default-video.mp4')
       ) {
-        const oldFilePath = path.join(__dirname, '../../', video.url);
+        const oldFilePath = path.join(__dirname, '../../', video.videoUrl);
         try {
           await fs.unlink(oldFilePath);
         } catch (err) {
           console.warn('Не удалось удалить старое видео:', err.message);
         }
       }
-      dbUpdates.url = newUrl;
+      dbUpdates.videoUrl = newVideoUrl;
     }
+
     // Логика очистки старой обложки
-    if (updates.thumbnail !== undefined) {
-      const newThumbnail = updates.thumbnail;
+    if (updates.thumbnailUrl !== undefined) {
+      const newThumbnailUrl = updates.thumbnailUrl;
       if (
-        newThumbnail !== video.thumbnail &&
-        video.thumbnail &&
-        !video.thumbnail.includes('/thumbnail-video.webp')
+        newThumbnailUrl !== video.thumbnailUrl &&
+        !video.thumbnailUrl.includes('/default-image.jpg')
       ) {
-        const oldFilePath = path.join(__dirname, '../../', video.thumbnail);
+        const oldFilePath = path.join(__dirname, '../../', video.thumbnailUrl);
         try {
           await fs.unlink(oldFilePath);
         } catch (err) {
           console.warn('Не удалось удалить старую обложку:', err.message);
         }
       }
-      dbUpdates.thumbnail = newThumbnail;
+      dbUpdates.thumbnailUrl = newThumbnailUrl;
+    }
+
+    // Логика очистки старой превью
+    if (updates.previewUrl !== undefined) {
+      const newPreviewUrl = updates.previewUrl;
+      if (
+        newPreviewUrl !== video.previewUrl &&
+        !video.previewUrl.includes('/default-preview.mp4')
+      ) {
+        const oldFilePath = path.join(__dirname, '../../', video.previewUrl);
+        try {
+          await fs.unlink(oldFilePath);
+        } catch (err) {
+          console.warn('Не удалось удалить старую превью:', err.message);
+        }
+      }
+      dbUpdates.previewUrl = newPreviewUrl;
     }
 
     if (Object.keys(dbUpdates).length === 0)
@@ -259,13 +254,15 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async incrementViewCount(videoId) {
-    const video = await Video.findByPk(videoId);
-    if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
+    await Video.increment('viewsCount', {
+      by: 1,
+      where: { id: videoId },
+    });
+    const updated = await Video.findByPk(videoId, {
+      attributes: ['viewsCount'],
+    });
 
-    await video.increment('viewsCount', { by: 1 });
-    await video.reload();
-
-    return { success: true, viewsCount: video.viewsCount };
+    return { success: true, viewsCount: updated.viewsCount };
   },
 
   /**
@@ -275,11 +272,11 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async deleteVideo(videoId, userId) {
-    const deletedCount = await Video.destroy({
+    const video = await Video.findOne({
       where: { id: videoId, uploadedBy: userId },
     });
 
-    if (deletedCount === 0) {
+    if (!video) {
       throw createError(
         'Видео не найдено или нет прав на удаление',
         404,
@@ -287,6 +284,34 @@ const videoService = {
       );
     }
 
+    // Логика очистки старого видео
+    if (video.videoUrl !== undefined) {
+      const oldFilePath = path.join(__dirname, '../../', video.videoUrl);
+      try {
+        await fs.unlink(oldFilePath);
+      } catch (err) {
+        console.warn('Не удалось удалить старое видео:', err.message);
+      }
+    }
+    // Логика очистки старой обложки
+    if (video.thumbnailUrl !== undefined) {
+      const oldFilePath = path.join(__dirname, '../../', video.thumbnailUrl);
+      try {
+        await fs.unlink(oldFilePath);
+      } catch (err) {
+        console.warn('Не удалось удалить старую обложку:', err.message);
+      }
+    }
+    // Логика очистки старого превью
+    if (video.previewUrl !== undefined) {
+      const oldFilePath = path.join(__dirname, '../../', video.previewUrl);
+      try {
+        await fs.unlink(oldFilePath);
+      } catch (err) {
+        console.warn('Не удалось удалить старое превью:', err.message);
+      }
+    }
+    await video.destroy();
     return { message: 'Видео успешно удалено', videoId };
   },
 };

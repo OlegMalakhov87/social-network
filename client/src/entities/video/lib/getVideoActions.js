@@ -9,6 +9,7 @@
  * @param {Function} params.addToLibrary - функция для добавления видео в библиотеку
  * @param {Function} params.deleteFromLibrary - функция для удаления видео из библиотеки
  * @param {Function} params.onUpdate - функция для обновления видео
+ * @param {boolean} params.disabledButton - флаг для блокировки кнопки
  * @returns {Array<Object>} - массив действий карточки видео
  */
 export const getVideoActions = ({
@@ -19,6 +20,7 @@ export const getVideoActions = ({
   addToLibrary,
   deleteFromLibrary,
   onUpdate,
+  disabledButton,
 }) => {
   if (!video) return [];
 
@@ -29,6 +31,7 @@ export const getVideoActions = ({
       label: String(video.likesCount ?? 0),
       ariaLabel: video.isLiked ? 'Убрать лайк' : 'Поставить лайк',
       onClick: () => toggleLike?.(video.id, video.isLiked),
+      disabled: disabledButton,
     },
 
     {
@@ -37,6 +40,7 @@ export const getVideoActions = ({
       label: String(video.commentsCount ?? 0),
       ariaLabel: 'Комментарии',
       onClick: () => toggleComments?.(video.id),
+      disabled: disabledButton,
     },
   ];
 
@@ -47,6 +51,7 @@ export const getVideoActions = ({
       label: 'Обновить',
       ariaLabel: 'Обновить видео',
       onClick: () => onUpdate?.(video),
+      disabled: disabledButton,
     });
   }
 

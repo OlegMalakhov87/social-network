@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFriendshipButtonConfig } from '../../../entities/friend';
 import {
@@ -10,6 +10,7 @@ import {
 import {
   Avatar,
   BaseCard,
+  ConfirmDialog,
   EntityContent,
   EntityInfoList,
   StatusBadge,
@@ -23,26 +24,20 @@ import {
  * @param {Object|null} props.currentUser - текущий пользователь.
  * @param {boolean} props.isOwnProfile - флаг владельца профиля.
  * @param {Error|null} props.error - ошибка.
- * @param {string|null} props.friendshipStatus - статус дружбы.
- * @param {string|null} props.friendshipDirection - направление дружбы.
- * @param {number|null} props.friendshipId - id дружбы.
- * @param {boolean} props.userOnline - флаг онлайн/офлайн пользователя.
- * @param {(userId:number)=>void} props.onFollow - функция для подписания на пользователя.
- * @param {(friendshipId:number,userId:number)=>void} props.onUnfollow - функция для отписки от пользователя.
- * @param {(friendshipId:number,userId:number)=>void} props.onAccept - функция для принятия запроса на дружбу.
- * @param {(friendshipId:number,userId:number)=>void} props.onUnlock - функция для разблокировки пользователя.
- * @param {(userId:number)=>void} props.onBlock - функция для блокировки пользователя.
+ * @param {Function} props.refetchUser - функция для обновления данных пользователя.
+ * @param {Function} props.onFollow - функция для подписания на пользователя.
+ * @param {Function} props.onUnfollow - функция для отписки от пользователя.
+ * @param {Function} props.onAccept - функция для принятия запроса на дружбу.
+ * @param {Function} props.onUnlock - функция для разблокировки пользователя.
+ * @param {Function} props.onBlock - функция для блокировки пользователя.
  */
 
-export const UserProfileCard = ({
+export const Profile = ({
   targetUser,
   currentUser,
   isOwnProfile,
   error,
-  friendshipStatus,
-  friendshipDirection,
-  friendshipId,
-  userOnline,
+  refetchUser,
   onFollow,
   onUnfollow,
   onAccept,
@@ -50,22 +45,19 @@ export const UserProfileCard = ({
   onBlock,
 }) => {
   const navigate = useNavigate();
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
 
   /** Отображения полей с данными пользователя */
   const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
 
   /** Кнопка действий дружбы */
   const friendshipButton = getFriendshipButtonConfig({
-    targetUser,
-    currentUser,
-    friendshipStatus,
-    friendshipDirection,
-    friendshipId,
+    user: targetUser,
     onFollow,
     onUnfollow,
     onAccept,
     onUnlock,
-    onBlock,
+    onBlock: () => setShowBlockDialog(true),
   });
 
   /** Обработчик перхода на страницу диалогов */
@@ -83,35 +75,57 @@ export const UserProfileCard = ({
   const actions = getProfileActions({
     isOwnProfile,
     friendshipButton,
-    onMessage: handleSendMessage,
+    onSendMessage: handleSendMessage,
   });
+
+  /** Обработчик подтверждения блокировки */
+  const handleConfirmBlock = () => {
+    onBlock?.(targetUser.id);
+    setShowBlockDialog(false);
+  };
 
   if (!targetUser?.id) {
     return null;
   }
 
   return (
-    <BaseCard
-      content={
-        <>
+    <>
+      <BaseCard
+        header={
           <ProfileIdentity>
-            <Avatar size="xl" src={targetUser?.avatar} alt={targetUser?.name} />
+            <Avatar
+              size="xl"
+              src={targetUser?.avatarUrl}
+              alt={targetUser?.name}
+            />
             {!isOwnProfile && (
               <>
                 <StatusBadge
-                  status={userOnline ? 'online' : 'offline'}
-                  label={userOnline ? 'В сети' : 'Не в сети'}
+                  status={targetUser?.online ? 'online' : 'offline'}
+                  label={targetUser?.online ? 'В сети' : 'Не в сети'}
                 />
 
                 <ProfileActions actions={actions} />
               </>
             )}
           </ProfileIdentity>
+        }
+        content={
           <EntityContent>
             <EntityInfoList items={infoFields} />
           </EntityContent>
-        </>
-      }
-    />
+        }
+      />
+      <ConfirmDialog
+        isOpen={showBlockDialog}
+        onClose={() => setShowBlockDialog(false)}
+        onConfirm={handleConfirmBlock}
+        title="Заблокировать пользователя?"
+        description="Этот пользователь больше не сможет связаться с вами."
+        confirmText="Заблокировать"
+        cancelText="Отмена"
+        confirmVariant="danger"
+      />
+    </>
   );
 };

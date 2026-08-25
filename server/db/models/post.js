@@ -29,7 +29,15 @@ module.exports = (sequelize, DataTypes) => {
   }
   Post.init(
     {
-      userId: { type: DataTypes.INTEGER, allowNull: false,
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
         validate: {
           min: 1,
           isInt: true,
@@ -43,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
-      media: {
+      postUrl: {
         type: DataTypes.STRING(500),
         allowNull: true,
         validate: {

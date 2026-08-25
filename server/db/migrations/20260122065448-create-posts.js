@@ -19,7 +19,7 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      media: {
+      postUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
       },

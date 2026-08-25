@@ -16,7 +16,6 @@ import {
   EntityMeta,
   StatusBadge,
 } from '../../../shared/ui';
-import style from './Friend.module.css';
 
 /**
  * Карточка пользователя.
@@ -45,7 +44,7 @@ export const Friend = ({
 
   /** Конфигурация кнопки дружбы */
   const friendshipButton = getFriendshipButtonConfig({
-    friend,
+    user: friend,
     onFollow,
     onUnfollow,
     onAccept,
@@ -79,7 +78,7 @@ export const Friend = ({
         header={
           <EntityHeader>
             <Avatar
-              src={friend.avatar}
+              src={friend.avatarUrl}
               alt={friend.name}
               size="xl"
               clickable={true}
@@ -111,17 +110,13 @@ export const Friend = ({
             fullWidth
             variant={friendshipButton.variant}
             disabled={friendshipButton.disabled}
-            className={style.friendshipButton}
+            hoverText={friendshipButton.hoverText}
             onClick={(event) => {
               event.stopPropagation();
               friendshipButton.action?.();
             }}
           >
-            <span className={style.defaultText}>{friendshipButton.text}</span>
-
-            <span className={style.hoverText}>
-              {friendshipButton.hoverText}
-            </span>
+            {friendshipButton.text}
           </Button>
         }
       />

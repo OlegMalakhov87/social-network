@@ -6,7 +6,5 @@ export const NEWS_TABS_MAP = [
   { id: 'culture', label: 'Культура', icon: '🎭' },
   { id: 'economy', label: 'Экономика', icon: '💰' },
   { id: 'health', label: 'Здоровье', icon: '🏥' },
+  { id: 'other', label: 'Другое', icon: '🌐' },
 ];
-
-
-

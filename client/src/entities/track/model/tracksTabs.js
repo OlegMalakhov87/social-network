@@ -6,6 +6,7 @@ export const GENRE_TABS = [
   { id: 'jazz', label: 'Джаз', icon: '🎷' },
   { id: 'classical', label: 'Классика', icon: '🎻' },
   { id: 'electronic', label: 'Электроника', icon: '🎧' },
+  { id: 'other', label: 'Другое', icon: '🌐' },
 ];
 
 /** Мапа для выбора жанра трека*/
@@ -16,4 +17,5 @@ export const GENRE_OPTIONS = [
   { value: 'jazz', label: 'Джаз' },
   { value: 'classical', label: 'Классика' },
   { value: 'electronic', label: 'Электроника' },
+  { value: 'other', label: 'Другое' },
 ];

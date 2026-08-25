@@ -1,4 +1,5 @@
 const musicService = require('../services/musicService');
+const mediaService = require('../services/mediaService');
 
 const musicController = {
   /**
@@ -6,44 +7,16 @@ const musicController = {
    */
   getMusic: async (req, res, next) => {
     try {
-      const result = await musicService.getMusic({
-        ...req.query,
-        currentUserId: parseInt(req.user?.id),
-      });
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Получение библиотеки треков конкретного пользователя
-   */
-  getUserMusic: async (req, res, next) => {
-    try {
-      const { userId } = req.params;
+      const { page, limit, category, q, sortKey } = req.query;
       const currentUserId = req.user?.id;
-      const { page, limit, sortKey } = req.query;
-      const result = await musicService.getUserMusicLibrary(
-        parseInt(userId),
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Получение одного трека по ID
-   */
-  getMusicById: async (req, res, next) => {
-    try {
-      const { trackId } = req.params;
-      const result = await musicService.getMusicById(parseInt(trackId));
+      const result = await musicService.getMusic({
+        page: parseInt(page),
+        limit: parseInt(limit),
+        category,
+        q,
+        currentUserId: parseInt(currentUserId),
+        sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -67,38 +40,6 @@ const musicController = {
   },
 
   /**
-   * Загрузка аудио файла для трека
-   */
-  uploadAudio: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
-      }
-      res.status(200).json({ audio: `/${req.file.path}` });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка обложки для трека
-   */
-  uploadCover: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
-      }
-      res.status(200).json({ cover: `/${req.file.path}` });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Обновление приватности треков
    */
   updateMusicPrivacy: async (req, res, next) => {
@@ -115,7 +56,7 @@ const musicController = {
   },
 
   /**
-   * Обновление метаданных трека (владелец)
+   * Обновление трека
    */
   updateMusic: async (req, res, next) => {
     try {
@@ -157,6 +98,46 @@ const musicController = {
         parseInt(currentUserId)
       );
       res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка аудио файла для трека
+   */
+  uploadAudio: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
+      }
+
+      const audioPath = req.file.path;
+
+      const audioMetadata = await mediaService.getMetadata(audioPath);
+      res.status(200).json({
+        audioUrl: `/${audioPath}`,
+        duration: audioMetadata.duration,
+        size: audioMetadata.size,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка обложки для трека
+   */
+  uploadCover: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
+      }
+      res.status(200).json({ coverUrl: `/${req.file.path}` });
     } catch (error) {
       next(error);
     }

@@ -35,7 +35,7 @@ newsRoutes.put(
 newsRoutes.post(
   '/upload-media',
   authMiddleware,
-  upload.single('media'),
+  upload.single('newsUrl'),
   handleUploadError,
   newsController.uploadMedia
 );

@@ -20,6 +20,27 @@ const userMusicLibraryController = {
     }
   },
 
+   /**
+   * Получить библиотеку выбранного пользователя
+   */
+   getUserMusicLibrary: async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.user?.id;
+      const { page, limit, sortKey } = req.query;
+      const result = await userMusicLibraryService.getUserMusicLibrary(
+        parseInt(userId),
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        sortKey
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * Добавить трек в библиотеку
    */

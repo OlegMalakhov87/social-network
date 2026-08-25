@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
 import {
-  authErrorMessageFromPayload,
   changePassword,
   checkAuth,
   deleteUser,
@@ -13,6 +12,7 @@ import {
   updateUser,
   uploadAvatar,
 } from '..';
+import { apiErrorMessageFromPayload } from '../../../shared/lib';
 
 /** Начальное состояние авторизации.*/
 const initialState = {
@@ -21,7 +21,7 @@ const initialState = {
   isAuthenticated: false,
   status: 'idle', // idle | loading | succeeded | failed
   error: null,
-  isCheckingAuth: true,
+  isCheckingAuth: true, //
 };
 
 const authSlice = createSlice({
@@ -61,7 +61,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = authErrorMessageFromPayload(
+        state.error = apiErrorMessageFromPayload(
           action.payload,
           'Ошибка авторизации'
         );
@@ -82,7 +82,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = authErrorMessageFromPayload(
+        state.error = apiErrorMessageFromPayload(
           action.payload,
           'Ошибка регистрации'
         );
@@ -139,10 +139,8 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.isCheckingAuth = false;
-        state.error = authErrorMessageFromPayload(
-          action.payload,
-          'Сессия истекла'
-        );
+        state.error =
+          action.payload || action.error.message || 'Сессия истекла';
         removeToken();
       })
 
@@ -156,8 +154,10 @@ const authSlice = createSlice({
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка обновления профиля';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Ошибка обновления профиля'
+        );
       })
 
       /** Удаление профиля пользователя.*/

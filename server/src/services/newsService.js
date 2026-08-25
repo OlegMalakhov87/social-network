@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { News, Like, Comment, User } = require('../../db/models');
 const { Op } = require('sequelize');
-const { createError } = require('./authService');
+const createError = require('../utils/createError');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -57,7 +57,7 @@ const newsService = {
         {
           model: User,
           as: 'uploader',
-          attributes: ['id', 'name', 'avatar'],
+          attributes: ['id', 'name', 'avatarUrl'],
         },
         {
           model: Like,
@@ -73,7 +73,7 @@ const newsService = {
             {
               model: User,
               as: 'author',
-              attributes: ['id', 'name', 'avatar'],
+              attributes: ['id', 'name', 'avatarUrl'],
             },
             {
               model: Like,

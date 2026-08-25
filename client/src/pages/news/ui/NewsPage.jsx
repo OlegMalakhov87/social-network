@@ -147,7 +147,6 @@ export const NewsPage = () => {
                 showNewsForm === 'create' ? 'create' : `edit-${showNewsForm.id}`
               }
               initialData={showNewsForm === 'create' ? null : showNewsForm}
-              userName={currentUser?.name}
               onClose={handleCloseForm}
               onSubmit={handleFormSubmit}
             />
@@ -160,7 +159,9 @@ export const NewsPage = () => {
             isLoadingMore={isLoadingMore}
             error={error}
             loadMore={loadMore}
-            onPlayVideo={handleOpenVideo}
+            onPlayNews={handleOpenVideo}
+            currentNews={newsVideo}
+            isPlaying={Boolean(newsVideo)}
             toggleLike={toggleLike}
             onReadMore={incrementViewsCount}
             toggleComments={onToggleComments}

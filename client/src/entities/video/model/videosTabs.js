@@ -10,6 +10,7 @@ export const CATEGORY_OPTIONS = [
   { value: 'sports', label: 'Спорт' },
   { value: 'travel', label: 'Путешествия' },
   { value: 'openings', label: 'Открытия' },
+  { value: 'other', label: 'Другое' },
 ];
 
 /**
@@ -24,4 +25,5 @@ export const CATEGORIES = [
   { id: 'sports', label: 'Спорт', icon: '⚽' },
   { id: 'travel', label: 'Путешествия', icon: '✈️' },
   { id: 'openings', label: 'Открытия', icon: '🌅' },
+  { id: 'other', label: 'Другое', icon: '🌐' },
 ];

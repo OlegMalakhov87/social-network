@@ -39,7 +39,7 @@ export const fetchUserMusicLibrary = async ({
   signal,
   sortKey,
 } = {}) => {
-  const response = await api.get(`/music/profile/${userId}`, {
+  const response = await api.get(`/usermusiclibrary/${userId}`, {
     params: {
       page,
       limit,

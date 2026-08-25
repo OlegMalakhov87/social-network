@@ -10,7 +10,7 @@ import {
   addVideoToLibrary,
   deleteVideoFromLibrary,
   incrementViewsCount,
-  updateFavoriteVideo ,
+  updateFavoriteVideo,
 } from '../../../entities/video';
 import {
   useOptimisticCounter,
@@ -48,13 +48,13 @@ export const useLibraryResource = ({
   getRemoveStateTransform,
 }) => {
   const isActive = Boolean(items) && Boolean(setItems);
-  /** Функция для получения состояния добавления элемента */
+  /** Функция для получения состояния добавления элемента (меняем только для своего профиля) */
   const mapOnAdd = useCallback(
     () => (isOwnProfile ? (getAddStateTransform?.() ?? {}) : {}),
     [isOwnProfile, getAddStateTransform]
   );
 
-  /** Функция для получения состояния удаления элемента */
+  /** Функция для получения состояния удаления элемента (меняем только для своего профиля) */
   const mapOnRemove = useCallback(
     () => (isOwnProfile ? (getRemoveStateTransform?.() ?? {}) : {}),
     [isOwnProfile, getRemoveStateTransform]
@@ -73,7 +73,7 @@ export const useLibraryResource = ({
         ? deleteTrackFromLibrary
         : deleteVideoFromLibrary
       : null,
-    entityType: currentTab ? (isTracks ? 'tracks' : 'videos') : null,
+    targetType: currentTab ? (isTracks ? 'tracks' : 'videos') : null,
     mapOnAdd,
     mapOnRemove,
   });

@@ -1,208 +1,69 @@
-import { useCallback, useRef } from 'react';
-import {
-  acceptFriendRequest,
-  blockUser,
-  deleteFriend,
-  fetchFriendshipStatus,
-  rejectFriendRequest,
-  sendFriendRequest,
-} from '../../../entities/friend';
+import { useMemo } from 'react';
+import { useFriendshipActions } from '..';
+import { fetchFriendshipStatus } from '../../../entities/friend';
+import { useOnline } from '../../../features/users';
 import { useAbortableRequest, useNotify } from '../../../shared/hooks';
-
 /**
- * Хук для управления статусом дружбы.
+ * Хук для получения пользователя и управления статусом дружбы.
  *
- * @param {Object|number} params - `{ targetUserId, currentUserId }` или targetUserId (legacy)
- * @param {number} [currentUserIdArg] - ID текущего пользователя (legacy)
+ * @param {number} profileUserId - ID пользователя, с которым проверяем статус дружбы
  * @returns {Object} - объект с данными о статусе дружбы и экшенами
  */
-export const useFriendshipStatus = (params, currentUserIdArg) => {
-  const isParamsObject =
-    typeof params === 'object' && params !== null && !Array.isArray(params);
-
-  const targetUserId = isParamsObject ? params.targetUserId : params;
-  const currentUserId = isParamsObject
-    ? params.currentUserId
-    : currentUserIdArg;
-  const dataRef = useRef({
-    friendshipStatus: null,
-    friendshipDirection: null,
-    friendshipId: null,
-  });
+export const useFriendshipStatus = (profileUserId) => {
   const notify = useNotify();
 
   /**
-   * Загрузка начального статуса.
-   * @param {AbortSignal} signal - сигнал отмены запроса.
-   * @returns {Object} - объект с данными о статусе дружбы.
+   * Загрузка пользователя и начального статуса дружбы.
    */
   const {
-    data,
+    data: user,
+    setData: setUser,
     isLoading,
     error,
-    execute: refetchStatus,
-    setData,
+    execute: refetchUser,
   } = useAbortableRequest({
     fetcher: async (signal) => {
-      if (!targetUserId || !currentUserId || targetUserId === currentUserId) {
-        return {
-          status: null,
-          direction: null,
-          friendshipId: null,
-        };
+      if (!profileUserId || profileUserId <= 0) {
+        return null;
       }
-      return await fetchFriendshipStatus(targetUserId, signal);
+      return await fetchFriendshipStatus(profileUserId, signal);
     },
-    deps: [targetUserId, currentUserId],
+    deps: [profileUserId],
+    onError: () => notify.error('load'),
     options: {
-      initialData: {
-        status: null,
-        direction: null,
-        friendshipId: null,
-      },
+      autoFetch: Boolean(profileUserId),
+      initialData: null,
     },
   });
 
-  /**
-   * Ссылка на данные для оптимистичного обновления.
-   * @returns {void}
-   */
-  dataRef.current = data;
+  const friendshipActions = useFriendshipActions({
+    setItems: setUser,
+    getCurrentData: () => user,
+    getUserId: (data) => data?.id,
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
+  });
 
-  /**
-   * Оптимистичное обновление статуса дружбы.
-   * @param {Function} apiCall - функция, возвращающая промис с ответом сервера
-   * @param {Function} optimisticUpdate - синхронная функция, обновляющая состояние немедленно
-   * @param {Function} onSuccess - (response) => новое состояние, применяется после успеха
-   * @returns {void}
-   */
-  const optimisticAction = useCallback(
-    async (apiCall, optimisticUpdate, onSuccess) => {
-      const prevData = dataRef.current;
-      optimisticUpdate();
-      try {
-        const response = await apiCall();
-        if (onSuccess) {
-          const newState = onSuccess(response, prevData);
-          setData(newState);
-          notify.success('Статус дружбы обновлен');
-        }
-      } catch (error) {
-        setData(prevData);
-        console.error('Ошибка при обновлении статуса дружбы', error);
-        notify.error('Ошибка при обновлении статуса дружбы');
-      }
-    },
-    [setData, notify]
+  /** Получение статуса пользователя (в сети или нет) */
+  const onlineMap = useOnline(user?.id);
+
+  /** Обогащаем данные пользователя статусом онлайн. */
+  const enrichedUser = useMemo(
+    () =>
+      user ? { ...user, online: onlineMap.get(user?.id) ?? user.online } : null,
+    [user, onlineMap]
   );
 
-  /**
-   * Отправка запроса на дружбу.
-   * @returns {void}
-   */
-  const follow = useCallback(async () => {
-    await optimisticAction(
-      () => sendFriendRequest(targetUserId),
-      () =>
-        setData({
-          status: 'pending',
-          direction: 'outgoing',
-          friendshipId: null,
-        }),
-      (response) => ({
-        status: 'pending',
-        direction: 'outgoing',
-        friendshipId: response?.id || null,
-      })
-    );
-  }, [targetUserId, optimisticAction, setData]);
-
-  /**
-   * Отмена запроса на дружбу.
-   * @returns {void}
-   */
-  const unfollow = useCallback(async () => {
-    if (!data.friendshipId) return;
-    await optimisticAction(
-      () => rejectFriendRequest(data.friendshipId),
-      () => setData({ status: null, direction: null, friendshipId: null }),
-      () => ({ status: null, direction: null, friendshipId: null })
-    );
-  }, [data.friendshipId, optimisticAction, setData]);
-
-  /**
-   * Принятие запроса на дружбу.
-   * @returns {void}
-   */
-  const accept = useCallback(async () => {
-    if (!data.friendshipId) return;
-    await optimisticAction(
-      () => acceptFriendRequest(data.friendshipId),
-      () =>
-        setData({
-          status: 'accepted',
-          direction: 'incoming',
-          friendshipId: data.friendshipId,
-        }),
-      () => ({
-        status: 'accepted',
-        direction: 'incoming',
-        friendshipId: data.friendshipId,
-      })
-    );
-  }, [data.friendshipId, optimisticAction, setData]);
-
-  /**
-   * Блокировка пользователя.
-   * @returns {void}
-   */
-  const block = useCallback(async () => {
-    await optimisticAction(
-      () => blockUser(targetUserId),
-      () =>
-        setData({
-          status: 'blocked',
-          direction: 'incoming',
-          friendshipId: data.friendshipId,
-        }),
-      (response) => ({
-        status: 'blocked',
-        direction: 'incoming',
-        friendshipId: response?.friendship?.id || data.friendshipId,
-      })
-    );
-  }, [targetUserId, data.friendshipId, optimisticAction, setData]);
-
-  /**
-   * Разблокировка пользователя.
-   * @returns {void}
-   */
-  const unlock = useCallback(async () => {
-    if (!data.friendshipId) return;
-    await optimisticAction(
-      () => deleteFriend(data.friendshipId),
-      () => setData({ status: null, direction: null, friendshipId: null }),
-      () => ({ status: null, direction: null, friendshipId: null })
-    );
-  }, [data.friendshipId, optimisticAction, setData]);
-
+  console.log('enrichedUser', enrichedUser);
   return {
-    status: data?.status ?? null,
-    direction: data?.direction ?? null,
-    friendshipId: data?.friendshipId ?? null,
-    data,
-    isLoading,
-    error,
-    refetch: refetchStatus,
-    followUser: follow,
-    unfollowUser: unfollow,
-    acceptUser: accept,
-    blockUser: block,
-    unlockUser: unlock,
-    follow,
-    unfollow,
-    accept,
-    block,
-    unlock,
+    user: enrichedUser,
+    userLoading: isLoading,
+    userError: error,
+    refetchUser,
+    followUser: friendshipActions?.follow,
+    unfollowUser: friendshipActions?.unfollow,
+    acceptUser: friendshipActions?.accept,
+    blockUser: friendshipActions?.block,
+    unlockUser: friendshipActions?.unlock,
   };
 };

@@ -7,7 +7,7 @@ import { api } from '../../../shared/api';
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
+ * @returns {Promise<Object>} { items, pagination } - данные видео и пагинация
  */
 export const fetchMyVideoLibrary = async ({
   page,

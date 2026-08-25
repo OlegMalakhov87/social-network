@@ -16,7 +16,9 @@ import style from './PostsTab.module.css';
  * @param {boolean} props.isOwnProfile - владелец профиля(да или нет)
  * @param {boolean} props.isLoading - загружен пост или нет
  * @param {string|null} props.error - ошибка
- * @param {Function} props.onPlayVideo - воспроизведение видео
+ * @param {Function} props.onPlayPost - воспроизведение поста
+ * @param {Object} props.currentPost - текущий пост
+ * @param {boolean} props.isPlaying - воспроизводится ли пост
  * @param {Function} props.toggleLike - лайк/дизлайк
  * @param {Function} props.deletePost - удалить пост
  * @param {Function} props.toggleComments - открыть комментарии / закрыть комментарии
@@ -33,7 +35,9 @@ export const PostsTab = ({
   isLoading,
   isLoadingMore,
   error,
-  onPlayVideo,
+  onPlayPost,
+  currentPost,
+  isPlaying,
   toggleLike,
   deletePost,
   updatePost,
@@ -67,11 +71,13 @@ export const PostsTab = ({
               post={item}
               targetUser={targetUser}
               currentUser={currentUser}
-              onPlay={onPlayVideo}
+              onPlay={onPlayPost}
               toggleLike={toggleLike}
               onDelete={deletePost}
               onUpdate={updatePost}
               toggleComments={toggleComments}
+              currentPost={currentPost}
+              isPlaying={isPlaying}
             />
           );
         })}

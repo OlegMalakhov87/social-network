@@ -10,4 +10,3 @@ export { normalizeVideo } from './lib/normalizeVideo'; // Функция для 
 
 export { Video } from './ui/Video'; // Компонент для отображения видео
 export { VideoMeta } from './ui/VideoMeta'; // Компонент для отображения метаданных видео
-export { VideoThumbnail } from './ui/VideoThumbnail'; // Компонент для отображения обложки видео

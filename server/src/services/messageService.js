@@ -23,7 +23,7 @@ const messageService = {
         u.id as "interlocutor.id", 
         u.name as "interlocutor.name", 
         u.nickname as "interlocutor.nickname", 
-        u.avatar as "interlocutor.avatar"
+        u.avatarUrl as "interlocutor.avatarUrl"
       FROM (
         SELECT DISTINCT ON (
           CASE WHEN "senderId" = :currentUserId THEN "receiverId" ELSE "senderId" END
@@ -72,7 +72,7 @@ const messageService = {
           id: d['interlocutor.id'],
           name: d['interlocutor.name'],
           nickname: d['interlocutor.nickname'],
-          avatar: d['interlocutor.avatar'],
+          avatarUrl: d['interlocutor.avatarUrl'],
         },
         lastMessage: {
           id: d.id,
@@ -121,8 +121,12 @@ const messageService = {
         ],
       },
       include: [
-        { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
-        { model: User, as: 'receiver', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'sender', attributes: ['id', 'name', 'avatarUrl'] },
+        {
+          model: User,
+          as: 'receiver',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
       ],
       order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
@@ -171,8 +175,12 @@ const messageService = {
 
     const messageWithUsers = await Message.findByPk(newMessage.id, {
       include: [
-        { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
-        { model: User, as: 'receiver', attributes: ['id', 'name', 'avatar'] },
+        { model: User, as: 'sender', attributes: ['id', 'name', 'avatarUrl'] },
+        {
+          model: User,
+          as: 'receiver',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
       ],
     });
 
@@ -210,7 +218,11 @@ const messageService = {
         returning: true,
         plain: true,
         include: [
-          { model: User, as: 'sender', attributes: ['id', 'name', 'avatar'] },
+          {
+            model: User,
+            as: 'sender',
+            attributes: ['id', 'name', 'avatarUrl'],
+          },
         ],
       }
     );

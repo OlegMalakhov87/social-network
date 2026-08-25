@@ -5,7 +5,7 @@ module.exports = {
       {
         userId: 1,
         text: 'Сегодня завершил большой проект! Очень доволен результатом. #успех #работа',
-        media: '/post-image.webp',
+        postUrl: '/default-image.jpg',
         isPublic: true,
         type: 'image',
         pinned: false,
@@ -14,7 +14,7 @@ module.exports = {
       {
         userId: 2,
         text: 'Ищу вдохновение для нового дизайна. Какие тренды в UI сейчас актуальны?',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -23,7 +23,7 @@ module.exports = {
       {
         userId: 3,
         text: 'Поделюсь кодом оптимизации запросов к PostgreSQL...',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -32,7 +32,7 @@ module.exports = {
       {
         userId: 4,
         text: '- Выучить JS ? - Да легко! Можете меня поздравить, это было нечто. Это почти как пройти афганскую войну.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -41,7 +41,7 @@ module.exports = {
       {
         userId: 5,
         text: 'Ссыку на материалы прилагаю https://doka.guide не благодарите.',
-        media: null,
+        postUrl: null,
         isPublic: false,
         type: 'text',
         pinned: false,
@@ -50,7 +50,7 @@ module.exports = {
       {
         userId: 6,
         text: 'Это мой приватный пост, который вижу только я и никто другой.',
-        media: '/post-image.webp',
+        postUrl: '/default-image.jpg',
         isPublic: false,
         type: 'image',
         pinned: false,
@@ -59,7 +59,7 @@ module.exports = {
       {
         userId: 7,
         text: 'Обучающее видео - как я выучил JavaScript за 10 минут.',
-        media: '/default-video.mp4',
+        postUrl: '/default-video.mp4',
         isPublic: true,
         type: 'video',
         pinned: false,
@@ -68,7 +68,7 @@ module.exports = {
       {
         userId: 8,
         text: 'Красивое фото из Грузии.',
-        media: '/post-image.webp',
+        postUrl: '/default-image.jpg',
         isPublic: true,
         type: 'image',
         pinned: false,
@@ -77,7 +77,7 @@ module.exports = {
       {
         userId: 9,
         text: 'Мое первое фото',
-        media: '/post-image.webp',
+        postUrl: '/default-image.jpg',
         isPublic: true,
         type: 'image',
         pinned: false,
@@ -86,7 +86,7 @@ module.exports = {
       {
         userId: 10,
         text: 'Поздравьте меня с днем рождения! Сегодня отличная погода - как мне повезло!',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -95,7 +95,7 @@ module.exports = {
       {
         userId: 11,
         text: 'Я выучила React и устроилась на работу. Теперь я работаю 24/7. Это приватный пост',
-        media: null,
+        postUrl: null,
         isPublic: false,
         type: 'text',
         pinned: false,
@@ -104,7 +104,7 @@ module.exports = {
       {
         userId: 12,
         text: 'Ссылка на интересный ресурс https://doka.guide/js',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -113,7 +113,7 @@ module.exports = {
       {
         userId: 13,
         text: 'Видео с уроком',
-        media: '/default-video.mp4',
+        postUrl: '/default-video.mp4',
         isPublic: true,
         type: 'video',
         pinned: false,
@@ -122,7 +122,7 @@ module.exports = {
       {
         userId: 14,
         text: 'Фото из путешествия',
-        media: '/post-image.webp',
+        postUrl: '/default-image.jpg',
         isPublic: true,
         type: 'image',
         pinned: false,
@@ -131,7 +131,7 @@ module.exports = {
       {
         userId: 15,
         text: 'Ребята продаю машину в отличном состоянии.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -141,7 +141,7 @@ module.exports = {
       {
         userId: 16,
         text: 'Ребята, копируйте ссылку пока не пропала https://doka.guide/js/expressions-vs-statements',
-        media: null,
+        postUrl: null,
         isPublic: false,
         type: 'text',
         pinned: false,
@@ -150,7 +150,7 @@ module.exports = {
       {
         userId: 17,
         text: 'Сегодня Redux Toolkit! Жду поздравлений.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -159,7 +159,7 @@ module.exports = {
       {
         userId: 18,
         text: 'Когда же это уже все закончится? Программисты?!.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -168,7 +168,7 @@ module.exports = {
       {
         userId: 1,
         text: 'Какой сегодня чудесный день!',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -177,7 +177,7 @@ module.exports = {
       {
         userId: 2,
         text: 'Какой сериал посоветуете посмотреть? Что последнее Вам понравилось?',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -186,7 +186,7 @@ module.exports = {
       {
         userId: 3,
         text: 'Поздравляю всех с началом лета, оно будет прекрасным.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -195,7 +195,7 @@ module.exports = {
       {
         userId: 4,
         text: 'Поздравляю Вас с прошедшими майскими праздникам, всем добра и мира!',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -204,7 +204,7 @@ module.exports = {
       {
         userId: 5,
         text: 'Скоро отпуск! Ура! Уже взяли билеты в Сочи, Красная Поляна ждет нас.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -213,7 +213,7 @@ module.exports = {
       {
         userId: 6,
         text: 'Пора бы уже и мне найти работу. Ребята как у Вас сейчас дела с работой, долго искали?',
-        media: null,
+        postUrl: null,
         isPublic: false,
         type: 'text',
         pinned: false,
@@ -222,7 +222,7 @@ module.exports = {
       {
         userId: 7,
         text: 'Сегодня освоен React Router. Завтра начну Redux и так выучу React.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,
@@ -231,7 +231,7 @@ module.exports = {
       {
         userId: 8,
         text: 'Скоро экзамен по истории России, пожелайте мне удачи!.',
-        media: null,
+        postUrl: null,
         isPublic: false,
         type: 'text',
         pinned: false,
@@ -240,7 +240,7 @@ module.exports = {
       {
         userId: 9,
         text: 'Учимся программировать. Подписываемся на мой канал в YouTube и Telegram! Ссылку оставлю в комментариях.',
-        media: null,
+        postUrl: null,
         isPublic: true,
         type: 'text',
         pinned: false,

@@ -3,21 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import {
   clearError,
-  getAuthErrorDisplay,
   login,
   selectAuthError,
   selectIsAuthLoading,
 } from '../../../entities/auth';
-import { useForm } from '../../../shared/hooks';
-import { email, required } from '../../../shared/lib';
-import {
-  Alert,
-  BaseCard,
-  Button,
-  Input,
-  Text,
-  useToast,
-} from '../../../shared/ui';
+import { useForm, useNotify } from '../../../shared/hooks';
+import { email, getApiErrorDisplay, required } from '../../../shared/lib';
+import { Alert, BaseCard, Button, Input, Text } from '../../../shared/ui';
 import style from './RegisterForm.module.css';
 
 /**
@@ -25,7 +17,7 @@ import style from './RegisterForm.module.css';
  */
 export const LoginForm = () => {
   const dispatch = useDispatch();
-  const toast = useToast();
+  const notify = useNotify();
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
 
@@ -43,12 +35,7 @@ export const LoginForm = () => {
       try {
         await dispatch(login(values)).unwrap();
       } catch (error) {
-        toast.error(getAuthErrorDisplay(error, 'Ошибка авторизации'));
-        if (error?.fieldErrors) {
-          const fieldErr = new Error('validation');
-          fieldErr.fieldErrors = error.fieldErrors;
-          throw fieldErr;
-        }
+        notify.error(getApiErrorDisplay(error, 'Ошибка авторизации'));
         throw error;
       }
     },
@@ -80,7 +67,7 @@ export const LoginForm = () => {
             </Text>
 
             <Input
-              label="Email"
+              label="Email *"
               type="email"
               {...form.register('email')}
               error={form.errors.email}
@@ -89,7 +76,7 @@ export const LoginForm = () => {
             />
 
             <Input
-              label="Пароль"
+              label="Пароль *"
               type="password"
               {...form.register('password')}
               error={form.errors.password}

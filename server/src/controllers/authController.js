@@ -30,7 +30,7 @@ const authController = {
    */
   getMe: async (req, res, next) => {
     try {
-      const result = await authService.getMe(req.user.id);
+      const result = await authService.getMe(parseInt(req.user?.id));
       res.json(result);
     } catch (error) {
       next(error);

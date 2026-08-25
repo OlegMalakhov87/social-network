@@ -1,6 +1,6 @@
 import { GENRE_OPTIONS } from '../../../entities/track';
-import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength, required } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay, integer, maxLength, minLength, required } from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -26,61 +26,60 @@ import {
  */
 export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
-
+  const notify = useNotify();
   /** Форма для создания/редактирования трека с валидацией*/
   const form = useForm({
     initialValues: {
-      title: initialData?.title || '',
-      artist: initialData?.artist || '',
-      album: initialData?.album || '',
-      year: initialData?.year || '',
-      audio: initialData?.audio || '',
-      cover: initialData?.cover || '',
-      genre: initialData?.genre || '',
-      description: initialData?.description || '',
-      isPublic: initialData?.isPublic || true,
+      title: initialData?.title ?? '',
+      artist: initialData?.artist ?? '',
+      album: initialData?.album ?? '',
+      year: initialData?.year ?? '',
+      audioUrl: initialData?.audioUrl ?? '',
+      coverUrl: initialData?.coverUrl ?? '',
+      genre: initialData?.genre ?? '',
+      description: initialData?.description ?? '',
+      isPublic: initialData?.isPublic ?? true,
     },
     rules: () => ({
       title: [
         required('Введите название'),
-        minLength(10, 'Минимально 10 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
       artist: [
         required('Введите исполнителя'),
-        minLength(10, 'Минимально 10 символов'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
       album: [
-        minLength(10, 'Минимально 10 символов'),
         maxLength(100, 'Максимум 100 символов'),
       ],
       year: [
-        minLength(4, 'Минимально 4 символов'),
-        maxLength(4, 'Максимум 4 символов'),
+        integer(1900, new Date().getFullYear(), 'Год должен быть от 1900 до текущего'),
       ],
-      genre: [required('Выберите жанр')],
-      description: [
-        minLength(10, 'Минимально 10 символов'),
-        maxLength(500, 'Максимум 500 символов'),
-      ],
-      audio: [required('Загрузите аудиофайл')],
-      cover: [required('Загрузите обложку альбома')],
+      category: [required('Выберите жанр')],
+      description: [maxLength(2000, 'Максимум 2000 символов')],
+      audioUrl: [required('Загрузите аудиофайл')],
     }),
-    onSubmit: (values) => {
-      onSubmit?.(values, isEdit, initialData?.id);
-      onClose?.();
+    onSubmit: async (values) => {
+      try {
+        await onSubmit?.(values, isEdit, initialData?.id);
+        onClose?.();
+      } catch (error) {
+        notify.error(getApiErrorDisplay(error, 'Ошибка добавления трека'));
+        throw error;
+      }
     },
   });
 
   /** Хук для загрузки аудиофайла */
   const trackUpload = useFileUpload(TRACK_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('audio', data.audio),
+    onSuccess: (data) => form.setValue('audioUrl', data.audioUrl),
   });
 
   /** Хук для загрузки обложки альбома */
   const coverUpload = useFileUpload(ALBUM_COVER_CONFIG, {
-    onSuccess: (data) => form.setValue('cover', data.cover),
+    onSuccess: (data) => form.setValue('coverUrl', data.coverUrl),
   });
 
   /** Флаг загрузки */
@@ -120,8 +119,8 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
         />
 
         <Select
-          label="Жанр"
-          {...form.register('genre')}
+          label="Категория *"
+          {...form.register('category')}
           options={GENRE_OPTIONS}
           disabled={form.isSubmitting || isUploading}
         />
@@ -161,7 +160,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
         <Checkbox
           id="isPublic"
           name="isPublic"
-          label="Публичный трек (виден всем)"
+          label="Публичный трек (виден всем) *"
           checked={form.values.isPublic}
           onChange={(e) => form.setValue('isPublic', e.target.checked)}
           disabled={form.isSubmitting || isUploading}

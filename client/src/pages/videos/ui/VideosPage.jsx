@@ -79,7 +79,7 @@ export const VideosPage = () => {
   const handleVideoPlayStart = useCallback((video) => {
     onVideoStartRef.current?.(video);
   }, []);
-  
+
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
@@ -171,6 +171,8 @@ export const VideosPage = () => {
             mode="general"
             onPlayVideo={handleOpenVideo}
             onVideoStart={setOnVideoStart}
+            currentVideo={selectedVideo}
+            isPlaying={Boolean(selectedVideo)}
             addToLibrary={addToLibrary}
             deleteFromLibrary={deleteFromLibrary}
             hasMore={hasMore}

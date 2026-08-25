@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все публичные треки с возможностью фильтрации по жанру и поиску.
@@ -24,13 +23,13 @@ export const fetchTracksApi = async ({
     params: {
       page,
       limit,
-      genre: filter === 'all' ? undefined : filter,
+      category: filter === 'all' ? undefined : filter,
       q: q?.trim() || undefined,
       sortKey,
     },
     signal,
   });
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };
 
 /**
@@ -40,7 +39,7 @@ export const fetchTracksApi = async ({
  */
 export const addTrackApi = async (formData) => {
   const response = await api.post('/music/add', formData);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };
 
 /**
@@ -51,7 +50,7 @@ export const addTrackApi = async (formData) => {
  */
 export const updateTrackApi = async (trackId, updates) => {
   const response = await api.put(`/music/${trackId}/update`, updates);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };
 
 /**
@@ -61,7 +60,7 @@ export const updateTrackApi = async (trackId, updates) => {
  */
 export const updateTracksPrivacyApi = async (isPublic) => {
   const response = await api.put(`/music/privacy`, { isPublic });
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };
 
 /**
@@ -71,7 +70,7 @@ export const updateTracksPrivacyApi = async (isPublic) => {
  */
 export const incrementTrackPlaysCount = async (trackId) => {
   const response = await api.put(`/music/${trackId}/plays`);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };
 
 /**
@@ -81,5 +80,5 @@ export const incrementTrackPlaysCount = async (trackId) => {
  */
 export const deleteTrackApi = async (trackId) => {
   const response = await api.delete(`/music/${trackId}/delete`);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return response.data;
 };

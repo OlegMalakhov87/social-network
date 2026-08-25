@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { parseApiError } from '../lib';
 
 /**
  * Универсальный хук для оптимистичных мутаций (CRUD).
@@ -40,8 +41,9 @@ export const useOptimisticMutation = ({
         return true;
       } catch (err) {
         console.error('Ошибка добавления:', err);
-        onError?.('add', err);
-        return false;
+        const parsed = parseApiError(err);
+        onError?.('add', parsed);
+        throw parsed;
       }
     },
     [addFn, setItems, onSuccess, onError]
@@ -72,8 +74,9 @@ export const useOptimisticMutation = ({
       } catch (err) {
         setItems(oldItems);
         console.error('Ошибка обновления:', err);
-        onError?.('edit', err);
-        return false;
+        const parsed = parseApiError(err);
+        onError?.('edit', parsed);
+        throw parsed;
       }
     },
     [items, setItems, editFn, idField, onSuccess, onError]

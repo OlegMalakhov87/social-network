@@ -39,26 +39,29 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   );
 
   /** Валидация всей формы. */
-  const validate = useCallback(() => {
-    let valid = true;
-    const nextErrors = {};
+  const validate = useCallback(
+    (vals = values) => {
+      let valid = true;
+      const nextErrors = {};
 
-    for (const field of Object.keys(validationRules)) {
-      const validators = validationRules[field] || [];
-      for (const validator of validators) {
-        const error = validator(values[field], values);
-        if (error) {
-          nextErrors[field] = error;
-          valid = false;
-          break;
+      for (const field of Object.keys(validationRules)) {
+        const validators = validationRules[field] || [];
+        for (const validator of validators) {
+          const error = validator(vals[field], vals);
+          if (error) {
+            nextErrors[field] = error;
+            valid = false;
+            break;
+          }
         }
+        if (!nextErrors[field]) nextErrors[field] = '';
       }
-      if (!nextErrors[field]) nextErrors[field] = '';
-    }
 
-    setFieldErrors(nextErrors);
-    return valid;
-  }, [validationRules, values]);
+      setFieldErrors(nextErrors);
+      return valid;
+    },
+    [validationRules, values]
+  );
 
   /** Изменение поля. */
   const setValue = useCallback((field, value) => {
@@ -79,12 +82,21 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
       e?.preventDefault();
       if (isSubmitting) return false;
 
+      const trimmedValues = Object.fromEntries(
+        Object.entries(values).map(([key, value]) => {
+          const v = typeof value === 'string' ? value.trim() : value;
+          return [key, v === '' ? null : v];
+        })
+      );
+
+      setValues(trimmedValues);
+
       const valid = validate();
       if (!valid) return false;
 
       setIsSubmitting(true);
       try {
-        await onSubmit?.(values);
+        await onSubmit?.(trimmedValues);
         setValues(initialValues);
         setFieldErrors({});
         return true;
@@ -126,8 +138,8 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   }, [initialValues]);
 
   const isValid = useMemo(
-    () => Object.values(fieldErrors).every((e) => !e),
-    [fieldErrors]
+    () => Object.values(fieldErrors).every((e) => !e) && !isSubmitting,
+    [fieldErrors, isSubmitting]
   );
 
   return {

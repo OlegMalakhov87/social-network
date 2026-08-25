@@ -5,7 +5,7 @@ import styles from './ProfileActions.module.css';
  * Панель действий профиля.
  *
  * @param {Object} props
- * @param {Array<Object>} props.actions - массив действий (ключ, текст, вариант, disabled, onClick)
+ * @param {Array<Object>} props.actions - массив действий
  */
 
 export const ProfileActions = ({ actions = [] }) => {
@@ -17,6 +17,7 @@ export const ProfileActions = ({ actions = [] }) => {
         ({
           key,
           text,
+          hoverText,
           variant = 'primary',
           disabled = false,
           onClick,
@@ -24,6 +25,7 @@ export const ProfileActions = ({ actions = [] }) => {
           <Button
             key={key}
             fullWidth
+            hoverText={hoverText}
             variant={variant}
             disabled={disabled}
             onClick={onClick}

@@ -3,21 +3,15 @@ import { useCallback, useState } from 'react';
 /**
  * Хук для управления фильтрами, поиском и сортировкой.
  *
- * @param {string|Object} [options='all'] - начальный фильтр или объект `{ initialFilter, initialSort }`
- * @param {string} [initialSortArg='dateDesc'] - начальная сортировка (если первый аргумент — строка)
+ * @param {Object} params
+ * @param {string|Object} [params.initialFilter='all'] - начальный фильтр или объект
+ * @param {string} [params.initialSort='dateDesc'] - начальная сортировка
  * @returns {Object} - объект с данными о фильтрах, поиске и сортировке
  */
-export const useFilterControls = (options = 'all', initialSortArg = 'dateDesc') => {
-  const isOptionsObject =
-    typeof options === 'object' && options !== null && !Array.isArray(options);
-
-  const initialFilter = isOptionsObject
-    ? (options.initialFilter ?? 'all')
-    : options;
-  const initialSort = isOptionsObject
-    ? (options.initialSort ?? 'dateDesc')
-    : initialSortArg;
-
+export const useFilterControls = ({
+  initialFilter = 'all',
+  initialSort = 'dateDesc',
+}) => {
   const [filter, setFilter] = useState(initialFilter);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState(initialSort);

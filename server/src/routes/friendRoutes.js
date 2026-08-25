@@ -31,7 +31,7 @@ friendRoutes.put(
   friendController.acceptRequest
 );
 
-// Отклонить заявку
+// Отклонить/отменить заявку
 friendRoutes.delete(
   '/:friendshipId/reject',
   validateIdParam('friendshipId'),

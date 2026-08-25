@@ -6,7 +6,7 @@
 export const FORM_FIELDS = [
   {
     name: 'name',
-    label: 'Имя',
+    label: 'Имя *',
     type: 'text',
     placeholder: 'Ваше имя',
     half: true,
@@ -20,7 +20,7 @@ export const FORM_FIELDS = [
   },
   {
     name: 'email',
-    label: 'Email',
+    label: 'Email *',
     type: 'email',
     placeholder: 'email@example.com',
     half: true,

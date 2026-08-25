@@ -12,27 +12,11 @@ const musicRoutes = Router();
 // Публичная лента и поиск (объединено)
 musicRoutes.get('/', authMiddleware, musicController.getMusic);
 
-// Библиотека конкретного пользователя
-musicRoutes.get(
-  '/profile/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  musicController.getUserMusic
-);
-
-// Получение одного трека по ID
-musicRoutes.get(
-  '/:trackId',
-  validateIdParam('trackId'),
-  authMiddleware,
-  musicController.getMusicById
-);
-
 // Загрузка медиа файла для трека
 musicRoutes.post(
   '/upload-audio',
   authMiddleware,
-  upload.single('audio'),
+  upload.single('audioUrl'),
   handleUploadError,
   musicController.uploadAudio
 );
@@ -41,14 +25,14 @@ musicRoutes.post(
 musicRoutes.post(
   '/upload-cover',
   authMiddleware,
-  upload.single('cover'),
+  upload.single('coverUrl'),
   handleUploadError,
   musicController.uploadCover
 );
 
 // Создание трека
 musicRoutes.post(
-  '/',
+  '/add',
   authMiddleware,
   validateMusic,
   musicController.createMusic
@@ -56,27 +40,29 @@ musicRoutes.post(
 
 // Обновление метаданных трека (владелец)
 musicRoutes.put(
-  '/:trackId',
+  '/:trackId/update',
   validateIdParam('trackId'),
   authMiddleware,
   validateMusic,
   musicController.updateMusic
 );
 
+// Обновление приватности треков
+musicRoutes.put('/update-privacy', authMiddleware, musicController.updateMusicPrivacy);
+
 // Инкремент счетчика прослушиваний
 musicRoutes.put(
-  '/:trackId/play',
+  '/:trackId/plays',
   validateIdParam('trackId'),
   authMiddleware,
   musicController.incrementPlaysCount
 );
 
-// Обновление приватности треков
-musicRoutes.put('/privacy', authMiddleware, musicController.updateMusicPrivacy);
+
 
 // Удаление трека (владелец)
 musicRoutes.delete(
-  '/:trackId',
+  '/:trackId/delete',
   validateIdParam('trackId'),
   authMiddleware,
   musicController.deleteMusic

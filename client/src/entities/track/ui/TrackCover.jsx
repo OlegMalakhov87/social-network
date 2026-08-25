@@ -17,10 +17,7 @@ export const TrackCover = ({ track, currentTrack, isPlaying, onPlay }) => {
 
   return (
     <div className={style.cover}>
-      <MediaPreview
-        src={track.cover || '/cover-track.webp'}
-        alt={track.title}
-      />
+      <MediaPreview src={track.coverUrl} alt={track.title} />
 
       <div className={style.overlay}>
         <IconButton

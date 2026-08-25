@@ -13,4 +13,5 @@ export const CATEGORY_OPTIONS = [
   { value: 'culture', label: 'Культура' },
   { value: 'economy', label: 'Экономика' },
   { value: 'health', label: 'Здоровье' },
+  { value: 'other', label: 'Другое' },
 ];

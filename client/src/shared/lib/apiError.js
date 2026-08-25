@@ -1,13 +1,9 @@
 /**
  * Преобразует ответ axios в структуру для rejectWithValue и форм.
- *
- * @param {import('axios').AxiosError} error
- * @returns {{ message: string, fieldErrors?: Record<string, string> }}
  */
-export const parseAuthApiError = (error) => {
+export const parseApiError = (error) => {
   const data = error.response?.data;
-  const message =
-    data?.error || error.message || 'Ошибка запроса';
+  const message = data?.error || error.message || 'Ошибка запроса';
 
   const fieldErrors = {};
   if (Array.isArray(data?.details)) {
@@ -27,13 +23,9 @@ export const parseAuthApiError = (error) => {
 };
 
 /**
- * Текст ошибки для toast / Alert (строка или payload от unwrap).
- *
- * @param {unknown} error
- * @param {string} [fallback]
- * @returns {string}
+ * Текст ошибки для toast / Alert.
  */
-export const getAuthErrorDisplay = (error, fallback = 'Неизвестная ошибка') => {
+export const getApiErrorDisplay = (error, fallback = 'Неизвестная ошибка') => {
   if (!error) return fallback;
   if (typeof error === 'string') return error;
   if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -43,13 +35,9 @@ export const getAuthErrorDisplay = (error, fallback = 'Неизвестная о
 };
 
 /**
- * Сообщение для Redux state.auth.error из payload thunk.
- *
- * @param {unknown} payload
- * @param {string} fallback
- * @returns {string}
+ * Сообщение для Redux state.error из payload thunk.
  */
-export const authErrorMessageFromPayload = (payload, fallback) => {
+export const apiErrorMessageFromPayload = (payload, fallback) => {
   if (!payload) return fallback;
   if (typeof payload === 'string') return payload;
   if (typeof payload === 'object' && payload !== null && 'message' in payload) {

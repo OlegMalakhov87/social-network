@@ -24,6 +24,8 @@ import style from './VideosTab.module.css';
  * @param {Function} props.updateGlobalViewsCount - глобальный счётчик просмотров
  * @param {Function} props.onPlayVideo - открыть видеоплеер (передаётся объект video)
  * @param {Function} [props.onVideoStart] - регистрация колбэка при старте воспроизведения (как setOnTrackStart)
+ * @param {Object} props.currentVideo - текущее видео
+ * @param {boolean} props.isPlaying - флаг воспроизведения текущего видео
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
  * @param {Function} props.onRetry - повторить загрузку
@@ -44,6 +46,8 @@ export const VideosTab = ({
   mode,
   onPlayVideo,
   onVideoStart,
+  currentVideo,
+  isPlaying,
   addToLibrary,
   deleteFromLibrary,
   updateLibraryViewsCount,
@@ -70,17 +74,22 @@ export const VideosTab = ({
       );
 
       const profileLibraryId =
-        currentVideo.profileLibraryId ?? video.profileLibraryId;
-
-      if (profileLibraryId) {
-        updateLibraryViewsCount?.(video.id, profileLibraryId);
+        currentVideo?.profileLibraryId ?? currentVideo?.libraryId;
+      if (mode === 'profile' && profileLibraryId) {
+        updateLibraryViewsCount?.(currentVideo?.id, profileLibraryId);
       } else {
-        updateGlobalViewsCount?.(video.id);
+        updateGlobalViewsCount?.(currentVideo?.id);
       }
     });
 
     return () => onVideoStart(null);
-  }, [onVideoStart, updateLibraryViewsCount, updateGlobalViewsCount]);
+  }, [
+    onVideoStart,
+    updateLibraryViewsCount,
+    updateGlobalViewsCount,
+    mode,
+    isOwnProfile,
+  ]);
 
   return (
     <ContentState
@@ -91,9 +100,11 @@ export const VideosTab = ({
       emptyIcon="🎬"
       emptyTitle="Нет видео"
       emptyDescription={
-        isOwnProfile
-          ? 'Добавьте свои первые видео.'
-          : 'У пользователя пока нет публичных видео.'
+        mode === 'profile'
+          ? isOwnProfile
+            ? 'Добавьте свои первые видео.'
+            : 'У пользователя пока нет публичных видео.'
+          : 'Попробуйте изменить категорию или поисковый запрос.'
       }
       onRetry={onRetry}
     >
@@ -107,6 +118,8 @@ export const VideosTab = ({
               isOwnProfile={isOwnProfile}
               mode={mode}
               onPlay={onPlayVideo}
+              currentVideo={currentVideo}
+              isPlaying={isPlaying}
               addToLibrary={addToLibrary}
               deleteFromLibrary={deleteFromLibrary}
               toggleLike={toggleLike}

@@ -86,7 +86,7 @@ export const Comment = ({
                   aria-label={`Профиль ${author.name}`}
                 >
                   <Avatar
-                    src={author.avatar}
+                    src={author.avatarUrl}
                     alt={author.name}
                     fallback="/user.png"
                   />

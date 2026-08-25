@@ -1,21 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../db/models');
-
-/**
- * Фабрика ошибок. Создает объект Error с дополнительными полями
- * для корректной обработки в errorMiddleware.
- *
- * @param {string} message - Человекочитаемое сообщение
- * @param {number} statusCode - HTTP статус (400, 401, 404, 409...)
- * @param {string} [code] - Машинный код ошибки (для фронтенда)
- */
-const createError = (message, statusCode = 500, code = null) => {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  error.code = code;
-  return error;
-};
+const createError = require('../utils/createError');
 
 /**
  * Генерация JWT токена
@@ -113,8 +99,6 @@ const authService = {
    * @returns {Promise<Object>} - Объект с пользователем
    */
   async getMe(userId) {
-    // Запрос к БД делается только здесь, когда реально нужен профиль
-    // Это предотвращает лишние запросы при аутентификации
     const user = await User.findByPk(userId, {
       attributes: { exclude: ['passwordHash'] },
     });

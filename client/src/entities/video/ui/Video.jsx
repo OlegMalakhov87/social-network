@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getVideoActions, VideoMeta, VideoThumbnail } from '..';
+import { getVideoActions, VideoMeta } from '..';
 import {
   ActionChip,
   BaseCard,
@@ -7,6 +7,7 @@ import {
   EntityActions,
   EntityContent,
   EntityHeader,
+  MediaPreview,
 } from '../../../shared/ui';
 
 /**
@@ -51,6 +52,9 @@ export const Video = ({
 
   const showFavorite = mode === 'profile' && isOwnProfile && video.isInLibrary;
 
+  const disabledButton =
+    mode === 'profile' && isOwnProfile && !video.isInLibrary;
+
   const actions = getVideoActions({
     video,
     isOwn,
@@ -59,6 +63,7 @@ export const Video = ({
     toggleLike,
     toggleComments,
     onUpdate: updateVideo,
+    disabledButton,
   });
 
   const handleConfirmDelete = () => {
@@ -99,11 +104,16 @@ export const Video = ({
         }
         content={
           <EntityContent>
-            <VideoThumbnail
-              video={video}
-              currentVideo={currentVideo}
+            <MediaPreview
+              item={video}
+              src={video.thumbnailUrl}
+              preview={video.previewUrl}
+              alt={video.title}
+              currentItem={currentVideo}
               isPlaying={isPlaying}
-              onPlay={onPlay}
+              onClick={onPlay}
+              disabled={disabledButton}
+              clickable={true}
             />
             <VideoMeta video={video} mode={mode} />
           </EntityContent>

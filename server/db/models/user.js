@@ -73,20 +73,27 @@ module.exports = (sequelize, DataTypes) => {
 
   User.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       nickname: {
         type: DataTypes.STRING(100),
         allowNull: true,
         unique: true,
         validate: {
-          len: [2, 100],
+          len: [1, 100],
           notEmpty: true,
         },
       },
       name: {
         type: DataTypes.STRING(100),
         allowNull: false,
+        defaultValue: 'Unknown',
         validate: {
-          len: [2, 100],
+          len: [1, 100],
           notEmpty: true,
         },
       },
@@ -94,8 +101,8 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
         validate: {
-          min: 14,
-          max: 99,
+          min: 1,
+          max: 100,
           isInt: true,
         },
       },
@@ -138,14 +145,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         unique: true,
         validate: {
-          len: [5, 25],
+          len: [12, 18],
           notEmpty: true,
         },
       },
-      avatar: {
+      avatarUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true,
-        defaultValue: '/user.png',
+        allowNull: false,
+        defaultValue: '/default-user.png',
         validate: {
           len: [1, 500],
           notEmpty: true,

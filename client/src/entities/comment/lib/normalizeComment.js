@@ -13,7 +13,6 @@ export const normalizeComment = (raw) => {
     isEdited: raw.isEdited,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    date: raw.updatedAt ?? raw.createdAt,
     author: raw.author,
     likesCount: raw.likesCount ?? 0,
     isLiked: raw.isLiked ?? false,

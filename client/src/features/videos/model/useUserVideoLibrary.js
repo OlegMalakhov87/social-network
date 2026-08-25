@@ -15,14 +15,12 @@ import { apiFetchItems } from '../../../shared/lib';
  *
  * @param {Object} params - параметры запроса
  * @param {number|null} params.profileUserId - ID пользователя
- * @param {number|null} params.currentUserId - ID текущего пользователя
  * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
  * @param {string} params.sortKey - ключ сортировки
  * @returns {Object} - объект с данными о видео библиотеке пользователя
  */
 export const useUserVideoLibrary = ({
   profileUserId,
-  currentUserId,
   isOwnProfile,
   sortKey,
 }) => {
@@ -59,7 +57,6 @@ export const useUserVideoLibrary = ({
   const videos = useNormalizedData({
     items: videosItems,
     normalizeFn: normalizeVideo,
-    userId: currentUserId,
   });
 
   /** Объект с данными о видео библиотеке пользователя. */

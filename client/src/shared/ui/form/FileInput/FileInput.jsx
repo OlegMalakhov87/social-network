@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button, Image, Text } from '../../../ui';
 import { classNames } from '../../../utils';
 import style from './FileInput.module.css';
@@ -31,6 +31,14 @@ export const FileInput = ({
   className = '',
 }) => {
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const handleClick = () => {
     if (!disabled && !isUploading) {
