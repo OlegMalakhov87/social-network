@@ -1,6 +1,7 @@
 export { calculateAge } from './calculateAge'; // Утилита расчета возраста
 export { classNames } from './classNames'; // Утилита объединения классов
 export { formatDate } from './formatDate'; // Утилита форматирования даты
+export { formatDateForInput } from './formatDateForInput'; // Утилита форматирования даты для input
 export { formatDuration } from './formatDuration'; // Утилита форматирования длительности
 export { formatSize } from './formatSize'; // Утилита форматирования размеров файлов
 export { formatViews } from './formatViews'; // Утилита форматирования просмотров

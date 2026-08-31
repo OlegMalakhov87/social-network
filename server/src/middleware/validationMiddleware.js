@@ -17,10 +17,6 @@ const validateRegister = [
     .withMessage('Пароль обязателен')
     .isLength({ min: 6 })
     .withMessage('Пароль должен быть не менее 6 символов'),
-  body('age')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Возраст от 1 до 100 лет'),
   body('gender')
     .notEmpty()
     .withMessage('Пол обязателен')
@@ -30,7 +26,7 @@ const validateRegister = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации при регистрации',
+        error: 'Ошибка регистрации',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -48,7 +44,7 @@ const validateLogin = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации при входе в систему',
+        error: 'Ошибка входа в систему',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -75,36 +71,36 @@ const validateUser = [
     .isLength({ min: 1, max: 500 })
     .withMessage('Аватар URL до 500 символов'),
   body('nickname')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Никнейм от 1 до 100 символов'),
-  body('age')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Возраст от 1 до 100 лет'),
+  body('birthDate')
+    .optional({ nullable: true })
+    .isDate()
+    .withMessage('Некорректная дата'),
   body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
   body('address')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
     .withMessage('Адрес до 500 символов'),
   body('job')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Должность до 100 символов'),
   body('status')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
     .withMessage('Статус до 500 символов'),
   body('phone')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 12, max: 18 })
@@ -121,7 +117,7 @@ const validateUser = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации при обновлении пользователя',
+        error: 'Ошибка обновления пользователя',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -134,7 +130,7 @@ const validateUser = [
  */
 const validatePost = [
   body('text')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 5000 })
@@ -147,7 +143,7 @@ const validatePost = [
     .withMessage('Тип поста должен быть text, image или video'),
   body('pinned').isBoolean().withMessage('pinned должен быть true или false'),
   body('postUrl')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Пост URL до 500 символов'),
@@ -158,7 +154,7 @@ const validatePost = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации поста',
+        error: 'Ошибка создания поста',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -190,7 +186,7 @@ const validateComment = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации комментария',
+        error: 'Ошибка добавления комментария',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -215,7 +211,7 @@ const validateLike = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации лайка',
+        error: 'Ошибка лайка',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -254,7 +250,7 @@ const validateMessage = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации сообщения',
+        error: 'Ошибка отправки сообщения',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -281,17 +277,17 @@ const validateMusic = [
     .isLength({ min: 1, max: 100 })
     .withMessage('Исполнитель до 100 символов'),
   body('album')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Альбом до 100 символов'),
   body('year')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1900, max: new Date().getFullYear() })
     .toInt(),
   body('duration')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1, max: 600 })
     .withMessage('Длительность должна быть от 1 до 600 секунд')
     .toInt(),
@@ -303,7 +299,7 @@ const validateMusic = [
     .isLength({ min: 1, max: 500 })
     .withMessage('Аудио URL до 500 символов'),
   body('coverUrl')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
@@ -319,7 +315,7 @@ const validateMusic = [
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 2000 })
@@ -332,7 +328,7 @@ const validateMusic = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации музыки',
+        error: 'Ошибка добавления трека',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -352,23 +348,23 @@ const validateVideo = [
     .isLength({ min: 1, max: 100 })
     .withMessage('Заголовок до 100 символов'),
   body('description')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 2000 })
     .withMessage('Описание до 2000 символов'),
   body('duration')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1, max: 1800 })
     .toInt()
     .withMessage('Длительность должна быть от 1 до 1800 секунд'),
   body('size')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1024 })
     .toInt()
     .withMessage('Размер должен быть числом'),
   body('year')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1900, max: new Date().getFullYear() })
     .toInt(),
   body('videoUrl')
@@ -378,12 +374,12 @@ const validateVideo = [
     .isLength({ min: 1, max: 500 })
     .withMessage('Видео URL до 500 символов'),
   body('thumbnailUrl')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Обложка до 500 символов'),
   body('previewUrl')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Превью до 500 символов'),
@@ -398,7 +394,6 @@ const validateVideo = [
     .isBoolean()
     .withMessage('isPublic должен быть true или false'),
   body('viewsCount')
-    .optional({ checkFalsy: true })
     .isInt({ min: 0 })
     .toInt()
     .withMessage('Количество просмотров должно быть числом'),
@@ -406,7 +401,7 @@ const validateVideo = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации видео',
+        error: 'Ошибка добавления видео',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }
@@ -430,7 +425,10 @@ const validateNews = [
     .trim()
     .isLength({ min: 1, max: 5000 })
     .withMessage('Текст до 5000 символов'),
-  body('date').optional().isDate().withMessage('Некорректная дата'),
+  body('date')
+    .optional({ nullable: true })
+    .isDate()
+    .withMessage('Некорректная дата'),
   body('author')
     .notEmpty()
     .isString()
@@ -450,13 +448,13 @@ const validateNews = [
     .isIn(['text', 'image', 'video'])
     .withMessage('Тип должен быть text, image или video'),
   body('source')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Источник до 100 символов'),
   body('newsUrl')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
@@ -472,7 +470,7 @@ const validateNews = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Ошибка валидации новости',
+        error: 'Ошибка добавления новости',
         details: errors.array().map((e) => ({ field: e.path, message: e.msg })),
       });
     }

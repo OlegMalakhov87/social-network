@@ -4,6 +4,7 @@
  * @param {string} props.src - URL изображения
  * @param {string} [props.fallback] - URL изображения-заглушки
  * @param {string} [props.alt] - альтернативный текст изображения
+ * @param {string} [props.className] - класс изображения
  * @param {Object} props.rest - остальные пропсы
  */
 
@@ -11,11 +12,20 @@ export const Image = ({
   src,
   fallback = '/error-page.png',
   alt = 'Изображение',
+  className = '',
   ...rest
 }) => {
   const handleError = ({ currentTarget }) => {
     currentTarget.onerror = null;
     currentTarget.src = fallback;
   };
-  return <img src={src} onError={handleError} alt={alt} {...rest} />;
+  return (
+    <img
+      src={src}
+      onError={handleError}
+      alt={alt}
+      className={className}
+      {...rest}
+    />
+  );
 };

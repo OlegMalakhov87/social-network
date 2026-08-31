@@ -29,7 +29,7 @@ export const useUserPosts = ({
   isOwnProfile,
   sortKey,
 }) => {
-  const notify = useNotify('posts');
+  const notify = useNotify();
 
   /** Получение постов с бесконечным скроллом. */
   const {
@@ -66,19 +66,14 @@ export const useUserPosts = ({
     addFn: addPostApi,
     editFn: updatePostApi,
     deleteFn: deletePostApi,
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
   });
 
   /** Нормализация постов. */
   const posts = useNormalizedData({
     items: postsItems,
     normalizeFn: normalizePosts,
-    userId: currentUserId,
   });
 
   /** Возвращаем объект с данными о постах пользователя. */

@@ -233,47 +233,37 @@ const commentService = {
    * @returns {Promise<Object>} { comment }
    */
   async updateComment(commentId, currentUserId, updateData) {
-    const comment = await Comment.findByPk(commentId);
-
-    if (!comment) {
-      throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
-    }
-
-    // Проверка прав
-    if (comment.userId !== currentUserId) {
-      throw createError(
-        'Вы не можете редактировать этот комментарий',
-        403,
-        'FORBIDDEN'
-      );
-    }
-
-    if (!updateData.text || updateData.text.trim().length === 0) {
-      throw createError(
-        'Комментарий не может быть пустым',
-        400,
-        'EMPTY_COMMENT'
-      );
-    }
-
-    // Обновляем и возвращаем результат одним запросом
-    const [, updatedRows] = await Comment.update(
+  
+    const [affectedCount] = await Comment.update(
       { text: updateData.text.trim(), isEdited: true },
       {
-        where: { id: commentId },
+        where: {
+          id: commentId,
+          userId: currentUserId,
+        },
         returning: true,
-        plain: true,
-        include: [
-          {
-            model: User,
-            as: 'author',
-            attributes: ['id', 'name', 'avatarUrl'],
-          },
-        ],
       }
     );
-
-    return { comment: updatedRows.toJSON() };
+  
+    if (affectedCount === 0) {
+      throw createError(
+        'Комментарий не найден или нет прав на редактирование',
+        404,
+        'COMMENT_NOT_FOUND_OR_FORBIDDEN'
+      );
+    }
+  
+    const updatedComment = await Comment.findByPk(commentId, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
+      ],
+    });
+  
+    return { comment: updatedComment.toJSON() };
   },
 
   /**

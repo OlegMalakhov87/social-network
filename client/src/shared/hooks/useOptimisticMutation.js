@@ -69,13 +69,13 @@ export const useOptimisticMutation = ({
           );
         }
 
-        onSuccess?.('edit', result);
+        onSuccess?.('update', result);
         return true;
       } catch (err) {
         setItems(oldItems);
         console.error('Ошибка обновления:', err);
         const parsed = parseApiError(err);
-        onError?.('edit', parsed);
+        onError?.('update', parsed);
         throw parsed;
       }
     },

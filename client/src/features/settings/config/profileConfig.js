@@ -33,10 +33,10 @@ export const FORM_FIELDS = [
     half: true,
   },
   {
-    name: 'age',
-    label: 'Возраст',
-    type: 'number',
-    placeholder: '18',
+    name: 'birthDate',
+    label: 'Дата рождения',
+    type: 'date',
+    placeholder: 'Выберите дату рождения',
     half: true,
   },
   {

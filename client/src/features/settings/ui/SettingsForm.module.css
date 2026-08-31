@@ -45,7 +45,7 @@
 .saveButton,
 .formFooter {
   align-self: flex-start;
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
 }
 
 .deleteButton {

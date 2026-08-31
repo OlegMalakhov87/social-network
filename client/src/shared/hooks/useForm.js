@@ -89,10 +89,10 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
         })
       );
 
-      setValues(trimmedValues);
-
-      const valid = validate();
+      const valid = validate(trimmedValues);
       if (!valid) return false;
+
+      setValues(trimmedValues);
 
       setIsSubmitting(true);
       try {

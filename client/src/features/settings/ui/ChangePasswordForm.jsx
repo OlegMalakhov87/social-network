@@ -10,8 +10,8 @@ import {
   ConfirmDialog,
   Input,
 } from '../../../shared/ui';
-import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
+import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы смены пароля.
@@ -51,7 +51,7 @@ export const ChangePasswordForm = () => {
         notify.success('Пароль успешно изменён');
         form.reset();
       } catch (error) {
-        notify.error(error || 'Ошибка смены пароля');
+        notify.error('Ошибка смены пароля');
       }
     },
   });
@@ -64,7 +64,7 @@ export const ChangePasswordForm = () => {
       notify.success('Аккаунт успешно удален');
       dispatch(logout());
     } catch (error) {
-      notify.error(error || 'Ошибка при удалении аккаунта');
+      notify.error('Ошибка при удалении аккаунта');
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -96,7 +96,7 @@ export const ChangePasswordForm = () => {
           disabled={form.isSubmitting}
         />
 
-        <ButtonGroup className={style.actions}>
+        <ButtonGroup>
           <Button type="submit" variant="primary" loading={form.isSubmitting}>
             Изменить пароль
           </Button>

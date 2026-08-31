@@ -10,6 +10,10 @@
   align-items: flex-start;
 }
 
+.alignEnd {
+  align-items: flex-end;
+}
+
 .labelContent {
   display: flex;
   flex-direction: column;

@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCommentActions } from '..';
 import {
   Avatar,
-  Badge,
   BaseCard,
   Button,
   ButtonGroup,
@@ -43,7 +42,7 @@ export const Comment = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment?.text || '');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
+  const navigate = useNavigate();
   if (!comment?.id || !author) return null;
 
   const actions = getCommentActions({
@@ -59,7 +58,7 @@ export const Comment = ({
 
   const handleSave = () => {
     if (editText.trim() && currentUserId) {
-      onEdit?.(comment.id, editText);
+      onEdit?.(comment.id, { text: editText, isEdited: true });
       setIsEditing(false);
     }
   };
@@ -81,28 +80,24 @@ export const Comment = ({
           <EntityHeader>
             <EntityMeta
               avatar={
-                <Link
-                  to={`/profile/${author.id}`}
-                  aria-label={`Профиль ${author.name}`}
-                >
-                  <Avatar
-                    src={author.avatarUrl}
-                    alt={author.name}
-                    fallback="/user.png"
-                  />
-                </Link>
+                <Avatar
+                  src={author.avatarUrl}
+                  alt={author.name}
+                  status={author.online ? 'online' : 'offline'}
+                  clickable={true}
+                  onClick={() => navigate(`/profile/${author.id}`)}
+                />
               }
               title={
                 <Link to={`/profile/${author.id}`} className={style.authorName}>
                   {author.name}
-                  {author.isVerified && (
-                    <Badge variant="success" size="sm">
-                      ✅
-                    </Badge>
-                  )}
                 </Link>
               }
-              subtitle={formatDate(comment.date)}
+              subtitle={
+                comment.isEdited
+                  ? `изм. ${formatDate(comment.updatedAt)}`
+                  : formatDate(comment.createdAt)
+              }
             />
           </EntityHeader>
         }
@@ -116,7 +111,7 @@ export const Comment = ({
                   autoFocus
                   rows={3}
                 />
-                <ButtonGroup align="end">
+                <ButtonGroup>
                   <Button variant="secondary" size="sm" onClick={handleCancel}>
                     Отмена
                   </Button>

@@ -33,7 +33,7 @@ const commentController = {
       const { page, limit, sortKey } = req.query;
 
       const result = await commentService.getUserComments(
-        userId,
+        parseInt(userId),
         parseInt(page),
         parseInt(limit),
         sortKey

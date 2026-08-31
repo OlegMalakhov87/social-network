@@ -1,11 +1,12 @@
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { FORM_FIELDS } from '..';
 import { updateUser, uploadAvatar } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import {
+  date,
   email,
   getApiErrorDisplay,
-  integer,
   maxLength,
   minLength,
   phone,
@@ -21,6 +22,7 @@ import {
   FileInput,
   Input,
 } from '../../../shared/ui';
+import { formatDateForInput } from '../../../shared/utils';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
 import style from './SettingsForm.module.css';
 import { SettingsSection } from './SettingsSection';
@@ -33,18 +35,22 @@ import { SettingsSection } from './SettingsSection';
 export const EditProfileForm = ({ currentUser }) => {
   const dispatch = useDispatch();
   const notify = useNotify();
+  const navigate = useNavigate();
 
   /** Форма для редактирования профиля */
   const form = useForm({
     initialValues: {
-      name: currentUser?.name ?? '',
-      nickname: currentUser?.nickname ?? '',
-      email: currentUser?.email ?? '',
-      phone: currentUser?.phone ?? '',
-      age: currentUser?.age ?? null,
-      address: currentUser?.address ?? '',
-      job: currentUser?.job ?? '',
-      status: currentUser?.status ?? '',
+      name: currentUser?.name ?? null,
+      nickname: currentUser?.nickname ?? null,
+      avatarUrl: currentUser?.avatarUrl ?? null,
+      email: currentUser?.email ?? null,
+      phone: currentUser?.phone ?? null,
+      birthDate: formatDateForInput(currentUser?.birthDate) ?? null,
+      address: currentUser?.address ?? null,
+      job: currentUser?.job ?? null,
+      status: currentUser?.status ?? null,
+      isPublic: currentUser?.isPublic ?? true,
+      gender: currentUser?.gender ?? 'male',
     },
     rules: {
       name: [
@@ -55,7 +61,7 @@ export const EditProfileForm = ({ currentUser }) => {
       nickname: [maxLength(100, 'Максимум 100 символов'), slug()],
       email: [required('Email обязательно'), email('Неверный формат email')],
       phone: [phone()],
-      age: [integer(1, 100, 'Возраст должен быть числом от 1 до 100 лет')],
+      birthDate: [date('Введите корректную дату рождения')],
       address: [maxLength(500, 'Максимум 500 символов')],
       job: [maxLength(100, 'Максимум 100 символов')],
       status: [maxLength(500, 'Максимум 500 символов')],
@@ -65,6 +71,7 @@ export const EditProfileForm = ({ currentUser }) => {
       try {
         await dispatch(updateUser(values)).unwrap();
         notify.success('Профиль успешно обновлён');
+        navigate('/profile');
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка обновления профиля'));
         throw error;
@@ -81,7 +88,7 @@ export const EditProfileForm = ({ currentUser }) => {
           await dispatch(uploadAvatar(data)).unwrap();
           notify.success('Аватар успешно загружен');
         } catch (error) {
-          notify.error(error || 'Ошибка загрузки аватара');
+          notify.error('Ошибка загрузки аватара');
         }
       },
     }
@@ -147,7 +154,7 @@ export const EditProfileForm = ({ currentUser }) => {
             loading={form.isSubmitting}
             disabled={form.isSubmitting}
           >
-            {form.isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+            Сохранить изменения
           </Button>
         </ButtonGroup>
       </form>

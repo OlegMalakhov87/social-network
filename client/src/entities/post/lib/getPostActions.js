@@ -48,7 +48,7 @@ export const getPostActions = ({
     actions.push({
       key: 'share',
       icon: '↗️',
-      label: 'Поделиться',
+      label: '',
       ariaLabel: 'Поделиться',
 
       onClick: () => onShare?.(),
@@ -59,7 +59,7 @@ export const getPostActions = ({
     actions.push({
       key: 'update',
       icon: '✏️',
-      label: 'Обновить',
+      label: '',
       ariaLabel: 'Обновить пост',
 
       onClick: () => onUpdate?.(post),
@@ -69,7 +69,7 @@ export const getPostActions = ({
     actions.push({
       key: 'delete',
       icon: '🗑️',
-      label: 'Удалить',
+      label: '',
       ariaLabel: 'Удалить пост',
 
       onClick: () => onDelete?.(post.id),

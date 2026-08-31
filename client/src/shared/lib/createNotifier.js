@@ -1,4 +1,4 @@
-import { MESSAGES, getEntityName } from '../config';
+import { MESSAGES } from '../config';
 
 /**
  * Подставляет переменные в шаблонную строку.
@@ -14,41 +14,29 @@ const interpolate = (template, data) => {
 /**
  * Создаёт объект для показа уведомлений, связанных с конкретной сущностью.
  * @param {object} toast - объект для показа уведомлений
- * @param {string} [entity] - тип сущности
  * @returns {object} - объект с методами
  */
-export const createNotifier = (toast, entity = null) => {
-  const entityName = entity ? getEntityName(entity) : null;
-
-  const getMessage = (type, key, extra) => {
-    let message;
-
-    if (entityName && MESSAGES[type]?.[`${entity}.${key}`]) {
-      message = MESSAGES[type][`${entity}.${key}`];
-    } else if (MESSAGES[type]?.[key]) {
-      message = MESSAGES[type][key];
-    } else {
-      message = MESSAGES[type]?.default || 'Что-то пошло не так';
-    }
-
-    return interpolate(message, extra);
-  };
+export const createNotifier = (toast) => {
 
   const notifier = {
     success: (key = 'default', extra) => {
-      toast.success?.(getMessage('success', key, extra));
+      const message = MESSAGES.success?.[key] || key;
+      toast.success?.(interpolate(message, extra));
     },
 
     error: (key = 'default', extra) => {
-      toast.error?.(getMessage('error', key, extra));
+      const message = MESSAGES.error?.[key] || key;
+      toast.error?.(interpolate(message, extra));
     },
 
     warning: (key = 'default', extra) => {
-      toast.warning?.(getMessage('warning', key, extra));
+      const message = MESSAGES.warning?.[key] || key;
+      toast.warning?.(interpolate(message, extra));
     },
 
     info: (key = 'default', extra) => {
-      toast.info?.(getMessage('info', key, extra));
+      const message = MESSAGES.info?.[key] || key;
+      toast.info?.(interpolate(message, extra));
     },
 
     /**

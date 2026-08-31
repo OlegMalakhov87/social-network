@@ -31,6 +31,7 @@ export const Checkbox = ({
       className={classNames(
         style.wrapper,
         align === 'start' && style.alignStart,
+        align === 'end' && style.alignEnd,
         disabled && style.disabled,
         className
       )}

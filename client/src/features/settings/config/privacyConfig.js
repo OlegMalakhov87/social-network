@@ -3,40 +3,37 @@ import { updateTracksPrivacyApi } from '../../../entities/track';
 import { updateUserPrivacyApi } from '../../../entities/user';
 import { updateVideosPrivacyApi } from '../../../entities/video';
 
-/**
- * Опции видимости для полей приватности.
- */
-export const VISIBILITY_OPTIONS = [
-  { value: true, label: 'Публичный' },
-  { value: false, label: 'Приватный' },
-];
-
-/**
- * Конфигурация полей приватности для маппинга в UI.
- */
 export const PRIVACY_SETTINGS_CONFIG = [
   {
     key: 'profile',
     label: 'Кто видит мой профиль *',
-    options: VISIBILITY_OPTIONS,
+    description: 'Настройка приватности профиля',
+    publicText: 'Все пользователи',
+    privateText: 'Только я и мои друзья',
     updateFn: updateUserPrivacyApi,
   },
   {
     key: 'posts',
     label: 'Кто видит мои посты *',
-    options: VISIBILITY_OPTIONS,
+    description: 'Настройка приватности постов',
+    publicText: 'Все пользователи',
+    privateText: 'Только я и мои друзья',
     updateFn: updatePostsPrivacyApi,
   },
   {
     key: 'tracks',
     label: 'Кто видит мои треки *',
-    options: VISIBILITY_OPTIONS,
+    description: 'Настройка приватности треков',
+    publicText: 'Все пользователи',
+    privateText: 'Только я и мои друзья',
     updateFn: updateTracksPrivacyApi,
   },
   {
     key: 'videos',
     label: 'Кто видит мои видео *',
-    options: VISIBILITY_OPTIONS,
+    description: 'Настройка приватности видео',
+    publicText: 'Все пользователи',
+    privateText: 'Только я и мои друзья',
     updateFn: updateVideosPrivacyApi,
   },
 ];

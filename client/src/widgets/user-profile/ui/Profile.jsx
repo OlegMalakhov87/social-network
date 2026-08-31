@@ -5,15 +5,16 @@ import {
   getProfileActions,
   getProfileFields,
   ProfileActions,
-  ProfileIdentity,
+  ProfileMeta,
 } from '../../../entities/user';
 import {
   Avatar,
+  Badge,
   BaseCard,
   ConfirmDialog,
   EntityContent,
+  EntityHeader,
   EntityInfoList,
-  StatusBadge,
 } from '../../../shared/ui';
 
 /**
@@ -92,23 +93,30 @@ export const Profile = ({
     <>
       <BaseCard
         header={
-          <ProfileIdentity>
-            <Avatar
-              size="xl"
-              src={targetUser?.avatarUrl}
-              alt={targetUser?.name}
-            />
-            {!isOwnProfile && (
-              <>
-                <StatusBadge
+          <EntityHeader>
+            <ProfileMeta
+              avatar={
+                <Avatar
+                  src={targetUser?.avatarUrl}
+                  alt={targetUser?.name}
+                  size="xl"
                   status={targetUser?.online ? 'online' : 'offline'}
-                  label={targetUser?.online ? 'В сети' : 'Не в сети'}
                 />
-
-                <ProfileActions actions={actions} />
-              </>
-            )}
-          </ProfileIdentity>
+              }
+              title={targetUser?.name}
+              subtitle={
+                targetUser?.nickname ? `@${targetUser?.nickname}` : null
+              }
+              badge={
+                targetUser?.canSeeFullProfile === false ? (
+                  <Badge size="sm" variant="warning">
+                    🔒 Закрытый профиль
+                  </Badge>
+                ) : null
+              }
+              extra={<ProfileActions actions={actions} />}
+            />
+          </EntityHeader>
         }
         content={
           <EntityContent>

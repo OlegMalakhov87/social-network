@@ -1,4 +1,4 @@
-import { Avatar, Badge } from '../../../ui';
+import { Avatar } from '../../../ui';
 import { classNames } from '../../../utils';
 import style from './EntityMeta.module.css';
 
@@ -8,12 +8,11 @@ import style from './EntityMeta.module.css';
  *
  * @param {Object} props
  * @param {string|React.ReactNode} [props.avatar] - изображение аватара
- * @param {string} [props.title] - заголовок (необязательно)
- * @param {string} [props.subtitle] - подзаголовок (необязательно)
- * @param {string} [props.badge] - бейдж (необязательно)
+ * @param {string|React.ReactNode} [props.title] - заголовок
+ * @param {string|React.ReactNode} [props.subtitle] - подзаголовок
+ * @param {string|React.ReactNode} [props.badge] - текст или узел бейджа
  * @param {string} [props.className] - дополнительный класс
  */
-
 export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {
   return (
     <div className={classNames(style.meta, className)}>
@@ -23,15 +22,13 @@ export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {
         </div>
       )}
 
-      <div className={style.info}>
-        <div className={style.row}>
-          <h3 className={style.title}>{title}</h3>
-
-          {badge && <Badge size="sm">{badge}</Badge>}
+      {(title || subtitle || badge) && (
+        <div className={style.info}>
+          {title && <h3 className={style.title}>{title}</h3>}
+          {subtitle && <div className={style.subtitle}>{subtitle}</div>}
+          {badge && <div className={style.badges}>{badge}</div>}
         </div>
-
-        {subtitle && <div className={style.subtitle}>{subtitle}</div>}
-      </div>
+      )}
     </div>
   );
 };

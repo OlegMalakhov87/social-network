@@ -65,11 +65,11 @@ export const useFriendshipActions = ({
         if (newFriendshipId) {
           updateFriendshipFields(userId, { friendshipId: newFriendshipId });
         }
-        onSuccess?.('send');
+        onSuccess?.('Заявка отправлена');
       } catch (error) {
         setItems(prevData);
         console.error('Ошибка при отправке запроса на дружбу', error);
-        onError?.('send');
+        onError?.('Ошибка при отправке заявки');
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -90,11 +90,11 @@ export const useFriendshipActions = ({
       });
       try {
         await rejectFriendRequest(friendshipId);
-        onSuccess?.('cancel');
+        onSuccess?.('Заявка отменена');
       } catch (error) {
         setItems(prevData);
         console.error('Ошибка при отмене запроса на дружбу', error);
-        onError?.('cancel');
+        onError?.('Ошибка при отмене заявки');
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -115,11 +115,11 @@ export const useFriendshipActions = ({
       });
       try {
         await acceptFriendRequest(friendshipId);
-        onSuccess?.('accept');
+        onSuccess?.('Заявка принята');
       } catch (error) {
         setItems(prevData);
         console.error('Ошибка при принятии запроса на дружбу', error);
-        onError?.('accept');
+        onError?.('Ошибка при принятии заявки');
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -143,11 +143,11 @@ export const useFriendshipActions = ({
         if (newFriendshipId) {
           updateFriendshipFields(userId, { friendshipId: newFriendshipId });
         }
-        onSuccess?.('block');
+        onSuccess?.('Пользователь заблокирован');
       } catch (error) {
         setItems(prevData);
         console.error('Ошибка при блокировке пользователя', error);
-        onError?.('block');
+        onError?.('Ошибка при блокировке пользователя');
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -168,11 +168,11 @@ export const useFriendshipActions = ({
       });
       try {
         await deleteFriend(friendshipId);
-        onSuccess?.('unlock');
+        onSuccess?.('Пользователь разблокирован');
       } catch (error) {
         setItems(prevData);
         console.error('Ошибка при разблокировке пользователя', error);
-        onError?.('unlock');
+        onError?.('Ошибка при разблокировке пользователя');
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]

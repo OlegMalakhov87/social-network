@@ -1,5 +1,5 @@
-import { useForm } from '../../../shared/hooks';
-import { maxLength, required } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -17,17 +17,26 @@ import {
  * @param {Function} props.onClose - функция для закрытия формы
  */
 export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
+  const notify = useNotify();
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { text: '' },
+    initialValues: { text: null, isEdited: false },
     rules: () => ({
       text: [
         required('Введите комментарий'),
         maxLength(2000, 'Максимум 2000 символов'),
       ],
     }),
-    onSubmit: (values) => {
-      onSubmit?.({ text: values.text });
+    onSubmit: async (values) => {
+      try {
+        if (form.isSubmitting) return;
+        await onSubmit?.(values);
+      } catch (error) {
+        notify.error(
+          getApiErrorDisplay(error, 'Ошибка добавления комментария')
+        );
+        throw error;
+      }
     },
   });
 

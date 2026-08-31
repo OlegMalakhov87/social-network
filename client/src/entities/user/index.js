@@ -9,5 +9,4 @@ export { getTracksTabProps } from './lib/getTracksTabProps'; // Функция �
 export { getVideosTabProps } from './lib/getVideosTabProps'; // Функция для получения пропсов для вкладки "Видео"
 
 export { ProfileActions } from './ui/ProfileActions'; // Компонент для отображения действий профиля
-export { ProfileIdentity } from './ui/ProfileIdentity'; // Компонент для отображения идентификации профиля
-export { UserMeta } from './ui/UserMeta'; // Компонент для отображения метаданных пользователя
+export { ProfileMeta } from './ui/ProfileMeta'; // Компонент для отображения метаданных пользователя

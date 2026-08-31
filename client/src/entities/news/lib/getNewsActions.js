@@ -47,7 +47,7 @@ export const getNewsActions = ({
     {
       key: 'share',
       icon: '↗️',
-      label: 'Поделиться',
+      label: '',
       ariaLabel: 'Поделиться',
 
       onClick: () => onShare?.(),
@@ -57,7 +57,6 @@ export const getNewsActions = ({
       icon: '👁️',
       label: String(formatViews(news.viewsCount ?? 0)),
       ariaLabel: 'Просмотры',
-      disabled: true,
     },
   ];
 
@@ -65,7 +64,7 @@ export const getNewsActions = ({
     actions.push({
       key: 'update',
       icon: '✏️',
-      label: 'Обновить',
+      label: '',
       ariaLabel: 'Обновить новость',
 
       onClick: () => onUpdate?.(news),
@@ -76,7 +75,7 @@ export const getNewsActions = ({
     actions.push({
       key: 'delete',
       icon: '🗑️',
-      label: 'Удалить',
+      label: '',
       ariaLabel: 'Удалить новость',
 
       onClick: () => onDelete?.(),

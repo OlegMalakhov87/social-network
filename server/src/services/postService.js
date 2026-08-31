@@ -139,8 +139,9 @@ const postService = {
       text: postData.text || null,
       isPublic: postData.isPublic ?? true,
       type: postData.type || 'text',
-      media: postData.media || null,
+      postUrl: postData.postUrl || null,
       pinned: postData.pinned ?? false,
+      isEdited: false,
     };
 
     const post = await Post.create(dbData);
@@ -164,9 +165,9 @@ const postService = {
     if (!file) {
       throw createError('Файл не предоставлен', 400, 'NO_FILE_PROVIDED');
     }
-    const media = `/${file.path}`;
+    const postUrl = `/${file.path}`;
 
-    return { media };
+    return { postUrl };
   },
 
   /**
@@ -192,37 +193,36 @@ const postService = {
 
     // Маппинг полей для обновления
     const updates = { isEdited: true };
-    if (updateData.text !== undefined) {
+    if (updateData.text !== undefined && updateData.text !== null) {
       updates.text = updateData.text.trim();
     }
-    if (updateData.isPublic !== undefined)
+    if (updateData.isPublic !== undefined && updateData.isPublic !== null)
       updates.isPublic = updateData.isPublic;
 
-    if (updateData.type !== undefined) {
+    if (updateData.type !== undefined && updateData.type !== null) {
       updates.type = updateData.type;
     }
-    if (updateData.media !== undefined) {
-      updates.media = updateData.media;
-    }
-    if (updateData.pinned !== undefined) {
+
+    if (updateData.pinned !== undefined && updateData.pinned !== null) {
       updates.pinned = updateData.pinned;
     }
-    if (updateData.media !== undefined) {
-      const newMedia = updateData.media;
 
-      if (newMedia !== post.media && post.media) {
-        const oldFilePath = path.join(__dirname, '../../', post.media);
+    if (updateData.postUrl !== undefined && updateData.postUrl !== null) {
+      const newPostUrl = updateData.postUrl;
+
+      if (newPostUrl !== post.postUrl && post.postUrl) {
+        const oldPostUrl = path.join(__dirname, '../../', post.postUrl);
 
         try {
-          await fs.unlink(oldFilePath);
+          await fs.unlink(oldPostUrl);
         } catch (err) {
           console.warn(
-            `Не удалось удалить старое медиа поста ${oldFilePath}:`,
+            `Не удалось удалить старое медиа поста ${oldPostUrl}:`,
             err.message
           );
         }
       }
-      updates.media = newMedia;
+      updates.postUrl = newPostUrl;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -253,19 +253,18 @@ const postService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updatePostPrivacy(currentUserId, updates) {
-    const posts = await Post.findAll({ where: { userId: currentUserId } });
-    if (posts.length === 0) {
+    const [affectedCount] = await Post.update(
+      { isPublic: updates.isPublic },
+      { where: { userId: currentUserId } }
+    );
+
+    if (affectedCount === 0) {
       throw createError('Посты не найдены', 404, 'POSTS_NOT_FOUND');
     }
-    if (updates.isPublic !== undefined) {
-      posts.forEach((post) => {
-        post.isPublic = updates.isPublic;
-        return post.save();
-      });
-    }
+
     return {
       message: 'Приватность постов успешно обновлена',
-      posts: posts.length,
+      posts: affectedCount,
     };
   },
 
@@ -285,6 +284,15 @@ const postService = {
       throw createError('Вы не можете удалить этот пост', 403, 'FORBIDDEN');
     }
 
+    // Логика очистки старой обложки
+    if (post.postUrl !== undefined && post.postUrl !== null) {
+      const oldPostUrl = path.join(__dirname, '../../', post.postUrl);
+      try {
+        await fs.unlink(oldPostUrl);
+      } catch (err) {
+        console.warn('Не удалось удалить старый медиа файл:', err.message);
+      }
+    }
     await post.destroy();
     return { message: 'Пост успешно удален', postId };
   },

@@ -1,3 +1,9 @@
+.avatarWrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .avatar {
   position: relative;
   overflow: hidden;

@@ -28,28 +28,31 @@ export const Avatar = ({
   className = '',
 }) => {
   return (
-    <div
-      className={classNames(
-        styles.avatar,
-        styles[size],
-        styles[variant],
-        clickable && styles.clickable,
-        className
-      )}
-      onClick={clickable ? onClick : undefined}
-      role={clickable ? 'button' : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      onKeyDown={clickable ? (e) => handleKeyboardClick(e, onClick) : undefined}
-    >
-      <Image
-        src={src || fallback}
-        fallback={fallback}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className={styles.image}
-      />
-
+    <div className={styles.avatarWrapper}>
+      <div
+        className={classNames(
+          styles.avatar,
+          styles[size],
+          styles[variant],
+          clickable && styles.clickable,
+          className
+        )}
+        onClick={clickable ? onClick : undefined}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onKeyDown={
+          clickable ? (e) => handleKeyboardClick(e, onClick) : undefined
+        }
+      >
+        <Image
+          src={src || fallback}
+          fallback={fallback}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className={styles.image}
+        />
+      </div>
       {status && <span className={classNames(styles.status, styles[status])} />}
     </div>
   );

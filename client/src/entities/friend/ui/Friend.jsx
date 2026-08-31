@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getFriendDetails,
@@ -7,6 +7,7 @@ import {
 } from '..';
 import {
   Avatar,
+  Badge,
   BaseCard,
   Button,
   ConfirmDialog,
@@ -40,6 +41,9 @@ export const Friend = ({
   const navigate = useNavigate();
   const [showBlockDialog, setShowBlockDialog] = useState(false);
 
+  /** Информация о друге */
+  const friendDetails = useMemo(() => getFriendDetails(friend), [friend]);
+
   if (!friend?.id) return null;
 
   /** Конфигурация кнопки дружбы */
@@ -58,9 +62,6 @@ export const Friend = ({
     friend.friendshipDirection
   );
 
-  /** Информация о друге */
-  const friendDetails = getFriendDetails(friend);
-
   /** Обработчик открытия профиля */
   const handleOpenProfile = () => {
     navigate(`/profile/${friend.id}`);
@@ -76,28 +77,36 @@ export const Friend = ({
     <>
       <BaseCard
         header={
-          <EntityHeader>
-            <Avatar
-              src={friend.avatarUrl}
-              alt={friend.name}
-              size="xl"
-              clickable={true}
-              onClick={handleOpenProfile}
-            />
-
+          <EntityHeader
+            bottomSlot={
+              friendshipBadge && (
+                <StatusBadge
+                  status={friendshipBadge.status}
+                  label={friendshipBadge.label}
+                  size="sm"
+                />
+              )
+            }
+          >
             <EntityMeta
+              avatar={
+                <Avatar
+                  src={friend.avatarUrl}
+                  alt={friend.name}
+                  size="lg"
+                  status={friend.online ? 'online' : 'offline'}
+                  clickable={true}
+                  onClick={handleOpenProfile}
+                />
+              }
               title={friend.name}
-              subtitle={`@${friend.nickname}`}
-              badge={friend.online ? 'online' : 'offline'}
+              subtitle={friend.nickname ? `@${friend.nickname}` : null}
+              badge={
+                <Badge size="sm" variant="secondary">
+                  {friend.online ? 'online' : 'offline'}
+                </Badge>
+              }
             />
-
-            {friendshipBadge && (
-              <StatusBadge
-                status={friendshipBadge.status}
-                label={friendshipBadge.label}
-                size="sm"
-              />
-            )}
           </EntityHeader>
         }
         content={

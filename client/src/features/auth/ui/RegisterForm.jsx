@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FORM_FIELDS, GENDER_OPTIONS } from '..';
+import { GENDER_OPTIONS, REGISTER_CONFIG } from '..';
 import {
   clearError,
   register,
@@ -12,7 +12,6 @@ import {
   custom,
   email,
   getApiErrorDisplay,
-  integer,
   match,
   maxLength,
   minLength,
@@ -26,7 +25,7 @@ import {
   Select,
   Text,
 } from '../../../shared/ui';
-import style from './RegisterForm.module.css';
+import style from './AuthForm.module.css';
 
 /**
  * Форма регистрации нового пользователя.
@@ -46,7 +45,6 @@ export const RegisterForm = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      age: '',
       gender: 'male',
       agreeTerms: false,
     },
@@ -65,7 +63,6 @@ export const RegisterForm = () => {
         required('Подтвердите пароль'),
         match('password', 'Пароли не совпадают'),
       ],
-      age: [integer(1, 100, 'Возраст должен быть числом от 1 до 100 лет')],
       gender: [required('Укажите свой пол')],
       agreeTerms: [
         custom((value) => value === true, 'Необходимо согласие с условиями'),
@@ -94,23 +91,18 @@ export const RegisterForm = () => {
               Присоединяйтесь к нашему сообществу
             </Text>
 
-            <div className={style.fieldsGrid}>
-              {FORM_FIELDS.map((field) => (
-                <div
-                  key={field.name}
-                  className={field.half ? style.halfWidth : style.fullWidth}
-                >
-                  <Input
-                    label={field.label}
-                    type={field.type}
-                    {...form.register(field.name)}
-                    error={form.errors[field.name]}
-                    placeholder={field.placeholder}
-                    disabled={form.isSubmitting || isSubmitting}
-                  />
-                </div>
-              ))}
-            </div>
+            {REGISTER_CONFIG.map((field) => (
+              <Input
+                key={field.name}
+                name={field.name}
+                label={field.label}
+                type={field.type}
+                {...form.register(field.name)}
+                error={form.errors[field.name]}
+                placeholder={field.placeholder}
+                disabled={form.isSubmitting || isSubmitting}
+              />
+            ))}
 
             <Select
               label="Пол *"
@@ -151,6 +143,7 @@ export const RegisterForm = () => {
                 variant="primary"
                 size="lg"
                 fullWidth
+                disabled={form.isSubmitting || isSubmitting}
                 loading={form.isSubmitting || isSubmitting}
               >
                 Зарегистрироваться

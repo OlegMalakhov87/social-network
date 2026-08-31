@@ -18,8 +18,14 @@ export const required =
  * @param {string} [message]
  * @returns {Function}
  */
-export const minLength = (length, message) => (value) =>
-  value?.length >= length ? null : message || `Минимум ${length} символов`;
+export const minLength = (length, message) => (value) => {
+  if (value == null || value === '') {
+    return null;
+  }
+  return value?.length >= length
+    ? null
+    : message || `Минимум ${length} символов`;
+};
 
 /**
  * Валидатор максимальной длины.
@@ -27,8 +33,14 @@ export const minLength = (length, message) => (value) =>
  * @param {string} [message]
  * @returns {Function}
  */
-export const maxLength = (length, message) => (value) =>
-  value?.length <= length ? null : message || `Максимум ${length} символов`;
+export const maxLength = (length, message) => (value) => {
+  if (value == null || value === '') {
+    return null;
+  }
+  return value?.length <= length
+    ? null
+    : message || `Максимум ${length} символов`;
+};
 
 /**
  * Валидатор URL.
@@ -131,16 +143,25 @@ export const date =
   (message = 'Введите корректную дату') =>
   (value) => {
     if (!value) return null;
-    const regex = /^\d{4}\.\d{2}\.\d{2}$/;
+
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(value)) return message;
 
-    const [day, month, year] = value.split('.').map(Number);
+    const [year, month, day] = value.split('-').map(Number);
     const d = new Date(year, month - 1, day);
-    return d.getFullYear() === year &&
-      d.getMonth() === month - 1 &&
-      d.getDate() === day
-      ? null
-      : message;
+
+    if (
+      d.getFullYear() !== year ||
+      d.getMonth() !== month - 1 ||
+      d.getDate() !== day
+    ) {
+      return message;
+    }
+
+    const now = new Date();
+    if (d > now) return message;
+
+    return null;
   };
 
 /**

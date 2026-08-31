@@ -5,7 +5,7 @@ module.exports = {
       {
         nickname: 'alex_92',
         name: 'Алексей Иванов',
-        age: 30,
+        birthDate: '1992-01-01',
         email: 'alex@example.com',
         address: 'Москва, ул. Ленина, 10',
         job: 'Frontend разработчик',
@@ -19,7 +19,7 @@ module.exports = {
       {
         nickname: 'maria_joy',
         name: 'Мария Петрова',
-        age: 25,
+        birthDate: '1997-05-15',
         email: 'maria@example.com',
         address: 'Санкт-Петербург, Невский пр., 25',
         job: 'Дизайнер UI/UX',
@@ -33,7 +33,7 @@ module.exports = {
       {
         nickname: 'tech_guru',
         name: 'Дмитрий Сидоров',
-        age: 35,
+        birthDate: '1987-11-20',
         email: 'dmitry@example.com',
         address: 'Казань, ул. Баумана, 15',
         job: 'Backend разработчик',
@@ -47,7 +47,7 @@ module.exports = {
       {
         nickname: 'ivan_petrov',
         name: 'Иван Петров',
-        age: 33,
+        birthDate: '1989-03-10',
         email: 'ivan.petrov@mail.ru',
         address: 'Москва, ул. Кутузова, 12',
         job: 'Каменщик',
@@ -61,7 +61,7 @@ module.exports = {
       {
         nickname: 'mariya_sid',
         name: 'Вероника Сидорова',
-        age: 28,
+        birthDate: '1994-07-25',
         email: 'mariya.sidorova@gmail.com',
         address: 'Санкт-Петербург, Невский проспект, 67',
         job: 'Фотограф',
@@ -76,7 +76,7 @@ module.exports = {
       {
         nickname: 'sergey_pro',
         name: 'Сергей Прохоров',
-        age: 35,
+        birthDate: '1987-11-20',
         email: 'aleksey.ivanov@yandex.ru',
         address: 'Новосибирск, Площадь Гарина-Михайловского, 45',
         job: 'Водитель',
@@ -90,7 +90,7 @@ module.exports = {
       {
         nickname: 'ekaterina_kuz',
         name: 'Екатерина Кузнецова',
-        age: 29,
+        birthDate: '1993-04-12',
         email: 'ekaterina.kuznetsova@bk.ru',
         address: 'Екатеринбург, Площадь 1905 года, 89',
         job: 'Дизайнер',
@@ -104,7 +104,7 @@ module.exports = {
       {
         nickname: 'jovinco',
         name: 'Олег Малахов',
-        age: 38,
+        birthDate: '1987-06-15',
         email: 'malahov.1987@mail.ru',
         address: 'Смоленск, пр-т Строителей, 1/42',
         job: 'Frontend разработчик',
@@ -118,7 +118,7 @@ module.exports = {
       {
         nickname: 'dmitriy_smir',
         name: 'Андрей Смирнов',
-        age: 31,
+        birthDate: '1991-06-18',
         email: 'dmitriy.smirnov@inbox.ru',
         address: 'Казань, пл. Кремлёвская, 72',
         job: 'Барбер',
@@ -132,7 +132,7 @@ module.exports = {
       {
         nickname: 'anna_mac',
         name: 'Анна Макарова',
-        age: 24,
+        birthDate: '1998-09-22',
         email: 'anya.makarova@gmail.com',
         address: 'Сочи, мкр-н Адлер, ул. Абрикосовая, 55',
         job: 'Администратор',
@@ -146,7 +146,7 @@ module.exports = {
       {
         nickname: 'sofia_f',
         name: 'Софья Филимонова',
-        age: 36,
+        birthDate: '1986-03-08',
         email: 'sofia_fill@gmail.com',
         address: 'Смоленск, ул. Румянцева, 64',
         job: 'Домохозяйка',
@@ -160,7 +160,7 @@ module.exports = {
       {
         nickname: 'artem_v',
         name: 'Артём Волков',
-        age: 30,
+        birthDate: '1992-07-15',
         email: 'artem.volkov@yandex.ru',
         address: 'Ростов-на-Дону, ул. Ленина, 112',
         job: 'Программист',
@@ -174,7 +174,7 @@ module.exports = {
       {
         nickname: 'elena_n',
         name: 'Елена Новикова',
-        age: 27,
+        birthDate: '1995-01-01',
         email: 'elena.novikova@mail.ru',
         address: 'Уфа, ул. Гоголя, 33',
         job: 'Повар',
@@ -188,7 +188,7 @@ module.exports = {
       {
         nickname: 'igor_k',
         name: 'Игорь Ковалёв',
-        age: 34,
+        birthDate: '1990-05-05',
         email: 'igor.kovalyov@inbox.ru',
         address: 'Пермь, ул. Ленина, 44',
         job: 'Строитель',
@@ -202,7 +202,7 @@ module.exports = {
       {
         nickname: 'vera_m',
         name: 'Вера Морозова',
-        age: 26,
+        birthDate: '1996-03-15',
         email: 'vera.morozova@gmail.com',
         address: 'Чита, ул. Советская, 22',
         job: 'Юрист',
@@ -216,7 +216,7 @@ module.exports = {
       {
         nickname: 'alexandra_b',
         name: 'Александра Белова',
-        age: 25,
+        birthDate: '1997-07-20',
         email: 'alexandra.belova@bk.ru',
         address: 'Тула, ул. Пушкина, 77',
         job: 'Модель',
@@ -230,7 +230,7 @@ module.exports = {
       {
         nickname: 'mikhail_y',
         name: 'Михаил Яковлев',
-        age: 32,
+        birthDate: '1988-11-10',
         email: 'mikhail.yakovlev@yandex.ru',
         address: 'Краснодар, ул. Ленина, 88',
         job: 'Преподаватель',
@@ -244,7 +244,7 @@ module.exports = {
       {
         nickname: 'anastasia_s',
         name: 'Анастасия Соколова',
-        age: 23,
+        birthDate: '1999-04-05',
         email: 'anastasia.sokolova@gmail.com',
         address: 'Владивосток, ул. Ленина, 55',
         job: 'Медицинская сестра',

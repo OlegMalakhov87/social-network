@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getTrackActions, TrackCover, TrackMeta } from '..';
+import { getTrackActions, TrackMeta } from '..';
 import {
   ActionChip,
   BaseCard,
@@ -7,6 +7,7 @@ import {
   EntityActions,
   EntityContent,
   EntityHeader,
+  MediaPreview,
 } from '../../../shared/ui';
 /**
  * Карточка одного трека.
@@ -54,6 +55,9 @@ export const Track = ({
 
   const showFavorite = mode === 'profile' && isOwnProfile && track.isInLibrary;
 
+  const disabledButton =
+    mode === 'profile' && isOwnProfile && !track.isInLibrary;
+
   const handlePlay = () => {
     if (currentTrack?.id === track.id) {
       togglePlay?.();
@@ -70,6 +74,7 @@ export const Track = ({
     toggleLike,
     toggleComments,
     onUpdate: updateTrack,
+    disabledButton,
   });
 
   const handleConfirmDelete = () => {
@@ -110,13 +115,16 @@ export const Track = ({
         }
         content={
           <EntityContent>
-            <TrackCover
-              track={track}
-              currentTrack={currentTrack}
+            <MediaPreview
+              item={track}
+              src={track.coverUrl}
+              alt={track.title}
+              currentItem={currentTrack}
               isPlaying={isPlaying}
-              onPlay={handlePlay}
+              onClick={handlePlay}
+              disabled={disabledButton}
+              clickable={true}
             />
-
             <TrackMeta track={track} mode={mode} />
           </EntityContent>
         }

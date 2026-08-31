@@ -2,18 +2,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .button {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
   background: var(--surface-secondary);
   color: var(--text-primary);
   cursor: pointer;
+  font-size: var(--font-sm);
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast),

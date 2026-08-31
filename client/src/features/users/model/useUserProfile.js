@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { useFriendshipActions } from '..';
-import { fetchFriendshipStatus } from '../../../entities/friend';
-import { useOnline } from '../../../features/users';
+import { useOnline } from '..';
+import { fetchUserProfileApi } from '../../../entities/user';
 import { useAbortableRequest, useNotify } from '../../../shared/hooks';
+import { useFriendshipActions } from '../../friends';
 /**
- * Хук для получения пользователя и управления статусом дружбы.
+ * Хук для получения данных о пользователе и управления статусом дружбы.
  *
  * @param {number} profileUserId - ID пользователя, с которым проверяем статус дружбы
  * @returns {Object} - объект с данными о статусе дружбы и экшенами
  */
-export const useFriendshipStatus = (profileUserId) => {
+export const useUserProfile = (profileUserId) => {
   const notify = useNotify();
 
   /**
@@ -26,7 +26,7 @@ export const useFriendshipStatus = (profileUserId) => {
       if (!profileUserId || profileUserId <= 0) {
         return null;
       }
-      return await fetchFriendshipStatus(profileUserId, signal);
+      return await fetchUserProfileApi(profileUserId, signal);
     },
     deps: [profileUserId],
     onError: () => notify.error('load'),
@@ -36,11 +36,12 @@ export const useFriendshipStatus = (profileUserId) => {
     },
   });
 
+  /** Экшены для управления статусом дружбы. */
   const friendshipActions = useFriendshipActions({
     setItems: setUser,
     getCurrentData: () => user,
     getUserId: (data) => data?.id,
-    onSuccess: (action) => notify.success(action),
+    onSuccess: (action) => notify.info(action),
     onError: (action) => notify.error(action),
   });
 
@@ -49,12 +50,10 @@ export const useFriendshipStatus = (profileUserId) => {
 
   /** Обогащаем данные пользователя статусом онлайн. */
   const enrichedUser = useMemo(
-    () =>
-      user ? { ...user, online: onlineMap.get(user?.id) ?? user.online } : null,
+    () => (user ? { ...user, online: onlineMap.get(user?.id) ?? false } : null),
     [user, onlineMap]
   );
 
-  console.log('enrichedUser', enrichedUser);
   return {
     user: enrichedUser,
     userLoading: isLoading,

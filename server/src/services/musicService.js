@@ -191,7 +191,7 @@ const musicService = {
     const dbUpdates = { ...updates };
 
     // Логика очистки старого аудио файла
-    if (updates.audioUrl !== undefined) {
+    if (updates.audioUrl !== undefined && updates.audioUrl !== null) {
       const newAudioUrl = updates.audioUrl;
       if (
         newAudioUrl !== track.audioUrl &&
@@ -208,7 +208,7 @@ const musicService = {
     }
 
     // Логика очистки старой обложки
-    if (updates.coverUrl !== undefined) {
+    if (updates.coverUrl !== undefined && updates.coverUrl !== null) {
       const newCoverUrl = updates.coverUrl;
       if (
         newCoverUrl !== track.coverUrl &&
@@ -269,7 +269,7 @@ const musicService = {
     }
 
     // Логика очистки старого аудио файла
-    if (track.audioUrl !== undefined) {
+    if (track.audioUrl !== undefined && track.audioUrl !== null) {
       const oldFilePath = path.join(__dirname, '../../', track.audioUrl);
       try {
         await fs.unlink(oldFilePath);
@@ -278,7 +278,7 @@ const musicService = {
       }
     }
     // Логика очистки старой обложки
-    if (track.coverUrl !== undefined) {
+    if (track.coverUrl !== undefined && track.coverUrl !== null) {
       const oldFilePath = path.join(__dirname, '../../', track.coverUrl);
       try {
         await fs.unlink(oldFilePath);

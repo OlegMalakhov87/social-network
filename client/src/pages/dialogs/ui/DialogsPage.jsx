@@ -5,9 +5,8 @@ import {
   useDialogsActions,
   useMessages,
 } from '../../../features/dialogs';
-import { useFriendshipStatus } from '../../../features/friends';
 import { useShareEntity } from '../../../features/shared-entities';
-import { useOnline } from '../../../features/users';
+import { useOnline, useUserProfile } from '../../../features/users';
 import {
   ErrorBoundary,
   PageLayout,
@@ -84,9 +83,7 @@ export const DialogsPage = () => {
     user: loadedUser,
     isLoading: userLoading,
     error: userError,
-  } = useFriendshipStatus(
-    userParam && !selectedUser ? Number(userParam) : null
-  );
+  } = useUserProfile(userParam && !selectedUser ? Number(userParam) : null);
 
   /** Проверка онлайн статуса собеседника. */
   const onlineMap = useOnline(selectedUser?.id);

@@ -48,7 +48,7 @@ export const getVideoActions = ({
     actions.push({
       key: 'update',
       icon: '✏️',
-      label: 'Обновить',
+      label: '',
       ariaLabel: 'Обновить видео',
       onClick: () => onUpdate?.(video),
       disabled: disabledButton,
@@ -59,7 +59,7 @@ export const getVideoActions = ({
     actions.push({
       key: 'library',
       icon: video.isInLibrary ? '📚' : '➕',
-      label: video.isInLibrary ? 'В библиотеке' : 'В библиотеку',
+      label: video.isInLibrary ? '' : '',
       ariaLabel: 'Библиотека',
       onClick: () =>
         video.isInLibrary

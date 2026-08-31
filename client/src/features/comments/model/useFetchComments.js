@@ -32,7 +32,7 @@ export const useFetchComments = ({
   onChange,
   sortKey,
 }) => {
-  const notify = useNotify('comments');
+  const notify = useNotify();
 
   /** Получение комментариев с бесконечным скроллом. */
   const {
@@ -84,22 +84,27 @@ export const useFetchComments = ({
         targetType,
         targetId,
         text: data.text,
+        isEdited: data.isEdited,
       });
       onChange?.(+1);
       return res?.comment ?? res;
     },
-    editFn: updateCommentApi,
+    editFn: async (commentId, data) => {
+      const res = await updateCommentApi(commentId, {
+        targetType,
+        targetId,
+        text: data.text,
+        isEdited: data.isEdited,
+      });
+      return res?.comment ?? res;
+    },
     deleteFn: async (commentId) => {
       const res = await deleteCommentApi(commentId);
       onChange?.(-1);
       return res?.comment ?? res;
     },
-    onSuccess: (action) => {
-      notify.success(action);
-    },
-    onError: (action) => {
-      notify.error(action);
-    },
+    onSuccess: (action) => notify.success(action),
+    onError: (action) => notify.error(action),
   });
 
   /** Нормализация комментариев. */

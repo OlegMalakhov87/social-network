@@ -21,22 +21,6 @@ const friendController = {
   },
 
   /**
-   * Получить статус дружбы между двумя пользователями
-   */
-  getFriendshipStatus: async (req, res, next) => {
-    try {
-      const { userId } = req.params;
-      const result = await friendService.getFriendshipStatus({
-        currentUserId: parseInt(req.user?.id),
-        targetUserId: parseInt(userId),
-      });
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Отправить заявку в друзья
    */
   sendRequest: async (req, res, next) => {
@@ -85,7 +69,7 @@ const friendController = {
   },
 
   /**
-   * Удалить дружбу
+   * Удалить дружбу (любое направление)
    */
   deleteFriendship: async (req, res, next) => {
     try {

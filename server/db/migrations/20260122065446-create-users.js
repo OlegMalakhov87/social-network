@@ -18,8 +18,8 @@ module.exports = {
         allowNull: false,
         defaultValue: 'Unknown',
       },
-      age: {
-        type: Sequelize.INTEGER,
+      birthDate: {
+        type: Sequelize.DATE,
         allowNull: true,
       },
       email: {

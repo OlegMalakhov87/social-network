@@ -1,7 +1,7 @@
 /**
  * Поля формы регистрации.
  */
-export const FORM_FIELDS = [
+export const REGISTER_CONFIG = [
   {
     name: 'name',
     label: 'Имя *',
@@ -15,14 +15,6 @@ export const FORM_FIELDS = [
     placeholder: 'email@example.com',
   },
   {
-    name: 'age',
-    label: 'Возраст',
-    type: 'number',
-    placeholder: 'Введите ваш возраст',
-    half: true,
-  },
-
-  {
     name: 'password',
     label: 'Пароль *',
     type: 'password',
@@ -33,6 +25,24 @@ export const FORM_FIELDS = [
     label: 'Подтвердите пароль *',
     type: 'password',
     placeholder: 'Повторите пароль',
+  },
+];
+
+/**
+ * Поля формы входа.
+ */
+export const LOGIN_CONFIG = [
+  {
+    name: 'email',
+    label: 'Email *',
+    type: 'email',
+    placeholder: 'email@example.com',
+  },
+  {
+    name: 'password',
+    label: 'Пароль *',
+    type: 'password',
+    placeholder: 'Минимум 6 символов',
   },
 ];
 

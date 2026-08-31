@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { LOGIN_CONFIG } from '..';
 import {
   clearError,
   login,
@@ -10,7 +11,7 @@ import {
 import { useForm, useNotify } from '../../../shared/hooks';
 import { email, getApiErrorDisplay, required } from '../../../shared/lib';
 import { Alert, BaseCard, Button, Input, Text } from '../../../shared/ui';
-import style from './RegisterForm.module.css';
+import style from './AuthForm.module.css';
 
 /**
  * Форма входа в аккаунт.
@@ -66,23 +67,18 @@ export const LoginForm = () => {
               Введите свои данные для продолжения
             </Text>
 
-            <Input
-              label="Email *"
-              type="email"
-              {...form.register('email')}
-              error={form.errors.email}
-              placeholder="email@example.com"
-              disabled={form.isSubmitting || isSubmitting}
-            />
-
-            <Input
-              label="Пароль *"
-              type="password"
-              {...form.register('password')}
-              error={form.errors.password}
-              placeholder="Введите ваш пароль"
-              disabled={form.isSubmitting || isSubmitting}
-            />
+            {LOGIN_CONFIG.map((field) => (
+              <Input
+                key={field.name}
+                name={field.name}
+                label={field.label}
+                type={field.type}
+                {...form.register(field.name)}
+                error={form.errors[field.name]}
+                placeholder={field.placeholder}
+                disabled={form.isSubmitting || isSubmitting}
+              />
+            ))}
 
             <div className={style.actions}>
               <Button
@@ -90,6 +86,7 @@ export const LoginForm = () => {
                 variant="primary"
                 size="lg"
                 fullWidth
+                disabled={form.isSubmitting || isSubmitting}
                 loading={form.isSubmitting || isSubmitting}
               >
                 Войти

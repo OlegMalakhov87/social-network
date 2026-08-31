@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPostActions } from '..';
 import {
   BaseCard,
+  Button,
   ConfirmDialog,
   EntityActions,
   EntityContent,
@@ -11,9 +12,9 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
-import { formatDate } from '../../../shared/utils';
+import { classNames, formatDate } from '../../../shared/utils';
 import { normalizeSharedPost } from '../../shared-entity';
-
+import styles from './Post.module.css';
 /**
  * Карточка поста.
  * @param {Object} props - параметры
@@ -42,6 +43,8 @@ export const Post = ({
   isPlaying,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
   const navigate = useNavigate();
 
   if (!post?.id) return null;
@@ -62,6 +65,13 @@ export const Post = ({
     },
   });
 
+  const handleToggleExpand = () => {
+    if (!expanded && !hasViewed) {
+      setHasViewed(true);
+    }
+    setExpanded((prev) => !prev);
+  };
+
   const handleConfirmDelete = () => {
     onDelete?.(post.id);
     setShowDeleteDialog(false);
@@ -75,7 +85,11 @@ export const Post = ({
             <EntityMeta
               avatar={post.author?.avatarUrl ?? targetUser?.avatarUrl}
               title={post.author?.name ?? targetUser?.name}
-              subtitle={formatDate(post.updatedAt || post.createdAt)}
+              subtitle={
+                post.isEdited
+                  ? `изм. ${formatDate(post.updatedAt)}`
+                  : formatDate(post.createdAt)
+              }
             />
           </EntityHeader>
         }
@@ -89,9 +103,21 @@ export const Post = ({
                 onClick={onPlay}
                 currentItem={currentPost}
                 isPlaying={isPlaying}
+                className={styles.media}
               />
             )}
-            {post.text && <Text linkify={true}>{post.text}</Text>}
+            <Text
+              linkify={true}
+              variant="h4"
+              className={classNames(styles.text, expanded && styles.expanded)}
+            >
+              {post.text}
+            </Text>
+            {post.text && post.text.length > 75 && (
+              <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
+                {expanded ? 'Свернуть' : 'Читать далее'}
+              </Button>
+            )}
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

@@ -27,14 +27,24 @@ export const getFriendshipBadge = (status, direction) => {
       return direction === 'incoming'
         ? {
             status: 'error',
-            label: 'Вы заблокировали',
+            label: 'Заблокирован',
           }
         : {
             status: 'error',
-            label: 'Вы заблокированы',
+            label: 'Вас заблокировали',
           };
 
     default:
       return null;
   }
+};
+
+/**
+ * Мапа для получения варианта бейджа дружбы
+ */
+export const FRIENDSHIP_BADGE_VARIANT = {
+  success: 'success',
+  warning: 'warning',
+  error: 'danger',
+  info: 'primary',
 };

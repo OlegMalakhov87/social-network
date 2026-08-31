@@ -97,13 +97,12 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
-      age: {
-        type: DataTypes.INTEGER,
+      birthDate: {
+        type: DataTypes.DATE,
         allowNull: true,
         validate: {
-          min: 1,
-          max: 100,
-          isInt: true,
+          isDate: true,
+          notEmpty: true,
         },
       },
       email: {

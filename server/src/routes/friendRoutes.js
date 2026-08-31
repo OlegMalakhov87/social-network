@@ -12,14 +12,6 @@ friendRoutes.get(
   friendController.getUsersWithFriendshipStatus
 );
 
-// Проверить статус дружбы с конкретным пользователем
-friendRoutes.get(
-  '/status/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  friendController.getFriendshipStatus
-);
-
 // Отправить заявку в друзья
 friendRoutes.post('/requests', authMiddleware, friendController.sendRequest);
 
@@ -39,7 +31,7 @@ friendRoutes.delete(
   friendController.rejectRequest
 );
 
-// Удалить из друзей (или отменить свою заявку)
+// Удалить из друзей (любое направление)
 friendRoutes.delete(
   '/:friendshipId/delete',
   validateIdParam('friendshipId'),

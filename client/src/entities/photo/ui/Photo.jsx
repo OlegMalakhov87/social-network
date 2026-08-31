@@ -10,11 +10,10 @@ import {
   EntityHeader,
   EntityMeta,
   MediaPreview,
-  Text,
 } from '../../../shared/ui';
 import { formatDate } from '../../../shared/utils';
 import { normalizeSharedPhoto } from '../../shared-entity';
-
+import styles from './Photo.module.css';
 /**
  * Компонент для отображения карточки фотографии.
  * @param {Object} props - пропсы компонента
@@ -71,17 +70,18 @@ export const Photo = ({
               )
             }
           >
-            <EntityMeta
-              title="Фотография"
-              subtitle={formatDate(photo?.createdAt)}
-            />
+            <EntityMeta subtitle={formatDate(photo.createdAt)} />
           </EntityHeader>
         }
         content={
           <EntityContent>
-            {photo?.postUrl && <MediaPreview src={photo?.postUrl} alt="Фото" />}
-
-            {photo?.text && <Text linkify={true}>{photo?.text}</Text>}
+            {photo?.postUrl && (
+              <MediaPreview
+                src={photo?.postUrl}
+                alt="Фото"
+                className={styles.media}
+              />
+            )}
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

@@ -9,6 +9,7 @@
  * @param {Function} params.addToLibrary - функция для добавления трека в библиотеку
  * @param {Function} params.deleteFromLibrary - функция для удаления трека из библиотеки
  * @param {Function} params.onUpdate - функция для обновления трека
+ * @param {boolean} params.disabledButton - флаг для блокировки кнопки
  * @returns {Array<Object>} - массив действий для карточки трека
  */
 export const getTrackActions = ({
@@ -19,6 +20,7 @@ export const getTrackActions = ({
   addToLibrary,
   deleteFromLibrary,
   onUpdate,
+  disabledButton,
 }) => {
   if (!track) return [];
 
@@ -29,6 +31,7 @@ export const getTrackActions = ({
       label: String(track.likesCount ?? 0),
       ariaLabel: track.isLiked ? 'Убрать лайк' : 'Поставить лайк',
       onClick: () => toggleLike?.(track.id, track.isLiked),
+      disabled: disabledButton,
     },
 
     {
@@ -37,6 +40,7 @@ export const getTrackActions = ({
       label: String(track.commentsCount ?? 0),
       ariaLabel: 'Комментарии',
       onClick: () => toggleComments?.(track.id),
+      disabled: disabledButton,
     },
   ];
 
@@ -44,9 +48,10 @@ export const getTrackActions = ({
     actions.push({
       key: 'update',
       icon: '✏️',
-      label: 'Обновить',
+      label: '',
       ariaLabel: 'Обновить трек',
       onClick: () => onUpdate?.(track),
+      disabled: disabledButton,
     });
   }
 
@@ -54,7 +59,7 @@ export const getTrackActions = ({
     actions.push({
       key: 'library',
       icon: track.isInLibrary ? '📚' : '➕',
-      label: track.isInLibrary ? 'В библиотеке' : 'В библиотеку',
+      label: track.isInLibrary ? '' : '',
       ariaLabel: 'Библиотека',
 
       onClick: () =>

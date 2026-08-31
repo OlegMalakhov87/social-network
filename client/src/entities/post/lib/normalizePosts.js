@@ -12,6 +12,7 @@ export const normalizePosts = (raw) => {
     isPublic: raw.isPublic,
     type: raw.type,
     pinned: raw.pinned,
+    isEdited: raw.isEdited,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
 

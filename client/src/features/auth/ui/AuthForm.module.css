@@ -46,25 +46,6 @@
   margin-bottom: var(--space-4);
 }
 
-.fieldsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
-
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
-@media screen and (min-width: 481px) {
-  .fieldsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .halfWidth {
-    grid-column: span 1;
-  }
-}
-
 .checkboxWrapper {
   display: flex;
   flex-direction: column;

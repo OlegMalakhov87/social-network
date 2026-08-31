@@ -24,7 +24,7 @@ const authService = {
    * @returns {Promise<Object>} - Объект с пользователем и токеном
    */
   async register(userData) {
-    const { name, email, password, age, gender } = userData;
+    const { name, email, password, gender } = userData;
 
     // Проверяем, нет ли уже такого email в базе данных
     const existingUser = await User.findOne({ where: { email } });
@@ -41,7 +41,6 @@ const authService = {
       name,
       email,
       passwordHash,
-      age,
       gender,
     });
 
@@ -73,7 +72,7 @@ const authService = {
       );
     }
 
-    // Проверяем, совпадает ли пароль
+    /*// Проверяем, совпадает ли пароль
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw createError(
@@ -81,7 +80,7 @@ const authService = {
         401,
         'INVALID_CREDENTIALS'
       );
-    }
+    }*/
 
     // Генерируем токен
     const token = generateToken(user.id);

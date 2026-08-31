@@ -32,10 +32,10 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
-      text: initialData?.text ?? '',
+      text: initialData?.text ?? null,
       isPublic: initialData?.isPublic ?? true,
       type: initialData?.type ?? 'text',
-      postUrl: initialData?.postUrl ?? '',
+      postUrl: initialData?.postUrl ?? null,
       pinned: initialData?.pinned ?? false,
       isEdited: initialData?.isEdited ?? false,
     },
@@ -51,6 +51,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
     }),
     onSubmit: async (values) => {
       try {
+        if (isUploading) return;
         await onSubmit?.(values, isEdit, initialData?.id);
         onClose?.();
       } catch (error) {
@@ -81,7 +82,8 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Обработчик изменения типа поста */
   const handleTypeChange = (value) => {
     form.setValue('type', value);
-    form.setValue('postUrl', '');
+    form.setValue('text', null);
+    form.setValue('postUrl', null);
     imageUpload.reset();
     videoUpload.reset();
   };
@@ -101,7 +103,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           <TextArea
             {...form.register('text')}
             placeholder="Поделитесь своими новостями"
-            rows={3}
+            rows={2}
             disabled={form.isSubmitting || isUploading}
           />
 
@@ -136,6 +138,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             <Button
               variant="secondary"
               type="button"
+              size="sm"
               disabled={form.isSubmitting || isUploading}
               onClick={() => {
                 form.reset();
@@ -146,6 +149,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             </Button>
             <Button
               type="submit"
+              size="sm"
               disabled={form.isSubmitting || isUploading}
               loading={form.isSubmitting || isUploading}
             >

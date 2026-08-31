@@ -1,3 +1,5 @@
+import { calculateAge } from '../../../shared/utils';
+
 /**
  * Возвращает информацию о друге
  *
@@ -6,22 +8,26 @@
  */
 
 export const getFriendDetails = (friend) => {
+  if (!friend) return [];
   return [
     {
       label: 'Возраст',
-      value: friend.age || '—',
+      value: calculateAge(friend.birthDate),
     },
     {
       label: 'Адрес',
-      value: friend.address || '—',
+      value: friend.address,
     },
     {
       label: 'Работа',
-      value: friend.job || '—',
+      value: friend.job,
     },
     {
       label: 'Статус',
-      value: friend.status || '—',
+      value: friend.status,
     },
-  ];
+  ].filter(
+    (field) =>
+      field.value !== undefined && field.value !== null && field.value !== ''
+  );
 };

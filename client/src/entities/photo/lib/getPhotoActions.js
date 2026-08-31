@@ -38,7 +38,7 @@ export const getPhotoActions = ({
     actions.push({
       key: 'share',
       icon: '↗️',
-      label: 'Поделиться',
+      label: '',
       ariaLabel: 'Поделиться',
       onClick: () => onShare?.(),
     });

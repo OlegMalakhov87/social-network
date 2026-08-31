@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { NOTIFICATION_SETTINGS_CONFIG } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { Button, Checkbox } from '../../../shared/ui';
-import { SettingsSection } from './SettingsSection';
 import style from './SettingsForm.module.css';
+import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы настроек уведомлений.
@@ -16,7 +16,7 @@ export const NotificationToggle = () => {
     push: true,
     sound: true,
     friends: true,
-    posts: false,
+    posts: true,
     digest: true,
   });
 
@@ -43,7 +43,11 @@ export const NotificationToggle = () => {
         ))}
       </div>
 
-      <Button variant="primary" className={style.formFooter} onClick={handleSave}>
+      <Button
+        variant="primary"
+        className={style.formFooter}
+        onClick={handleSave}
+      >
         Сохранить настройки
       </Button>
     </SettingsSection>

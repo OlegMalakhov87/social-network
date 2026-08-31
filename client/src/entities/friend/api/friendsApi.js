@@ -33,18 +33,6 @@ export const fetchFriendsApi = async ({
 };
 
 /**
- * Получить статус дружбы с конкретным пользователем.
- *
- * @param {number} targetUserId - ID пользователя
- * @param {AbortSignal} signal - сигнал отмены запроса
- * @returns {Promise<Object>} { friendship }
- */
-export const fetchFriendshipStatus = async (targetUserId, signal) => {
-  const response = await api.get(`/friends/status/${targetUserId}`, { signal });
-  return response.data;
-};
-
-/**
  * Отправить заявку в друзья.
  * @param {number} friendId – ID пользователя, которому отправляем заявку
  */
@@ -65,7 +53,7 @@ export const acceptFriendRequest = async (friendshipId) => {
 };
 
 /**
- * Отклонить заявку (удалить запись).
+ * Отклонить/отменить заявку (удалить запись).
  * @param {number} friendshipId - ID заявки
  */
 export const rejectFriendRequest = async (friendshipId) => {

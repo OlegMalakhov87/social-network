@@ -5,11 +5,10 @@ import { useToast } from '../ui';
 /**
  * Хук для работы с уведомлениями в компонентах.
  *
- * @param {string} entity - тип сущности
  * @returns {Object} - объект с методами
  */
-export const useNotify = (entity) => {
+export const useNotify = () => {
   const toast = useToast();
 
-  return useMemo(() => createNotifier(toast, entity), [toast, entity]);
+  return useMemo(() => createNotifier(toast), [toast]);
 };

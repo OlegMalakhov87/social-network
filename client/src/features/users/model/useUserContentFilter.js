@@ -1,11 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsAuthReady, selectUser } from '../../../entities/auth';
-import { useFriendshipStatus } from '../../../features/friends';
 import { useOptimisticCommentCount } from '../../../shared/hooks';
 import { useUserPosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
-import { useLibraryResource } from '../../users';
+import { useLibraryResource, useUserProfile } from '../../users';
 import { useUserVideoLibrary } from '../../videos';
 
 /**
@@ -49,7 +48,7 @@ export const useUserContentFilter = ({
     acceptUser,
     blockUser,
     unlockUser,
-  } = useFriendshipStatus(profileUserId);
+  } = useUserProfile(profileUserId);
 
   //Проверяем, является ли текущий пользователь владельцем профиля
   const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;

@@ -59,7 +59,7 @@ export const updateTrackApi = async (trackId, updates) => {
  * @returns {Promise<Object>} { isPublic }
  */
 export const updateTracksPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/music/privacy`, { isPublic });
+  const response = await api.put(`/music/update-privacy`, { isPublic });
   return response.data;
 };
 

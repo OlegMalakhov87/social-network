@@ -4,14 +4,14 @@ const createError = require('../utils/createError');
 
 const friendService = {
   /**
-   * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя
+   * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя.
    *
-   * @param {Object} params - параметры запроса
+   * @param {Object} params
    * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.page - номер страницы
-   * @param {number} params.limit - количество на странице
-   * @param {string} params.category - категория друзей
-   * @param {string} [params.q] - поисковый запрос
+   * @param {number} [params.page=1] - номер страницы
+   * @param {number} [params.limit=30] - количество на странице
+   * @param {string} [params.category='all'] - категория: all, friends, friendsOfFriends, subscribers, subscriptions
+   * @param {string} [params.q=''] - поисковый запрос
    * @returns {Promise<Object>} { users, pagination }
    */
   async getUsersWithFriendshipStatus({
@@ -22,12 +22,107 @@ const friendService = {
     q = '',
   }) {
     const where = { id: { [Op.ne]: currentUserId } };
+
     if (q && q.trim().length >= 2) {
       const searchTerm = `%${q.trim()}%`;
       where[Op.or] = [
         { name: { [Op.iLike]: searchTerm } },
         { nickname: { [Op.iLike]: searchTerm } },
       ];
+    }
+
+    // --- Фильтрация по категориям через подзапросы ---
+
+    if (category === 'friends') {
+      const friendIds = await Friend.findAll({
+        where: {
+          [Op.or]: [
+            { userId: currentUserId, status: 'accepted' },
+            { friendId: currentUserId, status: 'accepted' },
+          ],
+        },
+        attributes: ['userId', 'friendId'],
+      });
+
+      const ids = friendIds.map((rel) =>
+        rel.userId === currentUserId ? rel.friendId : rel.userId
+      );
+
+      where.id = { [Op.in]: ids };
+    } else if (category === 'subscribers') {
+      const subscriberIds = await Friend.findAll({
+        where: {
+          friendId: currentUserId,
+          status: 'pending',
+        },
+        attributes: ['userId'],
+      });
+
+      where.id = { [Op.in]: subscriberIds.map((rel) => rel.userId) };
+    } else if (category === 'subscriptions') {
+      const subscriptionIds = await Friend.findAll({
+        where: {
+          userId: currentUserId,
+          status: 'pending',
+        },
+        attributes: ['friendId'],
+      });
+
+      where.id = { [Op.in]: subscriptionIds.map((rel) => rel.friendId) };
+    } else if (category === 'friendsOfFriends') {
+      const myFriends = await Friend.findAll({
+        where: {
+          [Op.or]: [
+            { userId: currentUserId, status: 'accepted' },
+            { friendId: currentUserId, status: 'accepted' },
+          ],
+        },
+        attributes: ['userId', 'friendId'],
+      });
+
+      const myFriendIds = myFriends.map((rel) =>
+        rel.userId === currentUserId ? rel.friendId : rel.userId
+      );
+
+      if (myFriendIds.length === 0) {
+        return {
+          users: [],
+          pagination: { total: 0, page, pages: 0 },
+        };
+      }
+
+      // Получаем связи моих друзей (кто дружит с моими друзьями)
+      const friendsOfFriendsRelations = await Friend.findAll({
+        where: {
+          status: 'accepted',
+          [Op.or]: [
+            { userId: { [Op.in]: myFriendIds } },
+            { friendId: { [Op.in]: myFriendIds } },
+          ],
+        },
+        attributes: ['userId', 'friendId'],
+      });
+
+      const friendsOfFriendsIds = new Set();
+
+      friendsOfFriendsRelations.forEach((rel) => {
+        const otherId = myFriendIds.includes(rel.userId)
+          ? rel.friendId
+          : rel.userId;
+
+        if (otherId !== currentUserId && !myFriendIds.includes(otherId)) {
+          friendsOfFriendsIds.add(otherId);
+        }
+      });
+
+      if (friendsOfFriendsIds.size === 0) {
+        return {
+          users: [],
+          pagination: { total: 0, page, pages: 0 },
+        };
+      }
+
+      where.id = { [Op.in]: [...friendsOfFriendsIds] };
     }
 
     // Получить пользователей только для текущей страницы
@@ -38,15 +133,10 @@ const friendService = {
         'name',
         'nickname',
         'avatarUrl',
-        'age',
+        'birthDate',
         'address',
         'job',
         'status',
-        'phone',
-        'isPublic',
-        'gender',
-        'createdAt',
-        'updatedAt',
       ],
       limit: limit,
       offset: (page - 1) * limit,
@@ -107,83 +197,6 @@ const friendService = {
         page,
         pages: Math.ceil(count / limit),
       },
-    };
-  },
-
-  /**
-   * Получить пользователя с информацией о статусе дружбы между двумя пользователями
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.targetUserId - ID пользователя, с которым проверяем статус дружбы
-   * @returns {Promise<Object>} { user, friendshipStatus, friendshipDirection, friendshipId }
-   */
-  async getFriendshipStatus({ currentUserId, targetUserId }) {
-    const isOwner = currentUserId === targetUserId;
-    const targetUser = await User.findByPk(targetUserId, {
-      attributes: { exclude: ['passwordHash'] },
-    });
-
-    if (!targetUser) {
-      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
-    }
-
-    if (isOwner) {
-      return {
-        ...targetUser.toJSON(),
-        friendshipStatus: null,
-        friendshipDirection: null,
-        friendshipId: null,
-      };
-    }
-
-    // Проверка на дружбу с пользователем которого просматриваем
-    let isFriend = false;
-    let friendship = null;
-
-    if (!isOwner) {
-      friendship = await Friend.findOne({
-        where: {
-          [Op.or]: [
-            { userId: currentUserId, friendId: targetUserId },
-            { userId: targetUserId, friendId: currentUserId },
-          ],
-        },
-      });
-    }
-
-    isFriend = friendship?.status === 'accepted';
-
-    // Проверяем, может ли текущий пользователь увидеть полный профиль целевого пользователя
-    const canSeeFullProfile =
-      isOwner || isFriend || targetUser.isPublic === true;
-
-    // Выбираем атрибуты для возврата
-    const attributesToReturn = canSeeFullProfile
-      ? { exclude: ['passwordHash'] }
-      : ['id', 'name', 'avatarUrl', 'isPublic', 'createdAt'];
-
-    // Получаем пользователя с нужными атрибутами
-    const user = await User.findByPk(targetUserId, {
-      attributes: attributesToReturn,
-    });
-
-    // Если связи нет, возвращаем только профиль пользователя
-    if (!friendship) {
-      return {
-        ...user.toJSON(),
-        friendshipStatus: null,
-        friendshipDirection: null,
-        friendshipId: null,
-      };
-    }
-
-    // Возвращаем профиль пользователя с информацией о дружбе
-    return {
-      ...user.toJSON(),
-      friendshipStatus: friendship.status,
-      friendshipDirection:
-        friendship.userId === currentUserId ? 'outgoing' : 'incoming',
-      friendshipId: friendship.id,
     };
   },
 
@@ -299,7 +312,7 @@ const friendService = {
   },
 
   /**
-   * Удалить дружбу
+   * Удалить дружбу (любое направление)
    * @param {Object} params - параметры запроса
    * @param {number} params.currentUserId - ID текущего пользователя
    * @param {number} params.friendshipId - ID дружбы
@@ -334,7 +347,7 @@ const friendService = {
       throw createError('Нельзя заблокировать себя', 400, 'SELF_BLOCK');
     }
 
-    // Создаем запись где userId = блокирующий, friendId = заблокированный
+    // Создаем запись где userId = заблокированный, friendId = блокирующий
     const [friendship, created] = await Friend.findOrCreate({
       where: {
         [Op.or]: [
@@ -343,8 +356,8 @@ const friendService = {
         ],
       },
       defaults: {
-        userId: currentUserId,
-        friendId,
+        userId: friendId,
+        friendId: currentUserId,
         status: 'blocked',
       },
     });
@@ -352,8 +365,8 @@ const friendService = {
     // Если запись уже существовала, обновляем её
     if (!created) {
       await friendship.update({
-        userId: currentUserId,
-        friendId,
+        userId: friendId,
+        friendId: currentUserId,
         status: 'blocked',
       });
     }

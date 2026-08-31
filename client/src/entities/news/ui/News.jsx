@@ -113,7 +113,7 @@ export const News = ({
               {news.text}
             </Text>
 
-            {news.text && news.text.length > 50 && (
+            {news.text && news.text.length > 30 && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>

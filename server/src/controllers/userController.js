@@ -2,6 +2,22 @@ const userService = require('../services/userService');
 
 const userController = {
   /**
+   * Получить данные о пользователе и статусе дружбы
+   */
+  getUserProfileWithFriendshipStatus: async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const result = await userService.getUserProfileWithFriendshipStatus({
+        currentUserId: parseInt(req.user?.id),
+        targetUserId: parseInt(userId),
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Проверка онлайн статуса пользователей
    */
   checkOnlineBulk: async (req, res, next) => {

@@ -52,11 +52,12 @@ export const useFriends = ({ filter, searchQuery }) => {
     },
   });
 
+  /** Экшены для управления статусом дружбы. */
   const friendshipActions = useFriendshipActions({
     setItems: setFriendsItems,
     getCurrentData: () => friendsItems,
     getUserId: (data) => data?.id,
-    onSuccess: (action) => notify.success(action),
+    onSuccess: (action) => notify.info(action),
     onError: (action) => notify.error(action),
   });
 
@@ -74,7 +75,7 @@ export const useFriends = ({ filter, searchQuery }) => {
     () =>
       friendsItems.map((user) => ({
         ...user,
-        online: onlineMap.get(user?.id) ?? user?.online,
+        online: onlineMap.get(user?.id) ?? false,
       })),
     [friendsItems, onlineMap]
   );

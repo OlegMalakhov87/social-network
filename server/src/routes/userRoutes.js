@@ -9,6 +9,14 @@ const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
 
 const userRoutes = Router();
 
+// Получить данные о пользователе и статусе дружбы
+userRoutes.get(
+  '/:userId/with-friendship-status',
+  validateIdParam('userId'),
+  authMiddleware,
+  userController.getUserProfileWithFriendshipStatus
+);
+
 // Проверка онлайн статуса пользователей
 userRoutes.post(
   '/online-status',

@@ -6,14 +6,14 @@
  */
 export function normalizeFriend(user) {
   if (!user || typeof user !== 'object') return user;
-  
+
   return {
     id: user.id,
     name: user.name,
     nickname: user.nickname,
     avatarUrl: user.avatarUrl,
     online: user.online,
-    age: user.age,
+    birthDate: user.birthDate,
     address: user.address,
     job: user.job,
     status: user.status,
