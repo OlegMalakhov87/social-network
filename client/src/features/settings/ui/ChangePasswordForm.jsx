@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { CHANGE_PASSWORD_SETTINGS_CONFIG, SettingsSection } from '..';
 import { changePassword, deleteUser, logout } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import { match, minLength, required } from '../../../shared/lib';
@@ -11,7 +12,6 @@ import {
   Input,
 } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
-import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы смены пароля.
@@ -74,30 +74,26 @@ export const ChangePasswordForm = () => {
   return (
     <SettingsSection title="Смена пароля">
       <form onSubmit={form.submit} className={style.form}>
-        <Input
-          label="Текущий пароль *"
-          type="password"
-          fullWidth
-          {...form.register('currentPassword')}
-          disabled={form.isSubmitting}
-        />
-        <Input
-          label="Новый пароль *"
-          type="password"
-          fullWidth
-          {...form.register('newPassword')}
-          disabled={form.isSubmitting}
-        />
-        <Input
-          label="Подтвердите пароль *"
-          type="password"
-          fullWidth
-          {...form.register('confirmPassword')}
-          disabled={form.isSubmitting}
-        />
+        {CHANGE_PASSWORD_SETTINGS_CONFIG.map((field) => (
+          <Input
+            key={field.key}
+            label={field.label}
+            required={field.required}
+            type={field.type}
+            fullWidth
+            {...form.register(field.key)}
+            disabled={form.isSubmitting}
+            placeholder={field.placeholder}
+          />
+        ))}
 
         <ButtonGroup>
-          <Button type="submit" variant="primary" loading={form.isSubmitting}>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={form.isSubmitting}
+            disabled={form.isSubmitting}
+          >
             Изменить пароль
           </Button>
         </ButtonGroup>
@@ -110,6 +106,7 @@ export const ChangePasswordForm = () => {
         <Button
           variant="danger"
           className={style.deleteButton}
+          disabled={form.isSubmitting}
           onClick={() => setIsDeleteDialogOpen(true)}
         >
           Удалить аккаунт

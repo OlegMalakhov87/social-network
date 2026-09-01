@@ -65,10 +65,10 @@ export const getFriendshipButtonConfig = ({
     } else {
       config = {
         text: 'Вас заблокировали',
-        hoverText: 'Удалить из друзей',
+        hoverText: 'Действие не доступно',
         variant: 'ghost',
-        action: () => onUnlock?.(user.friendshipId, user.id),
-        disabled: false,
+        action: () => {},
+        disabled: true,
       };
     }
   }

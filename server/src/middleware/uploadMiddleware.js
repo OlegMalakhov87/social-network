@@ -70,7 +70,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: 200 * 1024 * 1024 },
 });
 
 /** Обработка ошибок загрузки файлов */
@@ -78,7 +78,7 @@ const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
-        error: 'Файл слишком большой (макс. 100MB)',
+        error: 'Файл слишком большой (макс. 200MB)',
         code: 'FILE_TOO_LARGE',
       });
     }

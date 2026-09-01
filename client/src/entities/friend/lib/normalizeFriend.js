@@ -24,5 +24,6 @@ export function normalizeFriend(user) {
     friendshipStatus: user.friendshipStatus || null,
     friendshipDirection: user.friendshipDirection || null,
     friendshipId: user.friendshipId || null,
+    isBlocked: user.isBlocked || false,
   };
 }

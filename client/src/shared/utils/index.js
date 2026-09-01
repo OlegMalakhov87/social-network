@@ -3,6 +3,7 @@ export { classNames } from './classNames'; // Утилита объединен�
 export { formatDate } from './formatDate'; // Утилита форматирования даты
 export { formatDateForInput } from './formatDateForInput'; // Утилита форматирования даты для input
 export { formatDuration } from './formatDuration'; // Утилита форматирования длительности
+export { formatPhone } from './formatPhone'; // Утилита форматирования телефонного номера
 export { formatSize } from './formatSize'; // Утилита форматирования размеров файлов
 export { formatViews } from './formatViews'; // Утилита форматирования просмотров
 export { isPlayable } from './isPlayable'; // Утилита проверки воспроизводимости сущности

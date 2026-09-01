@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
-import { PRIVACY_SETTINGS_CONFIG } from '..';
+import { PRIVACY_SETTINGS_CONFIG, SettingsSection } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { Button, Checkbox } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
-import { SettingsSection } from './SettingsSection';
 
+/**
+ * Компонент формы настроек приватности.
+ */
 export const PrivacySettings = () => {
   const notify = useNotify();
   const [savingKeys, setSavingKeys] = useState(new Set());

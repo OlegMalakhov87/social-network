@@ -51,7 +51,6 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
     }),
     onSubmit: async (values) => {
       try {
-        if (isUploading) return;
         await onSubmit?.(values, isEdit, initialData?.id);
         onClose?.();
       } catch (error) {
@@ -103,7 +102,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           <TextArea
             {...form.register('text')}
             placeholder="Поделитесь своими новостями"
-            rows={2}
+            rows={3}
             disabled={form.isSubmitting || isUploading}
           />
 
@@ -133,7 +132,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             disabled={form.isSubmitting || isUploading}
           />
 
-          {/* Кнопки действий: Отмена, Сохранить изменения, Опубликовать */}
+          {/* Кнопки действий: Отмена, Сохранить, Добавить */}
           <ButtonGroup>
             <Button
               variant="secondary"

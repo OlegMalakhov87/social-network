@@ -55,6 +55,7 @@ const userController = {
       next(error);
     }
   },
+  
   /**
    * Загрузка аватара пользователя
    */

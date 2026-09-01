@@ -72,6 +72,7 @@ export const LoginForm = () => {
                 key={field.name}
                 name={field.name}
                 label={field.label}
+                required={field.required}
                 type={field.type}
                 {...form.register(field.name)}
                 error={form.errors[field.name]}

@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { FORM_FIELDS } from '..';
+import { PROFILE_SETTINGS_CONFIG, SettingsSection } from '..';
 import { updateUser, uploadAvatar } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import {
@@ -25,7 +25,7 @@ import {
 import { formatDateForInput } from '../../../shared/utils';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
 import style from './SettingsForm.module.css';
-import { SettingsSection } from './SettingsSection';
+
 /**
  * Компонент формы редактирования профиля.
  *
@@ -85,7 +85,8 @@ export const EditProfileForm = ({ currentUser }) => {
     {
       uploadFn: async (data) => {
         try {
-          await dispatch(uploadAvatar(data)).unwrap();
+          const result = await dispatch(uploadAvatar(data)).unwrap();
+          form.setValue('avatarUrl', result.avatarUrl);
           notify.success('Аватар успешно загружен');
         } catch (error) {
           notify.error('Ошибка загрузки аватара');
@@ -123,15 +124,16 @@ export const EditProfileForm = ({ currentUser }) => {
 
       <form onSubmit={form.submit} className={style.form}>
         <div className={style.fieldsGrid}>
-          {FORM_FIELDS.map((field) => (
-            <div key={field.name} className={getFieldGridClass(field)}>
+          {PROFILE_SETTINGS_CONFIG.map((field) => (
+            <div key={field.key} className={getFieldGridClass(field)}>
               <Input
                 label={field.label}
+                required={field.required}
                 type={field.multiline ? undefined : field.type}
                 multiline={field.multiline}
                 rows={field.rows}
                 fullWidth
-                {...form.register(field.name)}
+                {...form.register(field.key)}
                 placeholder={field.placeholder}
                 disabled={form.isSubmitting}
               />

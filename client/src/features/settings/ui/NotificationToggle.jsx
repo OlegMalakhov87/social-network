@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { NOTIFICATION_SETTINGS_CONFIG } from '..';
+import { NOTIFICATION_SETTINGS_CONFIG, SettingsSection } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { Button, Checkbox } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
-import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы настроек уведомлений.
- *
  */
 export const NotificationToggle = () => {
   const notify = useNotify();
@@ -32,13 +30,13 @@ export const NotificationToggle = () => {
       <div className={style.toggleGroup}>
         {NOTIFICATION_SETTINGS_CONFIG.map((option) => (
           <Checkbox
-            key={option.id}
-            id={option.id}
+            key={option.key}
+            id={option.key}
             label={option.label}
             description={option.description}
             align="start"
-            checked={notifications[option.id]}
-            onChange={() => toggle(option.id)}
+            checked={notifications[option.key]}
+            onChange={() => toggle(option.key)}
           />
         ))}
       </div>

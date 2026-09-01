@@ -197,7 +197,7 @@ const authSlice = createSlice({
       })
       .addCase(uploadAvatar.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.user.avatar = action.payload.avatar;
+        state.user.avatarUrl = action.payload.avatarUrl;
       })
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.status = 'failed';

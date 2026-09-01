@@ -97,6 +97,7 @@ export const RegisterForm = () => {
                 name={field.name}
                 label={field.label}
                 type={field.type}
+                required={field.required}
                 {...form.register(field.name)}
                 error={form.errors[field.name]}
                 placeholder={field.placeholder}
@@ -105,7 +106,7 @@ export const RegisterForm = () => {
             ))}
 
             <Select
-              label="Пол *"
+              label="Пол"
               {...form.register('gender')}
               options={GENDER_OPTIONS}
               disabled={form.isSubmitting || isSubmitting}

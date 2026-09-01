@@ -4,27 +4,31 @@
 export const REGISTER_CONFIG = [
   {
     name: 'name',
-    label: 'Имя *',
+    label: 'Имя',
     type: 'text',
     placeholder: 'Введите ваше имя',
+    required: true,
   },
   {
     name: 'email',
-    label: 'Email *',
+    label: 'Email',
     type: 'email',
     placeholder: 'email@example.com',
+    required: true,
   },
   {
     name: 'password',
-    label: 'Пароль *',
+    label: 'Пароль',
     type: 'password',
     placeholder: 'Минимум 6 символов',
+    required: true,
   },
   {
     name: 'confirmPassword',
-    label: 'Подтвердите пароль *',
+    label: 'Подтвердите пароль',
     type: 'password',
     placeholder: 'Повторите пароль',
+    required: true,
   },
 ];
 
@@ -34,15 +38,17 @@ export const REGISTER_CONFIG = [
 export const LOGIN_CONFIG = [
   {
     name: 'email',
-    label: 'Email *',
+    label: 'Email',
     type: 'email',
     placeholder: 'email@example.com',
+    required: true,
   },
   {
     name: 'password',
-    label: 'Пароль *',
+    label: 'Пароль',
     type: 'password',
     placeholder: 'Минимум 6 символов',
+    required: true,
   },
 ];
 

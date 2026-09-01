@@ -3,58 +3,60 @@
  *
  * @returns {Array<Object>} - массив полей формы
  */
-export const FORM_FIELDS = [
+export const PROFILE_SETTINGS_CONFIG = [
   {
-    name: 'name',
-    label: 'Имя *',
+    key: 'name',
+    label: 'Имя',
     type: 'text',
+    required: true,
     placeholder: 'Ваше имя',
     half: true,
   },
   {
-    name: 'nickname',
+    key: 'nickname',
     label: 'Никнейм',
     type: 'text',
     placeholder: '@username',
     half: true,
   },
   {
-    name: 'email',
-    label: 'Email *',
+    key: 'email',
+    label: 'Email',
     type: 'email',
+    required: true,
     placeholder: 'email@example.com',
     half: true,
   },
   {
-    name: 'phone',
+    key: 'phone',
     label: 'Телефон',
     type: 'tel',
     placeholder: '+7 (999) 999-99-99',
     half: true,
   },
   {
-    name: 'birthDate',
+    key: 'birthDate',
     label: 'Дата рождения',
     type: 'date',
     placeholder: 'Выберите дату рождения',
     half: true,
   },
   {
-    name: 'address',
+    key: 'address',
     label: 'Город',
     type: 'text',
     placeholder: 'Ваш город',
     half: true,
   },
   {
-    name: 'job',
+    key: 'job',
     label: 'Работа',
     type: 'text',
     placeholder: 'Место работы',
     fullWidth: true,
   },
   {
-    name: 'status',
+    key: 'status',
     label: 'Статус',
     type: 'text',
     placeholder: 'О себе',

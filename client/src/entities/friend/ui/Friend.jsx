@@ -95,7 +95,7 @@ export const Friend = ({
                   alt={friend.name}
                   size="lg"
                   status={friend.online ? 'online' : 'offline'}
-                  clickable={true}
+                  clickable={!friend.isBlocked}
                   onClick={handleOpenProfile}
                 />
               }

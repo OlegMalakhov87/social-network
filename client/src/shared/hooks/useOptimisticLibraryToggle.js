@@ -8,7 +8,6 @@ import { useNotify } from './';
  * @param {Function} params.setItems - функция для установки массива элементов
  * @param {Function} params.addFn - функция для добавления элемента в библиотеку
  * @param {Function} params.deleteFn - функция для удаления элемента из библиотеки
- * @param {string} params.targetType - название вкладки
  * @param {Function} params.mapOnAdd - функция для получения дополнительных полей при добавлении
  * @param {Function} params.mapOnRemove - функция для получения дополнительных полей при удалении
  * @returns {Object} - объект с функциями для добавления и удаления из библиотеки
@@ -17,11 +16,10 @@ export const useOptimisticLibraryToggle = ({
   setItems,
   addFn,
   deleteFn,
-  targetType,
   mapOnAdd,
   mapOnRemove,
 }) => {
-  const notify = useNotify(targetType);
+  const notify = useNotify();
 
   /** Функция для добавления элемента в библиотеку */
   const addToLibrary = useCallback(
@@ -56,8 +54,6 @@ export const useOptimisticLibraryToggle = ({
             )
           );
         }
-
-        notify.success('add');
       } catch (err) {
         setItems((prev) =>
           prev.map((item) =>
@@ -70,7 +66,7 @@ export const useOptimisticLibraryToggle = ({
               : item
           )
         );
-        notify.error('add');
+        notify.error('Ошибка добавления в библиотеку');
         console.error('Ошибка добавления в библиотеку', err);
       }
     },
@@ -110,7 +106,6 @@ export const useOptimisticLibraryToggle = ({
             )
           );
         }
-        notify.success('delete');
       } catch (err) {
         setItems((prev) =>
           prev.map((item) =>
@@ -123,7 +118,7 @@ export const useOptimisticLibraryToggle = ({
               : item
           )
         );
-        notify.error('delete');
+        notify.error('Ошибка удаления из библиотеки');
         console.error('Ошибка удаления из библиотеки', err);
       }
     },

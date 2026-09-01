@@ -3,32 +3,32 @@
  */
 export const NOTIFICATION_SETTINGS_CONFIG = [
   {
-    id: 'email',
+    key: 'email',
     label: 'Email уведомления',
     description: 'Получать уведомления на привязанную почту',
   },
   {
-    id: 'push',
+    key: 'push',
     label: 'Push уведомления',
     description: 'Показывать всплывающие окна в браузере',
   },
   {
-    id: 'sound',
+    key: 'sound',
     label: 'Звук сообщений',
     description: 'Воспроизводить звук при новых сообщениях',
   },
   {
-    id: 'friends',
+    key: 'friends',
     label: 'Запросы в друзья',
     description: 'Уведомлять о новых входящих заявках',
   },
   {
-    id: 'posts',
+    key: 'posts',
     label: 'Новые посты',
     description: 'Уведомлять о публикациях друзей',
   },
   {
-    id: 'digest',
+    key: 'digest',
     label: 'Дайджест новостей',
     description: 'Получать еженедельную подборку событий',
   },

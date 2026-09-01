@@ -29,7 +29,6 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
     }),
     onSubmit: async (values) => {
       try {
-        if (form.isSubmitting) return;
         await onSubmit?.(values);
       } catch (error) {
         notify.error(

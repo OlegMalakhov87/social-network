@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { classNames } from '../../../utils';
+import { classNames, formatPhone } from '../../../utils';
 import styles from './Input.module.css';
 
 /**
@@ -22,7 +22,12 @@ import styles from './Input.module.css';
  * @param {React.ReactNode} [props.rightIcon] - иконка справа
  * @param {boolean} [props.fullWidth=true] - полная ширина
  * @param {boolean} [props.multiline=false] - textarea
- * @param {number} [props.rows=4] - количество строк
+ * @param {number} [props.rows=3] - количество строк
+ * @param {string} [props.type='text'] - тип поля
+ * @param {boolean} [props.disabled=false] - активное поле или нет
+ * @param {boolean} [props.required=false] - обязательное поле или нет
+ * @param {Function} [props.onChange] - функция onChange из form.register
+ * @param {Object} [props.props] - остальные пропсы
  */
 export const Input = forwardRef(
   (
@@ -35,10 +40,11 @@ export const Input = forwardRef(
       className,
       fullWidth = false,
       multiline = false,
-      rows,
-      type,
-      disabled,
+      rows = 3,
+      type = 'text',
+      disabled = false,
       required = false,
+      onChange,
       ...props
     },
     ref
@@ -74,6 +80,9 @@ export const Input = forwardRef(
               ref={ref}
               rows={rows}
               className={classNames(styles.input, className)}
+              onChange={(e) => {
+                onChange(e);
+              }}
               disabled={disabled}
               {...props}
             />
@@ -84,6 +93,16 @@ export const Input = forwardRef(
               className={classNames(styles.input, className)}
               disabled={disabled}
               required={required}
+              onChange={(e) => {
+                if (type === 'tel') {
+                  const formatted = formatPhone(e.target.value);
+                  onChange({
+                    target: { name: e.target.name, value: formatted },
+                  });
+                } else {
+                  onChange(e);
+                }
+              }}
               {...props}
             />
           )}

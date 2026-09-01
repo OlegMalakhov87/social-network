@@ -73,7 +73,6 @@ export const useLibraryResource = ({
         ? deleteTrackFromLibrary
         : deleteVideoFromLibrary
       : null,
-    targetType: currentTab ? (isTracks ? 'tracks' : 'videos') : null,
     mapOnAdd,
     mapOnRemove,
   });

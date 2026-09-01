@@ -67,6 +67,9 @@ const userService = {
         : null,
       friendshipId: friendship?.id ?? null,
       canSeeFullProfile,
+      isBlocked:
+        friendship?.status === 'blocked' &&
+        friendship?.direction === 'outgoing',
     };
   },
 
@@ -218,14 +221,14 @@ const userService = {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
     }
 
-    /* const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isMatch) {
       throw createError(
         'Неверный текущий пароль',
         401,
         'INVALID_CURRENT_PASSWORD'
       );
-    }*/
+    }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);

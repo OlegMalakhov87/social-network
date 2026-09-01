@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { api } from '../../../shared/api';
-import { useNotify } from '../../../shared/hooks';
 
 /**
  * Универсальный хук для загрузки файлов.
@@ -16,7 +15,6 @@ import { useNotify } from '../../../shared/hooks';
  * @returns {Object} { preview, isUploading, error, progress, handleFileChange, reset }
  */
 export const useFileUpload = (config, options = {}) => {
-  const notify = useNotify();
   const { uploadFn, onSuccess, onError } = options;
 
   const [preview, setPreview] = useState(null);
@@ -50,7 +48,6 @@ export const useFileUpload = (config, options = {}) => {
     const validationError = await config.validators(file);
     if (validationError) {
       setError(validationError);
-      notify.error(validationError);
       onError?.(validationError);
       e.target.value = '';
       return;
@@ -88,14 +85,11 @@ export const useFileUpload = (config, options = {}) => {
         });
         result = response.data;
       }
-
-      notify.success('Файл успешно загружен');
       onSuccess?.(result);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || err.message || 'Ошибка загрузки файла';
       setError(errorMessage);
-      notify.error(errorMessage);
       onError?.(errorMessage);
       setPreview(null);
     } finally {

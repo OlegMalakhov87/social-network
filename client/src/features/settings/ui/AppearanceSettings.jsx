@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { THEME_OPTIONS } from '..';
+import { SettingsSection, THEME_OPTIONS } from '..';
 import { Alert, SegmentedControl } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
-import { SettingsSection } from './SettingsSection';
 
 /**
  * Компонент формы настроек внешнего вида.

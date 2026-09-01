@@ -16,7 +16,7 @@ import {
 export const AVATAR_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/jpg',
   validators: composeValidators([
-    maxFileSize(5 * 1024 * 1024, 'Аватар не должен превышать 5MB'),
+    maxFileSize(10 * 1024 * 1024, 'Аватар не должен превышать 10MB'),
     fileType(
       ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
       'Поддерживаются только JPEG, PNG, WEBP, JPG'
@@ -35,7 +35,7 @@ export const AVATAR_UPLOAD_CONFIG = {
 export const POST_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/gif,image/jpg',
   validators: composeValidators([
-    maxFileSize(5 * 1024 * 1024, 'Изображение не должно превышать 5MB'),
+    maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
     fileType([
       'image/jpeg',
       'image/png',
@@ -61,7 +61,7 @@ export const POST_IMAGE_UPLOAD_CONFIG = {
 export const POST_VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime, video/ogg',
   validators: composeValidators([
-    maxFileSize(50 * 1024 * 1024, 'Видео не должно превышать 50 MB'),
+    maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100 MB'),
     fileType(
       ['video/mp4', 'video/webm', 'video/quicktime'],
       'Поддерживаются только MP4, WebM, MOV'
@@ -80,7 +80,7 @@ export const POST_VIDEO_UPLOAD_CONFIG = {
 export const NEWS_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/jpg',
   validators: composeValidators([
-    maxFileSize(5 * 1024 * 1024, 'Изображение не должно превышать 5MB'),
+    maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
     fileType(
       ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
       'Поддерживаются только JPEG, PNG, WEBP, JPG'
@@ -103,7 +103,7 @@ export const NEWS_IMAGE_UPLOAD_CONFIG = {
 export const NEWS_VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime, video/ogg',
   validators: composeValidators([
-    maxFileSize(50 * 1024 * 1024, 'Видео не должно превышать 50 MB'),
+    maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100 MB'),
     fileType(
       ['video/mp4', 'video/webm', 'video/quicktime'],
       'Поддерживаются только MP4, WebM, MOV'
@@ -122,7 +122,7 @@ export const NEWS_VIDEO_UPLOAD_CONFIG = {
 export const VIDEO_THUMBNAIL_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/jpg',
   validators: composeValidators([
-    maxFileSize(5 * 1024 * 1024, 'Превью не должно превышать 5MB'),
+    maxFileSize(10 * 1024 * 1024, 'Превью не должно превышать 10MB'),
     fileType(
       ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
       'Поддерживаются только JPEG, PNG, WEBP, JPG'
@@ -142,7 +142,7 @@ export const VIDEO_THUMBNAIL_CONFIG = {
 export const VIDEO_PREVIEW_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
-    maxFileSize(10 * 1024 * 1024, 'Preview не должен превышать 10 MB'),
+    maxFileSize(100 * 1024 * 1024, 'Preview не должен превышать 100 MB'),
     fileType(
       ['video/mp4', 'video/webm', 'video/quicktime'],
       'Поддерживаются только MP4, WebM, MOV'
@@ -161,7 +161,7 @@ export const VIDEO_PREVIEW_CONFIG = {
 export const VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime, video/ogg',
   validators: composeValidators([
-    maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100 MB'),
+    maxFileSize(200 * 1024 * 1024, 'Видео не должно превышать 200 MB'),
     fileType(
       ['video/mp4', 'video/webm', 'video/quicktime'],
       'Поддерживаются только MP4, WebM, MOV'
@@ -180,7 +180,7 @@ export const VIDEO_UPLOAD_CONFIG = {
 export const ALBUM_COVER_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/jpg',
   validators: composeValidators([
-    maxFileSize(5 * 1024 * 1024, 'Обложка не должна превышать 5MB'),
+    maxFileSize(10 * 1024 * 1024, 'Обложка не должна превышать 10MB'),
     fileType(
       ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
       'Поддерживаются только JPEG, PNG, WEBP, JPG'
@@ -200,7 +200,7 @@ export const ALBUM_COVER_CONFIG = {
 export const TRACK_UPLOAD_CONFIG = {
   accept: 'audio/mpeg,audio/wav,audio/ogg,audio/flac',
   validators: composeValidators([
-    maxFileSize(20 * 1024 * 1024, 'Трек не должен превышать 20 MB'),
+    maxFileSize(50 * 1024 * 1024, 'Трек не должен превышать 50 MB'),
     fileType(
       ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac'],
       'Поддерживаются только MP3, WAV, OGG, FLAC'

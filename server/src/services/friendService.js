@@ -187,6 +187,7 @@ const friendService = {
         friendshipStatus: info.status,
         friendshipDirection: info.direction,
         friendshipId: info.friendshipId,
+        isBlocked: info.status === 'blocked' && info.direction === 'outgoing',
       };
     });
 

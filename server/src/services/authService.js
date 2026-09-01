@@ -72,7 +72,7 @@ const authService = {
       );
     }
 
-    /*// Проверяем, совпадает ли пароль
+    // Проверяем, совпадает ли пароль
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw createError(
@@ -80,7 +80,7 @@ const authService = {
         401,
         'INVALID_CREDENTIALS'
       );
-    }*/
+    }
 
     // Генерируем токен
     const token = generateToken(user.id);
