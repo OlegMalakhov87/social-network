@@ -1,6 +1,7 @@
 const videoService = require('../services/videoService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
+const toPublicUrl = require('../utils/toPublicUrl');
 
 const videoController = {
   /**
@@ -105,6 +106,42 @@ const videoController = {
   },
 
   /**
+   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять видео
+   */
+  deleteUploadedMedia: async (req, res, next) => {
+    try {
+      await videoService.deleteUploadedMedia(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа превью
+   */
+  deleteUploadedPreview: async (req, res, next) => {
+    try {
+      await videoService.deleteUploadedPreview(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа thumbnail
+   */
+  deleteUploadedThumbnail: async (req, res, next) => {
+    try {
+      await videoService.deleteUploadedThumbnail(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Загрузка видео файла
    */
   uploadVideo: async (req, res, next) => {
@@ -118,26 +155,20 @@ const videoController = {
 
       const videoMetadata = await mediaService.getMetadata(videoPath);
 
-      // Проверяем, загружены ли пользовательские превью и обложка
-      const hasCustomPreview = req.body.previewUrl;
-      const hasCustomThumbnail = req.body.thumbnailUrl;
+      const previewPath = await videoPreviewService.generatePreview(
+        videoPath,
+        videoMetadata.duration
+      );
 
-      let previewPath = null;
-      let thumbnailPath = null;
+      const thumbnailPath = await videoPreviewService.generateThumbnail(
+        videoPath,
+        videoMetadata.duration
+      );
 
-      if (!hasCustomPreview) {
-        previewPath = await videoPreviewService.generatePreview(videoPath, videoMetadata.duration);
-      }
-
-      if (!hasCustomThumbnail) {
-        thumbnailPath = await videoPreviewService.generateThumbnail(videoPath, videoMetadata.duration);
-      }
-
-      // Генерируем превью и обложку видео.
       res.status(200).json({
-        videoUrl: `/${videoPath}`,
-        previewUrl: `/${previewPath}`,
-        thumbnailUrl: `/${thumbnailPath}`,
+        videoUrl: toPublicUrl(videoPath),
+        previewUrl: toPublicUrl(previewPath),
+        thumbnailUrl: toPublicUrl(thumbnailPath),
         duration: videoMetadata.duration,
         size: videoMetadata.size,
       });
@@ -155,7 +186,7 @@ const videoController = {
         return res
           .status(400)
           .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ thumbnailUrl: `/${req.file.path}` });
+      res.status(200).json({ thumbnailUrl: toPublicUrl(req.file.path) });
     } catch (error) {
       next(error);
     }
@@ -170,7 +201,7 @@ const videoController = {
         return res
           .status(400)
           .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ previewUrl: `/${req.file.path}` });
+      res.status(200).json({ previewUrl: toPublicUrl(req.file.path) });
     } catch (error) {
       next(error);
     }

@@ -1,13 +1,13 @@
-import { POST_TYPES, VISIBILITY_OPTIONS } from '../../../entities/post';
+import { POST_TYPES } from '../../../entities/post';
 import { useForm, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
   ButtonGroup,
+  Checkbox,
   FileInput,
   SegmentedControl,
-  Select,
   TextArea,
 } from '../../../shared/ui';
 import {
@@ -72,6 +72,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Флаг загрузки */
   const isUploading = imageUpload.isUploading || videoUpload.isUploading;
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
+  
   /** Конфигурация загрузки */
   const activeConfig =
     form.values.type === 'video'
@@ -94,6 +95,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           {/* Выбор типа поста */}
           <SegmentedControl
             options={POST_TYPES}
+            disabled={form.isSubmitting || isUploading}
             {...form.register('type')}
             onChange={handleTypeChange}
           />
@@ -126,9 +128,18 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           )}
 
           {/* Выбор видимости */}
-          <Select
-            {...form.register('isPublic')}
-            options={VISIBILITY_OPTIONS}
+          <Checkbox
+            id="isPublic "
+            name="isPublic"
+            label="Хотите чтобы ваш пост увидели"
+            description={
+              form.values.isPublic
+                ? 'Все пользователи'
+                : 'Только вы и ваши друзья'
+            }
+            align="end"
+            checked={form.values.isPublic}
+            onChange={(e) => form.setValue('isPublic', e.target.checked)}
             disabled={form.isSubmitting || isUploading}
           />
 

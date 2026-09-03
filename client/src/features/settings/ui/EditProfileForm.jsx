@@ -22,7 +22,7 @@ import {
   FileInput,
   Input,
 } from '../../../shared/ui';
-import { formatDateForInput } from '../../../shared/utils';
+import { classNames, formatDateForInput } from '../../../shared/utils';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
 import style from './SettingsForm.module.css';
 
@@ -95,9 +95,6 @@ export const EditProfileForm = ({ currentUser }) => {
     }
   );
 
-  const getFieldGridClass = (field) =>
-    field.half ? style.halfWidth : style.fullWidth;
-
   return (
     <SettingsSection title="Профиль">
       <EntityHeader
@@ -117,6 +114,7 @@ export const EditProfileForm = ({ currentUser }) => {
             isUploading={isUploading}
             error={error}
             onChange={handleFileChange}
+            disabled={form.isSubmitting || isUploading}
           />
         }
         className={style.profileHeader}
@@ -125,17 +123,22 @@ export const EditProfileForm = ({ currentUser }) => {
       <form onSubmit={form.submit} className={style.form}>
         <div className={style.fieldsGrid}>
           {PROFILE_SETTINGS_CONFIG.map((field) => (
-            <div key={field.key} className={getFieldGridClass(field)}>
+            <div
+              className={classNames(
+                field.half ? style.halfWidth : style.fullWidth
+              )}
+            >
               <Input
+                key={field.key}
                 label={field.label}
                 required={field.required}
                 type={field.multiline ? undefined : field.type}
                 multiline={field.multiline}
                 rows={field.rows}
                 fullWidth
-                {...form.register(field.key)}
                 placeholder={field.placeholder}
                 disabled={form.isSubmitting}
+                {...form.register(field.key)}
               />
             </div>
           ))}
@@ -146,7 +149,7 @@ export const EditProfileForm = ({ currentUser }) => {
             type="button"
             variant="secondary"
             onClick={form.reset}
-            disabled={form.isSubmitting}
+            disabled={form.isSubmitting || isUploading}
           >
             Отменить
           </Button>
@@ -154,7 +157,7 @@ export const EditProfileForm = ({ currentUser }) => {
             type="submit"
             variant="primary"
             loading={form.isSubmitting}
-            disabled={form.isSubmitting}
+            disabled={form.isSubmitting || isUploading}
           >
             Сохранить изменения
           </Button>

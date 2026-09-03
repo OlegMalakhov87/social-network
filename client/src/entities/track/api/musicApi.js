@@ -82,3 +82,23 @@ export const deleteTrackApi = async (trackId) => {
   const response = await api.delete(`/music/${trackId}/delete`);
   return response.data;
 };
+
+/**
+ * Удалить загруженные медиа треков.
+ * @param {Object} data - данные трека
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedAudioApi = async (data) => {
+  const response = await api.delete('/music/delete-uploaded-audio', { data });
+  return response.data;
+};
+
+/**
+ * Удалить загруженные медиа обложек.
+ * @param {Object} data - данные обложки
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedCoverApi = async (data) => {
+  const response = await api.delete('/music/delete-uploaded-cover', { data });
+  return response.data;
+};

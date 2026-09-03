@@ -16,6 +16,7 @@ import style from './FileInput.module.css';
  * @param {string} [props.error] - текст ошибки
  * @param {boolean} [props.disabled=false] - заблокирован ли компонент
  * @param {Function} props.onChange - обработчик выбора файла
+ * @param {boolean} [props.required=false] - обязательное поле
  * @param {string} [props.className=''] - дополнительный CSS класс
  */
 export const FileInput = ({
@@ -28,6 +29,7 @@ export const FileInput = ({
   error,
   disabled = false,
   onChange,
+  required = false,
   className = '',
 }) => {
   const inputRef = useRef(null);
@@ -53,8 +55,9 @@ export const FileInput = ({
   return (
     <div className={classNames(style.wrapper, className)}>
       {label && (
-        <Text variant="body2" className={style.label}>
+        <Text variant="body2">
           {label}
+          {required && <span className={style.required}>*</span>}
         </Text>
       )}
 

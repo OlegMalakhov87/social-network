@@ -1,18 +1,26 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '../../../shared/api';
 
 /**
  * Универсальный хук для загрузки файлов.
- * Принимает конфигурацию из mediaConfigs.js и опциональные колбэки.
+ *
+ * Управляет:
+ * - локальным preview;
+ * - загрузкой файла;
+ * - прогрессом;
+ * - временно загруженным файлом;
+ * - очисткой временного файла;
+ * - фиксацией файла после успешного сохранения сущности.
  *
  * @param {Object} config - конфигурация загрузки
- * @param {string} config.endpoint - эндпоинт API
- * @param {string} config.fieldName - имя поля в FormData
- * @param {Function} config.validators - композиция валидаторов
- * @param {Object} [options] - опции
- * @param {Function} [options.onSuccess] - колбэк при успехе (получает response.data)
- * @param {Function} [options.onError] - колбэк при ошибке
- * @returns {Object} { preview, isUploading, error, progress, handleFileChange, reset }
+ * @param {string} config.endpoint - endpoint API
+ * @param {string} config.fieldName - имя поля FormData
+ * @param {Function} config.validators - валидаторы файла
+ * @param {Function} [config.deleteFn] - функция удаления загруженного файла
+ * @param {Object} [options]
+ * @param {Function} [options.uploadFn] - кастомная функция загрузки
+ * @param {Function} [options.onSuccess] - callback после успешной загрузки
+ * @param {Function} [options.onError] - callback ошибки
  */
 export const useFileUpload = (config, options = {}) => {
   const { uploadFn, onSuccess, onError } = options;
@@ -22,13 +30,19 @@ export const useFileUpload = (config, options = {}) => {
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
+  const uploadedFileRef = useRef(null);
+  const uploadedFile = uploadedFileRef.current;
+
   /**
-   * Сброс состояния и очистка памяти.
+   * Сбрасывает только локальное состояние.
+   *
+   * Файл на сервере НЕ удаляется.
    */
   const reset = () => {
     if (preview) {
       URL.revokeObjectURL(preview);
     }
+
     setPreview(null);
     setError(null);
     setProgress(0);
@@ -36,16 +50,50 @@ export const useFileUpload = (config, options = {}) => {
   };
 
   /**
+   * Удаляет временно загруженный файл с сервера.
+   */
+  const cleanupUploadedFile = async () => {
+    if (!uploadedFile || !config.deleteFn) {
+      return;
+    }
+
+    try {
+      await config.deleteFn(uploadedFile);
+      uploadedFileRef.current = null;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.error ||
+        err.message ||
+        'Ошибка удаления загруженного файла';
+
+      setError(errorMessage);
+      onError?.(errorMessage);
+
+      throw err;
+    }
+  };
+
+  /**
+   * Фиксирует загруженный файл.
+   *
+   * После commit файл считается принадлежащим сущности,
+   * поэтому cleanupUploadedFile() больше не должен его удалять.
+   */
+  const commit = () => {
+    uploadedFileRef.current = null;
+  };
+
+  /**
    * Обработчик выбора файла.
-   * @param {Event} e - событие change от input[type=file]
    */
   const handleFileChange = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+
     if (!file) return;
 
-    setError(null);
-
+    // Сначала проверяем новый файл.
     const validationError = await config.validators(file);
+
     if (validationError) {
       setError(validationError);
       onError?.(validationError);
@@ -53,19 +101,31 @@ export const useFileUpload = (config, options = {}) => {
       return;
     }
 
-    if (preview) {
-      URL.revokeObjectURL(preview);
-      setPreview(null);
+    // Новый файл валиден.
+    // Теперь можно удалить предыдущий временный файл.
+    try {
+      await cleanupUploadedFile();
+    } catch {
+      e.target.value = '';
+      return;
     }
 
-    // Создание превью
-    const objectUrl = URL.createObjectURL(file);
-    setPreview(objectUrl);
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
+    setPreview(null);
+    setError(null);
+    setProgress(0);
     setIsUploading(true);
 
-    // Отправка на сервер
+    // Создаём локальное preview.
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
+
     try {
       let result;
+
       if (uploadFn) {
         result = await uploadFn(file);
       } else {
@@ -78,19 +138,25 @@ export const useFileUpload = (config, options = {}) => {
               const percent = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
               );
+
               setProgress(percent);
             }
           },
           timeout: 120000,
         });
+
         result = response.data;
       }
+
+      uploadedFileRef.current = result;
       onSuccess?.(result);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || err.message || 'Ошибка загрузки файла';
+
       setError(errorMessage);
       onError?.(errorMessage);
+
       setPreview(null);
     } finally {
       setIsUploading(false);
@@ -105,5 +171,7 @@ export const useFileUpload = (config, options = {}) => {
     progress,
     handleFileChange,
     reset,
+    cleanupUploadedFile,
+    commit,
   };
 };

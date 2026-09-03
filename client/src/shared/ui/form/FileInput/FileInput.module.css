@@ -5,10 +5,9 @@
   margin-bottom: var(--space-2);
 }
 
-.label {
-  font-size: var(--font-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+.required {
+  color: var(--color-danger);
+  margin-left: var(--space-1);
 }
 
 .container {

@@ -29,12 +29,13 @@ export const Modal = ({
   title,
   size = 'md',
   closeOnOverlay = true,
+  closeOnEscape = true,
   footer,
 }) => {
   const modalRef = useRef(null);
 
   useOutsideClick(modalRef, onClose, isOpen);
-  useEscapeKey(onClose, isOpen);
+  useEscapeKey(onClose, isOpen && closeOnEscape);
   useLockBodyScroll(isOpen);
 
   if (!isOpen) return null;

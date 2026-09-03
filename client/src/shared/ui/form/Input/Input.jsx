@@ -1,18 +1,10 @@
 import { forwardRef, useState } from 'react';
+import { Text } from '../../../ui';
 import { classNames, formatPhone } from '../../../utils';
 import styles from './Input.module.css';
 
 /**
  * Универсальный компонент поля ввода.
- *
- * Поддерживает:
- * - label
- * - helperText
- * - error
- * - left/right иконки
- * - password show/hide
- * - textarea
- * - fullWidth
  *
  * @param {Object} props
  * @param {string} [props.label] - текст лейбла
@@ -29,6 +21,7 @@ import styles from './Input.module.css';
  * @param {Function} [props.onChange] - функция onChange из form.register
  * @param {Object} [props.props] - остальные пропсы
  */
+
 export const Input = forwardRef(
   (
     {
@@ -60,10 +53,10 @@ export const Input = forwardRef(
         className={classNames(styles.wrapper, fullWidth && styles.fullWidth)}
       >
         {label && (
-          <label className={styles.label}>
+          <Text variant="body2">
             {label}
             {required && <span className={styles.required}>*</span>}
-          </label>
+          </Text>
         )}
 
         <div
@@ -81,7 +74,7 @@ export const Input = forwardRef(
               rows={rows}
               className={classNames(styles.input, className)}
               onChange={(e) => {
-                onChange(e);
+                onChange?.(e);
               }}
               disabled={disabled}
               {...props}
@@ -96,11 +89,11 @@ export const Input = forwardRef(
               onChange={(e) => {
                 if (type === 'tel') {
                   const formatted = formatPhone(e.target.value);
-                  onChange({
+                  onChange?.({
                     target: { name: e.target.name, value: formatted },
                   });
                 } else {
-                  onChange(e);
+                  onChange?.(e);
                 }
               }}
               {...props}
@@ -113,7 +106,7 @@ export const Input = forwardRef(
               className={styles.toggle}
               onClick={() => setShowPassword((prev) => !prev)}
             >
-              {showPassword ? 'Скрыть' : 'Показать'}
+              {showPassword ? 'Скрыть пароль' : 'Показать пароль'}
             </button>
           )}
 
@@ -123,9 +116,15 @@ export const Input = forwardRef(
         </div>
 
         {error ? (
-          <span className={styles.errorText}>{error}</span>
+          <Text variant="caption" className={styles.errorText}>
+            {error}
+          </Text>
         ) : (
-          helperText && <span className={styles.helper}>{helperText}</span>
+          helperText && (
+            <Text variant="caption" className={styles.helper}>
+              {helperText}
+            </Text>
+          )
         )}
       </div>
     );

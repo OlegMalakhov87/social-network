@@ -30,7 +30,11 @@ const videoPreviewService = {
     }
 
     // Директория, в которой будут храниться превью.
-    const previewDir = path.join(path.dirname(absoluteVideoPath), 'previews');
+    const previewDir = path.join(
+      path.dirname(absoluteVideoPath),
+      '..',
+      'previews'
+    );
 
     // Создаём директорию, если её ещё нет.
     await fs.mkdir(previewDir, { recursive: true });
@@ -43,15 +47,21 @@ const videoPreviewService = {
 
     // Путь к будущему превью.
     const previewFileName = `${fileName}-preview.mp4`;
-
     const previewPath = path.join(previewDir, previewFileName);
 
-    const startTime = Math.max(0, Math.min(duration * 0.25, 5));
+    // Максимальная длительность превью — 5 секунд.
+    const previewDuration = Math.min(5, duration);
+
+    // Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд.
+    const startTime = Math.max(
+      0,
+      Math.min(duration * 0.25, duration - previewDuration)
+    );
 
     return new Promise((resolve, reject) => {
       ffmpeg(absoluteVideoPath)
         .setStartTime(startTime) // Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд.
-        .duration(5) // Максимальная длительность превью — 5 секунд.
+        .duration(previewDuration) // Максимальная длительность превью — 5 секунд.
         .videoCodec('libx264') // Выходной формат.
         .outputOptions([
           '-preset veryfast', // Настройка качества/размера файла.
@@ -94,6 +104,7 @@ const videoPreviewService = {
 
     const thumbnailDir = path.join(
       path.dirname(absoluteVideoPath),
+      '..',
       'thumbnails'
     );
     await fs.mkdir(thumbnailDir, { recursive: true });

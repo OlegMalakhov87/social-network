@@ -1,5 +1,7 @@
 /**
  * Конфигурация настроек уведомлений.
+ *
+ * @returns {Array<Object>} - массив настроек уведомлений
  */
 export const NOTIFICATION_SETTINGS_CONFIG = [
   {

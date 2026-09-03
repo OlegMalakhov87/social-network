@@ -58,7 +58,7 @@ export const updateVideoApi = async (videoId, updates) => {
  * @param {boolean} isPublic - видимость видео
  * @returns {Promise<Object>} { isPublic }
  */
-export const updateVideosPrivacyApi = async ({ isPublic }) => {
+export const updateVideosPrivacyApi = async (isPublic) => {
   const response = await api.put(`/videos/update-privacy`, { isPublic });
   return response.data;
 };
@@ -80,5 +80,39 @@ export const incrementVideoViewsCountApi = async (videoId) => {
  */
 export const deleteVideoApi = async (videoId) => {
   const response = await api.delete(`/videos/${videoId}/delete`);
+  return response.data;
+};
+
+/**
+ * Удалить (очистка мусора) загруженные медиа файлы.
+ * @param {Object} data - данные медиа файлов (videoUrl, previewUrl, thumbnailUrl)
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedVideoApi = async (data) => {
+  const response = await api.delete('/videos/delete-uploaded-video', { data });
+  return response.data;
+};
+
+/**
+ * Удалить загруженные медиа превью.
+ * @param {Object} data - данные превью
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedPreviewApi = async (data) => {
+  const response = await api.delete('/videos/delete-uploaded-preview', {
+    data,
+  });
+  return response.data;
+};
+
+/**
+ * Удалить загруженные медиа thumbnail.
+ * @param {Object} data - данные thumbnail
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedThumbnailApi = async (data) => {
+  const response = await api.delete('/videos/delete-uploaded-thumb', {
+    data,
+  });
   return response.data;
 };

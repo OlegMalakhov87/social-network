@@ -43,7 +43,7 @@ export const fetchPostById = async (postId) => {
 
 /**
  * Добавить пост.
- * @param {Object} data - поля поста 
+ * @param {Object} data - поля поста
  * @returns {Promise<Object>} { post }
  */
 export const addPostApi = async (data) => {
@@ -54,7 +54,7 @@ export const addPostApi = async (data) => {
 /**
  * Обновить пост по ID.
  * @param {number} postId - ID поста
- * @param {Object} updates - поля поста 
+ * @param {Object} updates - поля поста
  * @returns {Promise<Object>} { post }
  */
 export const updatePostApi = async (postId, updates) => {
@@ -79,5 +79,15 @@ export const updatePostsPrivacyApi = async (isPublic) => {
  */
 export const deletePostApi = async (postId) => {
   const response = await api.delete(`/posts/${postId}/delete`);
+  return response.data;
+};
+
+/**
+ * Удалить загруженные медиа постов.
+ * @param {Object} data - данные поста
+ * @returns {Promise<Object>} { postId }
+ */
+export const deleteUploadedPostApi = async (data) => {
+  const response = await api.delete('/posts/delete-uploaded-media', { data });
   return response.data;
 };

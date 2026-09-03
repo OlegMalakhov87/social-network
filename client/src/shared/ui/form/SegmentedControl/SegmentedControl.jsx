@@ -8,6 +8,7 @@ import styles from './SegmentedControl.module.css';
  * @param {Array<{value:string,label:string,icon?:string}>} props.options - массив опций (значение, текст, иконка)
  * @param {string} props.value - значение выбранной опции
  * @param {(value:string)=>void} props.onChange - функция изменения выбранной опции
+ * @param {boolean} props.disabled - заблокирован ли переключатель
  * @param {string} [props.className=''] - дополнительный CSS класс
  */
 
@@ -16,6 +17,7 @@ export const SegmentedControl = ({
   value,
   onChange,
   className = '',
+  disabled = false,
 }) => {
   return (
     <div className={classNames(styles.root, className)}>
@@ -28,6 +30,7 @@ export const SegmentedControl = ({
             value === option.value && styles.active
           )}
           onClick={() => onChange(option.value)}
+          disabled={disabled}
         >
           {option.icon && <span className={styles.icon}>{option.icon}</span>}
 

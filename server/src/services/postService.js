@@ -249,12 +249,12 @@ const postService = {
   /**
    * Обновление приватности постов
    * @param {number} currentUserId - ID пользователя, обновляющего посты
-   * @param {Object} updates - Обновляемые данные
+   * @param {boolean} isPublic - Приватность постов
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updatePostPrivacy(currentUserId, updates) {
+  async updatePostPrivacy(currentUserId, { isPublic }) {
     const [affectedCount] = await Post.update(
-      { isPublic: updates.isPublic },
+      { isPublic },
       { where: { userId: currentUserId } }
     );
 

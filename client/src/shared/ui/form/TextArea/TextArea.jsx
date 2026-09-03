@@ -14,7 +14,7 @@ import styles from './TextArea.module.css';
  */
 
 export const TextArea = forwardRef(
-  ({ className = '', error, disabled, rows = 4, ...props }, ref) => {
+  ({ className = '', error, disabled, rows = 3, ...props }, ref) => {
     return (
       <>
         <textarea

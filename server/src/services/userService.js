@@ -122,12 +122,12 @@ const userService = {
   /**
    * Обновление приватности пользователя
    * @param {number} userId - ID пользователя
-   * @param {boolean} updates - Приватность пользователя
+   * @param {boolean} isPublic - Приватность пользователя
    * @returns {Promise<Object>} { isPublic }
    */
-  async updatePrivacy(userId, updates) {
+  async updatePrivacy(userId, { isPublic }) {
     const [affectedCount, updatedUser] = await User.update(
-      { isPublic: updates.isPublic },
+      { isPublic },
       {
         where: { id: userId },
         returning: true,

@@ -79,4 +79,25 @@ videoRoutes.delete(
   videoController.deleteVideo
 );
 
+// Удаление (очистка мусора) загруженных медиа файлов
+videoRoutes.delete(
+  '/delete-uploaded-video',
+  authMiddleware,
+  videoController.deleteUploadedMedia
+);
+
+// Удаление загруженных медиа превью
+videoRoutes.delete(
+  '/delete-uploaded-preview',
+  authMiddleware,
+  videoController.deleteUploadedPreview
+);
+
+// Удаление загруженных медиа thumbnail
+videoRoutes.delete(
+  '/delete-uploaded-thumb',
+  authMiddleware,
+  videoController.deleteUploadedThumbnail
+);
+
 module.exports = videoRoutes;

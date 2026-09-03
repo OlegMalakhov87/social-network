@@ -148,12 +148,12 @@ const musicService = {
   /**
    * Обновление приватности треков
    * @param {number} userId - ID пользователя, обновляющего треки
-   * @param {Object} updates - Обновляемые данные
+   * @param {boolean} isPublic - Приватность треков
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateMusicPrivacy(userId, updates) {
+  async updateMusicPrivacy(userId, { isPublic }) {
     const [affectedCount] = await Music.update(
-      { isPublic: updates.isPublic },
+      { isPublic },
       { where: { uploadedBy: userId } }
     );
 

@@ -1,3 +1,4 @@
+import { Text } from '../../../ui';
 import { classNames } from '../../../utils';
 import styles from './Select.module.css';
 
@@ -6,6 +7,7 @@ import styles from './Select.module.css';
  *
  * @param {Object} props
  * @param {string} [props.label] - текст лейбла
+ * @param {boolean} [props.required=false] - обязательное поле
  * @param {string|number|boolean} props.value - значение выбранной опции
  * @param {(value: string|number|boolean)=>void} props.onChange - обработчик изменения
  * @param {Array<{value: string|number|boolean, label: string}>} props.options - опции
@@ -18,6 +20,7 @@ import styles from './Select.module.css';
 
 export const Select = ({
   label,
+  required = false,
   value,
   onChange,
   options,
@@ -40,9 +43,10 @@ export const Select = ({
   return (
     <div className={classNames(styles.wrapper, fullWidth && styles.fullWidth)}>
       {label && (
-        <label className={styles.label} htmlFor={selectId}>
+        <Text variant="body2">
           {label}
-        </label>
+          {required && <span className={styles.required}>*</span>}
+        </Text>
       )}
       <select
         id={selectId}
@@ -57,7 +61,11 @@ export const Select = ({
           </option>
         ))}
       </select>
-      {helperText && <span className={styles.helper}>{helperText}</span>}
+      {helperText && (
+        <Text variant="caption" className={styles.helper}>
+          {helperText}
+        </Text>
+      )}
     </div>
   );
 };

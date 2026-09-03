@@ -37,9 +37,10 @@ export const MediaPreview = ({
   disabled = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const playing = currentItem?.id === item.id && isPlaying;
   const showHoverPreview =
-    disabled === false && preview && isHovered && !playing;
+    Boolean(preview) && !disabled && isHovered && !playing;
 
   return (
     <div
@@ -54,7 +55,7 @@ export const MediaPreview = ({
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
     >
-      {showHoverPreview ? (
+      {showHoverPreview && !previewError ? (
         <video
           src={preview}
           autoPlay
@@ -62,6 +63,7 @@ export const MediaPreview = ({
           loop
           playsInline
           className={styles.image}
+          onError={() => setPreviewError(true)}
         />
       ) : (
         <Image

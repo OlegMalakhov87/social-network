@@ -83,3 +83,13 @@ export const deleteNewsApi = async (newsId) => {
   const response = await api.delete(`/news/${newsId}`);
   return response.data;
 };
+
+/**
+ * Удалить загруженные медиа новостей.
+ * @param {Object} data - данные новости
+ * @returns {Promise<Object>} { success }
+ */
+export const deleteUploadedNewsApi = async (data) => {
+  const response = await api.delete('/news/delete-uploaded-media', { data });
+  return response.data;
+};

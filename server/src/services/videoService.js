@@ -9,6 +9,7 @@ const {
 } = require('../../db/models');
 const { Op } = require('sequelize');
 const createError = require('../utils/createError');
+const fromPublicUrl = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -146,12 +147,12 @@ const videoService = {
   /**
    * Обновление приватности видео
    * @param {number} userId - ID пользователя, обновляющего видео
-   * @param {Object} updates - Обновляемые данные
+   * @param {boolean} isPublic - Приватность видео
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateVideoPrivacy(userId, updates) {
+  async updateVideoPrivacy(userId, { isPublic }) {
     const [affectedCount] = await Video.update(
-      { isPublic: updates.isPublic },
+      { isPublic },
       { where: { uploadedBy: userId } }
     );
 
@@ -186,13 +187,13 @@ const videoService = {
     const dbUpdates = { ...updates };
 
     // Логика очистки старого видео файла
-    if (updates.videoUrl !== undefined) {
+    if (updates.videoUrl) {
       const newVideoUrl = updates.videoUrl;
       if (
         newVideoUrl !== video.videoUrl &&
         !video.videoUrl.includes('/default-video.mp4')
       ) {
-        const oldFilePath = path.join(__dirname, '../../', video.videoUrl);
+        const oldFilePath = fromPublicUrl(video.videoUrl);
         try {
           await fs.unlink(oldFilePath);
         } catch (err) {
@@ -203,13 +204,13 @@ const videoService = {
     }
 
     // Логика очистки старой обложки
-    if (updates.thumbnailUrl !== undefined) {
+    if (updates.thumbnailUrl) {
       const newThumbnailUrl = updates.thumbnailUrl;
       if (
         newThumbnailUrl !== video.thumbnailUrl &&
         !video.thumbnailUrl.includes('/default-image.jpg')
       ) {
-        const oldFilePath = path.join(__dirname, '../../', video.thumbnailUrl);
+        const oldFilePath = fromPublicUrl(video.thumbnailUrl);
         try {
           await fs.unlink(oldFilePath);
         } catch (err) {
@@ -220,13 +221,13 @@ const videoService = {
     }
 
     // Логика очистки старой превью
-    if (updates.previewUrl !== undefined) {
+    if (updates.previewUrl) {
       const newPreviewUrl = updates.previewUrl;
       if (
         newPreviewUrl !== video.previewUrl &&
         !video.previewUrl.includes('/default-preview.mp4')
       ) {
-        const oldFilePath = path.join(__dirname, '../../', video.previewUrl);
+        const oldFilePath = fromPublicUrl(video.previewUrl);
         try {
           await fs.unlink(oldFilePath);
         } catch (err) {
@@ -285,8 +286,8 @@ const videoService = {
     }
 
     // Логика очистки старого видео
-    if (video.videoUrl !== undefined) {
-      const oldFilePath = path.join(__dirname, '../../', video.videoUrl);
+    if (video.videoUrl) {
+      const oldFilePath = fromPublicUrl(video.videoUrl);
       try {
         await fs.unlink(oldFilePath);
       } catch (err) {
@@ -294,8 +295,8 @@ const videoService = {
       }
     }
     // Логика очистки старой обложки
-    if (video.thumbnailUrl !== undefined) {
-      const oldFilePath = path.join(__dirname, '../../', video.thumbnailUrl);
+    if (video.thumbnailUrl) {
+      const oldFilePath = fromPublicUrl(video.thumbnailUrl);
       try {
         await fs.unlink(oldFilePath);
       } catch (err) {
@@ -303,8 +304,8 @@ const videoService = {
       }
     }
     // Логика очистки старого превью
-    if (video.previewUrl !== undefined) {
-      const oldFilePath = path.join(__dirname, '../../', video.previewUrl);
+    if (video.previewUrl) {
+      const oldFilePath = fromPublicUrl(video.previewUrl);
       try {
         await fs.unlink(oldFilePath);
       } catch (err) {
@@ -313,6 +314,69 @@ const videoService = {
     }
     await video.destroy();
     return { message: 'Видео успешно удалено', videoId };
+  },
+
+  /**
+   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять видео
+   * @param {string} videoUrl - URL видео файла
+   * @param {string} previewUrl - URL превью файла
+   * @param {string} thumbnailUrl - URL обложки файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedMedia({ videoUrl, previewUrl, thumbnailUrl }) {
+    const urls = [videoUrl, previewUrl, thumbnailUrl];
+
+    for (const url of urls) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа превью
+   * @param {string} previewUrl - URL превью файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedPreview({ previewUrl }) {
+    if (!previewUrl) return;
+
+    const filePath = fromPublicUrl(previewUrl);
+
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа thumbnail
+   * @param {string} thumbnailUrl - URL обложки файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedThumbnail({ thumbnailUrl }) {
+    if (!thumbnailUrl) return;
+
+    const filePath = fromPublicUrl(thumbnailUrl);
+
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
   },
 };
 

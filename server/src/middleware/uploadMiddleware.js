@@ -12,20 +12,20 @@ const ensureDirExists = (dir) => {
 const getDestination = (fieldName, mimetype) => {
   const base = 'uploads/';
 
-  if (fieldName === 'avatarUrl') return base + 'images/avatars/';
-  if (fieldName === 'thumbnailUrl') return base + 'images/thumbnails/';
-  if (fieldName === 'coverUrl') return base + 'images/covers/';
+  if (fieldName === 'avatarUrl') return base + 'avatars/';
+  if (fieldName === 'thumbnailUrl') return base + 'videos/thumbnails/';
+  if (fieldName === 'coverUrl') return base + 'music/covers/';
   if (fieldName === 'postUrl' && mimetype.startsWith('image/'))
-    return base + 'images/posts/';
+    return base + 'posts/images/';
   if (fieldName === 'postUrl' && mimetype.startsWith('video/'))
-    return base + 'videos/posts/';
+    return base + 'posts/videos/';
   if (fieldName === 'newsUrl' && mimetype.startsWith('image/'))
-    return base + 'images/news/';
+    return base + 'news/images/';
   if (fieldName === 'newsUrl' && mimetype.startsWith('video/'))
-    return base + 'videos/news/';
+    return base + 'news/videos/';
   if (fieldName === 'videoUrl') return base + 'videos/video/';
   if (fieldName === 'previewUrl') return base + 'videos/previews/';
-  if (fieldName === 'audioUrl') return base + 'audio/tracks/';
+  if (fieldName === 'audioUrl') return base + 'music/tracks/';
 };
 
 /** Хранение файлов на диске */

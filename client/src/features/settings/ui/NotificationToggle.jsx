@@ -30,7 +30,6 @@ export const NotificationToggle = () => {
       <div className={style.toggleGroup}>
         {NOTIFICATION_SETTINGS_CONFIG.map((option) => (
           <Checkbox
-            key={option.key}
             id={option.key}
             label={option.label}
             description={option.description}
