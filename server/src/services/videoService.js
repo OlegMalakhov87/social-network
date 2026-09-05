@@ -127,6 +127,7 @@ const videoService = {
     const dbData = {
       ...videoData,
       viewsCount: 0,
+      year: new Date().getFullYear(),
       uploadedBy: userId,
     };
 

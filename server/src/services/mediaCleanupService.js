@@ -50,7 +50,7 @@ const mediaCleanupService = {
         }
       }
     }
-   
+    console.log('usedFiles:', [...usedFiles].slice(0, 10));
     return usedFiles;
   },
 
@@ -100,7 +100,7 @@ const mediaCleanupService = {
         files.push(fullPath);
       }
     }
-
+    console.log('files:', files.slice(0, 10));
     return files;
   },
 

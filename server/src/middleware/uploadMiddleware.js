@@ -9,6 +9,7 @@ const ensureDirExists = (dir) => {
   }
 };
 
+/** Получение пути для загрузки файла */
 const getDestination = (fieldName, mimetype) => {
   const base = 'uploads/';
 
