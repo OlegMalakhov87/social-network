@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { POST_TYPES } from '../../../entities/post';
 import { useForm, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
@@ -27,8 +28,27 @@ import {
  * @param {Function} props.onSubmit - функция для отправки формы
  */
 export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
+  const [isChangingType, setIsChangingType] = useState(false);
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
+
+  /** Обработчик отправки формы */
+  const handleSubmit = async (values) => {
+    try {
+      await onSubmit?.(values, isEdit, initialData?.id);
+      imageUpload.commit();
+      videoUpload.commit();
+      imageUpload.reset();
+      videoUpload.reset();
+      notify.success(
+        isEdit ? 'Пост успешно обновлен' : 'Пост успешно добавлен'
+      );
+      onClose?.();
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка сохранения поста'));
+      throw error;
+    }
+  };
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
@@ -36,6 +56,8 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
       isPublic: initialData?.isPublic ?? true,
       type: initialData?.type ?? 'text',
       postUrl: initialData?.postUrl ?? null,
+      previewUrl: initialData?.previewUrl ?? null,
+      thumbnailUrl: initialData?.thumbnailUrl ?? null,
       pinned: initialData?.pinned ?? false,
       isEdited: initialData?.isEdited ?? false,
     },
@@ -49,16 +71,9 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           : [],
       postUrl: values.type !== 'text' ? [required('Загрузите медиафайл')] : [],
     }),
-    onSubmit: async (values) => {
-      try {
-        await onSubmit?.(values, isEdit, initialData?.id);
-        onClose?.();
-      } catch (error) {
-        notify.error(getApiErrorDisplay(error, 'Ошибка добавления поста'));
-        throw error;
-      }
-    },
+    onSubmit: handleSubmit,
   });
+
   /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(POST_IMAGE_UPLOAD_CONFIG, {
     onSuccess: (data) => form.setValue('postUrl', data.postUrl),
@@ -66,13 +81,17 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Хук для загрузки видео */
   const videoUpload = useFileUpload(POST_VIDEO_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('postUrl', data.postUrl),
+    onSuccess: (data) => {
+      form.setValue('postUrl', data.postUrl);
+      form.setValue('previewUrl', data.previewUrl);
+      form.setValue('thumbnailUrl', data.thumbnailUrl);
+    },
   });
 
   /** Флаг загрузки */
   const isUploading = imageUpload.isUploading || videoUpload.isUploading;
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
-  
+
   /** Конфигурация загрузки */
   const activeConfig =
     form.values.type === 'video'
@@ -80,12 +99,47 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
       : POST_IMAGE_UPLOAD_CONFIG;
 
   /** Обработчик изменения типа поста */
-  const handleTypeChange = (value) => {
-    form.setValue('type', value);
-    form.setValue('text', null);
-    form.setValue('postUrl', null);
-    imageUpload.reset();
-    videoUpload.reset();
+  const handleTypeChange = async (value) => {
+    setIsChangingType(true);
+  
+    try {
+      const currentUpload =
+        form.values.type === 'video'
+          ? videoUpload
+          : form.values.type === 'image'
+            ? imageUpload
+            : null;
+  
+      await currentUpload?.cleanupUploadedFile();
+  
+      form.setValue('type', value);
+      form.setValue('text', null);
+      form.setValue('postUrl', null);
+      form.setValue('previewUrl', null);
+      form.setValue('thumbnailUrl', null);
+  
+      imageUpload.reset();
+      videoUpload.reset();
+    } catch {
+      // Не меняем тип, если старый файл не удалось удалить
+    } finally {
+      setIsChangingType(false);
+    }
+  };
+
+  /** Обработчик закрытия формы */
+  const handleCancel = async () => {
+    try {
+      await Promise.all([
+        imageUpload.cleanupUploadedFile(),
+        videoUpload.cleanupUploadedFile(),
+      ]);
+    } finally {
+      imageUpload.reset();
+      videoUpload.reset();
+      form.reset();
+      onClose?.();
+    }
   };
 
   return (
@@ -95,7 +149,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           {/* Выбор типа поста */}
           <SegmentedControl
             options={POST_TYPES}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || isUploading || isChangingType}
             {...form.register('type')}
             onChange={handleTypeChange}
           />
@@ -105,7 +159,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             {...form.register('text')}
             placeholder="Поделитесь своими новостями"
             rows={3}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || isUploading || isChangingType}
           />
 
           {/* Динамическое поле для URL */}
@@ -140,7 +194,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             align="end"
             checked={form.values.isPublic}
             onChange={(e) => form.setValue('isPublic', e.target.checked)}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || isUploading || isChangingType}
           />
 
           {/* Кнопки действий: Отмена, Сохранить, Добавить */}
@@ -149,19 +203,16 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
               variant="secondary"
               type="button"
               size="sm"
-              disabled={form.isSubmitting || isUploading}
-              onClick={() => {
-                form.reset();
-                onClose?.();
-              }}
+              disabled={form.isSubmitting || isUploading || isChangingType}
+              onClick={handleCancel}
             >
               Отмена
             </Button>
             <Button
               type="submit"
               size="sm"
-              disabled={form.isSubmitting || isUploading}
-              loading={form.isSubmitting || isUploading}
+              disabled={form.isSubmitting || isUploading || isChangingType}
+              loading={form.isSubmitting || isUploading || isChangingType}
             >
               {isEdit ? 'Сохранить' : 'Добавить'}
             </Button>

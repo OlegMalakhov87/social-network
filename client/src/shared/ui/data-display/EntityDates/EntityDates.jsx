@@ -1,4 +1,4 @@
-import style from './EntityDates.module.css';
+import styles from './EntityDates.module.css';
 
 /**
  * Универсальный блок дат сущности.
@@ -19,18 +19,18 @@ export const EntityDates = ({
   if (!value) return null;
 
   return (
-    <div className={style.wrapper}>
-      <div className={style.row}>
-        <span className={style.label}>{label}</span>
+    <div className={styles.wrapper}>
+      <div className={styles.row}>
+        <span className={styles.label}>{label}</span>
 
-        <span className={style.value}>{value}</span>
+        <span className={styles.value}>{value}</span>
       </div>
 
       {secondaryValue && (
-        <div className={style.row}>
-          <span className={style.label}>{secondaryLabel}</span>
+        <div className={styles.row}>
+          <span className={styles.label}>{secondaryLabel}</span>
 
-          <span className={style.value}>{secondaryValue}</span>
+          <span className={styles.value}>{secondaryValue}</span>
         </div>
       )}
     </div>

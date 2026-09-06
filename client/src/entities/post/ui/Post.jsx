@@ -98,7 +98,8 @@ export const Post = ({
             {post.postUrl && (
               <MediaPreview
                 item={post}
-                src={post.postUrl}
+                src={post.type === 'video' ? post.thumbnailUrl : post.postUrl}
+                preview={post.type === 'video' ? post.previewUrl : null}
                 alt={post.type === 'image' ? 'Фото' : 'Видео'}
                 onClick={onPlay}
                 currentItem={currentPost}

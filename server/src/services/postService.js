@@ -3,6 +3,7 @@ const path = require('path');
 const { Post, User, Friend, Like, Comment } = require('../../db/models');
 const { Op } = require('sequelize');
 const createError = require('../utils/createError');
+const fromPublicUrl = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -135,13 +136,8 @@ const postService = {
    */
   async createPost(currentUserId, postData) {
     const dbData = {
+      ...postData,
       userId: currentUserId,
-      text: postData.text || null,
-      isPublic: postData.isPublic ?? true,
-      type: postData.type || 'text',
-      postUrl: postData.postUrl || null,
-      pinned: postData.pinned ?? false,
-      isEdited: false,
     };
 
     const post = await Post.create(dbData);
@@ -154,96 +150,6 @@ const postService = {
     });
 
     return { post: postWithAuthor.toJSON() };
-  },
-
-  /**
-   * Загрузка медиа файла
-   * @param {Object} file - Файл
-   * @returns {Promise<Object>} - Объект с URL медиа файла
-   */
-  async uploadMedia(file) {
-    if (!file) {
-      throw createError('Файл не предоставлен', 400, 'NO_FILE_PROVIDED');
-    }
-    const postUrl = `/${file.path}`;
-
-    return { postUrl };
-  },
-
-  /**
-   * Обновление поста
-   * @param {number} postId - ID поста
-   * @param {number} userId - ID пользователя
-   * @param {Object} updateData - Данные для обновления
-   * @returns {Promise<Object>} - Объект с обновленным постом
-   */
-  async updatePost(postId, userId, updateData) {
-    const post = await Post.findByPk(postId);
-    if (!post) {
-      throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
-    }
-
-    if (post.userId !== userId) {
-      throw createError(
-        'Вы не можете редактировать этот пост',
-        403,
-        'FORBIDDEN'
-      );
-    }
-
-    // Маппинг полей для обновления
-    const updates = { isEdited: true };
-    if (updateData.text !== undefined && updateData.text !== null) {
-      updates.text = updateData.text.trim();
-    }
-    if (updateData.isPublic !== undefined && updateData.isPublic !== null)
-      updates.isPublic = updateData.isPublic;
-
-    if (updateData.type !== undefined && updateData.type !== null) {
-      updates.type = updateData.type;
-    }
-
-    if (updateData.pinned !== undefined && updateData.pinned !== null) {
-      updates.pinned = updateData.pinned;
-    }
-
-    if (updateData.postUrl !== undefined && updateData.postUrl !== null) {
-      const newPostUrl = updateData.postUrl;
-
-      if (newPostUrl !== post.postUrl && post.postUrl) {
-        const oldPostUrl = path.join(__dirname, '../../', post.postUrl);
-
-        try {
-          await fs.unlink(oldPostUrl);
-        } catch (err) {
-          console.warn(
-            `Не удалось удалить старое медиа поста ${oldPostUrl}:`,
-            err.message
-          );
-        }
-      }
-      updates.postUrl = newPostUrl;
-    }
-
-    if (Object.keys(updates).length === 0) {
-      throw createError(
-        'Не указаны поля для обновления',
-        400,
-        'NO_UPDATE_DATA'
-      );
-    }
-
-    // Обновляем пост и возвращаем результат одним запросом
-    const [, updatedRows] = await Post.update(updates, {
-      where: { id: postId },
-      returning: true,
-      plain: true,
-      include: [
-        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
-      ],
-    });
-
-    return { post: updatedRows.toJSON() };
   },
 
   /**
@@ -269,13 +175,93 @@ const postService = {
   },
 
   /**
-   * Удаление поста
+   * Обновление поста
+   * @param {number} postId - ID поста
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {Object} updateData - Данные для обновления
+   * @returns {Promise<Object>} - Объект с обновленным постом
+   */
+  async updatePost(postId, currentUserId, updateData) {
+    const post = await Post.findByPk(postId);
+
+    if (!post) {
+      throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
+    }
+
+    if (post.userId !== currentUserId) {
+      throw createError(
+        'Вы не можете редактировать этот пост',
+        403,
+        'FORBIDDEN'
+      );
+    }
+
+    const nextType = updateData.type ?? post.type;
+
+    const dbUpdates = {
+      isEdited: true,
+      postUrl: nextType === 'text' ? null : (updateData.postUrl ?? null),
+      previewUrl: nextType === 'video' ? (updateData.previewUrl ?? null) : null,
+      thumbnailUrl:
+        nextType === 'video' ? (updateData.thumbnailUrl ?? null) : null,
+    };
+
+    const [, updatedPost] = await Post.update(dbUpdates, {
+      where: { id: postId },
+      returning: true,
+      plain: true,
+    });
+
+    const oldMedia = [post.postUrl, post.previewUrl, post.thumbnailUrl];
+
+    const newMedia = [
+      updatedPost.postUrl,
+      updatedPost.previewUrl,
+      updatedPost.thumbnailUrl,
+    ];
+
+    for (const oldUrl of oldMedia) {
+      if (!oldUrl || newMedia.includes(oldUrl)) {
+        continue;
+      }
+
+      try {
+        const filePath = fromPublicUrl(oldUrl);
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа поста ${oldUrl}:`,
+            error.message
+          );
+        }
+      }
+    }
+
+    const postWithAuthor = await Post.findByPk(updatedPost.id, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
+      ],
+    });
+
+    return {
+      post: postWithAuthor.toJSON(),
+    };
+  },
+
+  /**
+   * Удаление поста (владелец)
    * @param {number} postId - ID поста
    * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - Объект с сообщением об удалении
    */
   async deletePost(postId, currentUserId) {
     const post = await Post.findByPk(postId);
+
     if (!post) {
       throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
     }
@@ -284,17 +270,44 @@ const postService = {
       throw createError('Вы не можете удалить этот пост', 403, 'FORBIDDEN');
     }
 
-    // Логика очистки старой обложки
-    if (post.postUrl !== undefined && post.postUrl !== null) {
-      const oldPostUrl = path.join(__dirname, '../../', post.postUrl);
+    await post.destroy();
+
+    // Логика очистки старого медиа файла
+    for (const url of [post.postUrl, post.previewUrl, post.thumbnailUrl]) {
+      if (!url) continue;
+
       try {
-        await fs.unlink(oldPostUrl);
-      } catch (err) {
-        console.warn('Не удалось удалить старый медиа файл:', err.message);
+        await fs.unlink(fromPublicUrl(url));
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(`Не удалось удалить медиа поста ${url}:`, error.message);
+        }
       }
     }
-    await post.destroy();
+
     return { message: 'Пост успешно удален', postId };
+  },
+
+  /**
+   * Удаление (очистка мусора) загруженных медиа файлов в случае если пользователь отказался добавлять пост
+   * @param {string} postUrl - URL медиа файла
+   * @param {string} previewUrl - URL превью медиа файла
+   * @param {string} thumbnailUrl - URL thumbnail медиа файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedMedia({ postUrl, previewUrl, thumbnailUrl }) {
+    const urls = [postUrl, previewUrl, thumbnailUrl];
+    for (const url of urls) {
+      if (!url) continue;
+      const filePath = fromPublicUrl(url);
+      try {
+        await fs.unlink(filePath);
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          throw err;
+        }
+      }
+    }
   },
 };
 

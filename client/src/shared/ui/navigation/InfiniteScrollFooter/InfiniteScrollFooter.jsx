@@ -1,6 +1,6 @@
 import { Button, Loading } from '../../../ui';
 import { classNames } from '../../../utils';
-import style from './InfiniteScrollFooter.module.css';
+import styles from './InfiniteScrollFooter.module.css';
 
 /**
  * Универсальный футер для бесконечного скролла.
@@ -25,8 +25,8 @@ export const InfiniteScrollFooter = ({
   //  Ошибка при дозагрузке
   if (error) {
     return (
-      <div className={classNames(style.footer, style.error, className)}>
-        <span className={style.text}>Не удалось загрузить ещё</span>
+      <div className={classNames(styles.footer, styles.error, className)}>
+        <span className={styles.text}>Не удалось загрузить ещё</span>
         {onRetry && (
           <Button variant="ghost" size="sm" onClick={onRetry}>
             Повторить
@@ -39,7 +39,7 @@ export const InfiniteScrollFooter = ({
   // Идет загрузка следующей страницы
   if (isLoading) {
     return (
-      <div className={classNames(style.footer, className)}>
+      <div className={classNames(styles.footer, className)}>
         <Loading size="small" message="Загружаем ещё..." />
       </div>
     );
@@ -48,8 +48,8 @@ export const InfiniteScrollFooter = ({
   //  Данные закончились
   if (!hasMore) {
     return (
-      <div className={classNames(style.footer, style.end, className)}>
-        <span className={style.badge}>{endMessage}</span>
+      <div className={classNames(styles.footer, styles.end, className)}>
+        <span className={styles.badge}>{endMessage}</span>
       </div>
     );
   }

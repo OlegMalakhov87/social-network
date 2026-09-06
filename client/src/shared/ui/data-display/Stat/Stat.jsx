@@ -1,5 +1,5 @@
 import { classNames } from '../../../utils';
-import style from './Stat.module.css';
+import styles from './Stat.module.css';
 
 /**
  * Один показатель статистики.
@@ -13,12 +13,12 @@ import style from './Stat.module.css';
 
 export const Stat = ({ icon, value, label, className = '' }) => {
   return (
-    <div className={classNames(style.stat, className)}>
-      {icon && <span className={style.icon}>{icon}</span>}
+    <div className={classNames(styles.stat, className)}>
+      {icon && <span className={styles.icon}>{icon}</span>}
 
-      <span className={style.value}>{value}</span>
+      <span className={styles.value}>{value}</span>
 
-      {label && <span className={style.label}>{label}</span>}
+      {label && <span className={styles.label}>{label}</span>}
     </div>
   );
 };

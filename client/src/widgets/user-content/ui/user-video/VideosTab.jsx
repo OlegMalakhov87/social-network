@@ -5,7 +5,7 @@ import {
   ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import style from './VideosTab.module.css';
+import styles from './VideosTab.module.css';
 
 /**
  * Вкладка с сеткой видео.
@@ -108,12 +108,12 @@ export const VideosTab = ({
       }
       onRetry={onRetry}
     >
-      <div className={style.videosGrid}>
-        {videos.map((item) => {
+      <div className={styles.videosList}>
+        {videos.map((video) => {
           return (
             <Video
-              key={item.id}
-              video={item}
+              key={video.id}
+              video={video}
               currentUser={currentUser}
               isOwnProfile={isOwnProfile}
               mode={mode}

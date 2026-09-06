@@ -70,7 +70,7 @@ export const getVideoActions = ({
     actions.push({
       key: 'visible',
       icon: '🔒',
-      label: 'Личное',
+      label: '',
       ariaLabel: 'Личное',
       disabled: true,
     });

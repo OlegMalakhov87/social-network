@@ -119,23 +119,23 @@ const videoService = {
 
   /**
    * Создать новое видео
-   * @param {number} userId - ID пользователя, создающего видео
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} videoData - Данные видео
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async createVideo(userId, videoData) {
+  async createVideo(currentUserId, videoData) {
     const dbData = {
       ...videoData,
       viewsCount: 0,
       year: new Date().getFullYear(),
-      uploadedBy: userId,
+      uploadedBy: currentUserId,
     };
 
     const video = await Video.create(dbData);
 
     // Автоматически добавляем в библиотеку создателя
     await UserVideoLibrary.create({
-      userId,
+      userId: currentUserId,
       videoId: video.id,
       isFavorite: true,
       viewsCount: 0,
@@ -147,14 +147,14 @@ const videoService = {
 
   /**
    * Обновление приватности видео
-   * @param {number} userId - ID пользователя, обновляющего видео
+   * @param {number} currentUserId - ID пользователя, обновляющего видео
    * @param {boolean} isPublic - Приватность видео
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateVideoPrivacy(userId, { isPublic }) {
+  async updateVideoPrivacy(currentUserId, { isPublic }) {
     const [affectedCount] = await Video.update(
       { isPublic },
-      { where: { uploadedBy: userId } }
+      { where: { uploadedBy: currentUserId } }
     );
 
     if (affectedCount === 0) {
@@ -170,15 +170,15 @@ const videoService = {
   /**
    * Обновление видео (владелец)
    * @param {number} videoId - ID видео
-   * @param {number} userId - ID пользователя, обновляющего видео
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} updates - Обновляемые данные
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateVideo(videoId, userId, updates) {
+  async updateVideo(videoId, currentUserId, updates) {
     const video = await Video.findByPk(videoId);
     if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
 
-    if (video.uploadedBy !== userId)
+    if (video.uploadedBy !== currentUserId)
       throw createError(
         'Вы не можете редактировать это видео',
         403,
@@ -238,6 +238,7 @@ const videoService = {
       dbUpdates.previewUrl = newPreviewUrl;
     }
 
+    /** Проверка на наличие данных для обновления */
     if (Object.keys(dbUpdates).length === 0)
       throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
 
@@ -270,12 +271,12 @@ const videoService = {
   /**
    * Удаление видео (владелец)
    * @param {number} videoId - ID видео
-   * @param {number} userId - ID пользователя, удаляющего видео
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async deleteVideo(videoId, userId) {
+  async deleteVideo(videoId, currentUserId) {
     const video = await Video.findOne({
-      where: { id: videoId, uploadedBy: userId },
+      where: { id: videoId, uploadedBy: currentUserId },
     });
 
     if (!video) {

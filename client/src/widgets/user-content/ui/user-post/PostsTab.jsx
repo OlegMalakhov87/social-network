@@ -5,7 +5,7 @@ import {
   ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import style from './PostsTab.module.css';
+import styles from './PostsTab.module.css';
 
 /**
  * Вкладка с сеткой постов.
@@ -63,12 +63,12 @@ export const PostsTab = ({
       }
       onRetry={onRetry}
     >
-      <div className={style.postsList}>
-        {posts.map((item) => {
+      <div className={styles.postsList}>
+        {posts.map((post) => {
           return (
             <Post
-              key={item.id}
-              post={item}
+              key={post.id}
+              post={post}
               targetUser={targetUser}
               currentUser={currentUser}
               onPlay={onPlayPost}

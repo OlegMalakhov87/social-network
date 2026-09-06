@@ -9,6 +9,8 @@ export const normalizePosts = (raw) => {
     userId: raw.userId,
     text: raw.text,
     postUrl: raw.postUrl,
+    previewUrl: raw.previewUrl,
+    thumbnailUrl: raw.thumbnailUrl,
     isPublic: raw.isPublic,
     type: raw.type,
     pinned: raw.pinned,

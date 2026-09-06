@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge, IconButton, Image } from '../../../ui';
 import {
   classNames,
@@ -7,8 +7,14 @@ import {
 } from '../../../utils';
 import styles from './MediaPreview.module.css';
 
+const PREVIEW_DELAY = 1000;
+
 /**
  * Универсальное превью медиа.
+ *
+ * Preview видео запускается только после того,
+ * как пользователь непрерывно удерживает курсор
+ * над медиа в течение PREVIEW_DELAY.
  *
  * @param {Object} props
  * @param {Object} [props.item] - объект с данными о медиа
@@ -37,10 +43,34 @@ export const MediaPreview = ({
   disabled = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [shouldLoadPreview, setShouldLoadPreview] = useState(false);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+
   const playing = currentItem?.id === item.id && isPlaying;
-  const showHoverPreview =
-    Boolean(preview) && !disabled && isHovered && !playing;
+
+  useEffect(() => {
+    if (!isHovered || !preview || disabled || playing) {
+      setShouldLoadPreview(false);
+      setPreviewLoaded(false);
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setShouldLoadPreview(true);
+    }, PREVIEW_DELAY);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isHovered, preview, disabled, playing]);
+
+  useEffect(() => {
+    if (!isHovered) {
+      setPreviewError(false);
+      setPreviewLoaded(false);
+    }
+  }, [isHovered]);
 
   return (
     <div
@@ -55,22 +85,30 @@ export const MediaPreview = ({
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
     >
-      {showHoverPreview && !previewError ? (
+      <Image
+        src={src || fallback}
+        alt={alt}
+        fallback={fallback}
+        className={classNames(
+          styles.image,
+          previewLoaded && styles.imageHidden
+        )}
+      />
+
+      {shouldLoadPreview && !previewError && (
         <video
           src={preview}
           autoPlay
           muted
           loop
           playsInline
-          className={styles.image}
+          preload="metadata"
+          className={classNames(
+            styles.preview,
+            previewLoaded && styles.previewVisible
+          )}
+          onLoadedData={() => setPreviewLoaded(true)}
           onError={() => setPreviewError(true)}
-        />
-      ) : (
-        <Image
-          src={src || fallback}
-          alt={alt}
-          fallback={fallback}
-          className={styles.image}
         />
       )}
 
@@ -84,6 +122,7 @@ export const MediaPreview = ({
             onClick={disabled ? undefined : () => onClick?.(item)}
             disabled={disabled}
           />
+
           {item.duration && (
             <Badge size="sm" className={styles.badge}>
               {formatDuration(item.duration)}

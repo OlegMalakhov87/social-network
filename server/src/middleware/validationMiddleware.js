@@ -147,6 +147,16 @@ const validatePost = [
     .isString()
     .isLength({ min: 1, max: 500 })
     .withMessage('Пост URL до 500 символов'),
+  body('previewUrl')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Превью до 500 символов'),
+  body('thumbnailUrl')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Обложка до 500 символов'),
   body('isEdited')
     .isBoolean()
     .withMessage('isEdited должен быть true или false'),
@@ -459,6 +469,16 @@ const validateNews = [
     .trim()
     .isLength({ min: 1, max: 500 })
     .withMessage('Новость URL до 500 символов'),
+  body('previewUrl')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Превью до 500 символов'),
+  body('thumbnailUrl')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Обложка до 500 символов'),
   body('viewsCount')
     .isInt({ min: 0 })
     .toInt()

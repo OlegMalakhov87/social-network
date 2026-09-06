@@ -53,7 +53,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       throw error;
     }
   };
-  
+
   /** Форма для добавления/редактирования видео с валидацией */
   const form = useForm({
     initialValues: {
@@ -91,7 +91,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       form.setValue('duration', data.duration);
       form.setValue('size', data.size);
     },
-    isEdit,
   });
 
   /** Хук для загрузки обложки */
@@ -99,7 +98,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSuccess: (data) => {
       form.setValue('thumbnailUrl', data.thumbnailUrl);
     },
-    isEdit,
   });
 
   /** Хук для загрузки превью */
@@ -107,7 +105,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSuccess: (data) => {
       form.setValue('previewUrl', data.previewUrl);
     },
-    isEdit,
   });
 
   /** Флаг загрузки */

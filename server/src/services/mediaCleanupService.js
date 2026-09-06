@@ -50,7 +50,6 @@ const mediaCleanupService = {
         }
       }
     }
-    console.log('usedFiles:', [...usedFiles].slice(0, 10));
     return usedFiles;
   },
 
@@ -100,7 +99,6 @@ const mediaCleanupService = {
         files.push(fullPath);
       }
     }
-    console.log('files:', files.slice(0, 10));
     return files;
   },
 
@@ -170,15 +168,17 @@ const mediaCleanupService = {
         continue;
       }
 
+      console.log('[MediaCleanup] К удалению:', absolutePath);
+
       try {
         await fs.unlink(absolutePath);
+        console.log('[MediaCleanup] Удалён:', absolutePath);
         deletedCount++;
       } catch (error) {
         if (error.code === 'ENOENT') {
           continue;
         }
-
-        console.error(`[MediaCleanup] Ошибка удаления ${absolutePath}:`, error);
+        console.error('[MediaCleanup] Ошибка удаления:', absolutePath, error);
       }
     }
 

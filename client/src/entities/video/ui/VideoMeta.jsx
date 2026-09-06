@@ -1,7 +1,7 @@
 import { getVideoMeta } from '..';
 import { EntityDates, EntityInfoList, EntityStats } from '../../../shared/ui';
 import { formatViews } from '../../../shared/utils';
-import style from './VideoMeta.module.css';
+import styles from './VideoMeta.module.css';
 
 /**
  * Информация о видео.
@@ -14,10 +14,10 @@ export const VideoMeta = ({ video, mode }) => {
   const meta = getVideoMeta(video, mode);
 
   return (
-    <div className={style.meta}>
-      <h3 className={style.title}>{video.title}</h3>
+    <div className={styles.meta}>
+      <h3 className={styles.title}>{video.title}</h3>
 
-      <EntityInfoList items={meta.details} />
+      <EntityInfoList items={meta.details} className={styles.details} />
 
       <EntityDates {...meta.dates} />
 

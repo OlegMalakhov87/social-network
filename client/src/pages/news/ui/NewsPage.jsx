@@ -14,7 +14,7 @@ import {
   Toolbar,
 } from '../../../shared/ui';
 import { CommentsSection } from '../../../widgets/comments-list';
-import { NewsGrid } from '../../../widgets/news-list';
+import { NewsList } from '../../../widgets/news-list';
 import { VideoPlayer } from '../../../widgets/video-player';
 
 /**
@@ -151,7 +151,7 @@ export const NewsPage = () => {
               onSubmit={handleFormSubmit}
             />
           )}
-          <NewsGrid
+          <NewsList
             news={news}
             currentUser={currentUser}
             hasMore={hasMore}

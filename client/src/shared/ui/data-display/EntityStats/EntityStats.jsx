@@ -1,6 +1,6 @@
 import { Stat } from '../../../ui';
 import { classNames } from '../../../utils';
-import style from './EntityStats.module.css';
+import styles from './EntityStats.module.css';
 
 /**
  * Панель статистики сущности.
@@ -14,7 +14,7 @@ export const EntityStats = ({ items = [], className = '' }) => {
   if (!items.length) return null;
 
   return (
-    <div className={classNames(style.stats, className)}>
+    <div className={classNames(styles.stats, className)}>
       {items.map((item) => (
         <Stat
           key={item.key ?? item.label ?? item.icon}

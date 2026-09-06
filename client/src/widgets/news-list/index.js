@@ -1,2 +1,2 @@
 /** Список новостей */
-export { NewsGrid } from './ui/NewsGrid';
+export { NewsList } from './ui/NewsList';

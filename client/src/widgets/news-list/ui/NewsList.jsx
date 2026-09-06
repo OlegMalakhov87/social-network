@@ -4,9 +4,9 @@ import {
   ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../shared/ui';
-import style from './NewsGrid.module.css';
+import styles from './NewsList.module.css';
 
-/** Сетка новостей *  /
+/** Список новостей *  /
  * @param {Object} props
  * @param {Array} props.news - массив новостей
  * @param {Object} props.currentUser - текущий пользователь
@@ -25,7 +25,7 @@ import style from './NewsGrid.module.css';
  * @param {boolean} props.isPlaying - воспроизводится ли новость
  */
 
-export const NewsGrid = ({
+export const NewsList = ({
   news = [],
   currentUser,
   hasMore,
@@ -54,7 +54,7 @@ export const NewsGrid = ({
       emptyDescription="Попробуйте изменить параметры поиска или выберите другую категорию"
       onRetry={onRetry}
     >
-      <div className={style.newsGrid}>
+      <div className={styles.newsList}>
         {news.map((news) => {
           return (
             <News

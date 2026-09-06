@@ -66,4 +66,11 @@ postRoutes.delete(
   postController.deletePost
 );
 
+// Удаление (очистка мусора) загруженных медиа файлов
+postRoutes.delete(
+  '/delete-uploaded-media',
+  authMiddleware,
+  postController.deleteUploadedMedia
+);
+
 module.exports = postRoutes;

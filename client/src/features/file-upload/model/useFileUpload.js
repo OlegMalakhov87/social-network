@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { api } from '../../../shared/api';
 
 /**
@@ -31,7 +31,6 @@ export const useFileUpload = (config, options = {}) => {
   const [progress, setProgress] = useState(0);
 
   const uploadedFileRef = useRef(null);
-  const uploadedFile = uploadedFileRef.current;
 
   /**
    * Сбрасывает только локальное состояние.
@@ -53,6 +52,8 @@ export const useFileUpload = (config, options = {}) => {
    * Удаляет временно загруженный файл с сервера.
    */
   const cleanupUploadedFile = async () => {
+    const uploadedFile = uploadedFileRef.current;
+    
     if (!uploadedFile || !config.deleteFn) {
       return;
     }

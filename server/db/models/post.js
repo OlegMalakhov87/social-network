@@ -59,6 +59,22 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
+      previewUrl: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
+      },
+      thumbnailUrl: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+          notEmpty: true,
+        },
+      },
       isPublic: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
