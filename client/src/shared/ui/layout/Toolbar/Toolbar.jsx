@@ -10,6 +10,7 @@ import styles from './Toolbar.module.css';
  * @param {Function} props.onTabChange - функция изменения активной вкладки профиля.
  * @param {React.ReactNode} props.leftSlot - левая часть панели управления профилем.
  * @param {React.ReactNode} props.rightSlot - правая часть панели управления профилем.
+ * @param {boolean} [props.disabled=false] - заблокированы ли вкладки
  */
 
 export const Toolbar = ({
@@ -18,12 +19,18 @@ export const Toolbar = ({
   onTabChange,
   leftSlot,
   rightSlot,
+  disabled = false,
 }) => {
   return (
     <div className={styles.toolbar}>
       <div className={styles.left}>
         {leftSlot ?? (
-          <Tabs items={tabs} value={activeTab} onChange={onTabChange} />
+          <Tabs
+            items={tabs}
+            value={activeTab}
+            onChange={onTabChange}
+            disabled={disabled}
+          />
         )}
       </div>
 

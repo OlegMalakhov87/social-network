@@ -3,11 +3,11 @@ import { POST_TYPES } from '../../../entities/post';
 import { useForm, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
 import {
-  BaseCard,
   Button,
   ButtonGroup,
   Checkbox,
   FileInput,
+  Modal,
   SegmentedControl,
   TextArea,
 } from '../../../shared/ui';
@@ -101,7 +101,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Обработчик изменения типа поста */
   const handleTypeChange = async (value) => {
     setIsChangingType(true);
-  
+
     try {
       const currentUpload =
         form.values.type === 'video'
@@ -109,17 +109,16 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
           : form.values.type === 'image'
             ? imageUpload
             : null;
-  
+
       await currentUpload?.cleanupUploadedFile();
-  
+
       form.setValue('type', value);
       form.setValue('text', null);
       form.setValue('postUrl', null);
       form.setValue('previewUrl', null);
       form.setValue('thumbnailUrl', null);
-  
-      imageUpload.reset();
-      videoUpload.reset();
+
+      currentUpload.reset();
     } catch {
       // Не меняем тип, если старый файл не удалось удалить
     } finally {
@@ -143,82 +142,84 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
   };
 
   return (
-    <BaseCard
-      content={
-        <form onSubmit={form.submit}>
-          {/* Выбор типа поста */}
-          <SegmentedControl
-            options={POST_TYPES}
-            disabled={form.isSubmitting || isUploading || isChangingType}
-            {...form.register('type')}
-            onChange={handleTypeChange}
-          />
+    <Modal
+      onClose={handleCancel}
+      title={isEdit ? '✏️ Редактировать пост' : '🎬 Добавить пост'}
+      size="md"
+    >
+      <form onSubmit={form.submit}>
+        {/* Выбор типа поста */}
+        <SegmentedControl
+          options={POST_TYPES}
+          disabled={form.isSubmitting || isUploading || isChangingType}
+          {...form.register('type')}
+          onChange={handleTypeChange}
+        />
 
-          {/* Поле ввода сообщения */}
-          <TextArea
-            {...form.register('text')}
-            placeholder="Поделитесь своими новостями"
-            rows={3}
-            disabled={form.isSubmitting || isUploading || isChangingType}
-          />
+        {/* Поле ввода сообщения */}
+        <TextArea
+          {...form.register('text')}
+          placeholder="Поделитесь своими новостями"
+          rows={3}
+          disabled={form.isSubmitting || isUploading || isChangingType}
+        />
 
-          {/* Динамическое поле для URL */}
-          {form.values.type !== 'text' && (
-            <FileInput
-              accept={activeConfig.accept}
-              label={form.values.type === 'image' ? 'Изображение' : 'Видео'}
-              buttonText={
-                form.values.type === 'image'
-                  ? 'Выбрать изображение'
-                  : 'Выбрать видео'
-              }
-              preview={activeUpload.preview}
-              isUploading={activeUpload.isUploading}
-              progress={activeUpload.progress}
-              error={activeUpload.error || form.errors.postUrl}
-              onChange={activeUpload.handleFileChange}
-              disabled={form.isSubmitting || isUploading}
-            />
-          )}
-
-          {/* Выбор видимости */}
-          <Checkbox
-            id="isPublic "
-            name="isPublic"
-            label="Хотите чтобы ваш пост увидели"
-            description={
-              form.values.isPublic
-                ? 'Все пользователи'
-                : 'Только вы и ваши друзья'
+        {/* Динамическое поле для URL */}
+        {form.values.type !== 'text' && (
+          <FileInput
+            accept={activeConfig.accept}
+            label={form.values.type === 'image' ? 'Изображение' : 'Видео'}
+            buttonText={
+              form.values.type === 'image'
+                ? 'Выбрать изображение'
+                : 'Выбрать видео'
             }
-            align="end"
-            checked={form.values.isPublic}
-            onChange={(e) => form.setValue('isPublic', e.target.checked)}
+            preview={activeUpload.preview}
+            isUploading={activeUpload.isUploading}
+            progress={activeUpload.progress}
+            error={activeUpload.error || form.errors.postUrl}
+            onChange={activeUpload.handleFileChange}
             disabled={form.isSubmitting || isUploading || isChangingType}
           />
+        )}
 
-          {/* Кнопки действий: Отмена, Сохранить, Добавить */}
-          <ButtonGroup>
-            <Button
-              variant="secondary"
-              type="button"
-              size="sm"
-              disabled={form.isSubmitting || isUploading || isChangingType}
-              onClick={handleCancel}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={form.isSubmitting || isUploading || isChangingType}
-              loading={form.isSubmitting || isUploading || isChangingType}
-            >
-              {isEdit ? 'Сохранить' : 'Добавить'}
-            </Button>
-          </ButtonGroup>
-        </form>
-      }
-    />
+        {/* Выбор видимости */}
+        <Checkbox
+          id="isPublic "
+          name="isPublic"
+          label="Ваш пост увидят"
+          description={
+            form.values.isPublic
+              ? 'Все пользователи'
+              : 'Только вы и ваши друзья'
+          }
+          align="end"
+          checked={form.values.isPublic}
+          onChange={(e) => form.setValue('isPublic', e.target.checked)}
+          disabled={form.isSubmitting || isUploading || isChangingType}
+        />
+
+        {/* Кнопки действий: Отмена, Сохранить, Добавить */}
+        <ButtonGroup>
+          <Button
+            variant="secondary"
+            type="button"
+            size="sm"
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            onClick={handleCancel}
+          >
+            Отмена
+          </Button>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            loading={form.isSubmitting || isUploading || isChangingType}
+          >
+            {isEdit ? 'Сохранить' : 'Добавить'}
+          </Button>
+        </ButtonGroup>
+      </form>
+    </Modal>
   );
 };

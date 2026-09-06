@@ -26,6 +26,14 @@
   background: var(--surface-card-hover);
 }
 
+.button:disabled {
+  background: var(--surface-secondary);
+  border-color: var(--border-secondary);
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .active {
   background: var(--color-primary-active);
   color: var(--color-white);

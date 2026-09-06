@@ -8,9 +8,10 @@ import styles from './Tabs.module.css';
  * @param {Array<Object>} props.items - массив вкладок (идентификатор, текст, иконка)
  * @param {string} props.value - значение выбранной вкладки
  * @param {Function} props.onChange - функция изменения выбранной вкладки
+ * @param {boolean} [props.disabled=false] - заблокированы ли вкладки
  */
 
-export const Tabs = ({ items = [], value, onChange }) => {
+export const Tabs = ({ items = [], value, onChange, disabled = false }) => {
   return (
     <nav className={styles.tabs} aria-label="Навигация">
       {items.map((item) => (
@@ -22,6 +23,7 @@ export const Tabs = ({ items = [], value, onChange }) => {
           }}
           filter={value}
           onChangeButtonFilter={onChange}
+          disabled={disabled}
         />
       ))}
     </nav>

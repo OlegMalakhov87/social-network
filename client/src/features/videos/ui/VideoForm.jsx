@@ -134,7 +134,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     <Modal
       onClose={handleCancel}
       title={isEdit ? '✏️ Редактировать видео' : '🎬 Добавить видео'}
-      size="md"
+      size="sm"
     >
       <form onSubmit={form.submit}>
         {VIDEO_CONFIG.map((field) => (

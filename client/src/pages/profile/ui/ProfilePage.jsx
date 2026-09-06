@@ -261,6 +261,7 @@ export const ProfilePage = () => {
             onTabChange={setActiveTab}
             rightSlot={
               <>
+                {/* Сортировка */}
                 <Dropdown
                   options={SORT_OPTIONS}
                   currentSort={sortKey}

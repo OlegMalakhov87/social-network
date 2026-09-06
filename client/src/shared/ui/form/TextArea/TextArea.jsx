@@ -8,13 +8,13 @@ import styles from './TextArea.module.css';
  * @param {Object} props
  * @param {string} [props.className=''] - дополнительный CSS класс
  * @param {string} [props.error] - сообщение об ошибке
- * @param {boolean} props.disabled - заблокирован ли текстовое поле
+ * @param {boolean} [props.disabled=false] - заблокирован ли текстовое поле
  * @param {number} [props.rows=4] - количество строк
  * @param {React.Ref<HTMLTextAreaElement>} props.ref - ссылка на текстовое поле
  */
 
 export const TextArea = forwardRef(
-  ({ className = '', error, disabled, rows = 3, ...props }, ref) => {
+  ({ className = '', error, disabled = false, rows = 3, ...props }, ref) => {
     return (
       <>
         <textarea

@@ -19,6 +19,12 @@
   box-shadow: var(--shadow-focus);
 }
 
+.textarea:disabled {
+  background: var(--surface-secondary);
+  border-color: var(--border-secondary);
+  cursor: not-allowed;
+}
+
 .error {
   border-color: var(--color-danger);
 }

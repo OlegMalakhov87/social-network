@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useEscapeKey, useOutsideClick } from '../../../hooks';
-import style from './Dropdown.module.css';
+import styles from './Dropdown.module.css';
 
 /**
  * Выпадающий список сортировки.
@@ -8,8 +8,14 @@ import style from './Dropdown.module.css';
  * @param {Object} props.options - объект с вариантами сортировки (ключи — id, значения — { id, label })
  * @param {string} props.currentSort - текущий выбранный ключ сортировки
  * @param {Function} props.onChange - колбэк при выборе варианта (получает id)
+ * @param {boolean} [props.disabled=false] - заблокирован ли выпадающий список
  */
-export const Dropdown = ({ options, currentSort, onChange }) => {
+export const Dropdown = ({
+  options,
+  currentSort,
+  onChange,
+  disabled = false,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -31,10 +37,10 @@ export const Dropdown = ({ options, currentSort, onChange }) => {
   if (!options || items.length === 0) return null;
 
   return (
-    <div className={style.dropdown} ref={dropdownRef}>
+    <div className={styles.dropdown} ref={dropdownRef}>
       <button
         type="button"
-        className={style.triggerButton}
+        className={styles.triggerButton}
         onClick={(e) => {
           e?.stopPropagation();
           setIsOpen((prev) => !prev);
@@ -42,10 +48,11 @@ export const Dropdown = ({ options, currentSort, onChange }) => {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label="Выбрать сортировку"
+        disabled={disabled}
       >
-        <span className={style.label}>{currentOption?.label}</span>
+        <span className={styles.label}>{currentOption?.label}</span>
         <span
-          className={`${style.icon} ${isOpen ? style.iconOpen : ''}`}
+          className={`${styles.icon} ${isOpen ? styles.iconOpen : ''}`}
           aria-hidden="true"
         >
           ▼
@@ -53,14 +60,14 @@ export const Dropdown = ({ options, currentSort, onChange }) => {
       </button>
 
       {isOpen && (
-        <ul className={style.menu} role="listbox">
+        <ul className={styles.menu} role="listbox">
           {items.map((option) => (
             <li
               key={option.id}
               role="option"
               aria-selected={currentSort === option.id}
-              className={`${style.menuItem} ${
-                currentSort === option.id ? style.menuItemActive : ''
+              className={`${styles.menuItem} ${
+                currentSort === option.id ? styles.menuItemActive : ''
               }`}
               onClick={() => handleSelect(option.id)}
             >

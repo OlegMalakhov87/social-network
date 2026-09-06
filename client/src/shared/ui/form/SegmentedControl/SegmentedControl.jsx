@@ -8,7 +8,7 @@ import styles from './SegmentedControl.module.css';
  * @param {Array<{value:string,label:string,icon?:string}>} props.options - массив опций (значение, текст, иконка)
  * @param {string} props.value - значение выбранной опции
  * @param {(value:string)=>void} props.onChange - функция изменения выбранной опции
- * @param {boolean} props.disabled - заблокирован ли переключатель
+ * @param {boolean} [props.disabled=false] - заблокирован ли переключатель
  * @param {string} [props.className=''] - дополнительный CSS класс
  */
 

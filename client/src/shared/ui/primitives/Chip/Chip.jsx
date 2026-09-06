@@ -7,8 +7,9 @@ import styles from './Chip.module.css';
  * @param {Object} props.item - объект категории с полями { id, name }
  * @param {string} props.filter - текущий активный фильтр
  * @param {Function} props.onChangeButtonFilter - колбэк при выборе (получает id категории)
+ * @param {boolean} [props.disabled=false] - заблокирован ли фильтр
  */
-export const Chip = ({ item, filter, onChangeButtonFilter }) => {
+export const Chip = ({ item, filter, onChangeButtonFilter, disabled = false }) => {
   if (!item?.id) return null; // защита от невалидных данных
 
   const isActive = filter === item.id;
@@ -19,6 +20,7 @@ export const Chip = ({ item, filter, onChangeButtonFilter }) => {
       className={classNames(styles.filterButton, isActive && styles.active)}
       onClick={() => onChangeButtonFilter(item.id)}
       aria-pressed={isActive}
+      disabled={disabled}
     >
       {item.name}
     </button>
