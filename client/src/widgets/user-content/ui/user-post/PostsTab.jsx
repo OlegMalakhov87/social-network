@@ -1,10 +1,11 @@
 import { Post } from '../../../../entities/post';
-
+import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
+  ContentRefetchOverlay,
   ContentState,
-  ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
+import { EntityWithComments } from '../../../entity-comments';
 import styles from './PostsTab.module.css';
 
 /**
@@ -22,6 +23,9 @@ import styles from './PostsTab.module.css';
  * @param {Function} props.toggleLike - лайк/дизлайк
  * @param {Function} props.deletePost - удалить пост
  * @param {Function} props.toggleComments - открыть комментарии / закрыть комментарии
+ * @param {Object} props.commentTarget - целевой тип и id комментариев
+ * @param {Function} props.onCloseComments - закрыть комментарии
+ * @param {Function} props.onCommentChange - изменить количество комментариев
  * @param {Function} props.onRetry - повторить загрузку
  * @param {boolean} props.hasMore - есть ли еще посты для загрузки
  * @param {Function} props.loadMore - функция для загрузки следующей страницы постов
@@ -45,60 +49,80 @@ export const PostsTab = ({
   loadMore,
   hasMore,
   onRetry,
+  commentTarget,
+  onCloseComments,
+  onCommentChange,
 }) => {
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && posts.length > 0;
+
   return (
-    <ContentState
-      loading={
-        (isLoading && posts.length === 0) || (!currentUser && !targetUser)
-      }
-      error={posts.length === 0 ? error : null}
-      isEmpty={!posts?.length}
-      loadingMessage="Загружаем посты..."
-      emptyIcon="📝"
-      emptyTitle="Нет постов"
-      emptyDescription={
-        isOwnProfile
-          ? 'Опубликуйте свой первый пост.'
-          : 'У пользователя пока нет публичных постов.'
-      }
-      onRetry={onRetry}
-    >
-      <div className={styles.postsList}>
-        {posts.map((post) => {
-          return (
-            <Post
+    <div className={styles.contentArea}>
+      <ContentState
+        loading={
+          (isLoading && posts.length === 0) || (!currentUser && !targetUser)
+        }
+        error={posts.length === 0 ? error : null}
+        isEmpty={!posts?.length}
+        loadingMessage="Загружаем посты..."
+        emptyIcon="📝"
+        emptyTitle="Нет постов"
+        emptyDescription={
+          isOwnProfile
+            ? 'Опубликуйте свой первый пост.'
+            : 'У пользователя пока нет публичных постов.'
+        }
+        onRetry={onRetry}
+      >
+        <div className={styles.postsList}>
+          {posts.map((post) => (
+            <EntityWithComments
               key={post.id}
-              post={post}
-              targetUser={targetUser}
+              entity={post}
+              targetType="posts"
+              isOpen={commentTarget?.id === post.id}
+              onClose={onCloseComments}
               currentUser={currentUser}
-              onPlay={onPlayPost}
-              toggleLike={toggleLike}
-              onDelete={deletePost}
-              onUpdate={updatePost}
-              toggleComments={toggleComments}
-              currentPost={currentPost}
-              isPlaying={isPlaying}
+              onCommentChange={onCommentChange}
+              renderEntity={(entity) => (
+                <Post
+                  post={entity}
+                  targetUser={targetUser}
+                  currentUser={currentUser}
+                  onPlay={onPlayPost}
+                  toggleLike={toggleLike}
+                  onDelete={deletePost}
+                  onUpdate={updatePost}
+                  toggleComments={toggleComments}
+                  currentPost={currentPost}
+                  isPlaying={isPlaying}
+                />
+              )}
             />
-          );
-        })}
+          ))}
 
-        {posts.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все посты"
-          />
-        )}
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 
-        {error && posts.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую порцию постов"
-            onRetry={loadMore}
-          />
-        )}
-      </div>
-    </ContentState>
+          {posts.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все посты"
+            />
+          )}
+        </div>
+      </ContentState>
+
+      {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

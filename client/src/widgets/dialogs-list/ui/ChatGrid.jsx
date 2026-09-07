@@ -4,16 +4,16 @@ import { Message } from '../../../entities/dialog';
 import { normalizeSharedMessage } from '../../../entities/shared-entity';
 import { MessageForm } from '../../../features/dialogs';
 import { useShareEntity } from '../../../features/shared-entities';
+import { useInfiniteScrollTrigger } from '../../../shared/hooks';
 import {
   ContentState,
   EntityHeader,
   EntityMeta,
-  ErrorBanner,
   IconButton,
   InfiniteScrollFooter,
   StatusBadge,
 } from '../../../shared/ui';
-import style from './ChatGrid.module.css';
+import styles from './ChatGrid.module.css';
 
 /**
  * Компонент отображения чата.
@@ -75,6 +75,13 @@ export const ChatGrid = ({
     onSuccess: () => navigate('/messages'),
   });
 
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
   return (
     <ContentState
       loading={isLoadingUser || (isLoadingMessages && messages.length === 0)}
@@ -88,9 +95,9 @@ export const ChatGrid = ({
       emptyDescription="Начните общение с друзьями"
       onRetry={onRetry}
     >
-      <div className={style.chat}>
+      <div className={styles.chat}>
         {/* Шапка чата  */}
-        <EntityHeader className={style.chatHeader}>
+        <EntityHeader className={styles.chatHeader}>
           <IconButton
             icon="←"
             variant="ghost"
@@ -100,7 +107,7 @@ export const ChatGrid = ({
           />
 
           <div
-            className={style.userInfo}
+            className={styles.userInfo}
             onClick={() =>
               selectedUser?.id && navigate(`/profile/${selectedUser?.id}`)
             }
@@ -114,7 +121,7 @@ export const ChatGrid = ({
               status={partnerOnline ? 'online' : 'offline'}
               label={partnerOnline ? 'В сети' : 'Не в сети'}
               size="sm"
-              className={style.statusBadge}
+              className={styles.statusBadge}
             />
           </div>
 
@@ -128,7 +135,7 @@ export const ChatGrid = ({
         </EntityHeader>
 
         {/* Список сообщений */}
-        <div className={style.messagesList}>
+        <div className={styles.messagesList}>
           {messages.map((msg) => (
             <Message
               key={msg.id}
@@ -145,6 +152,8 @@ export const ChatGrid = ({
           ))}
         </div>
 
+        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
         {messages.length > 0 && (
           <>
             <InfiniteScrollFooter
@@ -154,12 +163,6 @@ export const ChatGrid = ({
               onRetry={loadMore}
               endMessage="Сообщений больше нет"
             />
-            {messagesError && messages.length > 0 && (
-              <ErrorBanner
-                message="Не удалось загрузить сообщения"
-                onRetry={loadMore}
-              />
-            )}
           </>
         )}
 

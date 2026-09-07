@@ -23,7 +23,7 @@ export const CommentForm = ({ currentUser, onSubmit, onClose }) => {
     initialValues: { text: null, isEdited: false },
     rules: () => ({
       text: [
-        required('Введите комментарий'),
+        required('Напишите комментарий'),
         maxLength(2000, 'Максимум 2000 символов'),
       ],
     }),

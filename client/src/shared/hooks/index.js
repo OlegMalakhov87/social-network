@@ -3,6 +3,7 @@ export { useEscapeKey } from './useEscapeKey'; // Хук для обработк
 export { useFilterControls } from './useFilterControls'; // Хук для управления фильтрами
 export { useForm } from './useForm'; // Хук для управления формой
 export { useInfiniteScroll } from './useInfiniteScroll'; // Хук для бесконечного скролла
+export { useInfiniteScrollTrigger } from './useInfiniteScrollTrigger'; // Хук для бесконечного скролла
 export { useLockBodyScroll } from './useLockBodyScroll'; // Хук для блокировки скролла
 export { useMediaControls } from './useMediaControls'; // Хук для управления медиаплеером
 export { useNormalizedData } from './useNormalizedData'; // Хук для нормализации данных

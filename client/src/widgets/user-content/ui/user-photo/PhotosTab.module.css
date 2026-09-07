@@ -1,5 +1,15 @@
+.contentArea {
+  position: relative;
+}
+
 .photosGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: var(--space-5);
+}
+
+.loadMoreTrigger {
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
 }

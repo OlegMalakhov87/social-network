@@ -22,5 +22,8 @@ export const getPostsTabProps = (ctx) => ({
   deletePost: ctx.deletePost,
   updatePost: ctx.updatePost,
   toggleComments: ctx.toggleComments,
+  commentTarget: ctx.commentTarget,
+  onCloseComments: ctx.onCloseComments,
+  onCommentChange: ctx.onCommentChange,
   onRetry: ctx.refetch,
 });

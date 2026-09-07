@@ -9,6 +9,7 @@ import style from './FileInput.module.css';
  * @param {Object} props
  * @param {string} props.accept - допустимые MIME-типы (например, 'image/jpeg,image/png')
  * @param {string} [props.label] - текст лейбла
+ * @param {string} [props.hint] - текст подсказки
  * @param {string} [props.buttonText='Выбрать файл'] - текст кнопки
  * @param {string} [props.preview] - URL превью (для изображений/видео)
  * @param {boolean} [props.isUploading=false] - состояние загрузки
@@ -22,6 +23,7 @@ import style from './FileInput.module.css';
 export const FileInput = ({
   accept,
   label,
+  hint,
   buttonText = 'Выбрать файл',
   preview,
   isUploading = false,
@@ -54,12 +56,20 @@ export const FileInput = ({
 
   return (
     <div className={classNames(style.wrapper, className)}>
-      {label && (
+      <label className={style.label}>
         <Text variant="body2">
           {label}
           {required && <span className={style.required}>*</span>}
         </Text>
-      )}
+
+        {hint && (
+          <span className={style.hintWrapper}>
+            <Text variant="caption" className={style.hint}>
+              {hint}
+            </Text>
+          </span>
+        )}
+      </label>
 
       <div className={style.container}>
         {/* Превью (если есть) */}

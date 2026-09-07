@@ -34,7 +34,7 @@ export const getCommentActions = ({
     {
       key: 'share',
       icon: '↗️',
-      label: 'Поделиться',
+      label: '',
       ariaLabel: 'Поделиться',
       onClick: () => onShare?.(),
     },
@@ -44,7 +44,7 @@ export const getCommentActions = ({
     actions.push({
       key: 'edit',
       icon: '✏️',
-      label: 'Редактировать',
+      label: '',
       ariaLabel: 'Редактировать комментарий',
       onClick: () => onEdit?.(comment.id),
     });
@@ -52,7 +52,7 @@ export const getCommentActions = ({
     actions.push({
       key: 'delete',
       icon: '🗑️',
-      label: 'Удалить',
+      label: '',
       ariaLabel: 'Удалить комментарий',
       variant: 'danger',
       onClick: () => onDelete?.(comment.id),

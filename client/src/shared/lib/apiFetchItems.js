@@ -6,7 +6,7 @@ import { extractPaginatedItems } from './extractPaginatedItems';
  *
  * @param {Function} fetchApi
  * @param {{ params: Object, signal?: AbortSignal }} options
- * @returns {Promise<{ items: Array, hasMore: boolean }>}
+ * @returns {Promise<{ items: Array, hasMore: boolean, currentPage: number }>}
  */
 export const apiFetchItems = async (fetchApi, { params, signal }) => {
   const { q, filter, ...restParams } = params;

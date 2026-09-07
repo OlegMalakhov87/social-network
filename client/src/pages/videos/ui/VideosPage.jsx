@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { CATEGORIES } from '../../../entities/video';
 import { useCommentsPanel } from '../../../features/comments';
 import { VideoForm, useVideos } from '../../../features/videos';
@@ -13,7 +13,6 @@ import {
   SectionCard,
   Toolbar,
 } from '../../../shared/ui';
-import { CommentsSection } from '../../../widgets/comments-list';
 import { VideosTab } from '../../../widgets/user-content';
 import { VideoPlayer } from '../../../widgets/video-player';
 
@@ -23,7 +22,6 @@ import { VideoPlayer } from '../../../widgets/video-player';
 export const VideosPage = () => {
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const commentsSectionRef = useRef(null);
   const onVideoStartRef = useRef(null);
 
   /** Управление фильтрацией и сортировкой */
@@ -45,6 +43,7 @@ export const VideosPage = () => {
     hasMore,
     error,
     loadMore,
+    currentPage,
     refetch,
     toggleLike,
     addToLibrary,
@@ -58,7 +57,7 @@ export const VideosPage = () => {
 
   /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel('videos', sortKey, filter);
+    useCommentsPanel('videos', sortKey, filter, currentPage);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
@@ -101,15 +100,6 @@ export const VideosPage = () => {
     setShowVideoForm(null);
   }, []);
 
-  /** Скролл к секции комментариев при открытии панели */
-  useEffect(() => {
-    if (!commentTarget?.id || !commentTarget?.type) return;
-    commentsSectionRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  }, [commentTarget?.id, commentTarget?.type]);
-
   return (
     <ErrorBoundary>
       <PageLayout
@@ -147,23 +137,13 @@ export const VideosPage = () => {
             }
           />
 
-          {showVideoForm && currentUser && (
-            <VideoForm
-              key={
-                showVideoForm === 'create'
-                  ? 'create'
-                  : `edit-${showVideoForm.id}`
-              }
-              initialData={showVideoForm === 'create' ? null : showVideoForm}
-              onClose={handleCloseForm}
-              onSubmit={handleFormSubmit}
-            />
-          )}
-
           <VideosTab
             videos={videos}
             currentUser={currentUser}
             toggleComments={onToggleComments}
+            commentTarget={commentTarget}
+            onCloseComments={handleCloseComments}
+            onCommentChange={handleCommentChange}
             toggleLike={toggleLike}
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
@@ -184,16 +164,17 @@ export const VideosPage = () => {
           />
         </SectionCard>
 
-        {commentTarget && currentUser && (
-          <CommentsSection
-            targetType={commentTarget?.type}
-            targetId={commentTarget?.id}
-            currentUser={currentUser}
-            onChange={handleCommentChange}
-            onClose={handleCloseComments}
-            commentsSectionRef={commentsSectionRef}
+        {showVideoForm && currentUser && (
+          <VideoForm
+            key={
+              showVideoForm === 'create' ? 'create' : `edit-${showVideoForm.id}`
+            }
+            initialData={showVideoForm === 'create' ? null : showVideoForm}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
           />
         )}
+
         {selectedVideo && (
           <VideoPlayer
             video={selectedVideo}

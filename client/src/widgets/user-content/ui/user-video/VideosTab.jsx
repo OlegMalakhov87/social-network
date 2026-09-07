@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Video } from '../../../../entities/video';
+import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
+  ContentRefetchOverlay,
   ContentState,
-  ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
+import { EntityWithComments } from '../../../entity-comments';
 import styles from './VideosTab.module.css';
 
 /**
@@ -28,6 +30,9 @@ import styles from './VideosTab.module.css';
  * @param {boolean} props.isPlaying - флаг воспроизведения текущего видео
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
+ * @param {Object} props.commentTarget - целевой объект для комментариев.
+ * @param {Function} props.onCloseComments - закрыть комментарии.
+ * @param {Function} props.onCommentChange - изменить комментарии.
  * @param {Function} props.onRetry - повторить загрузку
  * @param {boolean} props.hasMore - флаг наличия следующей страницы видео
  * @param {Function} props.loadMore - функция для загрузки следующей страницы видео
@@ -38,6 +43,9 @@ export const VideosTab = ({
   videos = [],
   currentUser,
   toggleComments,
+  commentTarget,
+  onCloseComments,
+  onCommentChange,
   isOwnProfile,
   toggleLike,
   isLoading,
@@ -62,7 +70,17 @@ export const VideosTab = ({
   const videosRef = useRef(videos);
   videosRef.current = videos;
 
-  /** Счётчик просмотров при старте воспроизведения в модальном плеере (профиль) */
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && videos.length > 0;
+
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
+  /** Счётчик просмотров при старте воспроизведения в модальном плеере */
   useEffect(() => {
     if (typeof onVideoStart !== 'function') return;
 
@@ -92,62 +110,69 @@ export const VideosTab = ({
   ]);
 
   return (
-    <ContentState
-      loading={isLoading && videos.length === 0}
-      isEmpty={!videos?.length}
-      error={videos.length === 0 ? error : null}
-      loadingMessage="Загружаем видео..."
-      emptyIcon="🎬"
-      emptyTitle="Нет видео"
-      emptyDescription={
-        mode === 'profile'
-          ? isOwnProfile
-            ? 'Добавьте свои первые видео.'
-            : 'У пользователя пока нет публичных видео.'
-          : 'Попробуйте изменить категорию или поисковый запрос.'
-      }
-      onRetry={onRetry}
-    >
-      <div className={styles.videosList}>
-        {videos.map((video) => {
-          return (
-            <Video
+    <div className={styles.contentArea}>
+      <ContentState
+        loading={isLoading && videos.length === 0}
+        isEmpty={!videos?.length}
+        error={videos.length === 0 ? error : null}
+        loadingMessage="Загружаем видео..."
+        emptyIcon="🎬"
+        emptyTitle="Нет видео"
+        emptyDescription={
+          mode === 'profile'
+            ? isOwnProfile
+              ? 'Добавьте свои первые видео.'
+              : 'У пользователя пока нет публичных видео.'
+            : 'Попробуйте изменить категорию или поисковый запрос.'
+        }
+        onRetry={onRetry}
+      >
+        <div className={styles.videosList}>
+          {videos.map((video) => (
+            <EntityWithComments
               key={video.id}
-              video={video}
+              entity={video}
+              targetType="videos"
+              isOpen={commentTarget?.id === video.id}
+              onClose={onCloseComments}
               currentUser={currentUser}
-              isOwnProfile={isOwnProfile}
-              mode={mode}
-              onPlay={onPlayVideo}
-              currentVideo={currentVideo}
-              isPlaying={isPlaying}
-              addToLibrary={addToLibrary}
-              deleteFromLibrary={deleteFromLibrary}
-              toggleLike={toggleLike}
-              toggleFavorite={toggleFavorite}
-              toggleComments={toggleComments}
-              updateVideo={updateVideo}
-              deleteVideo={deleteVideo}
+              onCommentChange={onCommentChange}
+              renderEntity={(entity) => (
+                <Video
+                  video={entity}
+                  currentUser={currentUser}
+                  isOwnProfile={isOwnProfile}
+                  mode={mode}
+                  onPlay={onPlayVideo}
+                  currentVideo={currentVideo}
+                  isPlaying={isPlaying}
+                  addToLibrary={addToLibrary}
+                  deleteFromLibrary={deleteFromLibrary}
+                  toggleLike={toggleLike}
+                  toggleFavorite={toggleFavorite}
+                  toggleComments={toggleComments}
+                  updateVideo={updateVideo}
+                  deleteVideo={deleteVideo}
+                />
+              )}
             />
-          );
-        })}
+          ))}
 
-        {videos.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все видео"
-          />
-        )}
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 
-        {error && videos.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую порцию видео"
-            onRetry={loadMore}
-          />
-        )}
-      </div>
-    </ContentState>
+          {videos.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все видео"
+            />
+          )}
+        </div>
+      </ContentState>
+
+      {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

@@ -1,8 +1,10 @@
-import style from './Loading.module.css';
+import { classNames } from '../../../utils';
+import styles from './Loading.module.css';
 
 /**
  * Универсальный индикатор загрузки.
  * @param {Object} props
+ * @param {React.ReactNode} [props.children] - дополнительный контент над спиннером
  * @param {string} [props.message='Загрузка...'] - текст под спиннером
  * @param {'small'|'medium'|'large'} [props.size='medium'] - размер спиннера
  * @param {boolean} [props.fullPage=false] - если true, спиннер центрируется на всю доступную область
@@ -15,12 +17,13 @@ export const Loading = ({
   fullPage = false,
   className = '',
 }) => {
-  const wrapperClass = `${fullPage ? style.fullPage : ''} ${className}`.trim();
+  const wrapperClass = classNames(
+    styles.wrapper,
+    fullPage && styles.fullPage,
+    className
+  );
 
-  const spinnerClass = `
-    ${style.spinner}
-    ${style[size]}
-`.trim();
+  const spinnerClass = classNames(styles.spinner, styles[size]);
 
   return (
     <div
@@ -31,7 +34,8 @@ export const Loading = ({
       aria-busy="true"
     >
       <div className={spinnerClass} />
-      {message && <p className={style.message}>{children ?? message}</p>}
+
+      {message && <p className={styles.message}>{children ?? message}</p>}
     </div>
   );
 };

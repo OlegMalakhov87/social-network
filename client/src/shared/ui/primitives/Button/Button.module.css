@@ -8,13 +8,13 @@
   font-family: inherit;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  flex-shrink: 0;
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
     border-color var(--transition-fast),
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
-
   user-select: none;
 }
 
@@ -144,15 +144,16 @@
 }
 
 .spinner {
+  flex-shrink: 0;
   width: var(--space-4);
   height: var(--space-4);
-  border-radius: 50%;
   border: 2px solid var(--text-secondary);
   border-top-color: var(--color-white);
-  animation: spin var(--transition-slow) linear infinite;
+  border-radius: var(--radius-full);
+  animation: buttonSpin 0.8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes buttonSpin {
   to {
     transform: rotate(360deg);
   }

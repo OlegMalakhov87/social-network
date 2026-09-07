@@ -53,6 +53,7 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     hasMore,
     error,
     loadMore,
+    currentPage,
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
@@ -115,9 +116,7 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
   });
 
   /** Оптимистическое управление счётчиком комментариев видео */
-  const updateCommentsCount = useOptimisticCommentCount({
-    setItems: setVideosItems,
-  });
+  const updateCommentsCount = useOptimisticCommentCount(setVideosItems);
 
   /** Нормализация видео */
   const normalizeVideoFn = useCallback(
@@ -143,6 +142,7 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     hasMore,
     error,
     loadMore,
+    currentPage,
     refetch,
     toggleLike,
     addToLibrary,

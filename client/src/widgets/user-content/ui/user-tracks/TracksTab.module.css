@@ -1,7 +1,17 @@
+.contentArea {
+  position: relative;
+}
+
 .tracksGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: var(--space-4);
+}
+
+.loadMoreTrigger {
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
 }
 
 @media (max-width: 480px) {

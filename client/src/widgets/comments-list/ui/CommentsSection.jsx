@@ -13,7 +13,6 @@ import { Dropdown, IconButton, SectionCard } from '../../../shared/ui';
  * @param {Object} props.currentUser - текущий пользователь.
  * @param {Function} props.onChange - функция для обновления количества комментариев.
  * @param {Function} props.onClose - функция для закрытия секции комментариев.
- * @param {React.Ref<HTMLDivElement>} props.commentsSectionRef - ссылка на секцию комментариев.
  */
 export const CommentsSection = ({
   targetType,
@@ -21,12 +20,11 @@ export const CommentsSection = ({
   currentUser,
   onChange,
   onClose,
-  commentsSectionRef,
 }) => {
   /** Управление фильтрацией и сортировкой */
   const { sortKey, setSortKey } = useFilterControls({
     initialFilter: 'all',
-    initialSort: 'dateDesc',
+    initialSort: 'dateAsc',
   });
 
   /** Получение данных о комментариях */
@@ -52,7 +50,6 @@ export const CommentsSection = ({
 
   return (
     <SectionCard
-      ref={commentsSectionRef}
       title="Комментарии"
       actions={
         <>

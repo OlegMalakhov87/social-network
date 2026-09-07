@@ -3,12 +3,9 @@ import {
   getEmptyDescription,
   getEmptyTitle,
 } from '../../../entities/friend';
-import {
-  ContentState,
-  ErrorBanner,
-  InfiniteScrollFooter,
-} from '../../../shared/ui';
-import style from './FriendsGrid.module.css';
+import { useInfiniteScrollTrigger } from '../../../shared/hooks';
+import { ContentRefetchOverlay, ContentState, InfiniteScrollFooter } from '../../../shared/ui';
+import styles from './FriendsGrid.module.css';
 
 /**
  * Сетка карточек друзей с пагинацией.
@@ -42,7 +39,18 @@ export const FriendsGrid = ({
   onUnlock,
   onBlock,
 }) => {
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && friends.length > 0;
+
   return (
+    <div className={styles.contentArea}>
     <ContentState
       loading={isLoading && friends.length === 0}
       error={error && friends.length === 0}
@@ -53,7 +61,7 @@ export const FriendsGrid = ({
       emptyDescription={getEmptyDescription(filter)}
       onRetry={onRetry}
     >
-      <div className={style.friendsGrid}>
+      <div className={styles.friendsGrid}>
         {friends.map((friend) => (
           <Friend
             key={friend.id}
@@ -66,6 +74,8 @@ export const FriendsGrid = ({
           />
         ))}
 
+        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
         {friends.length > 0 && (
           <InfiniteScrollFooter
             hasMore={hasMore}
@@ -75,14 +85,10 @@ export const FriendsGrid = ({
             endMessage="Вы просмотрели всех друзей"
           />
         )}
-
-        {error && friends.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую страницу друзей"
-            onRetry={loadMore}
-          />
-        )}
       </div>
     </ContentState>
+
+    {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

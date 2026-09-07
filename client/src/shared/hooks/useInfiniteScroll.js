@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createAbortableFetch } from '../lib';
 
+/**
+ * Проверяет, является ли ошибка отменённым запросом.
+ *
+ * @param {Error} err - ошибка
+ * @returns {boolean} - true, если ошибка отменённого запроса, false в противном случае
+ */
 const isRequestCanceled = (err) =>
   err?.name === 'AbortError' ||
   err?.name === 'CanceledError' ||
@@ -39,8 +45,10 @@ export const useInfiniteScroll = ({
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
 
-  if (!firstPageFetcherRef.current) firstPageFetcherRef.current = createAbortableFetch();
-  if (!loadMoreFetcherRef.current) loadMoreFetcherRef.current = createAbortableFetch();
+  if (!firstPageFetcherRef.current)
+    firstPageFetcherRef.current = createAbortableFetch();
+  if (!loadMoreFetcherRef.current)
+    loadMoreFetcherRef.current = createAbortableFetch();
 
   useEffect(() => {
     fetchFnRef.current = fetchFn;
@@ -155,5 +163,6 @@ export const useInfiniteScroll = ({
     refetch,
     reset,
     loadFirstPage,
+    currentPage: page,
   };
 };

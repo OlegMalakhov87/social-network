@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { Track } from '../../../../entities/track';
+import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
+  ContentRefetchOverlay,
   ContentState,
-  ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import style from './TracksTab.module.css';
+import { EntityWithComments } from '../../../entity-comments';
+import styles from './TracksTab.module.css';
 
 /**
  * Вкладка с сеткой треков.
@@ -32,6 +34,9 @@ import style from './TracksTab.module.css';
  * @param {Function} props.updateGlobalPlaysCount - обновить глобальный счетчик прослушиваний
  * @param {Function} props.toggleFavorite - удалить/добавить в избранное
  * @param {Function} props.toggleComments - открыть комментарии
+ * @param {Object} props.commentTarget - целевой тип и id комментариев
+ * @param {Function} props.onCloseComments - закрыть комментарии
+ * @param {Function} props.onCommentChange - изменить количество комментариев
  * @param {Function} props.onRetry - повторить загрузку
  */
 
@@ -59,10 +64,23 @@ export const TracksTab = ({
   updateGlobalPlaysCount,
   toggleFavorite,
   toggleComments,
+  commentTarget,
+  onCloseComments,
+  onCommentChange,
   onRetry,
 }) => {
   const tracksRef = useRef(tracks);
   tracksRef.current = tracks;
+
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && tracks.length > 0;
+
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
 
   /** Обработчик для увеличения счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере */
   useEffect(() => {
@@ -94,62 +112,69 @@ export const TracksTab = ({
   }, [onTrackStart, updatePlaysCount, updateGlobalPlaysCount]);
 
   return (
-    <ContentState
-      loading={isLoading && tracks.length === 0}
-      error={tracks.length === 0 ? error : null}
-      isEmpty={!tracks?.length}
-      loadingMessage="Загружаем треки..."
-      emptyIcon="🎵"
-      emptyTitle="Нет треков"
-      emptyDescription={
-        isOwnProfile
-          ? 'Добавьте свои первые треки.'
-          : 'У пользователя пока нет публичных треков.'
-      }
-      onRetry={onRetry}
-    >
-      <div className={style.tracksGrid}>
-        {tracks.map((item) => {
-          return (
-            <Track
-              key={item.id}
-              track={item}
-              allTracks={tracks}
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
+    <div className={styles.contentArea}>
+      <ContentState
+        loading={isLoading && tracks.length === 0}
+        error={tracks.length === 0 ? error : null}
+        isEmpty={!tracks?.length}
+        loadingMessage="Загружаем треки..."
+        emptyIcon="🎵"
+        emptyTitle="Нет треков"
+        emptyDescription={
+          isOwnProfile
+            ? 'Добавьте свои первые треки.'
+            : 'У пользователя пока нет публичных треков.'
+        }
+        onRetry={onRetry}
+      >
+        <div className={styles.tracksGrid}>
+          {tracks.map((track) => (
+            <EntityWithComments
+              key={track.id}
+              entity={track}
+              targetType="tracks"
+              isOpen={commentTarget?.id === track.id}
+              onClose={onCloseComments}
               currentUser={currentUser}
-              isOwnProfile={isOwnProfile}
-              mode={mode}
-              onPlay={onPlay}
-              togglePlay={togglePlay}
-              addToLibrary={addOptimistic}
-              deleteFromLibrary={deleteOptimistic}
-              toggleFavorite={toggleFavorite}
-              toggleLike={toggleLike}
-              toggleComments={toggleComments}
-              updateTrack={updateTrack}
-              onDelete={deleteTrack}
+              onCommentChange={onCommentChange}
+              renderEntity={(entity) => (
+                <Track
+                  track={entity}
+                  allTracks={tracks}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  currentUser={currentUser}
+                  isOwnProfile={isOwnProfile}
+                  mode={mode}
+                  onPlay={onPlay}
+                  togglePlay={togglePlay}
+                  addToLibrary={addOptimistic}
+                  deleteFromLibrary={deleteOptimistic}
+                  toggleFavorite={toggleFavorite}
+                  toggleLike={toggleLike}
+                  toggleComments={toggleComments}
+                  updateTrack={updateTrack}
+                  onDelete={deleteTrack}
+                />
+              )}
             />
-          );
-        })}
+          ))}
 
-        {tracks.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все треки"
-          />
-        )}
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 
-        {error && tracks.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую порцию треков"
-            onRetry={loadMore}
-          />
-        )}
-      </div>
-    </ContentState>
+          {tracks.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все треки"
+            />
+          )}
+        </div>
+      </ContentState>
+
+      {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

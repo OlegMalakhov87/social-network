@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { GENRE_TABS } from '../../../entities/track';
 import { useCommentsPanel } from '../../../features/comments';
 import { TrackForm, useMusic } from '../../../features/tracks';
@@ -14,7 +14,6 @@ import {
   Toolbar,
 } from '../../../shared/ui';
 import { useAudioPlayer } from '../../../widgets/audio-player';
-import { CommentsSection } from '../../../widgets/comments-list';
 import { TracksTab } from '../../../widgets/user-content';
 
 /**
@@ -23,7 +22,6 @@ import { TracksTab } from '../../../widgets/user-content';
 
 export const MusicPage = () => {
   const [showTrackForm, setShowTrackForm] = useState(false);
-  const commentsSectionRef = useRef(null);
 
   /** Управление фильтрацией и сортировкой */
   const {
@@ -44,6 +42,7 @@ export const MusicPage = () => {
     hasMore,
     error,
     loadMore,
+    currentPage,
     refetch,
     toggleLike,
     addTrack,
@@ -61,7 +60,7 @@ export const MusicPage = () => {
 
   /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel('tracks', sortKey, filter);
+    useCommentsPanel('tracks', sortKey, filter, currentPage);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
@@ -86,15 +85,6 @@ export const MusicPage = () => {
   const handleCloseForm = useCallback(() => {
     setShowTrackForm(null);
   }, []);
-
-  /** Скролл к секции комментариев при открытии панели */
-  useEffect(() => {
-    if (!commentTarget?.id || !commentTarget?.type) return;
-    commentsSectionRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  }, [commentTarget?.id, commentTarget?.type]);
 
   return (
     <ErrorBoundary>
@@ -133,19 +123,6 @@ export const MusicPage = () => {
             }
           />
 
-          {showTrackForm && currentUser && (
-            <TrackForm
-              key={
-                showTrackForm === 'create'
-                  ? 'create'
-                  : `edit-${showTrackForm.id}`
-              }
-              initialData={showTrackForm === 'create' ? null : showTrackForm}
-              onClose={handleCloseForm}
-              onSubmit={handleFormSubmit}
-            />
-          )}
-
           <TracksTab
             tracks={tracks}
             mode="general"
@@ -167,19 +144,22 @@ export const MusicPage = () => {
             updateTrack={setShowTrackForm}
             updateGlobalPlaysCount={updateGlobalPlaysCount}
             toggleComments={onToggleComments}
+            commentTarget={commentTarget}
+            onCloseComments={handleCloseComments}
+            onCommentChange={handleCommentChange}
             onRetry={refetch}
             updateCommentsCount={updateCommentsCount}
           />
         </SectionCard>
 
-        {commentTarget && currentUser && (
-          <CommentsSection
-            targetType={commentTarget?.type}
-            targetId={commentTarget?.id}
-            currentUser={currentUser}
-            onChange={handleCommentChange}
-            onClose={handleCloseComments}
-            commentsSectionRef={commentsSectionRef}
+        {showTrackForm && currentUser && (
+          <TrackForm
+            key={
+              showTrackForm === 'create' ? 'create' : `edit-${showTrackForm.id}`
+            }
+            initialData={showTrackForm === 'create' ? null : showTrackForm}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
           />
         )}
       </PageLayout>

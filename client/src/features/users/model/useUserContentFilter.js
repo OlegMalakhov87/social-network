@@ -219,7 +219,7 @@ export const useUserContentFilter = ({
   });
 
   /** Хук для управления количеством комментариев */
-  const updateCommentCount = useOptimisticCommentCount(setCurrentItems);
+  const updateCommentsCount = useOptimisticCommentCount(setCurrentItems);
 
   /**
    * Фильтрация по типу контента и пользователю
@@ -275,7 +275,7 @@ export const useUserContentFilter = ({
     addToLibrary: userLibrary?.addToLibrary,
     incrementCounter: userLibrary?.incrementCounter,
     toggleFavoriteItem: userLibrary?.toggleFavoriteItem,
-    updateCommentCount,
+    updateCommentsCount,
 
     // Посты
     isLoadingPosts: config.posts && isLoadingPostsApi,

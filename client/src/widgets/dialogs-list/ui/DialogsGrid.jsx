@@ -1,10 +1,7 @@
 import { Dialog } from '../../../entities/dialog';
-import {
-  ContentState,
-  ErrorBanner,
-  InfiniteScrollFooter,
-} from '../../../shared/ui';
-import style from './DialogsGrid.module.css';
+import { useInfiniteScrollTrigger } from '../../../shared/hooks';
+import { ContentState, InfiniteScrollFooter } from '../../../shared/ui';
+import styles from './DialogsGrid.module.css';
 
 /**
  * Сетка списка диалогов.
@@ -30,6 +27,13 @@ export const DialogsGrid = ({
   loadMore,
   onRetry,
 }) => {
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
   return (
     <ContentState
       loading={isLoading && dialogs.length === 0}
@@ -41,7 +45,7 @@ export const DialogsGrid = ({
       emptyDescription="Начните общение с друзьями"
       onRetry={onRetry}
     >
-      <ul className={style.dialogsList}>
+      <ul className={styles.dialogsList}>
         {dialogs.map(({ user, lastMessage }) => {
           return (
             <li key={user.id}>
@@ -56,6 +60,8 @@ export const DialogsGrid = ({
         })}
       </ul>
 
+      <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
       {dialogs.length > 0 && (
         <InfiniteScrollFooter
           hasMore={hasMore}
@@ -63,13 +69,6 @@ export const DialogsGrid = ({
           error={error}
           onRetry={loadMore}
           endMessage="Диалогов больше нет"
-        />
-      )}
-
-      {error && dialogs.length > 0 && (
-        <ErrorBanner
-          message="Не удалось загрузить диалоги"
-          onRetry={loadMore}
         />
       )}
     </ContentState>

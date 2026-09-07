@@ -1,12 +1,14 @@
 import { News } from '../../../entities/news';
+import { useInfiniteScrollTrigger } from '../../../shared/hooks';
 import {
+  ContentRefetchOverlay,
   ContentState,
-  ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../shared/ui';
 import styles from './NewsList.module.css';
 
-/** Список новостей *  /
+/** Список новостей
+ *
  * @param {Object} props
  * @param {Array} props.news - массив новостей
  * @param {Object} props.currentUser - текущий пользователь
@@ -43,53 +45,62 @@ export const NewsList = ({
   currentNews,
   isPlaying,
 }) => {
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && news.length > 0;
+
   return (
-    <ContentState
-      loading={isLoading && news.length === 0}
-      error={error && news.length === 0}
-      isEmpty={!news?.length}
-      loadingMessage="Загружаем новости..."
-      emptyIcon="📰"
-      emptyTitle="Новости не найдены"
-      emptyDescription="Попробуйте изменить параметры поиска или выберите другую категорию"
-      onRetry={onRetry}
-    >
-      <div className={styles.newsList}>
-        {news.map((news) => {
-          return (
-            <News
-              key={news.id}
-              news={news}
-              currentUser={currentUser}
-              toggleLike={toggleLike}
-              onReadMore={onReadMore}
-              onPlay={onPlayNews}
-              currentNews={currentNews}
-              isPlaying={isPlaying}
-              toggleComments={toggleComments}
-              onDelete={deleteNews}
-              onUpdate={updateNews}
+    <div className={styles.contentArea}>
+      <ContentState
+        loading={isLoading && news.length === 0}
+        error={error && news.length === 0}
+        isEmpty={!news?.length}
+        loadingMessage="Загружаем новости..."
+        emptyIcon="📰"
+        emptyTitle="Новости не найдены"
+        emptyDescription="Попробуйте изменить параметры поиска или выберите другую категорию"
+        onRetry={onRetry}
+      >
+        <div className={styles.newsList}>
+          {news.map((news) => {
+            return (
+              <News
+                key={news.id}
+                news={news}
+                currentUser={currentUser}
+                toggleLike={toggleLike}
+                onReadMore={onReadMore}
+                onPlay={onPlayNews}
+                currentNews={currentNews}
+                isPlaying={isPlaying}
+                toggleComments={toggleComments}
+                onDelete={deleteNews}
+                onUpdate={updateNews}
+              />
+            );
+          })}
+
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
+          {news.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все новости"
             />
-          );
-        })}
+          )}
+        </div>
+      </ContentState>
 
-        {news.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все новости"
-          />
-        )}
-
-        {error && news.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую порцию новостей"
-            onRetry={loadMore}
-          />
-        )}
-      </div>
-    </ContentState>
+      {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

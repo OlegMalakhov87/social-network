@@ -1,10 +1,12 @@
 import { Photo } from '../../../../entities/photo';
+import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
+  ContentRefetchOverlay,
   ContentState,
-  ErrorBanner,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import style from './PhotosTab.module.css';
+import { EntityWithComments } from '../../../entity-comments';
+import styles from './PhotosTab.module.css';
 
 /**
  * Вкладка с сеткой фото (посты у которых тип image).
@@ -21,6 +23,9 @@ import style from './PhotosTab.module.css';
  * @param {boolean} props.hasMore - флаг наличия следующей страницы фото
  * @param {Function} props.onRetry - повторить загрузку
  * @param {Function} props.loadMore - функция для загрузки следующей страницы фото
+ * @param {Object} props.commentTarget - целевой тип и id комментариев
+ * @param {Function} props.onCloseComments - закрыть комментарии
+ * @param {Function} props.onCommentChange - изменить количество комментариев
  */
 
 export const PhotosTab = ({
@@ -36,53 +41,73 @@ export const PhotosTab = ({
   onRetry,
   loadMore,
   hasMore,
+  commentTarget,
+  onCloseComments,
+  onCommentChange,
 }) => {
+  /** Триггер для автоматической загрузки следующей страницы */
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoadingMore,
+    onLoadMore: loadMore,
+  });
+
+  /** Флаг перезагрузки контента */
+  const isRefetching = isLoading && photos.length > 0;
+
   return (
-    <ContentState
-      loading={isLoading && photos.length === 0}
-      error={photos.length === 0 ? error : null}
-      isEmpty={!photos?.length}
-      loadingMessage="Загружаем фотографии..."
-      emptyIcon="📷"
-      emptyTitle="Нет фотографий"
-      emptyDescription={
-        isOwnProfile
-          ? 'Опубликуйте свои первые фотографии.'
-          : 'У пользователя пока нет публичных фото.'
-      }
-      onRetry={onRetry}
-    >
-      <div className={style.photosGrid}>
-        {photos.map((item) => {
-          return (
-            <Photo
-              key={item.id}
-              photo={item}
+    <div className={styles.contentArea}>
+      <ContentState
+        loading={isLoading && photos.length === 0}
+        error={photos.length === 0 ? error : null}
+        isEmpty={!photos?.length}
+        loadingMessage="Загружаем фотографии..."
+        emptyIcon="📷"
+        emptyTitle="Нет фотографий"
+        emptyDescription={
+          isOwnProfile
+            ? 'Опубликуйте свои первые фотографии.'
+            : 'У пользователя пока нет публичных фото.'
+        }
+        onRetry={onRetry}
+      >
+        <div className={styles.photosGrid}>
+          {photos.map((photo) => (
+            <EntityWithComments
+              key={photo.id}
+              entity={photo}
+              targetType="posts"
+              isOpen={commentTarget?.id === photo.id}
+              onClose={onCloseComments}
               currentUser={currentUser}
-              toggleLike={toggleLike}
-              onDelete={deletePhoto}
-              toggleComments={toggleComments}
+              onCommentChange={onCommentChange}
+              renderEntity={(entity) => (
+                <Photo
+                  photo={entity}
+                  currentUser={currentUser}
+                  toggleLike={toggleLike}
+                  onDelete={deletePhoto}
+                  toggleComments={toggleComments}
+                />
+              )}
             />
-          );
-        })}
+          ))}
 
-        {photos.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все фотографии"
-          />
-        )}
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 
-        {error && photos.length > 0 && (
-          <ErrorBanner
-            message="Не удалось загрузить следующую порцию фотографий"
-            onRetry={loadMore}
-          />
-        )}
-      </div>
-    </ContentState>
+          {photos.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все фотографии"
+            />
+          )}
+        </div>
+      </ContentState>
+
+      {isRefetching && <ContentRefetchOverlay />}
+    </div>
   );
 };

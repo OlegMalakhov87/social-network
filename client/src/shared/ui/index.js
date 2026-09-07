@@ -14,6 +14,7 @@ export { Stat } from './data-display/Stat/Stat'; // компонент для о
 /** feedback */
 export { Alert } from './feedback/Alert/Alert'; // компонент для отображения всплывающего окна с сообщением
 export { ConfirmDialog } from './feedback/ConfirmDialog/ConfirmDialog'; // компонент для отображения диалога подтверждения
+export { ContentRefetchOverlay } from './feedback/ContentRefetchOverlay/ContentRefetchOverlay'; // компонент для отображения оверлея при перезагрузке контента
 export { ErrorBanner } from './feedback/ErrorBanner/ErrorBanner'; // компонент для отображения ошибки
 export { Loading } from './feedback/Loading/Loading'; // компонент для отображения загрузки
 export { PageLoader } from './feedback/PageLoader/PageLoader'; // компонент для отображения загрузки страницы

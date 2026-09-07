@@ -28,4 +28,7 @@ export const getTracksTabProps = (ctx) => ({
   hasMore: ctx.hasMore,
   loadMore: ctx.loadMore,
   onRetry: ctx.refetch,
+  commentTarget: ctx.commentTarget,
+  onCloseComments: ctx.onCloseComments,
+  onCommentChange: ctx.onCommentChange,
 });

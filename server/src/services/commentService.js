@@ -69,7 +69,7 @@ const commentService = {
     page = 1,
     limit = 30,
     currentUserId,
-    sortKey = 'dateDesc'
+    sortKey = 'dateAsc'
   ) {
     const target = TARGET_TYPES[targetType];
     if (!target) {
@@ -92,7 +92,7 @@ const commentService = {
           attributes: ['id', 'userId'],
         },
       ],
-      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      order: SORT_MAP[sortKey] || SORT_MAP.dateAsc,
       limit,
       offset: (page - 1) * limit,
       distinct: true,
@@ -233,7 +233,6 @@ const commentService = {
    * @returns {Promise<Object>} { comment }
    */
   async updateComment(commentId, currentUserId, updateData) {
-  
     const [affectedCount] = await Comment.update(
       { text: updateData.text.trim(), isEdited: true },
       {
@@ -244,7 +243,7 @@ const commentService = {
         returning: true,
       }
     );
-  
+
     if (affectedCount === 0) {
       throw createError(
         'Комментарий не найден или нет прав на редактирование',
@@ -252,7 +251,7 @@ const commentService = {
         'COMMENT_NOT_FOUND_OR_FORBIDDEN'
       );
     }
-  
+
     const updatedComment = await Comment.findByPk(commentId, {
       include: [
         {
@@ -262,7 +261,7 @@ const commentService = {
         },
       ],
     });
-  
+
     return { comment: updatedComment.toJSON() };
   },
 

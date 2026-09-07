@@ -167,6 +167,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
         <FileInput
           accept={VIDEO_THUMBNAIL_CONFIG.accept}
           label="Обложка"
+          hint="Можно загрузить свою обложку или оставить поле пустым — система сгенерирует её автоматически."
           buttonText="Выбрать обложку"
           preview={thumbnailUpload.preview}
           isUploading={thumbnailUpload.isUploading}
@@ -179,6 +180,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
         <FileInput
           accept={VIDEO_PREVIEW_CONFIG.accept}
           label="Превью"
+          hint="Можно загрузить своё превью или оставить поле пустым — система сгенерирует его автоматически."
           buttonText="Выбрать превью"
           preview={previewUpload.preview}
           isUploading={previewUpload.isUploading}

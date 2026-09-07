@@ -1,0 +1,1 @@
+export { EntityWithComments } from './EntityWithComments';

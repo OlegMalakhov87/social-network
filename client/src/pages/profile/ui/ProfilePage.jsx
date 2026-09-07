@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCommentsPanel } from '../../../features/comments';
 import { PostForm } from '../../../features/posts';
@@ -15,7 +15,6 @@ import {
   Toolbar,
 } from '../../../shared/ui';
 import { useAudioPlayer } from '../../../widgets/audio-player';
-import { CommentsSection } from '../../../widgets/comments-list';
 import {
   PROFILE_TABS_MAP,
   getProfileTabContent,
@@ -33,7 +32,6 @@ import style from './ProfilePage.module.css';
 export const ProfilePage = () => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const commentsSectionRef = useRef(null);
   const onVideoStartRef = useRef(null);
   const { userId: userIdParam } = useParams();
 
@@ -67,7 +65,7 @@ export const ProfilePage = () => {
     addToLibrary,
     incrementCounter,
     toggleFavoriteItem,
-    updateCommentCount,
+    updateCommentsCount,
     // Посты
     isLoadingPosts,
     isLoadingMorePosts,
@@ -76,6 +74,7 @@ export const ProfilePage = () => {
     updatePost,
     deletePost,
     hasMorePosts,
+    currentPagePosts,
     loadMorePosts,
     refetchPosts,
     // Треки
@@ -83,6 +82,7 @@ export const ProfilePage = () => {
     isLoadingMoreTracks,
     errorTracks,
     hasMoreTracks,
+    currentPageTracks,
     loadMoreTracks,
     refetchTracks,
     // Видео
@@ -90,6 +90,7 @@ export const ProfilePage = () => {
     isLoadingMoreVideos,
     errorVideos,
     hasMoreVideos,
+    currentPageVideos,
     loadMoreVideos,
     refetchVideos,
   } = useUserContentFilter({
@@ -121,17 +122,27 @@ export const ProfilePage = () => {
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
-  // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
+  /** Тип комментариев */
   const commentTargetType = activeTab === 'photos' ? 'posts' : activeTab;
+
+  /** Мапа для получения текущей страницы для выбранной вкладки */
+  const PAGE_BY_TAB = {
+    posts: currentPagePosts,
+    tracks: currentPageTracks,
+    videos: currentPageVideos,
+  };
+
+  /** Текущая страница для выбранной вкладки */
+  const currentPage = PAGE_BY_TAB[commentTargetType] ?? 1;
+
+  /** Управление панелью комментариев (панель закрывается при изменении страницы или вкладки) */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel(commentTargetType, sortKey, activeTab);
+    useCommentsPanel(commentTargetType, sortKey, currentPage);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
-    (delta) => {
-      updateCommentCount(commentTarget?.id, delta);
-    },
-    [commentTarget?.id, updateCommentCount]
+    (delta) => updateCommentsCount(commentTarget?.id, delta),
+    [commentTarget?.id, updateCommentsCount]
   );
 
   /** Обработчик для отправки формы добавления/редактирования поста*/
@@ -152,15 +163,6 @@ export const ProfilePage = () => {
     setShowPostForm(null);
   }, []);
 
-  /** Скролл к секции комментариев при открытии панели */
-  useEffect(() => {
-    if (!commentTarget?.id || !commentTarget?.type) return;
-    commentsSectionRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  }, [commentTarget?.id, commentTarget?.type]);
-
   /**  Состояние загрузки всей страницы */
   if (isLoadingProfile || (userIdParam && !targetUser)) {
     return <PageLoader message="Загружаем профиль..." />;
@@ -171,6 +173,9 @@ export const ProfilePage = () => {
     currentUser,
     targetUser,
     toggleComments: onToggleComments,
+    commentTarget,
+    onCloseComments: handleCloseComments,
+    onCommentChange: handleCommentChange,
     isOwnProfile,
     toggleLike: toggleLikeItem,
     items,
@@ -239,22 +244,22 @@ export const ProfilePage = () => {
   return (
     <ErrorBoundary>
       <PageLayout className={style.profile}>
-        {/* Карточка профиля */}
-        <Profile
-          targetUser={targetUser}
-          currentUser={currentUser}
-          isOwnProfile={isOwnProfile}
-          error={userError}
-          refetchUser={refetchUser}
-          onFollow={followUser}
-          onUnfollow={unfollowUser}
-          onAccept={acceptUser}
-          onUnlock={unlockUser}
-          onBlock={blockUser}
-        />
-
-        {/* Вкладки с контентом */}
         <SectionCard>
+          {/* Карточка профиля */}
+          <Profile
+            targetUser={targetUser}
+            currentUser={currentUser}
+            isOwnProfile={isOwnProfile}
+            error={userError}
+            refetchUser={refetchUser}
+            onFollow={followUser}
+            onUnfollow={unfollowUser}
+            onAccept={acceptUser}
+            onUnlock={unlockUser}
+            onBlock={blockUser}
+          />
+
+          {/* Вкладки с контентом */}
           <Toolbar
             tabs={PROFILE_TABS_MAP}
             activeTab={activeTab}
@@ -281,31 +286,19 @@ export const ProfilePage = () => {
             }
           />
 
-          {/* Форма для добавления/редактирования поста */}
-          {showPostForm && currentUser && (
-            <PostForm
-              key={
-                showPostForm === 'create' ? 'create' : `edit-${showPostForm.id}`
-              }
-              initialData={showPostForm === 'create' ? null : showPostForm}
-              onClose={handleCloseForm}
-              onSubmit={handleFormSubmit}
-            />
-          )}
-
           {/* Контент вкладки */}
           {tabContent}
         </SectionCard>
 
-        {/* Комментарии */}
-        {commentTarget && currentUser && (
-          <CommentsSection
-            targetType={commentTarget?.type}
-            targetId={commentTarget?.id}
-            currentUser={currentUser}
-            onChange={handleCommentChange}
-            onClose={handleCloseComments}
-            commentsSectionRef={commentsSectionRef}
+        {/* Форма для добавления/редактирования поста */}
+        {showPostForm && currentUser && (
+          <PostForm
+            key={
+              showPostForm === 'create' ? 'create' : `edit-${showPostForm.id}`
+            }
+            initialData={showPostForm === 'create' ? null : showPostForm}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
           />
         )}
 
