@@ -69,7 +69,7 @@ const commentService = {
     page = 1,
     limit = 30,
     currentUserId,
-    sortKey = 'dateAsc'
+    sortKey = 'dateDesc'
   ) {
     const target = TARGET_TYPES[targetType];
     if (!target) {
@@ -92,7 +92,7 @@ const commentService = {
           attributes: ['id', 'userId'],
         },
       ],
-      order: SORT_MAP[sortKey] || SORT_MAP.dateAsc,
+      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
       limit,
       offset: (page - 1) * limit,
       distinct: true,

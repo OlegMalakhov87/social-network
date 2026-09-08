@@ -43,6 +43,7 @@ export const Modal = ({
   return createPortal(
     <div
       className={styles.overlay}
+      data-modal-overlay
       onClick={closeOnOverlay ? onClose : undefined}
     >
       <div

@@ -137,7 +137,7 @@ export const ProfilePage = () => {
 
   /** Управление панелью комментариев (панель закрывается при изменении страницы или вкладки) */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel(commentTargetType, sortKey, currentPage);
+    useCommentsPanel(commentTargetType, userIdParam, sortKey, currentPage);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(

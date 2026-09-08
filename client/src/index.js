@@ -8,6 +8,9 @@ import './shared/styles/index.css';
 import { ErrorBoundary, ScrollToTop } from './shared/ui';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 root.render(
   <BrowserRouter>
     <Provider store={store}>

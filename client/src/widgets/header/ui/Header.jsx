@@ -17,12 +17,18 @@ export const Header = ({ onSearchChange }) => {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectHasUser);
 
+  /**
+   * Обработчик изменения поискового запроса.
+   */
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
     onSearchChange?.(value);
   };
 
+  /**
+   * Обработчик отправки поискового запроса.
+   */
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchValue.trim()) {
       e.preventDefault();
@@ -30,6 +36,9 @@ export const Header = ({ onSearchChange }) => {
     }
   };
 
+  /**
+   * Обработчик выхода из аккаунта.
+   */
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');

@@ -14,8 +14,8 @@ import {
   Text,
   TextArea,
 } from '../../../shared/ui';
-import { formatDate } from '../../../shared/utils';
-import style from './Comment.module.css';
+import { classNames, formatDate } from '../../../shared/utils';
+import styles from './Comment.module.css';
 
 /**
  * Карточка комментария.
@@ -23,28 +23,33 @@ import style from './Comment.module.css';
  * @param {Object} props
  * @param {Object} props.comment - данные комментария.
  * @param {Object} props.currentUserId - ID текущего пользователя.
+ * @param {Function} props.onShareEntity - функция для расшаривания комментария.
  * @param {Object} props.author - данные автора комментария.
- * @param {Function} props.onShareEntity - функция для передачи сообщения.
  * @param {Function} props.onEdit - функция для редактирования комментария.
  * @param {Function} props.onDelete - функция для удаления комментария.
  * @param {Function} props.toggleLike - функция для лайка/дизлайка комментария.
  * @returns {JSX.Element} - компонент карточки комментария.
  */
+
 export const Comment = ({
   comment,
   currentUserId,
-  author,
   onShareEntity,
+  author,
   onEdit,
   onDelete,
   toggleLike,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment?.text || '');
+  const [expanded, setExpanded] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
+
   if (!comment?.id || !author) return null;
 
+  /** Конфигурация элементов управления карточкой комментария. */
   const actions = getCommentActions({
     comment,
     currentUserId,
@@ -52,10 +57,11 @@ export const Comment = ({
     onDelete: () => setShowDeleteDialog(true),
     onEdit: () => setIsEditing(true),
     onShare: () => {
-      onShareEntity?.(comment);
+      onShareEntity(comment);
     },
   });
 
+  /** Обработчик сохранения изменений в комментарии. */
   const handleSave = () => {
     if (editText.trim() && currentUserId) {
       onEdit?.(comment.id, { text: editText, isEdited: true });
@@ -63,11 +69,21 @@ export const Comment = ({
     }
   };
 
+  /** Обработчик отмены изменений в комментарии. */
   const handleCancel = () => {
     setEditText(comment.text);
     setIsEditing(false);
   };
 
+  /** Обработчик переключения раскрытия текста комментария. */
+  const handleToggleExpand = () => {
+    if (!expanded && !hasViewed) {
+      setHasViewed(true);
+    }
+    setExpanded((prev) => !prev);
+  };
+
+  /** Обработчик подтверждения удаления комментария. */
   const handleConfirmDelete = () => {
     onDelete?.(comment.id);
     setShowDeleteDialog(false);
@@ -89,7 +105,10 @@ export const Comment = ({
                 />
               }
               title={
-                <Link to={`/profile/${author.id}`} className={style.authorName}>
+                <Link
+                  to={`/profile/${author.id}`}
+                  className={styles.authorName}
+                >
                   {author.name}
                 </Link>
               }
@@ -125,7 +144,26 @@ export const Comment = ({
                 </ButtonGroup>
               </>
             ) : (
-              <Text linkify={true}>{comment.text}</Text>
+              <>
+                <Text
+                  linkify={true}
+                  className={classNames(
+                    styles.text,
+                    expanded && styles.expanded
+                  )}
+                >
+                  {comment.text}
+                </Text>
+                {comment.text && comment.text.length > 80 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleToggleExpand}
+                  >
+                    {expanded ? 'Свернуть' : 'Читать далее'}
+                  </Button>
+                )}
+              </>
             )}
           </EntityContent>
         }

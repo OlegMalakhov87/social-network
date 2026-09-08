@@ -1,0 +1,11 @@
+.container {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.container :global(button) {
+  pointer-events: auto;
+}

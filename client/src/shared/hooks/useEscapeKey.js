@@ -5,15 +5,28 @@ import { useEffect } from 'react';
  *
  * @param {Function} onEscape - функция для выполнения действия при нажатии Escape
  * @param {boolean} [enabled=true] - активен ли обработчик
+ * @param {boolean} [ignoreWhenModalOpen=false] -
+ * игнорировать Escape, если открыт Modal
  */
-export function useEscapeKey(onEscape, enabled = true) {
+export function useEscapeKey(
+  onEscape,
+  enabled = true,
+  ignoreWhenModalOpen = false
+) {
   useEffect(() => {
     if (!enabled) return;
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        onEscape?.(event);
+      if (event.key !== 'Escape') return;
+
+      if (
+        ignoreWhenModalOpen &&
+        document.querySelector('[data-modal-overlay]')
+      ) {
+        return;
       }
+
+      onEscape?.(event);
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -21,5 +34,5 @@ export function useEscapeKey(onEscape, enabled = true) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [enabled, onEscape]);
+  }, [enabled, onEscape, ignoreWhenModalOpen]);
 }

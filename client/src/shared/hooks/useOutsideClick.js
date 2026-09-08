@@ -13,6 +13,9 @@ export const useOutsideClick = (ref, onOutsideClick, enabled = true) => {
 
     const handleMouseDown = (event) => {
       if (!ref.current) return;
+      if (event.target.closest('[data-modal-overlay]')) {
+        return;
+      }
       if (!ref.current.contains(event.target)) {
         onOutsideClick?.(event);
       }

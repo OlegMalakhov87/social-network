@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getPostActions } from '..';
 import {
   BaseCard,
@@ -13,14 +12,15 @@ import {
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
-import { normalizeSharedPost } from '../../shared-entity';
 import styles from './Post.module.css';
+
 /**
  * Карточка поста.
  * @param {Object} props - параметры
  * @param {Object} props.post - данные поста
  * @param {Object} props.currentUser - данные текущего пользователя
  * @param {Object} props.targetUser - данные выбранного пользователя
+ * @param {Function} props.onShareEntity - функция для расшаривания поста
  * @param {Function} props.onPlay - функция для воспроизведения видео поста
  * @param {Function} props.toggleLike - функция для лайка/дизлайка поста
  * @param {Function} props.onDelete - функция для удаления поста
@@ -34,6 +34,7 @@ export const Post = ({
   post,
   currentUser,
   targetUser,
+  onShareEntity,
   onPlay,
   toggleLike,
   onDelete,
@@ -45,10 +46,10 @@ export const Post = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
-  const navigate = useNavigate();
 
   if (!post?.id) return null;
 
+  /** Конфигурация элементов управления карточкой поста. */
   const actions = getPostActions({
     post,
     currentUser,
@@ -57,14 +58,11 @@ export const Post = ({
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
     onShare: () => {
-      sessionStorage.setItem(
-        'sharedEntity',
-        JSON.stringify(normalizeSharedPost(post))
-      );
-      navigate('/messages');
+      onShareEntity(post);
     },
   });
 
+  /** Обработчик переключения раскрытия текста поста. */
   const handleToggleExpand = () => {
     if (!expanded && !hasViewed) {
       setHasViewed(true);
@@ -72,6 +70,7 @@ export const Post = ({
     setExpanded((prev) => !prev);
   };
 
+  /** Обработчик подтверждения удаления поста. */
   const handleConfirmDelete = () => {
     onDelete?.(post.id);
     setShowDeleteDialog(false);

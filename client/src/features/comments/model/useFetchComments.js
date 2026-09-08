@@ -13,6 +13,7 @@ import {
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
+import { apiFetchItems } from '../../../shared/lib';
 
 /**
  * Хук для получения комментариев с бесконечным скроллом.
@@ -49,12 +50,14 @@ export const useFetchComments = ({
       if (!targetType || !targetId) {
         return { items: [], hasMore: false };
       }
-      return fetchCommentsApi({
-        targetType,
-        targetId,
-        page,
-        limit,
-        sortKey,
+      return apiFetchItems(fetchCommentsApi, {
+        params: {
+          page,
+          limit,
+          sortKey,
+          targetType,
+          targetId,
+        },
         signal,
       });
     },

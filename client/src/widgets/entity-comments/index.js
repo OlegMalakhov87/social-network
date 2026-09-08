@@ -1,1 +1,1 @@
-export { EntityWithComments } from './EntityWithComments';
+export { EntityWithComments } from './ui/EntityWithComments';

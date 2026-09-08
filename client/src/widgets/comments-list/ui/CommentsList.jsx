@@ -3,11 +3,15 @@ import { Comment } from '../../../entities/comment';
 import { normalizeSharedComment } from '../../../entities/shared-entity';
 import { useShareEntity } from '../../../features/shared-entities';
 import { useInfiniteScrollTrigger } from '../../../shared/hooks';
-import { ContentRefetchOverlay, ContentState, InfiniteScrollFooter } from '../../../shared/ui';
+import {
+  ContentRefetchOverlay,
+  ContentState,
+  InfiniteScrollFooter,
+} from '../../../shared/ui';
 import styles from './CommentsList.module.css';
 
 /**
- * Список комментариев. Содержит в себе список комментариев и форму для добавления нового комментария.
+ * Список комментариев с поддержкой пагинации, бесконечной прокрутки и операций над комментариями.
  *
  * @param {Object} props
  * @param {Object} props.comments - список комментариев.
@@ -21,6 +25,7 @@ import styles from './CommentsList.module.css';
  * @param {Function} props.onDelete - функция для удаления комментария.
  * @param {Function} props.toggleLike - функция для лайка комментария.
  * @param {Function} props.onRetry - функция для повторной загрузки комментариев.
+ * @param {React.RefObject} props.scrollRootRef - Ref на элемент, относительно которого наблюдается пересечение.
  */
 export const CommentsList = ({
   comments = [],
@@ -34,6 +39,7 @@ export const CommentsList = ({
   onDelete,
   toggleLike,
   onRetry,
+  scrollRootRef,
 }) => {
   const navigate = useNavigate();
 
@@ -48,54 +54,55 @@ export const CommentsList = ({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
+    rootRef: scrollRootRef,
   });
 
   /** Флаг перезагрузки контента */
   const isRefetching = isLoading && comments.length > 0;
 
   return (
-    <div className={styles.contentArea}>
-    <ContentState
-      loading={isLoading && comments.length === 0}
-      error={comments.length === 0 ? error : null}
-      isEmpty={!comments?.length}
-      loadingMessage="Загружаем комментарии..."
-      emptyIcon="💬"
-      emptyTitle="Комментариев пока нет"
-      emptyDescription="Будьте первым!"
-      onRetry={onRetry}
-    >
-      <div className={styles.list}>
-        {comments.map((comment) => {
-          return (
-            <Comment
-              key={comment.id}
-              comment={comment}
-              author={comment.author}
-              currentUserId={currentUser?.id}
-              onShareEntity={shareEntity}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              toggleLike={toggleLike}
+    <>
+      <ContentState
+        loading={isLoading && comments.length === 0}
+        error={comments.length === 0 ? error : null}
+        isEmpty={!comments?.length}
+        loadingMessage="Загружаем комментарии..."
+        emptyIcon="💬"
+        emptyTitle="Комментариев пока нет"
+        emptyDescription="Будьте первым!"
+        onRetry={onRetry}
+      >
+        <div className={styles.list}>
+          {comments.map((comment) => {
+            return (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                author={comment.author}
+                currentUserId={currentUser?.id}
+                onShareEntity={shareEntity}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                toggleLike={toggleLike}
+              />
+            );
+          })}
+
+          <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
+          {comments.length > 0 && (
+            <InfiniteScrollFooter
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              error={error}
+              onRetry={loadMore}
+              endMessage="Вы просмотрели все комментарии"
             />
-          );
-        })}
+          )}
+        </div>
+      </ContentState>
 
-        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
-
-        {comments.length > 0 && (
-          <InfiniteScrollFooter
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            error={error}
-            onRetry={loadMore}
-            endMessage="Вы просмотрели все комментарии"
-          />
-        )}
-      </div>
-    </ContentState>
-
-    {isRefetching && <ContentRefetchOverlay />}
-    </div>
+      {isRefetching && <ContentRefetchOverlay />}
+    </>
   );
 };

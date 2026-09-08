@@ -43,6 +43,7 @@ export { MediaPreview } from './media/MediaPreview/MediaPreview'; // компо�
 /** navigation */
 export { InfiniteScrollFooter } from './navigation/InfiniteScrollFooter/InfiniteScrollFooter'; // компонент бесконечной прокрутки
 export { PrivateRoute } from './navigation/PrivateRoute/PrivateRoute'; // компонент приватного маршрута
+export { ScrollNavigationButton } from './navigation/ScrollNavigationButton/ScrollNavigationButton'; // компонент для отображения кнопки скролла
 export { ScrollToTop } from './navigation/ScrollTop/ScrollToTop'; // компонент скролла к верху
 /** overlay */
 export { Dropdown } from './overlay/Dropdown/Dropdown'; // компонент для отображения выпадающего списка

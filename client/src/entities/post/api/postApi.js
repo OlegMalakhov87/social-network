@@ -25,10 +25,7 @@ export const fetchPostsApi = async ({
     },
     signal,
   });
-  return {
-    items: response.data.posts || [],
-    pagination: response.data.pagination || {},
-  };
+  return response.data;
 };
 
 /**

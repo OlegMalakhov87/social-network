@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+
 /**
  * Получить комментарии для конкретной сущности.
  * @param {Object} params - параметры запроса
@@ -22,10 +23,8 @@ export const fetchCommentsApi = async ({
     params: { page, limit, sortKey },
     signal,
   });
-  return {
-    items: response.data.comments || [],
-    pagination: response.data.pagination || {},
-  };
+
+  return response.data;
 };
 
 /**

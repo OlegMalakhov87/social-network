@@ -1,0 +1,18 @@
+.body {
+  position: relative;
+}
+
+.scrollContainer {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-bottom: var(--space-12);
+}
+
+.commentComposer {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: var(--space-3);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-secondary);
+}

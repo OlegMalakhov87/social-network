@@ -1,4 +1,4 @@
-import { extractPaginatedItems } from './extractPaginatedItems';
+import { extractPaginatedItems } from './';
 
 /**
  * Вспомогательная функция для запроса данных с пагинацией.

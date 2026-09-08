@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import { Post } from '../../../../entities/post';
+import { normalizeSharedPost } from '../../../../entities/shared-entity';
+import { useShareEntity } from '../../../../features/shared-entities';
 import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
   ContentRefetchOverlay,
@@ -53,6 +56,14 @@ export const PostsTab = ({
   onCloseComments,
   onCommentChange,
 }) => {
+  const navigate = useNavigate();
+
+   /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+   const { shareEntity } = useShareEntity({
+    normalizeFn: normalizeSharedPost,
+    onSuccess: () => navigate('/messages'),
+  });
+
   /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
@@ -96,6 +107,7 @@ export const PostsTab = ({
                   post={entity}
                   targetUser={targetUser}
                   currentUser={currentUser}
+                  onShareEntity={shareEntity}
                   onPlay={onPlayPost}
                   toggleLike={toggleLike}
                   onDelete={deletePost}

@@ -11,3 +11,21 @@
   color: var(--color-primary);
   text-decoration: underline;
 }
+
+.text {
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text.expanded {
+  -webkit-line-clamp: unset;
+  line-clamp: none;
+  display: block;
+  white-space: normal;
+}

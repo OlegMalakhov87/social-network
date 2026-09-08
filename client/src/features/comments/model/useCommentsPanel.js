@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Хук для управления панелью комментариев.
- * @param {string} targetType - тип сущности ('posts', 'tracks', 'videos', 'photos')
- * @param {any[]} resetDeps - зависимости, при изменении которых панель закрывается (например, фильтр, страница пагинации)
+ *
+ * @param {string} targetType - тип сущности
+ * @param {any[]} resetDeps - зависимости, при изменении которых панель закрывается
  * @returns {Object} - объект с данными о комментариях
  */
 export const useCommentsPanel = (targetType, ...resetDeps) => {
@@ -27,13 +28,10 @@ export const useCommentsPanel = (targetType, ...resetDeps) => {
     [targetType, handleOpenComments]
   );
 
-  /** Ключ для сброса панели комментариев */
-  const resetKey = resetDeps.join(',');
-
   /** Сброс панели комментариев при изменении зависимостей */
   useEffect(() => {
     setCommentTarget(null);
-  }, [resetKey]);
+  }, [targetType, ...resetDeps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { commentTarget, handleCloseComments, onToggleComments };
 };

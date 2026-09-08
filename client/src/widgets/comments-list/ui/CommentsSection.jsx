@@ -1,8 +1,17 @@
+import { useRef } from 'react';
 import { CommentsList } from '..';
 import { CommentForm, useFetchComments } from '../../../features/comments';
 import { SORT_OPTIONS } from '../../../shared/config';
-import { useFilterControls } from '../../../shared/hooks';
-import { Dropdown, IconButton, SectionCard } from '../../../shared/ui';
+import { useFilterControls, useScrollNavigation } from '../../../shared/hooks';
+import {
+  Dropdown,
+  EntityHeader,
+  IconButton,
+  ScrollNavigationButton,
+  SectionCard,
+  Text,
+} from '../../../shared/ui';
+import styles from './CommentsSection.module.css';
 
 /**
  * Секция комментариев. Стартовый компонент для отображения списка комментариев.
@@ -21,10 +30,17 @@ export const CommentsSection = ({
   onChange,
   onClose,
 }) => {
+  const bodyRef = useRef(null);
+
+  /** Управление прокруткой */
+  const { isPastMiddle, scrollToTop, scrollToBottom } = useScrollNavigation({
+    containerRef: bodyRef,
+  });
+
   /** Управление фильтрацией и сортировкой */
   const { sortKey, setSortKey } = useFilterControls({
     initialFilter: 'all',
-    initialSort: 'dateAsc',
+    initialSort: 'dateDesc',
   });
 
   /** Получение данных о комментариях */
@@ -49,43 +65,53 @@ export const CommentsSection = ({
   });
 
   return (
-    <SectionCard
-      title="Комментарии"
-      actions={
-        <>
-          <Dropdown
-            options={SORT_OPTIONS}
-            currentSort={sortKey}
-            onChange={setSortKey}
-          />
-          <IconButton
-            icon="✕"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            ariaLabel="Закрыть комментарии"
-          />
-        </>
-      }
-    >
-      <CommentsList
-        comments={comments}
-        isLoading={isLoading}
-        isLoadingMore={isLoadingMore}
-        hasMore={hasMore}
-        error={error}
-        currentUser={currentUser}
-        loadMore={loadMore}
-        onEdit={updateComment}
-        onDelete={deleteComment}
-        toggleLike={toggleLike}
-        onRetry={refetch}
+    <SectionCard>
+      <EntityHeader
+        leftSlot={<Text variant="h4">Комментарии</Text>}
+        rightSlot={
+          <>
+            <Dropdown
+              options={SORT_OPTIONS}
+              currentSort={sortKey}
+              onChange={setSortKey}
+            />
+            <IconButton
+              icon="✕"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              ariaLabel="Закрыть комментарии"
+            />
+          </>
+        }
       />
-      <CommentForm
-        currentUser={currentUser}
-        onSubmit={addComment}
-        onClose={onClose}
-      />
+
+      <div className={styles.body}>
+        <div className={styles.scrollContainer} ref={bodyRef}>
+          <div className={styles.commentComposer}>
+            <CommentForm onSubmit={addComment} />
+          </div>
+          <CommentsList
+            comments={comments}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            loadMore={loadMore}
+            hasMore={hasMore}
+            error={error}
+            currentUser={currentUser}
+            onEdit={updateComment}
+            onDelete={deleteComment}
+            toggleLike={toggleLike}
+            onRetry={refetch}
+            scrollRootRef={bodyRef}
+          />
+        </div>
+        <ScrollNavigationButton
+          isPastMiddle={isPastMiddle}
+          scrollToTop={scrollToTop}
+          scrollToBottom={scrollToBottom}
+        />
+      </div>
     </SectionCard>
   );
 };

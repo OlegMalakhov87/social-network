@@ -16,3 +16,4 @@ export { useOptimisticLike } from './useOptimisticLike'; // Хук для опт
 export { useOptimisticMutation } from './useOptimisticMutation'; // Хук для оптимистичных мутаций
 export { useOutsideClick } from './useOutsideClick'; // Хук для обработки кликов вне элемента
 export { usePagination } from './usePagination'; // Хук для пагинации данных
+export { useScrollNavigation } from './useScrollNavigation'; // Хук для управления прокруткой

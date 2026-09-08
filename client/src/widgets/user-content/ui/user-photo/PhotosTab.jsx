@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import { Photo } from '../../../../entities/photo';
+import { normalizeSharedPhoto } from '../../../../entities/shared-entity';
+import { useShareEntity } from '../../../../features/shared-entities';
 import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
   ContentRefetchOverlay,
@@ -45,6 +48,13 @@ export const PhotosTab = ({
   onCloseComments,
   onCommentChange,
 }) => {
+  const navigate = useNavigate();
+
+  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const { shareEntity } = useShareEntity({
+    normalizeFn: normalizeSharedPhoto,
+    onSuccess: () => navigate('/messages'),
+  });
   /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
@@ -85,6 +95,7 @@ export const PhotosTab = ({
                 <Photo
                   photo={entity}
                   currentUser={currentUser}
+                  onShareEntity={shareEntity}
                   toggleLike={toggleLike}
                   onDelete={deletePhoto}
                   toggleComments={toggleComments}

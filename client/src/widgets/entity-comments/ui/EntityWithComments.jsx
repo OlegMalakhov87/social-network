@@ -1,5 +1,7 @@
-import { useCallback, useRef } from 'react';
-import { CommentsSection } from '../comments-list';
+import { useCallback, useEffect, useRef } from 'react';
+import { useEscapeKey, useOutsideClick } from '../../../shared/hooks';
+import { CommentsSection } from '../../comments-list';
+import styles from './EntityWithComments.module.css';
 
 /**
  * Компонент для отображения сущности с комментариями.
@@ -23,6 +25,19 @@ export const EntityWithComments = ({
   renderEntity,
 }) => {
   const entityRef = useRef(null);
+  const commentsRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const frame = requestAnimationFrame(() => {
+      commentsRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isOpen]);
 
   const handleClose = useCallback(() => {
     onClose?.();
@@ -35,18 +50,23 @@ export const EntityWithComments = ({
     });
   }, [onClose]);
 
+  useEscapeKey(isOpen ? handleClose : undefined, true, true);
+  useOutsideClick(entityRef, handleClose, isOpen);
+
   return (
     <div ref={entityRef}>
       {renderEntity(entity)}
 
       {isOpen && (
-        <CommentsSection
-          targetType={targetType}
-          targetId={entity.id}
-          currentUser={currentUser}
-          onChange={onCommentChange}
-          onClose={handleClose}
-        />
+        <div ref={commentsRef} className={styles.commentsSection}>
+          <CommentsSection
+            targetType={targetType}
+            targetId={entity.id}
+            currentUser={currentUser}
+            onChange={onCommentChange}
+            onClose={handleClose}
+          />
+        </div>
       )}
     </div>
   );
