@@ -34,58 +34,58 @@ export const fetchNewsApi = async ({
 };
 
 /**
- * Поделиться новостью.
+ * Поделиться новостью (для кнопки поделиться).
  * @param {number} newsId
  * @returns {Promise<Object>} { news }
  */
 export const fetchNewsById = async (newsId) => {
   const response = await api.get(`/news/${newsId}/shared`);
-  return response.data;
+  return response.data.news;
 };
 
 /**
  * Добавить новость.
- * @param {Object} data - поля новости (title, content, category, author, source, mediaUrl)
+ * @param {Object} data - поля новости
  * @returns {Promise<Object>} { news }
  */
-export const addNewsApi = async (data) => {
-  const response = await api.post('/news', data);
-  return response.data;
+export const addNewsApi = async (formData) => {
+  const response = await api.post('/news/add', formData);
+  return response.data.news;
 };
 
 /**
  * Обновить новость.
  * @param {number} newsId - ID новости
- * @param {Object} updates - поля новости (title, content, category, author, source, mediaUrl)
- * @returns {Promise<Object>} { news }
+ * @param {Object} updates - поля новости
+ * @returns {Promise<Object>} {news }
  */
 export const updateNewsApi = async (newsId, updates) => {
-  const response = await api.put(`/news/${newsId}`, updates);
-  return response.data;
+  const response = await api.put(`/news/${newsId}/update`, updates);
+  return response.data.news;
 };
 
 /**
- * Обновить счетчик просмотров.
+ * Обновить счетчик просмотров новости.
  * @param {number} newsId - ID новости
- * @returns {Promise<Object>}  { news }
+ * @returns {Promise<Object>}  { success, viewsCount }
  */
-export const updateNewsViewCount = async (newsId) => {
+export const updateNewsViewsCountApi = async (newsId) => {
   const response = await api.put(`/news/${newsId}/views`);
   return response.data;
 };
 
 /**
- * Удалить новость.
+ * Удалить новость по ID.
  * @param {number} newsId - ID новости
- * @returns {Promise<Object>} { newsId }
+ * @returns {Promise<Object>} {message,newsId}
  */
 export const deleteNewsApi = async (newsId) => {
-  const response = await api.delete(`/news/${newsId}`);
+  const response = await api.delete(`/news/${newsId}/delete`);
   return response.data;
 };
 
 /**
- * Удалить загруженные медиа новостей.
+ * Удалить (очистка мусора) загруженные медиа файлы.
  * @param {Object} data - данные новости
  * @returns {Promise<Object>} { success }
  */

@@ -17,7 +17,7 @@ const newsRoutes = require('./routes/newsRoutes');
 const likeRoutes = require('./routes/likeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 
-const errorMiddleware = require('./middleware/errorMiddleware');
+const errorMiddleware = require('./middleware/error/errorMiddleware');
 
 app.use(
   cors({

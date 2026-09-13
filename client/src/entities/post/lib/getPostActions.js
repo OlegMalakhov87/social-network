@@ -30,7 +30,6 @@ export const getPostActions = ({
       icon: post.isLiked ? '❤️' : '🤍',
       label: String(post.likesCount ?? 0),
       ariaLabel: post.isLiked ? 'Убрать лайк' : 'Поставить лайк',
-
       onClick: () => toggleLike?.(post.id, post.isLiked),
     },
 
@@ -39,7 +38,6 @@ export const getPostActions = ({
       icon: '💬',
       label: String(post.commentsCount ?? 0),
       ariaLabel: 'Комментарии',
-
       onClick: () => toggleComments?.(post.id),
     },
   ];
@@ -50,7 +48,6 @@ export const getPostActions = ({
       icon: '↗️',
       label: '',
       ariaLabel: 'Поделиться',
-
       onClick: () => onShare?.(),
     });
   }
@@ -61,7 +58,6 @@ export const getPostActions = ({
       icon: '✏️',
       label: '',
       ariaLabel: 'Обновить пост',
-
       onClick: () => onUpdate?.(post),
     });
   }
@@ -71,7 +67,6 @@ export const getPostActions = ({
       icon: '🗑️',
       label: '',
       ariaLabel: 'Удалить пост',
-
       onClick: () => onDelete?.(post.id),
     });
   }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getNewsActions } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -13,8 +14,7 @@ import {
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
-import { normalizeSharedNews } from '../../shared-entity';
-import style from './News.module.css';
+import styles from './News.module.css';
 
 /**
  * Компонент для отображения карточки новости.
@@ -22,6 +22,7 @@ import style from './News.module.css';
  * @param {Object} props - параметры
  * @param {Object} props.news - данные новости
  * @param {Object} props.currentUser - данные текущего пользователя
+ * @param {Function} props.onShareEntity - функция для отображения расшаренной новости
  * @param {Function} props.toggleLike - функция для лайка/дизлайка новости
  * @param {Function} props.onReadMore - функция для чтения новости
  * @param {Function} props.toggleComments - функция для открытия комментариев новости
@@ -36,6 +37,7 @@ import style from './News.module.css';
 export const News = ({
   news,
   currentUser,
+  onShareEntity,
   toggleLike,
   onReadMore,
   toggleComments,
@@ -48,9 +50,11 @@ export const News = ({
   const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const navigate = useNavigate();
+  const notify = useNotify();
+
   if (!news?.id) return null;
 
+  /** Конфигурация элементов управления карточкой новости. */
   const actions = getNewsActions({
     news,
     currentUser,
@@ -58,15 +62,10 @@ export const News = ({
     toggleComments,
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
-    onShare: () => {
-      sessionStorage.setItem(
-        'sharedEntity',
-        JSON.stringify(normalizeSharedNews(news))
-      );
-      navigate('/messages');
-    },
+    onShare: () => onShareEntity(news),
   });
 
+  /** Обработчик переключения раскрытия текста новости. */
   const handleToggleExpand = () => {
     if (!expanded && !hasViewed) {
       onReadMore?.(news.id);
@@ -75,9 +74,14 @@ export const News = ({
     setExpanded((prev) => !prev);
   };
 
-  const handleConfirmDelete = () => {
-    onDelete?.(news.id);
-    setShowDeleteDialog(false);
+  /** Обработчик подтверждения удаления новости. */
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete?.(news.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления новости'));
+    }
   };
 
   return (
@@ -88,7 +92,11 @@ export const News = ({
             <EntityMeta
               title={news.title}
               badge={news.category}
-              subtitle={formatDate(news.updatedAt || news.createdAt)}
+              subtitle={
+                news.isEdited
+                  ? `изм. ${formatDate(news.updatedAt)}`
+                  : formatDate(news.createdAt)
+              }
             />
           </EntityHeader>
         }
@@ -96,11 +104,13 @@ export const News = ({
           news.newsUrl && (
             <MediaPreview
               item={news}
+              src={news.type === 'video' ? news.thumbnailUrl : news.newsUrl}
+              preview={news.type === 'video' ? news.previewUrl : null}
+              alt={news.type === 'image' ? 'Фото' : 'Видео'}
+              onClick={onPlay}
               currentItem={currentNews}
               isPlaying={isPlaying}
-              src={news.newsUrl}
-              alt={news.title}
-              onClick={onPlay}
+              className={styles.media}
             />
           )
         }
@@ -108,12 +118,13 @@ export const News = ({
           <EntityContent>
             <Text
               linkify={true}
-              className={classNames(style.text, expanded && style.expanded)}
+              variant="body1"
+              className={classNames(styles.text, expanded && styles.expanded)}
             >
               {news.text}
             </Text>
 
-            {news.text && news.text.length > 30 && (
+            {news.text && news.text.length > 75 && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>

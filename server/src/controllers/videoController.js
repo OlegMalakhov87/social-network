@@ -1,7 +1,7 @@
 const videoService = require('../services/videoService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
-const toPublicUrl = require('../utils/toPublicUrl');
+const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const videoController = {
   /**
@@ -78,10 +78,10 @@ const videoController = {
   /**
    * Инкремент счетчика просмотров видео
    */
-  incrementViewCount: async (req, res, next) => {
+  incrementViewsCount: async (req, res, next) => {
     try {
       const { videoId } = req.params;
-      const result = await videoService.incrementViewCount(parseInt(videoId));
+      const result = await videoService.incrementViewsCount(parseInt(videoId));
       res.status(200).json(result);
     } catch (error) {
       next(error);

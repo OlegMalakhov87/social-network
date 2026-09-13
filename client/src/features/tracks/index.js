@@ -3,3 +3,5 @@ export { useUserMusicLibrary } from './model/useUserMusicLibrary'; // Хук д�
 export { useMusic } from './model/useMusic'; // Хук для получения треков на странице музыки
 
 export { TrackForm } from './ui/TrackForm'; // Форма добавления/редактирования трека
+
+export { TRACK_CONFIG } from './config/trackConfig'; // Конфигурация полей формы добавления/редактирования трека

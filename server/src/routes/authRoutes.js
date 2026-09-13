@@ -1,9 +1,9 @@
 const { Router } = require('express');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
   validateRegister,
   validateLogin,
-} = require('../middleware/validationMiddleware');
+} = require('../middleware/validation/userValidation');
 const authController = require('../controllers/authController');
 
 const authRouter = Router();

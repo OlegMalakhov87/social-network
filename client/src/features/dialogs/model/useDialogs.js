@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../../entities/auth';
-import { fetchDialogsApi } from '../../../entities/dialog';
+import { fetchDialogsApi, normalizeDialogs } from '../../../entities/dialog';
 import { useOnline } from '../../../features/users';
-import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
+import { useInfiniteScroll } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 import { parseSharedEntity } from '../../../shared/utils';
 
@@ -11,12 +11,19 @@ import { parseSharedEntity } from '../../../shared/utils';
  * Хук для получения и отображения списка диалогов.
  * Загружает диалоги текущего пользователя, обогащает их онлайн-статусами собеседников и фильтрует по поисковому запросу.
  *
- * @param {string} [searchQuery=''] – поисковый запрос для фильтрации диалогов
- * @returns {Object} { dialogs, isLoading, error, refetch }
+ * @param {Object} params - параметры запроса
+ * @param {string} [params.searchQuery=''] – поисковый запрос для фильтрации диалогов
+ * @returns {Object} - объект с данными о диалогах
  */
-export function useDialogs(searchQuery = '') {
+export function useDialogs({ searchQuery = '' }) {
   const currentUser = useSelector(selectUser);
-  const notify = useNotify('dialogs');
+  const currentUserId = currentUser?.id;
+
+  /** Зависимости для бесконечного скролла */
+  const scrollDeps = useMemo(
+    () => [currentUserId, searchQuery],
+    [currentUserId, searchQuery]
+  );
 
   /** Получение новостей с бесконечным скроллом. */
   const {
@@ -29,7 +36,7 @@ export function useDialogs(searchQuery = '') {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUser?.id) {
+      if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchDialogsApi, {
@@ -37,9 +44,14 @@ export function useDialogs(searchQuery = '') {
         signal,
       });
     },
-    deps: [currentUser?.id, searchQuery],
-    onSuccess: () => notify.success('load'),
-    onError: () => notify.error('load'),
+    deps: scrollDeps,
+    options: {
+      autoFetch: Boolean(currentUserId),
+    },
+    initialData: {
+      items: [],
+      hasMore: false,
+    },
   });
 
   /** Все ID собеседников (уникальные). */
@@ -52,16 +64,16 @@ export function useDialogs(searchQuery = '') {
   const onlineMap = useOnline(interlocutorIds);
 
   /** Обогащение диалогов статусами и форматирование последнего сообщения. */
-  const dialogs = useMemo(
+  const enrichedData = useMemo(
     () =>
       dialogsItems.map((dialog) => ({
         ...dialog,
         lastMessage: dialog.lastMessage
           ? {
               ...dialog.lastMessage,
-              text: parseSharedEntity(dialog.lastMessage.text)
+              content: parseSharedEntity(dialog.lastMessage.content)
                 ? 'Поделился'
-                : dialog.lastMessage.text,
+                : dialog.lastMessage.content,
             }
           : null,
         user: {
@@ -72,10 +84,16 @@ export function useDialogs(searchQuery = '') {
     [dialogsItems, onlineMap]
   );
 
+  /** Нормализация под компоненты. */
+  const normalizedDialogs = useMemo(
+    () => enrichedData.map(normalizeDialogs),
+    [enrichedData]
+  );
+
   /** Объект с данными о диалогах. */
   return {
-    dialogs,
-    currentUser,
+    dialogs: normalizedDialogs,
+    currentUserId,
     isLoading,
     isLoadingMore,
     hasMore,

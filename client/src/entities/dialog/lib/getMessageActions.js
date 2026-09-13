@@ -35,7 +35,7 @@ export const getMessageActions = ({
     {
       key: 'share',
       icon: '↗️',
-      label: 'Поделиться',
+      label: '',
       ariaLabel: 'Поделиться',
       onClick: () => onShare?.(),
     },
@@ -45,7 +45,7 @@ export const getMessageActions = ({
     actions.push({
       key: 'edit',
       icon: '✏️',
-      label: 'Редактировать',
+      label: '',
       ariaLabel: 'Редактировать сообщение',
       onClick: () => handleStartEdit?.(),
     });
@@ -54,7 +54,7 @@ export const getMessageActions = ({
     actions.push({
       key: 'delete',
       icon: '🗑️',
-      label: 'Удалить',
+      label: '',
       ariaLabel: 'Удалить сообщение',
       onClick: () => onDelete?.(),
     });

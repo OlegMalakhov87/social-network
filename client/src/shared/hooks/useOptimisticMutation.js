@@ -31,28 +31,37 @@ export const useOptimisticMutation = ({
       if (!addFn) {
         return false;
       }
+      const optimisticId = `temp-${Date.now()}`;
+
+      const optimisticItem = {
+        ...data,
+        [idField]: optimisticId,
+      };
+
+      setItems((prev) => [optimisticItem, ...prev]);
 
       try {
         const result = await addFn(data);
 
-        setItems((prev) => [result, ...prev]);
+        setItems((prev) =>
+          prev.map((item) => (item[idField] === optimisticId ? result : item))
+        );
 
-        onSuccess?.('add', result);
         return true;
       } catch (err) {
-        console.error('Ошибка добавления:', err);
-        const parsed = parseApiError(err);
-        onError?.('add', parsed);
-        throw parsed;
+        setItems((prev) =>
+          prev.filter((item) => item[idField] !== optimisticId)
+        );
+        throw parseApiError(err, 'Ошибка добавления');
       }
     },
-    [addFn, setItems, onSuccess, onError]
+    [addFn, setItems, idField]
   );
 
   /** Обновление сущности */
   const editItem = useCallback(
     async (id, data) => {
-      if (!editFn || !id) return false;
+      if (!editFn || id == null) return false;
 
       const oldItems = items;
 
@@ -65,44 +74,39 @@ export const useOptimisticMutation = ({
 
         if (result && result[idField] != null) {
           setItems((prev) =>
-            prev.map((item) => (item[idField] === id ? result : item))
+            prev.map((item) =>
+              item[idField] === id ? { ...item, ...result } : item
+            )
           );
         }
 
-        onSuccess?.('update', result);
         return true;
       } catch (err) {
         setItems(oldItems);
-        console.error('Ошибка обновления:', err);
-        const parsed = parseApiError(err);
-        onError?.('update', parsed);
-        throw parsed;
+        throw parseApiError(err, 'Ошибка обновления');
       }
     },
-    [items, setItems, editFn, idField, onSuccess, onError]
+    [items, setItems, editFn, idField]
   );
 
   /** Удаление сущности */
   const removeItem = useCallback(
     async (id) => {
-      if (!deleteFn || !id) return false;
+      if (!deleteFn || id == null) return false;
 
       const oldItems = items;
 
       setItems((prev) => prev.filter((item) => item[idField] !== id));
 
       try {
-        const result = await deleteFn(id);
-        onSuccess?.('delete', result);
+        await deleteFn(id);
         return true;
       } catch (err) {
         setItems(oldItems);
-        console.error('Ошибка удаления:', err);
-        onError?.('delete', err);
-        return false;
+        throw parseApiError(err, 'Ошибка удаления');
       }
     },
-    [items, setItems, deleteFn, idField, onSuccess, onError]
+    [items, setItems, deleteFn, idField]
   );
 
   return {

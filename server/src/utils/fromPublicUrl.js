@@ -12,4 +12,4 @@ const fromPublicUrl = (url) => {
   return path.join(process.cwd(), url.replace(/^\/+/, ''));
 };
 
-module.exports = fromPublicUrl;
+module.exports = { fromPublicUrl };

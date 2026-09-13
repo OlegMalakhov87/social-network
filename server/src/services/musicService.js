@@ -1,5 +1,4 @@
 const fs = require('fs').promises;
-const path = require('path');
 const {
   Music,
   User,
@@ -8,7 +7,8 @@ const {
   UserMusicLibrary,
 } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -17,6 +17,18 @@ const SORT_MAP = {
   viewsDesc: [['playsCount', 'DESC']],
   viewsAsc: [['playsCount', 'ASC']],
 };
+
+// Поля трека, которые можно обновлять
+const MUSIC_FIELDS = [
+  'title',
+  'artist',
+  'album',
+  'description',
+  'audioUrl',
+  'coverUrl',
+  'category',
+  'isPublic',
+];
 
 const musicService = {
   /**
@@ -121,14 +133,23 @@ const musicService = {
 
   /**
    * Создание нового трека
-   * @param {number} userId - ID пользователя, создающего трек
+   * @param {number} currentUserId - ID пользователя, создающего трек
    * @param {Object} musicData - Данные трека
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async createMusic(userId, musicData) {
+  async createMusic(currentUserId, musicData) {
     const dbData = {
-      ...musicData,
-      uploadedBy: userId,
+      title: musicData.title,
+      artist: musicData.artist,
+      album: musicData.album,
+      description: musicData.description,
+      audioUrl: musicData.audioUrl,
+      coverUrl: musicData.coverUrl,
+      category: musicData.category,
+      isPublic: musicData.isPublic,
+
+      uploadedBy: currentUserId,
+      year: new Date().getFullYear(),
       playsCount: 0,
     };
 
@@ -136,7 +157,7 @@ const musicService = {
 
     // Автоматически добавляем в библиотеку создателя
     await UserMusicLibrary.create({
-      userId,
+      userId: currentUserId,
       trackId: track.id,
       isFavorite: true,
       playsCount: 0,
@@ -147,14 +168,14 @@ const musicService = {
 
   /**
    * Обновление приватности треков
-   * @param {number} userId - ID пользователя, обновляющего треки
+   * @param {number} currentUserId - ID пользователя, обновляющего треки
    * @param {boolean} isPublic - Приватность треков
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateMusicPrivacy(userId, { isPublic }) {
+  async updateMusicPrivacy(currentUserId, { isPublic }) {
     const [affectedCount] = await Music.update(
       { isPublic },
-      { where: { uploadedBy: userId } }
+      { where: { uploadedBy: currentUserId } }
     );
 
     if (affectedCount === 0) {
@@ -168,65 +189,32 @@ const musicService = {
   },
 
   /**
-   * Обновление метаданных трека (владелец)
+   * Обновление трека (владелец)
    * @param {number} trackId - ID трека
-   * @param {number} userId - ID пользователя, обновляющего трек
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} updates - Обновляемые данные
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateMusic(trackId, userId, updates) {
+  async updateMusic(trackId, currentUserId, updates) {
     const track = await Music.findByPk(trackId);
     if (!track) {
-      throw createError('Композиция не найдена', 404, 'TRACK_NOT_FOUND');
+      throw createError('Трек не найден', 404, 'TRACK_NOT_FOUND');
     }
 
-    if (track.uploadedBy !== userId) {
+    if (track.uploadedBy !== currentUserId) {
       throw createError(
-        'Вы не можете редактировать эту композицию',
+        'Вы не можете редактировать этот трек',
         403,
         'FORBIDDEN'
       );
     }
 
-    const dbUpdates = { ...updates };
-
-    // Логика очистки старого аудио файла
-    if (updates.audioUrl !== undefined && updates.audioUrl !== null) {
-      const newAudioUrl = updates.audioUrl;
-      if (
-        newAudioUrl !== track.audioUrl &&
-        !track.audioUrl.includes('/default-track.mp3')
-      ) {
-        const oldFilePath = path.join(__dirname, '../../', track.audioUrl);
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn('Не удалось удалить старое аудио:', err.message);
-        }
-      }
-      dbUpdates.audioUrl = newAudioUrl;
-    }
-
-    // Логика очистки старой обложки
-    if (updates.coverUrl !== undefined && updates.coverUrl !== null) {
-      const newCoverUrl = updates.coverUrl;
-      if (
-        newCoverUrl !== track.coverUrl &&
-        !track.coverUrl.includes('/default-image.jpg')
-      ) {
-        const oldFilePath = path.join(__dirname, '../../', track.coverUrl);
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn('Не удалось удалить старую обложку:', err.message);
-        }
-      }
-      dbUpdates.coverUrl = newCoverUrl;
-    }
-
-    if (Object.keys(dbUpdates).length === 0) {
-      throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
-    }
+    // Выбираем только разрешенные поля
+    const dbUpdates = Object.fromEntries(
+      MUSIC_FIELDS.filter((field) => Object.hasOwn(updates, field)).map(
+        (field) => [field, updates[field]]
+      )
+    );
 
     const [, updatedRows] = await Music.update(dbUpdates, {
       where: { id: trackId },
@@ -234,11 +222,40 @@ const musicService = {
       plain: true,
     });
 
+    const oldMedia = [track.audioUrl, track.coverUrl];
+
+    const defaultMedia = ['/default-track.mp3', '/default-image.jpg'];
+
+    const newMedia = [updatedRows.audioUrl, updatedRows.coverUrl];
+
+    for (const oldUrl of oldMedia) {
+      if (
+        !oldUrl ||
+        newMedia.includes(oldUrl) ||
+        defaultMedia.includes(oldUrl)
+      ) {
+        continue;
+      }
+
+      const filePath = fromPublicUrl(oldUrl);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа трека ${oldUrl}:`,
+            error.message
+          );
+        }
+      }
+    }
+
     return { track: updatedRows.toJSON() };
   },
 
   /**
-   * Инкремент счетчика прослушиваний
+   * Инкремент счетчика проигрываний
    * @param {number} trackId - ID трека
    * @returns {Promise<Object>} - Объект с результатом
    */
@@ -257,37 +274,85 @@ const musicService = {
   /**
    * Удаление трека (владелец)
    * @param {number} trackId - ID трека
-   * @param {number} userId - ID пользователя, удаляющего трек
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async deleteMusic(trackId, userId) {
+  async deleteMusic(trackId, currentUserId) {
     const track = await Music.findOne({
-      where: { id: trackId, uploadedBy: userId },
+      where: { id: trackId, uploadedBy: currentUserId },
     });
     if (!track) {
-      throw createError('Композиция не найдена', 404, 'TRACK_NOT_FOUND');
+      throw createError(
+        'Трек не найден или нет прав на удаление',
+        404,
+        'TRACK_NOT_FOUND_OR_FORBIDDEN'
+      );
     }
 
-    // Логика очистки старого аудио файла
-    if (track.audioUrl !== undefined && track.audioUrl !== null) {
-      const oldFilePath = path.join(__dirname, '../../', track.audioUrl);
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старое аудио:', err.message);
-      }
-    }
-    // Логика очистки старой обложки
-    if (track.coverUrl !== undefined && track.coverUrl !== null) {
-      const oldFilePath = path.join(__dirname, '../../', track.coverUrl);
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старую обложку:', err.message);
-      }
-    }
+    const oldMedia = [track.audioUrl, track.coverUrl];
+
     await track.destroy();
-    return { message: 'Композиция успешно удалена', trackId };
+
+    // Логика очистки старого медиа файла
+    for (const url of oldMedia) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа трека ${url}:`,
+            error.message
+          );
+        }
+      }
+    }
+
+    return { message: 'Трек успешно удален', trackId };
+  },
+
+  /**
+   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять трек
+   * @param {string} audioUrl - URL аудио файла
+   * @param {string} coverUrl - URL обложки файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedMedia({ audioUrl, coverUrl }) {
+    const urls = [audioUrl, coverUrl];
+
+    for (const url of urls) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа cover
+   * @param {string} coverUrl - URL обложки файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedCover({ coverUrl }) {
+    if (!coverUrl) return;
+
+    const filePath = fromPublicUrl(coverUrl);
+
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
   },
 };
 

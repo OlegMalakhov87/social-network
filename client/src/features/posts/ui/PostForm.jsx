@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { POST_TYPES } from '../../../entities/post';
 import { useForm, useNotify } from '../../../shared/hooks';
-import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
+import {
+  getApiErrorDisplay,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -26,8 +31,14 @@ import {
  * @param {Object} [props.initialData] - данные поста для редактирования
  * @param {Function} props.onClose - функция для закрытия формы
  * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Object} props.currentUser - текущий пользователь
  */
-export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
+export const PostForm = ({
+  initialData = {},
+  onClose,
+  onSubmit,
+  currentUser,
+}) => {
   const [isChangingType, setIsChangingType] = useState(false);
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
@@ -40,36 +51,59 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
       videoUpload.commit();
       imageUpload.reset();
       videoUpload.reset();
+      form.reset();
       notify.success(
         isEdit ? 'Пост успешно обновлен' : 'Пост успешно добавлен'
       );
       onClose?.();
     } catch (error) {
-      notify.error(getApiErrorDisplay(error, 'Ошибка сохранения поста'));
+      notify.error(
+        getApiErrorDisplay(
+          error,
+          isEdit ? 'Ошибка обновления поста' : 'Ошибка добавления поста'
+        )
+      );
       throw error;
     }
   };
+
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
+      author: currentUser,
       text: initialData?.text ?? null,
-      isPublic: initialData?.isPublic ?? true,
       type: initialData?.type ?? 'text',
       postUrl: initialData?.postUrl ?? null,
       previewUrl: initialData?.previewUrl ?? null,
       thumbnailUrl: initialData?.thumbnailUrl ?? null,
+      isPublic: initialData?.isPublic ?? true,
       pinned: initialData?.pinned ?? false,
-      isEdited: initialData?.isEdited ?? false,
     },
     rules: (values) => ({
       text:
         values.type === 'text'
           ? [
               required('Введите текст'),
+              minLength(1, 'Минимально 1 символ'),
               maxLength(5000, 'Максимум 5000 символов'),
             ]
           : [],
-      postUrl: values.type !== 'text' ? [required('Загрузите медиафайл')] : [],
+      postUrl:
+        values.type !== 'text'
+          ? [
+              required('Загрузите медиафайл'),
+              minLength(1, 'Минимально 1 символ'),
+              maxLength(500, 'Максимум 500 символов'),
+            ]
+          : [],
+      previewUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      thumbnailUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
     }),
     onSubmit: handleSubmit,
   });
@@ -90,6 +124,8 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Флаг загрузки */
   const isUploading = imageUpload.isUploading || videoUpload.isUploading;
+
+  /** Активный загрузчик */
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
 
   /** Конфигурация загрузки */
@@ -180,6 +216,7 @@ export const PostForm = ({ initialData = {}, onClose, onSubmit }) => {
             error={activeUpload.error || form.errors.postUrl}
             onChange={activeUpload.handleFileChange}
             disabled={form.isSubmitting || isUploading || isChangingType}
+            required={true}
           />
         )}
 

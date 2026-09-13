@@ -1,8 +1,8 @@
 const fs = require('fs').promises;
-const path = require('path');
 const { News, Like, Comment, User } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -11,6 +11,18 @@ const SORT_MAP = {
   viewsDesc: [['viewsCount', 'DESC']],
   viewsAsc: [['viewsCount', 'ASC']],
 };
+
+// Поля новости, которые можно обновлять
+const NEWS_FIELDS = [
+  'title',
+  'text',
+  'type',
+  'source',
+  'category',
+  'newsUrl',
+  'previewUrl',
+  'thumbnailUrl',
+];
 
 const newsService = {
   /**
@@ -21,6 +33,7 @@ const newsService = {
    * @param {string} params.sortKey - Ключ сортировки
    * @param {string} params.category - Категория новостей
    * @param {string} params.q - Поисковый запрос
+   * @param {number} params.currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - { news, pagination }
    */
   async getNews({
@@ -29,8 +42,8 @@ const newsService = {
     sortKey = 'dateDesc',
     category,
     q,
+    currentUserId,
   } = {}) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
     const where = {};
 
     //  Фильтр по категории
@@ -47,9 +60,6 @@ const newsService = {
         { author: { [Op.iLike]: searchTerm } },
       ];
     }
-
-    // Безопасная сортировка
-    const order = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
     const { count, rows: news } = await News.findAndCountAll({
       where,
@@ -83,9 +93,9 @@ const newsService = {
           ],
         },
       ],
-      order,
-      limit: parseInt(limit),
-      offset,
+      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      limit: limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
@@ -94,13 +104,14 @@ const newsService = {
       news: news.map((item) => ({
         ...item.toJSON(),
         likesCount: item.likes?.length,
+        isLiked: item.likes?.some((like) => like.userId === currentUserId),
         commentsCount: item.comments?.length,
       })),
       pagination: {
         totalNews: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
   },
@@ -108,22 +119,23 @@ const newsService = {
   /**
    * Получить новость по ID
    * @param {number} newsId - ID новости
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - { news }
    */
-  async getNewsById(newsId) {
+  async getNewsById(newsId, currentUserId) {
     const news = await News.findByPk(newsId, {
       include: [
+        {
+          model: User,
+          as: 'uploader',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
         {
           model: Like,
           as: 'likes',
           attributes: ['id', 'userId'],
         },
-        {
-          model: Comment,
-          as: 'comments',
-          order: [['createdAt', 'ASC']],
-          attributes: ['id', 'userId'],
-        },
+        { model: Comment, as: 'comments', attributes: ['id', 'userId'] },
       ],
     });
 
@@ -136,6 +148,7 @@ const newsService = {
       news: {
         ...news.toJSON(),
         likesCount: news.likes?.length,
+        isLiked: news.likes?.some((like) => like.userId === currentUserId),
         commentsCount: news.comments?.length,
       },
     };
@@ -143,157 +156,210 @@ const newsService = {
 
   /**
    * Создать новость
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} newsData - Данные новости
    * @returns {Promise<Object>} - { news }
    */
-  async createNews(newsData, userId) {
+  async createNews(currentUserId, newsData) {
     const dbData = {
-      uploadedBy: userId,
-      title: newsData.title?.trim(),
-      text: newsData.text?.trim(),
-      date: newsData.date || new Date().toISOString().split('T')[0],
-      author: newsData.author?.trim(),
-      category: newsData.category?.trim(),
-      source: newsData.source ? newsData.source.trim() : null,
-      media: newsData.media || null,
-      type: newsData.type || 'text',
+      title: newsData.title,
+      text: newsData.text,
+      category: newsData.category,
+      type: newsData.type,
+      source: newsData.source,
+      newsUrl: newsData.newsUrl,
+      previewUrl: newsData.previewUrl,
+      thumbnailUrl: newsData.thumbnailUrl,
+
+      uploadedBy: currentUserId,
       viewsCount: 0,
+      isEdited: false,
     };
 
-    if (
-      !dbData.title ||
-      !dbData.text ||
-      !dbData.author ||
-      !dbData.category ||
-      dbData.uploadedBy == null ||
-      !dbData.type ||
-      dbData.viewsCount == null
-    ) {
-      throw createError(
-        'Поля title, text, author, category, uploadedBy, type, viewsCount обязательны',
-        400,
-        'MISSING_FIELDS'
-      );
-    }
-
     const news = await News.create(dbData);
-    return { news: news.toJSON() };
-  },
 
-  /**
-   * Увеличить счетчик просмотров новости на 1
-   * @param {number} newsId - ID новости
-   * @returns {Promise<Object>} - { success, viewsCount }
-   */
-  async incrementViewsCount(newsId) {
-    const news = await News.findByPk(newsId);
-    if (!news) {
-      throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
-    }
+    // Получаем созданную новость с автором одним запросом
+    const newsWithAuthor = await News.findByPk(news.id, {
+      include: [
+        {
+          model: User,
+          as: 'uploader',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
+      ],
+    });
 
-    await news.increment('viewsCount', { by: 1 });
-
-    await news.reload();
-
-    return { success: true, viewsCount: news.viewsCount };
-  },
-
-  /**
-   * Загрузка медиа файла
-   * @param {Object} file - Файл
-   * @returns {Promise<Object>} - Объект с URL медиа файла
-   */
-  async uploadMedia(file) {
-    if (!file) {
-      throw createError('Файл не предоставлен', 400, 'NO_FILE_PROVIDED');
-    }
-    const media = `/${file.path}`;
-
-    return { media };
+    return { news: newsWithAuthor.toJSON() };
   },
 
   /**
    * Обновить новость
    * @param {number} newsId - ID новости
-   * @param {Object} updates - Обновляемые данные
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {Object} updateData - Обновляемые данные
    * @returns {Promise<Object>} - { news }
    */
-  async updateNews(newsId, updates, userId) {
+  async updateNews(newsId, currentUserId, updateData) {
     const news = await News.findByPk(newsId);
     if (!news) {
       throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
     }
 
-    if (news.uploadedBy !== userId) {
+    if (news.uploadedBy !== currentUserId) {
       throw createError('Вы не можете обновить эту новость', 403, 'FORBIDDEN');
     }
 
-    const dbUpdates = {};
-    if (updates.title !== undefined) dbUpdates.title = updates.title.trim();
-    if (updates.text !== undefined) {
-      dbUpdates.text = updates.text.trim();
-    }
-    if (updates.category !== undefined)
-      dbUpdates.category = updates.category.trim();
-    if (updates.author !== undefined) dbUpdates.author = updates.author.trim();
-    if (updates.source !== undefined)
-      dbUpdates.source = updates.source.trim() || null;
-    if (updates.media !== undefined) {
-      dbUpdates.media = updates.media || null;
-    }
-    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    // Выбираем только разрешенные поля
+    const dbUpdates = Object.fromEntries(
+      NEWS_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
+        (field) => [field, updateData[field]]
+      )
+    );
 
-    if (updates.media !== undefined) {
-      const newMedia = updates.media;
+    const nextType = updateData.type ?? news.type;
 
-      if (newMedia !== news.media && news.media) {
-        const oldFilePath = path.join(__dirname, '../../', news.media);
+    dbUpdates.isEdited = true;
 
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn(
-            `Не удалось удалить старое медиа новости ${oldFilePath}:`,
-            err.message
-          );
-        }
-      }
-      dbUpdates.media = newMedia;
-    }
+    dbUpdates.newsUrl =
+      nextType === 'text' ? null : (updateData.newsUrl ?? news.newsUrl);
 
-    delete dbUpdates.viewsCount;
+    dbUpdates.previewUrl =
+      nextType === 'video' ? (updateData.previewUrl ?? news.previewUrl) : null;
 
-    if (Object.keys(dbUpdates).length === 0) {
-      throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
-    }
+    dbUpdates.thumbnailUrl =
+      nextType === 'video'
+        ? (updateData.thumbnailUrl ?? news.thumbnailUrl)
+        : null;
 
-    // Оптимизация: обновляем и возвращаем результат одним запросом (PostgreSQL)
-    const [, updatedRows] = await News.update(dbUpdates, {
+    const [, updatedNews] = await News.update(dbUpdates, {
       where: { id: newsId },
       returning: true,
       plain: true,
     });
 
-    return { news: updatedRows.toJSON() };
+    const oldMedia = [news.newsUrl, news.previewUrl, news.thumbnailUrl];
+
+    const newMedia = [
+      updatedNews.newsUrl,
+      updatedNews.previewUrl,
+      updatedNews.thumbnailUrl,
+    ];
+
+    for (const oldUrl of oldMedia) {
+      if (!oldUrl || newMedia.includes(oldUrl)) {
+        continue;
+      }
+
+      const filePath = fromPublicUrl(oldUrl);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа новости ${oldUrl}:`,
+            error.message
+          );
+        }
+      }
+    }
+
+    const newsWithAuthor = await News.findByPk(updatedNews.id, {
+      include: [
+        {
+          model: User,
+          as: 'uploader',
+          attributes: ['id', 'name', 'avatarUrl'],
+        },
+      ],
+    });
+
+    return {
+      news: newsWithAuthor.toJSON(),
+    };
   },
 
   /**
-   * Удалить новость
+   *  Инкремент счетчика просмотров видео
    * @param {number} newsId - ID новости
+   * @returns {Promise<Object>} - { success, viewsCount }
+   */
+  async incrementViewsCount(newsId) {
+    await News.increment('viewsCount', {
+      by: 1,
+      where: { id: newsId },
+    });
+    const updated = await News.findByPk(newsId, {
+      attributes: ['viewsCount'],
+    });
+
+    return { success: true, viewsCount: updated.viewsCount };
+  },
+
+  /**
+   * Удалить новость (владелец)
+   * @param {number} newsId - ID новости
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - { message, newsId }
    */
-  async deleteNews(newsId, userId) {
+  async deleteNews(newsId, currentUserId) {
     const news = await News.findByPk(newsId);
     if (!news) {
       throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
     }
 
-    if (news.uploadedBy !== userId) {
+    if (news.uploadedBy !== currentUserId) {
       throw createError('Вы не можете удалить эту новость', 403, 'FORBIDDEN');
     }
 
+    const oldMedia = [news.newsUrl, news.previewUrl, news.thumbnailUrl];
+
     await news.destroy();
+
+    // Логика очистки старого медиа файла
+    for (const url of oldMedia) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа новости ${url}:`,
+            error.message
+          );
+        }
+      }
+    }
+
     return { message: 'Новость успешно удалена', newsId };
+  },
+
+  /**
+   * Удаление (очистка мусора) загруженных медиа файлов в случае если пользователь отказался добавлять новость
+   * @param {string} newsUrl - URL медиа файла
+   * @param {string} previewUrl - URL превью медиа файла
+   * @param {string} thumbnailUrl - URL thumbnail медиа файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async deleteUploadedMedia({ newsUrl, previewUrl, thumbnailUrl }) {
+    const urls = [newsUrl, previewUrl, thumbnailUrl];
+
+    for (const url of urls) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          throw err;
+        }
+      }
+    }
   },
 };
 

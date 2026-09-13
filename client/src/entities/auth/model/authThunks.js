@@ -45,11 +45,7 @@ export const fetchCurrentUser = createAsyncThunk(
       const data = await getCurrentUser();
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Не удалось получить пользователя'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -66,11 +62,7 @@ export const checkAuth = createAsyncThunk(
       const data = await getCurrentUser();
       return { user: data.user, token };
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Не удалось получить пользователя'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -96,11 +88,7 @@ export const deleteUser = createAsyncThunk(
       await deleteCurrentUser();
       return true;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Не удалось удалить пользователя'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -113,11 +101,7 @@ export const changePassword = createAsyncThunk(
       const data = await changePasswordApi(credentials);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error ||
-          error.message ||
-          'Не удалось изменить пароль'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
@@ -130,9 +114,7 @@ export const uploadAvatar = createAsyncThunk(
       const data = await uploadAvatarApi(file);
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.error || error.message || 'Ошибка загрузки фото'
-      );
+      return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );

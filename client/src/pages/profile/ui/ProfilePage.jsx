@@ -299,6 +299,7 @@ export const ProfilePage = () => {
             initialData={showPostForm === 'create' ? null : showPostForm}
             onClose={handleCloseForm}
             onSubmit={handleFormSubmit}
+            currentUser={currentUser}
           />
         )}
 

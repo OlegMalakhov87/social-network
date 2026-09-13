@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { getPostActions } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   BaseCard,
   Button,
@@ -46,6 +48,7 @@ export const Post = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
+  const notify = useNotify();
 
   if (!post?.id) return null;
 
@@ -57,9 +60,7 @@ export const Post = ({
     toggleComments,
     onUpdate,
     onDelete: () => setShowDeleteDialog(true),
-    onShare: () => {
-      onShareEntity(post);
-    },
+    onShare: () => onShareEntity(post),
   });
 
   /** Обработчик переключения раскрытия текста поста. */
@@ -71,9 +72,13 @@ export const Post = ({
   };
 
   /** Обработчик подтверждения удаления поста. */
-  const handleConfirmDelete = () => {
-    onDelete?.(post.id);
-    setShowDeleteDialog(false);
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete?.(post.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления поста'));
+    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import { api } from '../../../shared/api';
-import { normalizeDialog } from '../lib/normalizeDialog';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить список диалогов
@@ -19,81 +19,64 @@ export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
     },
     signal,
   });
-  const dialogs = response.data?.dialogs ?? [];
-  return {
-    dialogs: dialogs.map(normalizeDialog),
-    pagination: response.data?.pagination ?? { hasMore: false },
-  };
+  return response.data;
 };
 
 /**
- * Получить список сообщений с выбранным пользователем
+ * Получить список сообщений с выбранным собеседником
  * @param {Object} params
- * @param {number} params.userId - ID собеседника
+ * @param {number} params.partnerId - ID собеседника
  * @param {number} params.page - номер страницы
  * @param {number} params.limit - количество элементов на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @returns {Promise<Object>} { items, pagination }
  */
-export const fetchMessagesApi = async ({ userId, page, limit, signal }) => {
-  const response = await api.get(`/messages/conversation/${userId}`, {
+export const fetchMessagesApi = async ({ partnerId, page, limit, signal }) => {
+  const response = await api.get(`/messages/conversation/${partnerId}`, {
     params: {
       page,
       limit,
     },
     signal,
   });
-  return {
-    messages: response.data?.messages ?? [],
-    pagination: response.data?.pagination ?? {},
-  };
+  return response.data;
 };
 
 /**
- * Получить сообщение по ID
+ * Получить сообщение по ID (для кнопки "Поделиться")
  * @param {number} messageId - ID сообщения
  * @returns {Promise<Object>} { message }
  */
 export const fetchMessageById = async (messageId) => {
   const response = await api.get(`/messages/${messageId}/shared`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['messages']);
 };
 
 /**
- * Отправить сообщение
- * @param {number} userId - ID собеседника
- * @param {string} text - текст сообщения
+ * Отправить сообщение собеседнику
+ * @param {number} receiverId - ID собеседника
+ * @param {string} content - контент сообщения
  * @returns {Promise<Object>} { message }
  */
-export const sendMessageApi = async (userId, text) => {
+export const sendMessageApi = async (receiverId, content) => {
   const response = await api.post(`/messages/send`, {
-    userId,
-    text,
+    receiverId,
+    content,
   });
-  return response.data;
-};
-
-/**
- * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
- * @param {number} messageId - ID сообщения
- * @returns {Promise<Object>} { success: boolean }
- */
-export const hideMessageApi = async (messageId) => {
-  const response = await api.delete(`/messages/${messageId}/hide`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['messages']);
 };
 
 /**
  * Обновить сообщение
  * @param {number} messageId - ID сообщения
- * @param {string} newText - новый текст сообщения
+ * @param {string} content - новый контент сообщения
  * @returns {Promise<Object>} { success: boolean }
  */
-export const updateMessageApi = async (messageId, newText) => {
+export const updateMessageApi = async (messageId, content) => {
   const response = await api.put(`/messages/${messageId}/edit`, {
-    text: newText,
+    content,
   });
-  return response.data;
+  return unwrapApiEntity(response.data, ['messages']);
 };
 
 /**
@@ -103,15 +86,25 @@ export const updateMessageApi = async (messageId, newText) => {
  */
 export const markMessagesAsRead = async (messageIds) => {
   const response = await api.put(`/messages/read`, { messageIds });
-  return response.data;
+  return unwrapApiEntity(response.data, ['messages']);
+};
+
+/**
+ * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
+ * @param {number} messageId - ID сообщения
+ * @returns {Promise<Object>} { success: boolean }
+ */
+export const hideMessageApi = async (messageId) => {
+  const response = await api.put(`/messages/${messageId}/hide`);
+  return unwrapApiEntity(response.data, ['messages']);
 };
 
 /**
  * Очистить чат с пользователем (удаляет чат только у текущего пользователя)
- * @param {number} userId - ID собеседника
+ * @param {number} receiverId - ID собеседника
  * @returns {Promise<Object>} { success: boolean }
  */
-export const clearChatApi = async (userId) => {
-  const response = await api.put(`/messages/clear/${userId}`);
-  return response.data;
+export const clearChatApi = async (receiverId) => {
+  const response = await api.put(`/messages/clear/${receiverId}`);
+  return unwrapApiEntity(response.data, ['messages']);
 };

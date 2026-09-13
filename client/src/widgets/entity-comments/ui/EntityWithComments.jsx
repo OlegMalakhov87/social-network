@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { useEscapeKey, useOutsideClick } from '../../../shared/hooks';
+import { useCallback, useRef } from 'react';
+import { useCommentsPanelInteraction } from '../../../shared/hooks';
 import { CommentsSection } from '../../comments-list';
 import styles from './EntityWithComments.module.css';
 
@@ -27,31 +27,20 @@ export const EntityWithComments = ({
   const entityRef = useRef(null);
   const commentsRef = useRef(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  /**
+   * Функция для получения элемента, на который нужно вернуться после закрытия панели комментариев.
+   */
+  const getReturnElement = useCallback(() => entityRef.current, []);
 
-    const frame = requestAnimationFrame(() => {
-      commentsRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [isOpen]);
-
-  const handleClose = useCallback(() => {
-    onClose?.();
-
-    requestAnimationFrame(() => {
-      entityRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    });
-  }, [onClose]);
-
-  useEscapeKey(isOpen ? handleClose : undefined, true, true);
-  useOutsideClick(entityRef, handleClose, isOpen);
+  /**
+   * Хук для взаимодействия с панелью комментариев.
+   */
+  const { handleClose } = useCommentsPanelInteraction({
+    isOpen,
+    onClose,
+    panelRef: commentsRef,
+    getReturnElement,
+  });
 
   return (
     <div ref={entityRef}>

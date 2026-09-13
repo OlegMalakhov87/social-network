@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все публичные треки с возможностью фильтрации по жанру и поиску.
@@ -39,7 +40,7 @@ export const fetchTracksApi = async ({
  */
 export const addTrackApi = async (formData) => {
   const response = await api.post('/music/add', formData);
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
@@ -50,7 +51,7 @@ export const addTrackApi = async (formData) => {
  */
 export const updateTrackApi = async (trackId, updates) => {
   const response = await api.put(`/music/${trackId}/update`, updates);
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
@@ -60,7 +61,7 @@ export const updateTrackApi = async (trackId, updates) => {
  */
 export const updateTracksPrivacyApi = async (isPublic) => {
   const response = await api.put(`/music/update-privacy`, { isPublic });
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
@@ -70,7 +71,7 @@ export const updateTracksPrivacyApi = async (isPublic) => {
  */
 export const incrementTrackPlaysCount = async (trackId) => {
   const response = await api.put(`/music/${trackId}/plays`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
@@ -80,17 +81,17 @@ export const incrementTrackPlaysCount = async (trackId) => {
  */
 export const deleteTrackApi = async (trackId) => {
   const response = await api.delete(`/music/${trackId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
- * Удалить загруженные медиа треков.
+ * Удалить загруженные медиа треков (очистка мусора).
  * @param {Object} data - данные трека
  * @returns {Promise<Object>} { success }
  */
 export const deleteUploadedAudioApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-audio', { data });
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };
 
 /**
@@ -100,5 +101,5 @@ export const deleteUploadedAudioApi = async (data) => {
  */
 export const deleteUploadedCoverApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-cover', { data });
-  return response.data;
+  return unwrapApiEntity(response.data, ['tracks']);
 };

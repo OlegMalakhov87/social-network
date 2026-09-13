@@ -1,6 +1,6 @@
 const { Friend, User } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
 
 const friendService = {
   /**

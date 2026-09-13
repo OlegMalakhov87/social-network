@@ -7,4 +7,4 @@ export * from './fieldValidators'; // Валидаторы для строков
 export * from './fileValidators'; // Валидаторы для файлов
 export * from './mediaValidators'; // Валидаторы для медиа-контента
 export { sortItems } from './sortItems'; // Функция для сортировки данных
-export { unwrapApiEntity } from './unwrapApiEntity'; // Разворачивает { post, news, … } из ответа API
+export { unwrapApiEntity } from './unwrapApiEntity'; // Разворачивает вложенную сущность из ответа API

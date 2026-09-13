@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { getTrackActions, TrackMeta } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
@@ -9,6 +11,7 @@ import {
   EntityHeader,
   MediaPreview,
 } from '../../../shared/ui';
+
 /**
  * Карточка одного трека.
  * @param {Object} props - пропсы компонента
@@ -49,15 +52,21 @@ export const Track = ({
   onDelete,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const notify = useNotify();
+
   if (!track?.id) return null;
 
+  /** Флаг владельца трека. */
   const isOwn = track.uploadedBy === currentUser?.id;
 
+  /** Флаг отображения избранного. */
   const showFavorite = mode === 'profile' && isOwnProfile && track.isInLibrary;
 
+  /** Флаг отключения кнопки. */
   const disabledButton =
     mode === 'profile' && isOwnProfile && !track.isInLibrary;
 
+  /** Обработчик воспроизведения трека. */
   const handlePlay = () => {
     if (currentTrack?.id === track.id) {
       togglePlay?.();
@@ -66,6 +75,7 @@ export const Track = ({
     }
   };
 
+  /** Конфигурация элементов управления карточкой трека. */
   const actions = getTrackActions({
     track,
     isOwn,
@@ -77,9 +87,14 @@ export const Track = ({
     disabledButton,
   });
 
-  const handleConfirmDelete = () => {
-    onDelete?.(track?.id);
-    setShowDeleteDialog(false);
+  /** Обработчик подтверждения удаления трека. */
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete?.(track?.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления трека'));
+    }
   };
 
   return (

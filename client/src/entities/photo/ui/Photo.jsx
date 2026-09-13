@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getPhotoActions } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
@@ -12,13 +13,13 @@ import {
   MediaPreview,
 } from '../../../shared/ui';
 import { formatDate } from '../../../shared/utils';
-import { normalizeSharedPhoto } from '../../shared-entity';
 import styles from './Photo.module.css';
 /**
  * Компонент для отображения карточки фотографии.
  * @param {Object} props - пропсы компонента
  * @param {Object} props.photo - данные фотографии
  * @param {Object} props.currentUser - текущий пользователь
+ * @param {Function} props.onShareEntity - функция для отображения сообщения о успешном сохранении фотографии
  * @param {Function} props.toggleLike - функция для лайка/дизлайка фотографии
  * @param {Function} props.onDelete - функция для удаления фотографии
  * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к фотографии
@@ -26,12 +27,14 @@ import styles from './Photo.module.css';
 export const Photo = ({
   photo,
   currentUser,
+  onShareEntity,
   onDelete,
   toggleLike,
   toggleComments,
 }) => {
-  const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const notify = useNotify();
+
   if (!photo?.id) return null;
 
   const isOwn = currentUser?.id === photo?.userId;
@@ -41,18 +44,16 @@ export const Photo = ({
     toggleLike,
     toggleComments,
     onDelete: () => setShowDeleteDialog(true),
-    onShare: () => {
-      sessionStorage.setItem(
-        'sharedEntity',
-        JSON.stringify(normalizeSharedPhoto(photo))
-      );
-      navigate('/messages');
-    },
+    onShare: () => onShareEntity(photo),
   });
 
-  const handleConfirmDelete = () => {
-    onDelete?.(photo?.id);
-    setShowDeleteDialog(false);
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete?.(photo?.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления фото'));
+    }
   };
 
   return (

@@ -6,7 +6,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import { EntityWithComments } from '../../../entity-comments';
+import { CommentableGrid } from '../../../comment-grid';
 import styles from './TracksTab.module.css';
 
 /**
@@ -127,38 +127,35 @@ export const TracksTab = ({
         }
         onRetry={onRetry}
       >
-        <div className={styles.tracksGrid}>
-          {tracks.map((track) => (
-            <EntityWithComments
-              key={track.id}
-              entity={track}
-              targetType="tracks"
-              isOpen={commentTarget?.id === track.id}
-              onClose={onCloseComments}
-              currentUser={currentUser}
-              onCommentChange={onCommentChange}
-              renderEntity={(entity) => (
-                <Track
-                  track={entity}
-                  allTracks={tracks}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  currentUser={currentUser}
-                  isOwnProfile={isOwnProfile}
-                  mode={mode}
-                  onPlay={onPlay}
-                  togglePlay={togglePlay}
-                  addToLibrary={addOptimistic}
-                  deleteFromLibrary={deleteOptimistic}
-                  toggleFavorite={toggleFavorite}
-                  toggleLike={toggleLike}
-                  toggleComments={toggleComments}
-                  updateTrack={updateTrack}
-                  onDelete={deleteTrack}
-                />
-              )}
-            />
-          ))}
+        <div className={styles.content}>
+          <CommentableGrid
+            items={tracks}
+            commentTarget={commentTarget}
+            onToggleComments={toggleComments}
+            onCloseComments={onCloseComments}
+            currentUser={currentUser}
+            onCommentChange={onCommentChange}
+            renderItem={({ item, onToggleComments }) => (
+              <Track
+                track={item}
+                allTracks={tracks}
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                currentUser={currentUser}
+                isOwnProfile={isOwnProfile}
+                mode={mode}
+                onPlay={onPlay}
+                togglePlay={togglePlay}
+                addToLibrary={addOptimistic}
+                deleteFromLibrary={deleteOptimistic}
+                toggleFavorite={toggleFavorite}
+                toggleLike={toggleLike}
+                toggleComments={onToggleComments}
+                updateTrack={updateTrack}
+                onDelete={deleteTrack}
+              />
+            )}
+          />
 
           <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 

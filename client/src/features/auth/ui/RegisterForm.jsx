@@ -7,11 +7,10 @@ import {
   register,
   selectIsAuthLoading,
 } from '../../../entities/auth';
-import { useForm, useNotify } from '../../../shared/hooks';
+import { useForm } from '../../../shared/hooks';
 import {
   custom,
   email,
-  getApiErrorDisplay,
   match,
   maxLength,
   minLength,
@@ -32,7 +31,6 @@ import style from './AuthForm.module.css';
  */
 export const RegisterForm = () => {
   const dispatch = useDispatch();
-  const notify = useNotify();
   const isSubmitting = useSelector(selectIsAuthLoading);
 
   useEffect(() => {
@@ -58,6 +56,7 @@ export const RegisterForm = () => {
       password: [
         required('Пароль обязателен'),
         minLength(6, 'Минимум 6 символов'),
+        maxLength(128, 'Максимум 128 символов'),
       ],
       confirmPassword: [
         required('Подтвердите пароль'),
@@ -71,9 +70,9 @@ export const RegisterForm = () => {
     onSubmit: async (values) => {
       try {
         await dispatch(register(values)).unwrap();
-      } catch (error) {
-        notify.error(getApiErrorDisplay(error, 'Ошибка при регистрации'));
-        throw error;
+        form.reset();
+      } catch (err) {
+        throw err;
       }
     },
   });
@@ -108,6 +107,8 @@ export const RegisterForm = () => {
             <Select
               label="Пол"
               {...form.register('gender')}
+              required={true}
+              error={form.errors.gender}
               options={GENDER_OPTIONS}
               disabled={form.isSubmitting || isSubmitting}
             />

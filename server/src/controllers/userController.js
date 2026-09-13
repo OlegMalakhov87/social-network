@@ -35,8 +35,8 @@ const userController = {
    */
   updateUser: async (req, res, next) => {
     try {
-      const userId = parseInt(req.user?.id);
-      const result = await userService.updateUser(userId, req.body);
+      const currentUserId = parseInt(req.user?.id);
+      const result = await userService.updateUser(currentUserId, req.body);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -48,18 +48,19 @@ const userController = {
    */
   updatePrivacy: async (req, res, next) => {
     try {
-      const userId = parseInt(req.user?.id);
-      const result = await userService.updatePrivacy(userId, req.body);
+      const currentUserId = parseInt(req.user?.id);
+      const result = await userService.updatePrivacy(currentUserId, req.body);
       res.status(200).json(result);
     } catch (error) {
       next(error);
     }
   },
-  
+
   /**
    * Загрузка аватара пользователя
    */
   uploadAvatar: async (req, res, next) => {
+    const currentUserId = parseInt(req.user?.id);
     try {
       if (!req.file) {
         return res
@@ -67,10 +68,7 @@ const userController = {
           .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
       }
 
-      const result = await userService.uploadAvatar(
-        parseInt(req.user?.id),
-        req.file
-      );
+      const result = await userService.uploadAvatar(currentUserId, req.file);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -82,10 +80,10 @@ const userController = {
    */
   changePassword: async (req, res, next) => {
     try {
-      const userId = parseInt(req.user?.id);
+      const currentUserId = parseInt(req.user?.id);
       const { currentPassword, newPassword } = req.body;
       const result = await userService.changePassword(
-        userId,
+        currentUserId,
         currentPassword,
         newPassword
       );
@@ -100,8 +98,8 @@ const userController = {
    */
   deleteUser: async (req, res, next) => {
     try {
-      const userId = parseInt(req.user?.id);
-      const result = await userService.deleteUser(userId);
+      const currentUserId = parseInt(req.user?.id);
+      const result = await userService.deleteUser(currentUserId);
       res.status(200).json(result);
     } catch (error) {
       next(error);

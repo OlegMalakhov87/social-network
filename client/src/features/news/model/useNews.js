@@ -8,12 +8,11 @@ import {
   fetchNewsApi,
   normalizeNews,
   updateNewsApi,
-  updateNewsViewCount,
+  updateNewsViewsCountApi,
 } from '../../../entities/news';
 import {
   useInfiniteScroll,
   useNormalizedData,
-  useNotify,
   useOptimisticCommentCount,
   useOptimisticCounter,
   useOptimisticLike,
@@ -21,37 +20,20 @@ import {
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
-const normalizeFilter = (value) =>
-  typeof value === 'string' && value.trim() ? value : 'all';
-
-const normalizeSearch = (value) =>
-  typeof value === 'string' ? value : '';
-
 /**
  * Хук для получения и фильтрации новостей с бесконечным скроллом.
  *
- * @param {Object|string} params - `{ filter, searchQuery, sortKey }` или filter (legacy)
- * @param {string} [searchQueryArg=''] - поисковый запрос (legacy)
- * @param {string} [sortKeyArg='dateDesc'] - ключ сортировки (legacy)
+ * @param {Object|string} params
+ * @param {string} [filter='all'] - фильтр
+ * @param {string} [searchQuery=''] - поисковый запрос
+ * @param {string} [sortKey='dateDesc'] - ключ сортировки
  * @returns {Object} - объект с данными о новостях
  */
-export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') => {
-  const isParamsObject =
-    typeof params === 'object' && params !== null && !Array.isArray(params);
-
-  const filter = normalizeFilter(
-    isParamsObject ? params.filter : params
-  );
-  const searchQuery = normalizeSearch(
-    isParamsObject ? params.searchQuery : searchQueryArg
-  );
-  const sortKey =
-    (isParamsObject ? params.sortKey : sortKeyArg) ?? 'dateDesc';
-
+export const useNews = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
-  const notify = useNotify('news');
 
+  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [filter, searchQuery, sortKey, currentUserId],
     [filter, searchQuery, sortKey, currentUserId]
@@ -66,6 +48,7 @@ export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') =>
     hasMore,
     error,
     loadMore,
+    currentPage,
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
@@ -75,7 +58,6 @@ export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') =>
       return apiFetchItems(fetchNewsApi, {
         params: {
           filter,
-          searchQuery,
           q: searchQuery,
           page,
           limit,
@@ -85,7 +67,6 @@ export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') =>
       });
     },
     deps: scrollDeps,
-    onError: () => notify.error('load'),
   });
 
   /** Оптимистичный лайк. */
@@ -98,47 +79,43 @@ export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') =>
   });
 
   /** Оптимистичный счётчик просмотров. */
-  const { incrementWithApi: incrementViewCount } = useOptimisticCounter({
+  const { incrementWithApi: incrementViewsCount } = useOptimisticCounter({
     items: newsItems,
     setItems: setNewsItems,
-    countField: 'viewCount',
-    updateFn: updateNewsViewCount,
+    countField: 'viewsCount',
+    updateFn: updateNewsViewsCountApi,
   });
 
   /** Оптимистичный счётчик комментариев. */
-  const updateCommentCount = useOptimisticCommentCount({
-    setItems: setNewsItems,
-  });
+  const updateCommentsCount = useOptimisticCommentCount(setNewsItems);
 
   /** Оптимистичные мутации (CRUD). */
-  const { add: addNews, edit: updateNews, remove: deleteNews } =
-    useOptimisticMutation({
-      items: newsItems,
-      setItems: setNewsItems,
-      addFn: addNewsApi,
-      editFn: updateNewsApi,
-      deleteFn: deleteNewsApi,
-      onSuccess: (action) => {
-        notify.success(action);
-      },
-      onError: (action) => {
-        notify.error(action);
-      },
-    });
+  const {
+    add: addNews,
+    edit: updateNews,
+    remove: deleteNews,
+  } = useOptimisticMutation({
+    items: newsItems,
+    setItems: setNewsItems,
+    addFn: addNewsApi,
+    editFn: updateNewsApi,
+    deleteFn: deleteNewsApi,
+  });
 
   /** Нормализация новостей. */
   const news = useNormalizedData({
     items: newsItems,
     normalizeFn: normalizeNews,
-    userId: currentUserId,
   });
 
+  /** Возвращаемые значения */
   return {
     news,
     currentUser,
     hasMore,
     isLoading,
     isLoadingMore,
+    currentPage,
     error,
     loadMore,
     refetch,
@@ -146,7 +123,7 @@ export const useNews = (params, searchQueryArg = '', sortKeyArg = 'dateDesc') =>
     deleteNews,
     updateNews,
     toggleLike,
-    incrementViewCount,
-    updateCommentCount,
+    incrementViewsCount,
+    updateCommentsCount,
   };
 };

@@ -8,7 +8,7 @@ const {
   News,
 } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
 
 /**
  * Маппинг типов сущностей на модели и типы в БД
@@ -35,15 +35,6 @@ const TARGET_TYPES = {
   },
 };
 
-/**
- * Маппинг типов сущностей на типы в БД
- */
-const GROUPED_TYPES = {
-  Post: 'posts',
-  Music: 'tracks',
-  Video: 'videos',
-  News: 'news',
-};
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -116,43 +107,7 @@ const commentService = {
   },
 
   /**
-   * Получение комментариев пользователя (для админки)
-   * @param {number} userId - ID пользователя
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество комментариев на странице
-   * @param {string} sortKey - Ключ сортировки
-   * @returns {Promise<Object>} { userId, comments, pagination }
-   */
-  async getUserComments(userId, page = 1, limit = 30, sortKey = 'dateDesc') {
-    const { count, rows: comments } = await Comment.findAndCountAll({
-      where: { userId },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'avatarUrl'],
-        },
-      ],
-      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
-      limit,
-      offset: (page - 1) * limit,
-      distinct: true,
-    });
-
-    return {
-      userId,
-      comments: comments.map((comment) => comment.toJSON()),
-      pagination: {
-        totalComments: count,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        hasMore: page * limit < count,
-      },
-    };
-  },
-
-  /**
-   * Получение комментария по ID для shared комментария
+   * Получение комментария по ID
    * @param {number} commentId - ID комментария
    * @returns {Promise<Object>} { comment }
    */
@@ -166,12 +121,10 @@ const commentService = {
         },
       ],
     });
-
     if (!comment) {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
-
-    return { comment: comment.toJSON() };
+    return comment.toJSON();
   },
 
   /**
@@ -183,19 +136,12 @@ const commentService = {
   async createComment(currentUserId, commentData) {
     const { targetType, targetId, text } = commentData;
 
-    if (!targetType || !targetId || !text) {
-      throw createError(
-        'Поля targetType, targetId и text обязательны',
-        400,
-        'MISSING_FIELDS'
-      );
-    }
-
     // Динамическая проверка существования сущности
     const target = TARGET_TYPES[targetType];
     if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
+
     const targetEntity = await target.model.findByPk(targetId, {
       attributes: ['id'],
     });

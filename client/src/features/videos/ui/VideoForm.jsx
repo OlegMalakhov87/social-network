@@ -49,7 +49,12 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       );
       onClose?.();
     } catch (error) {
-      notify.error(getApiErrorDisplay(error, 'Ошибка сохранения видео'));
+      notify.error(
+        getApiErrorDisplay(
+          error,
+          isEdit ? 'Ошибка обновления видео' : 'Ошибка добавления видео'
+        )
+      );
       throw error;
     }
   };
@@ -61,13 +66,12 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       description: initialData?.description ?? null,
       duration: initialData?.duration ?? null,
       size: initialData?.size ?? null,
-      year: initialData?.year ?? null,
+      year: initialData?.year ?? new Date().getFullYear(),
       videoUrl: initialData?.videoUrl ?? null,
       previewUrl: initialData?.previewUrl ?? null,
       thumbnailUrl: initialData?.thumbnailUrl ?? null,
       category: initialData?.category ?? null,
       isPublic: initialData?.isPublic ?? true,
-      viewsCount: initialData?.viewsCount ?? 0,
     },
     rules: () => ({
       title: [
@@ -76,7 +80,19 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
         maxLength(100, 'Максимум 100 символов'),
       ],
       description: [maxLength(2000, 'Максимум 2000 символов')],
-      videoUrl: [required('Загрузите видео')],
+      videoUrl: [
+        required('Загрузите видео'),
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      previewUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      thumbnailUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
       category: [required('Выберите категорию')],
     }),
     onSubmit: handleSubmit,
@@ -196,6 +212,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           {...form.register('category')}
           options={CATEGORY_OPTIONS}
           disabled={form.isSubmitting || isUploading}
+          helperText={form.errors.category}
         />
 
         <Checkbox

@@ -1,5 +1,10 @@
-import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import {
+  getApiErrorDisplay,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import { IconButton, TextArea } from '../../../shared/ui';
 import { handleKeyboardClick } from '../../../shared/utils';
 import style from './MessageForm.module.css';
@@ -12,17 +17,26 @@ import style from './MessageForm.module.css';
  * @returns {React.ReactNode} - компонент MessageForm
  */
 export const MessageForm = ({ partnerId, onSubmit }) => {
+  const notify = useNotify();
+
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { message: '' },
-    rules: () => ({
-      message: [
-        minLength(1, 'Напишите сообщение'),
+    initialValues: { content: null },
+    rules: (values) => ({
+      content: [
+        required('Напишите сообщение'),
+        minLength(1, 'Минимум 1 символ'),
         maxLength(1000, 'Максимум 1000 символов'),
       ],
     }),
-    onSubmit: (values) => {
-      onSubmit?.(partnerId, values.message);
+    onSubmit: async (values) => {
+      try {
+        await onSubmit?.(partnerId, values.content);
+        form.reset();
+      } catch (error) {
+        notify.error(getApiErrorDisplay(error, 'Ошибка отправки сообщения'));
+        throw error;
+      }
     },
   });
 
@@ -34,7 +48,7 @@ export const MessageForm = ({ partnerId, onSubmit }) => {
   return (
     <form onSubmit={form.submit} className={style.messageFormWrapper}>
       <TextArea
-        {...form.register('message')}
+        {...form.register('content')}
         placeholder="Написать сообщение..."
         rows={1}
         disabled={form.isSubmitting}
@@ -44,10 +58,10 @@ export const MessageForm = ({ partnerId, onSubmit }) => {
 
       <IconButton
         icon="➤"
-        variant="primary"
-        size="md"
+        size="lg"
+        variant="ghost"
         type="submit"
-        disabled={!form.values.message?.trim() || form.isSubmitting}
+        disabled={form.isSubmitting}
         ariaLabel="Отправить сообщение"
       />
     </form>

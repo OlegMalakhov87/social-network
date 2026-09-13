@@ -1,31 +1,51 @@
 const { Router } = require('express');
+const {
+  validateMessage,
+} = require('../middleware/validation/messageValidation');
 const messageController = require('../controllers/messageController');
-const { validateIdParam } = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 
 const messageRoutes = Router();
 
 // Получить список диалогов
 messageRoutes.get('/dialogs', authMiddleware, messageController.getDialogs);
 
-// Получить переписку с конкретным пользователем
+// Получить переписку с выбранным собеседником
 messageRoutes.get(
-  '/conversation/:userId',
-  validateIdParam('userId'),
+  '/conversation/:partnerId',
+  validateIdParam('partnerId'),
   authMiddleware,
   messageController.getConversation
 );
 
-// Отправить сообщение
-messageRoutes.post('/send', authMiddleware, messageController.sendMessage);
+// Получить сообщение по ID (для кнопки "Поделиться")
+messageRoutes.get(
+  '/:messageId/shared',
+  validateIdParam('messageId'),
+  authMiddleware,
+  messageController.getMessageById
+);
 
-// Обновить сообщение
+// Отправить сообщение собеседнику
+messageRoutes.post(
+  '/send',
+  validateMessage,
+  authMiddleware,
+  messageController.sendMessage
+);
+
+// Обновить сообщение (владелец сообщения)
 messageRoutes.put(
   '/:messageId/edit',
   validateIdParam('messageId'),
   authMiddleware,
+  validateMessage,
   messageController.updateMessage
 );
+
+// Отметить сообщения как прочитанные
+messageRoutes.put('/read', authMiddleware, messageController.markAsRead);
 
 // Скрыть сообщение (удалить у себя)
 messageRoutes.delete(
@@ -35,13 +55,10 @@ messageRoutes.delete(
   messageController.hideMessage
 );
 
-// Отметить сообщения как прочитанные
-messageRoutes.put('/read', authMiddleware, messageController.markAsRead);
-
 // Очистить чат (удалить всю переписку с пользователем у себя)
 messageRoutes.put(
-  '/clear/:userId',
-  validateIdParam('userId'),
+  '/clear/:receiverId',
+  validateIdParam('receiverId'),
   authMiddleware,
   messageController.clearChat
 );

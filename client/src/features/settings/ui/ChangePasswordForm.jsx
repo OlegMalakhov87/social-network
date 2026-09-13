@@ -3,7 +3,13 @@ import { useDispatch } from 'react-redux';
 import { CHANGE_PASSWORD_SETTINGS_CONFIG, SettingsSection } from '..';
 import { changePassword, deleteUser, logout } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
-import { match, minLength, required } from '../../../shared/lib';
+import {
+  getApiErrorDisplay,
+  match,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   Alert,
   Button,
@@ -30,10 +36,15 @@ export const ChangePasswordForm = () => {
       confirmPassword: '',
     },
     rules: {
-      currentPassword: [required('Введите текущий пароль')],
+      currentPassword: [
+        required('Введите текущий пароль'),
+        minLength(6, 'Минимум 6 символов'),
+        maxLength(128, 'Максимум 128 символов'),
+      ],
       newPassword: [
         required('Введите новый пароль'),
         minLength(6, 'Минимум 6 символов'),
+        maxLength(128, 'Максимум 128 символов'),
       ],
       confirmPassword: [
         required('Подтвердите пароль'),
@@ -51,7 +62,8 @@ export const ChangePasswordForm = () => {
         notify.success('Пароль успешно изменён');
         form.reset();
       } catch (error) {
-        notify.error('Ошибка смены пароля');
+        notify.error(getApiErrorDisplay(error, 'Ошибка смены пароля'));
+        throw error;
       }
     },
   });
@@ -64,7 +76,7 @@ export const ChangePasswordForm = () => {
       notify.success('Аккаунт успешно удален');
       dispatch(logout());
     } catch (error) {
-      notify.error('Ошибка при удалении аккаунта');
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления аккаунта'));
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);

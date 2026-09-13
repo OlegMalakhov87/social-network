@@ -116,6 +116,7 @@ export const VideosPage = () => {
           )
         }
       >
+        {/* Панель фильтров и поиска */}
         <SectionCard>
           <Toolbar
             tabs={CATEGORIES}
@@ -164,6 +165,7 @@ export const VideosPage = () => {
           />
         </SectionCard>
 
+        {/* Модальное окно с формой добавления/редактирования видео */}
         {showVideoForm && currentUser && (
           <VideoForm
             key={
@@ -175,6 +177,7 @@ export const VideosPage = () => {
           />
         )}
 
+        {/* Модальное окно с видео */}
         {selectedVideo && (
           <VideoPlayer
             video={selectedVideo}

@@ -1,17 +1,16 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectToken, selectUser } from '../../../entities/auth';
 import {
   fetchMessagesApi,
   markMessagesAsRead,
-  normalizeMessage,
+  normalizeMessages,
 } from '../../../entities/dialog';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import { WS_URL } from '../../../shared/config';
 import {
   useInfiniteScroll,
   useNormalizedData,
-  useNotify,
   useOptimisticLike,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
@@ -22,15 +21,21 @@ import { apiFetchItems } from '../../../shared/lib';
  * отметку прочтения и обновление отдельных полей сообщений.
  *
  * @param {number|null} userId – ID собеседника
- * @returns { Object } { messages, isLoading, isLoadingMore, hasMore, error, loadMore, refetch, replaceOptimistic, updateMessageInState, markAsRead, addOptimistic, removeOptimistic }
+ * @returns { Object } - объект с данными о сообщениях
  */
 export function useMessages(userId) {
   const currentUser = useSelector(selectUser);
   const token = useSelector(selectToken);
-  const notify = useNotify('dialogs');
+  const currentUserId = currentUser?.id;
 
   /** Хранение ID прочитанных сообщений.*/
   const readIdsRef = useRef(new Set());
+
+  /** Зависимости для бесконечного скролла */
+  const scrollDeps = useMemo(
+    () => [currentUserId, userId],
+    [currentUserId, userId]
+  );
 
   /** Получение сообщений с бесконечным скроллом. */
   const {
@@ -44,7 +49,7 @@ export function useMessages(userId) {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUser?.id || !userId) {
+      if (!currentUserId || !userId) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchMessagesApi, {
@@ -52,14 +57,19 @@ export function useMessages(userId) {
         signal,
       });
     },
-    deps: [currentUser?.id, userId],
-    onSuccess: () => notify.success('load'),
-    onError: () => notify.error('load'),
+    deps: scrollDeps,
+    options: {
+      autoFetch: Boolean(currentUserId),
+    },
+    initialData: {
+      items: [],
+      hasMore: false,
+    },
   });
 
   /** WebSocket: получение новых сообщений в реальном времени. */
   useEffect(() => {
-    if (!currentUser?.id || !token || !userId) return;
+    if (!currentUserId || !token || !userId) return;
 
     let ws;
     let reconnectTimeout;
@@ -84,8 +94,8 @@ export function useMessages(userId) {
           if (data.type === 'newMessage') {
             const msg = data.data;
             if (
-              (msg.senderId === userId && msg.receiverId === currentUser?.id) ||
-              (msg.receiverId === userId && msg.senderId === currentUser?.id)
+              (msg.senderId === userId && msg.receiverId === currentUserId) ||
+              (msg.receiverId === userId && msg.senderId === currentUserId)
             ) {
               setMessagesItems((prev) => [...prev, msg]);
             }
@@ -135,7 +145,7 @@ export function useMessages(userId) {
       clearTimeout(reconnectTimeout);
       ws?.close();
     };
-  }, [currentUser?.id, userId, setMessagesItems, token]);
+  }, [currentUserId, userId, setMessagesItems, token]);
 
   /**
    * Оптимистичное добавление сообщения.
@@ -183,7 +193,7 @@ export function useMessages(userId) {
       .filter(
         (m) =>
           m.senderId === userId &&
-          m.receiverId === currentUser?.id &&
+          m.receiverId === currentUserId &&
           !m.isRead &&
           !readIdsRef.current.has(m.id)
       )
@@ -203,7 +213,7 @@ export function useMessages(userId) {
       unreadIds.forEach((id) => readIdsRef.current.delete(id));
       console.error('Ошибка отметки прочтения:', err);
     }
-  }, [messagesItems, setMessagesItems, userId, currentUser?.id]);
+  }, [messagesItems, setMessagesItems, userId, currentUserId]);
 
   /**
    * Обновление отдельных полей сообщения (например, после редактирования).
@@ -224,21 +234,18 @@ export function useMessages(userId) {
     setItems: setMessagesItems,
     addLikeFn: addLikeApi,
     deleteLikeFn: deleteLikeApi,
-    currentUserId: currentUser?.id,
+    currentUserId: currentUserId,
     targetType: 'messages',
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
   /** Нормализация сообщений. */
-  const messages = useNormalizedData({
+  const normalizedMessages = useNormalizedData({
     items: messagesItems,
-    normalizeFn: normalizeMessage,
-    userId: currentUser?.id,
+    normalizeFn: normalizeMessages,
   });
 
   return {
-    messages,
+    messages: normalizedMessages,
     isLoading,
     isLoadingMore,
     hasMore,

@@ -19,9 +19,9 @@ const initialState = {
   user: null,
   token: getToken(),
   isAuthenticated: false,
-  status: 'idle', // idle | loading | succeeded | failed
+  status: 'idle', // idle - нет авторизации, loading - проверяем авторизацию, succeeded - авторизован, failed - ошибка авторизации
   error: null,
-  isCheckingAuth: true, //
+  isCheckingAuth: true, // true - проверяем авторизацию, false - не проверяем
 };
 
 const authSlice = createSlice({
@@ -104,10 +104,10 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-        state.error =
-          action.payload ||
-          action.error.message ||
-          'Не удалось получить пользователя';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Не удалось получить пользователя'
+        );
         removeToken();
         state.isCheckingAuth = false;
       })
@@ -139,8 +139,10 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.isCheckingAuth = false;
-        state.error =
-          action.payload || action.error.message || 'Сессия истекла';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Сессия истекла'
+        );
         removeToken();
       })
 
@@ -173,8 +175,10 @@ const authSlice = createSlice({
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка удаления профиля';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Ошибка удаления профиля'
+        );
       })
 
       /** Обновление пароля пользователя.*/
@@ -187,8 +191,10 @@ const authSlice = createSlice({
       })
       .addCase(changePassword.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка обновления пароля';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Ошибка обновления пароля'
+        );
       })
 
       /** Загрузка аватара пользователя.*/
@@ -201,8 +207,10 @@ const authSlice = createSlice({
       })
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.status = 'failed';
-        state.error =
-          action.payload || action.error.message || 'Ошибка загрузки аватара';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Ошибка загрузки аватара'
+        );
       });
   },
 });

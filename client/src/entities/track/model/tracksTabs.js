@@ -10,7 +10,7 @@ export const GENRE_TABS = [
 ];
 
 /** Мапа для выбора жанра трека*/
-export const GENRE_OPTIONS = [
+export const CATEGORY_OPTIONS = [
   { value: '', label: 'Выберите жанр' },
   { value: 'rock', label: 'Рок' },
   { value: 'pop', label: 'Поп' },

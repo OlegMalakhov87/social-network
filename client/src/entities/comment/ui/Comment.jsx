@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCommentActions } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   Avatar,
   BaseCard,
@@ -46,6 +48,7 @@ export const Comment = ({
   const [hasViewed, setHasViewed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
+  const notify = useNotify();
 
   if (!comment?.id || !author) return null;
 
@@ -62,10 +65,16 @@ export const Comment = ({
   });
 
   /** Обработчик сохранения изменений в комментарии. */
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editText.trim() && currentUserId) {
-      onEdit?.(comment.id, { text: editText, isEdited: true });
-      setIsEditing(false);
+      try {
+        await onEdit?.(comment.id, { text: editText.trim() });
+        setIsEditing(false);
+      } catch (error) {
+        notify.error(
+          getApiErrorDisplay(error, 'Ошибка обновления комментария')
+        );
+      }
     }
   };
 
@@ -84,9 +93,13 @@ export const Comment = ({
   };
 
   /** Обработчик подтверждения удаления комментария. */
-  const handleConfirmDelete = () => {
-    onDelete?.(comment.id);
-    setShowDeleteDialog(false);
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete?.(comment.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления комментария'));
+    }
   };
 
   return (

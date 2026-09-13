@@ -17,6 +17,7 @@ export const useOptimisticCounter = ({
   updateFn,
 }) => {
   const itemsRef = useRef(items);
+
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
@@ -41,7 +42,7 @@ export const useOptimisticCounter = ({
   // Оптимистичное обновление с откатом при ошибке
   const incrementWithApi = useCallback(
     async (itemId, libraryId = null, delta = 1) => {
-      if (!itemId) return;
+      if (!itemId) return false;
 
       // Сохраняем старое значение для отката
       const oldItems = itemsRef.current;
@@ -68,7 +69,6 @@ export const useOptimisticCounter = ({
       } catch (err) {
         // Откат
         setItems(oldItems);
-        console.error('Ошибка обновления счётчика:', err);
         return false;
       }
     },

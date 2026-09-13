@@ -1,14 +1,21 @@
+import { useState } from 'react';
+import { NEWS_CONFIG } from '..';
 import { CATEGORY_OPTIONS, NEWS_TYPES } from '../../../entities/news';
-import { useForm } from '../../../shared/hooks';
-import { maxLength, minLength, required } from '../../../shared/lib';
+import { useForm, useNotify } from '../../../shared/hooks';
+import {
+  getApiErrorDisplay,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
   FileInput,
   Input,
   Modal,
+  SegmentedControl,
   Select,
-  TextArea,
 } from '../../../shared/ui';
 import {
   NEWS_IMAGE_UPLOAD_CONFIG,
@@ -24,19 +31,54 @@ import {
  * @param {Object} [props.initialData] - данные новости для редактирования
  * @param {Function} props.onClose - функция для закрытия формы
  * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Object} props.currentUser - текущий пользователь
  */
-export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
+export const NewsForm = ({
+  initialData = {},
+  onClose,
+  onSubmit,
+  currentUser,
+}) => {
+  const [isChangingType, setIsChangingType] = useState(false);
   const isEdit = Boolean(initialData?.id);
+  const notify = useNotify();
+
+  /** Обработчик отправки формы */
+  const handleSubmit = async (values) => {
+    try {
+      await onSubmit?.(values, isEdit, initialData?.id);
+      imageUpload.commit();
+      videoUpload.commit();
+      imageUpload.reset();
+      videoUpload.reset();
+      form.reset();
+      notify.success(
+        isEdit ? 'Новость успешно обновлена' : 'Новость успешно добавлена'
+      );
+      onClose?.();
+    } catch (error) {
+      notify.error(
+        getApiErrorDisplay(
+          error,
+          isEdit ? 'Ошибка обновления новости' : 'Ошибка добавления новости'
+        )
+      );
+      throw error;
+    }
+  };
 
   /** Форма для создания/редактирования новости с валидацией*/
   const form = useForm({
     initialValues: {
-      title: initialData?.title || '',
-      text: initialData?.text || '',
-      category: initialData?.category || '',
-      source: initialData?.source || '',
-      type: initialData?.type || 'text',
-      newsUrl: initialData?.newsUrl || '',
+      uploader: currentUser,
+      title: initialData?.title ?? null,
+      text: initialData?.text ?? null,
+      category: initialData?.category ?? null,
+      source: initialData?.source ?? null,
+      type: initialData?.type ?? 'text',
+      newsUrl: initialData?.newsUrl ?? null,
+      previewUrl: initialData?.previewUrl ?? null,
+      thumbnailUrl: initialData?.thumbnailUrl ?? null,
     },
     rules: (values) => ({
       title: [
@@ -45,22 +87,34 @@ export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
         maxLength(100, 'Максимум 100 символов'),
       ],
       text: [
-        required('Введите текст новости'),
+        required('Введите текст'),
         minLength(1, 'Минимально 1 символ'),
         maxLength(5000, 'Максимум 5000 символов'),
       ],
-      category: [required('Выберите категорию')],
       source: [
         required('Введите название издания'),
         minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      newsUrl: values.type !== 'text' ? [required('Загрузите медиа-файл')] : [],
+      category: [required('Выберите категорию')],
+      newsUrl:
+        values.type !== 'text'
+          ? [
+              required('Загрузите медиафайл'),
+              minLength(1, 'Минимально 1 символ'),
+              maxLength(500, 'Максимум 500 символов'),
+            ]
+          : [],
+      previewUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      thumbnailUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
     }),
-    onSubmit: (values) => {
-      onSubmit?.(values, isEdit, initialData?.id);
-      onClose?.();
-    },
+    onSubmit: handleSubmit,
   });
 
   /** Хук для загрузки изображения */
@@ -70,7 +124,11 @@ export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Хук для загрузки видео */
   const videoUpload = useFileUpload(NEWS_VIDEO_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('newsUrl', data.newsUrl),
+    onSuccess: (data) => {
+      form.setValue('newsUrl', data.newsUrl);
+      form.setValue('previewUrl', data.previewUrl);
+      form.setValue('thumbnailUrl', data.thumbnailUrl);
+    },
   });
 
   /** Флаг загрузки */
@@ -78,63 +136,98 @@ export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Конфигурация загрузки */
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
+
+  /** Конфигурация загрузки */
   const activeConfig =
     form.values.type === 'video'
       ? NEWS_VIDEO_UPLOAD_CONFIG
       : NEWS_IMAGE_UPLOAD_CONFIG;
 
   /** Обработчик изменения типа новости */
-  const handleTypeChange = (value) => {
-    form.setValue('type', value);
-    form.setValue('newsUrl', '');
-    imageUpload.reset();
-    videoUpload.reset();
+  const handleTypeChange = async (value) => {
+    setIsChangingType(true);
+
+    try {
+      const currentUpload =
+        form.values.type === 'video'
+          ? videoUpload
+          : form.values.type === 'image'
+            ? imageUpload
+            : null;
+
+      await currentUpload?.cleanupUploadedFile();
+
+      form.setValue('type', value);
+      form.setValue('title', null);
+      form.setValue('text', null);
+      form.setValue('category', null);
+      form.setValue('source', null);
+      form.setValue('newsUrl', null);
+      form.setValue('previewUrl', null);
+      form.setValue('thumbnailUrl', null);
+
+      currentUpload.reset();
+    } catch {
+      // Не меняем тип, если старый файл не удалось удалить
+    } finally {
+      setIsChangingType(false);
+    }
+  };
+
+  /** Обработчик закрытия формы */
+  const handleCancel = async () => {
+    try {
+      await Promise.all([
+        imageUpload.cleanupUploadedFile(),
+        videoUpload.cleanupUploadedFile(),
+      ]);
+    } finally {
+      imageUpload.reset();
+      videoUpload.reset();
+      form.reset();
+      onClose?.();
+    }
   };
 
   return (
     <Modal
-      onClose={onClose}
+      onClose={handleCancel}
       title={isEdit ? '✏️ Редактировать новость' : '📰 Добавить новость'}
-      size="md"
+      size="sm"
     >
       <form onSubmit={form.submit}>
-        <Input
-          label="Заголовок *"
-          {...form.register('title')}
-          placeholder="Введите заголовок"
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <TextArea
-          label="Текст новости *"
-          {...form.register('text')}
-          placeholder="Введите текст новости"
-          rows={3}
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <Select
-          label="Категория *"
-          {...form.register('category')}
-          options={CATEGORY_OPTIONS}
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <Input
-          label="Источник"
-          {...form.register('source')}
-          placeholder="Название издания"
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <Select
-          label="Тип новости *"
-          {...form.register('type')}
+        {/* Выбор типа новости */}
+        <SegmentedControl
           options={NEWS_TYPES}
-          disabled={form.isSubmitting || isUploading}
+          disabled={form.isSubmitting || isUploading || isChangingType}
+          {...form.register('type')}
           onChange={handleTypeChange}
         />
 
+        {NEWS_CONFIG.map((field) => (
+          <Input
+            key={field.key}
+            label={field.label}
+            required={field.required}
+            placeholder={field.placeholder}
+            type={field.multiline ? undefined : field.type}
+            multiline={field.multiline}
+            rows={field.rows}
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            {...form.register(field.key)}
+          />
+        ))}
+
+        <Select
+          label="Категория"
+          {...form.register('category')}
+          options={CATEGORY_OPTIONS}
+          required={true}
+          disabled={form.isSubmitting || isUploading || isChangingType}
+          helperText={form.errors.category}
+        />
+
+        {/* Динамическое поле для медиафайла */}
         {form.values.type !== 'text' && (
           <FileInput
             label={form.values.type === 'image' ? 'Изображение' : 'Видео'}
@@ -149,26 +242,27 @@ export const NewsForm = ({ initialData = {}, onClose, onSubmit }) => {
             progress={activeUpload.progress}
             error={activeUpload.error || form.errors.newsUrl}
             onChange={activeUpload.handleFileChange}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            required={true}
           />
         )}
 
+        {/* Кнопки действий: Отмена, Сохранить, Добавить */}
         <ButtonGroup>
           <Button
             variant="secondary"
             type="button"
-            onClick={() => {
-              form.reset();
-              onClose?.();
-            }}
-            disabled={form.isSubmitting || isUploading}
+            size="sm"
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            onClick={handleCancel}
           >
             Отмена
           </Button>
           <Button
             type="submit"
-            disabled={form.isSubmitting || isUploading}
-            loading={form.isSubmitting || isUploading}
+            size="sm"
+            disabled={form.isSubmitting || isUploading || isChangingType}
+            loading={form.isSubmitting || isUploading || isChangingType}
           >
             {isEdit ? 'Сохранить' : 'Добавить'}
           </Button>

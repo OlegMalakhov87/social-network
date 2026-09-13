@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить список всех пользователей со статусом связи.
@@ -26,10 +27,8 @@ export const fetchFriendsApi = async ({
     },
     signal,
   });
-  return {
-    items: response.data.users || [],
-    pagination: response.data.pagination || {},
-  };
+
+  return response.data;
 };
 
 /**
@@ -40,7 +39,7 @@ export const sendFriendRequest = async (friendId) => {
   const response = await api.post(`/friends/requests`, {
     friendId,
   });
-  return response.data;
+  return unwrapApiEntity(response.data, ['friends']);
 };
 
 /**
@@ -49,7 +48,7 @@ export const sendFriendRequest = async (friendId) => {
  */
 export const acceptFriendRequest = async (friendshipId) => {
   const response = await api.put(`/friends/${friendshipId}/accept`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['friends']);
 };
 
 /**
@@ -58,7 +57,7 @@ export const acceptFriendRequest = async (friendshipId) => {
  */
 export const rejectFriendRequest = async (friendshipId) => {
   const response = await api.delete(`/friends/${friendshipId}/reject`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['friends']);
 };
 
 /**
@@ -67,7 +66,7 @@ export const rejectFriendRequest = async (friendshipId) => {
  */
 export const deleteFriend = async (friendshipId) => {
   const response = await api.delete(`/friends/${friendshipId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['friends']);
 };
 
 /**
@@ -76,5 +75,5 @@ export const deleteFriend = async (friendshipId) => {
  */
 export const blockUser = async (friendId) => {
   const response = await api.post(`/friends/block`, { friendId });
-  return response.data;
+  return unwrapApiEntity(response.data, ['friends']);
 };

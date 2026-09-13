@@ -9,20 +9,25 @@ export const normalizeNews = (raw) => {
     uploadedBy: raw.uploadedBy,
     title: raw.title,
     text: raw.text,
-    newsUrl: raw.newsUrl,
     date: raw.date,
-    uploader: raw.uploader,
+    author: raw.author,
     category: raw.category,
     type: raw.type,
     source: raw.source,
+    newsUrl: raw.newsUrl,
+    previewUrl: raw.previewUrl,
+    thumbnailUrl: raw.thumbnailUrl,
     viewsCount: raw.viewsCount,
+    isEdited: raw.isEdited,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
+
+    uploader: raw.uploader,
 
     likesCount: raw.likesCount ?? 0,
     isLiked: raw.isLiked ?? false,
 
-    comments: raw.comments || [],
+    comments: raw.comments ?? [],
     commentsCount: raw.commentsCount ?? 0,
   };
 };

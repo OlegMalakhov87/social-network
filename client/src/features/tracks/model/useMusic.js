@@ -9,7 +9,7 @@ import {
   deleteTrackFromLibrary,
   fetchTracksApi,
   incrementTrackPlaysCount,
-  normalizeTrack,
+  normalizeTracks,
   updateTrackApi,
 } from '../../../entities/track';
 import {
@@ -132,7 +132,7 @@ export const useMusic = (
   const tracks = useNormalizedData({
     items: tracksItems,
     normalizeFn: (item) => ({
-      ...normalizeTrack(item, currentUserId),
+      ...normalizeTracks(item, currentUserId),
       profileLibraryId: null,
     }),
     userId: currentUserId,

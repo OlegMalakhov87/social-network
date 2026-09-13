@@ -1,10 +1,10 @@
 const { Router } = require('express');
 const commentController = require('../controllers/commentController');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
   validateComment,
-  validateIdParam,
-} = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
+} = require('../middleware/validation/commentValidation');
 
 const commentRoutes = Router();
 
@@ -14,14 +14,6 @@ commentRoutes.get(
   validateIdParam('targetId'),
   authMiddleware,
   commentController.getAllCommentsTarget
-);
-
-// Получение комментариев пользователя (для админки)
-commentRoutes.get(
-  '/user/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  commentController.getAllCommentsUser
 );
 
 // Получение комментария по ID для shared комментария

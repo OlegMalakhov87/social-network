@@ -1,27 +1,26 @@
 import { parseSharedEntity } from '../../../shared/utils';
 
 /**
- * Преобразует сообщение из ответа сервера в формат для Message.
+ * Нормализация списка сообщений.
  *
- * @param {Object} raw - сырое сообщение с сервера
- * @returns {Object} - объект нормализованного сообщения
+ * @param {Object} raw - сырой список сообщений
+ * @returns {Object} - нормализованный список сообщений
  */
-export const normalizeMessage = (raw) => {
+export const normalizeMessages = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;
 
   return {
     id: raw.id,
-    content: raw.content,
-    createDate: raw.createdAt,
-    updateDate: raw.updatedAt,
-    date: raw.updatedAt ?? raw.createdAt,
-    isRead: raw.isRead,
-    isEdited: raw.isEdited,
     senderId: raw.senderId,
     receiverId: raw.receiverId,
+    content: raw.content,
+    isRead: raw.isRead,
+    isEdited: raw.isEdited,
     deletedBySender: raw.deletedBySender,
     deletedByReceiver: raw.deletedByReceiver,
-
+    createDate: raw.createdAt,
+    updateDate: raw.updatedAt,
+   
     author: raw.author,
 
     likesCount: raw.likesCount ?? 0,

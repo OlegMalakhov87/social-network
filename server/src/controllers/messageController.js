@@ -4,14 +4,17 @@ const { notifyUser } = require('../websocket');
 const messageController = {
   /**
    * Получить список диалогов
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   getDialogs: async (req, res, next) => {
     try {
-      const result = await messageService.getDialogs(req.user.id);
+      const currentUserId = req.user?.id;
+      const { page, limit, q } = req.query;
+      const result = await messageService.getDialogs(
+        parseInt(currentUserId),
+        parseInt(page),
+        parseInt(limit),
+        q
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -20,20 +23,34 @@ const messageController = {
 
   /**
    * Получить переписку с конкретным пользователем
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   getConversation: async (req, res, next) => {
     try {
-      const { userId } = req.params;
+      const { partnerId } = req.params;
       const { page, limit } = req.query;
-      const result = await messageService.getConversation(
-        req.user.id,
-        parseInt(userId),
-        page,
-        limit
+      const currentUserId = req.user?.id;
+      const result = await messageService.getConversation({
+        currentUserId: parseInt(currentUserId),
+        partnerId: parseInt(partnerId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Получить сообщение по ID
+   */
+  getMessageById: async (req, res, next) => {
+    try {
+      const { messageId } = req.params;
+      const currentUserId = req.user?.id;
+      const result = await messageService.getMessageById(
+        parseInt(messageId),
+        parseInt(currentUserId)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -43,26 +60,25 @@ const messageController = {
 
   /**
    * Отправить сообщение
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   sendMessage: async (req, res, next) => {
     try {
-      const { userId, text } = req.body;
+      const { receiverId, content } = req.body;
+      const currentUserId = req.user?.id;
       const result = await messageService.sendMessage(
-        req.user.id,
-        parseInt(userId),
-        text
+        parseInt(currentUserId),
+        parseInt(receiverId),
+        content
       );
 
       res.status(201).json(result);
 
-      notifyUser(parseInt(userId), {
+      notifyUser(parseInt(receiverId), {
         type: 'new_message',
         data: result.message,
-      }).catch((err) => console.error('WS notify error:', err));
+      }).catch((err) =>
+        console.error('Ошибка отправки сообщения пользователю:', err)
+      );
     } catch (error) {
       next(error);
     }
@@ -70,17 +86,14 @@ const messageController = {
 
   /**
    * Обновить сообщение
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   updateMessage: async (req, res, next) => {
     try {
       const { messageId } = req.params;
       const { content } = req.body;
+      const currentUserId = req.user?.id;
       const result = await messageService.updateMessage(
-        req.user.id,
+        parseInt(currentUserId),
         parseInt(messageId),
         content
       );
@@ -91,17 +104,31 @@ const messageController = {
   },
 
   /**
-   * Скрыть сообщение
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
+   * Отметить сообщения как прочитанные
+   */
+  markAsRead: async (req, res, next) => {
+    try {
+      const { messageIds } = req.body;
+      const currentUserId = req.user?.id;
+      const result = await messageService.markAsRead(
+        parseInt(currentUserId),
+        messageIds
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
    */
   hideMessage: async (req, res, next) => {
     try {
       const { messageId } = req.params;
+      const currentUserId = req.user?.id;
       const result = await messageService.hideMessage(
-        req.user.id,
+        parseInt(currentUserId),
         parseInt(messageId)
       );
       res.status(200).json(result);
@@ -111,35 +138,15 @@ const messageController = {
   },
 
   /**
-   * Отметить сообщения как прочитанные
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
-   */
-  markAsRead: async (req, res, next) => {
-    try {
-      const { messageIds } = req.body;
-      const result = await messageService.markAsRead(req.user.id, messageIds);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Очистить чат
-   * @param {Request} req - Express request объект
-   * @param {Response} res - Express response объект
-   * @param {Function} next - Express next функция
-   * @returns {Promise<void>}
    */
   clearChat: async (req, res, next) => {
     try {
-      const { userId } = req.params;
+      const { receiverId } = req.params;
+      const currentUserId = req.user?.id;
       const result = await messageService.clearChat(
-        req.user.id,
-        parseInt(userId)
+        parseInt(currentUserId),
+        parseInt(receiverId)
       );
       res.status(200).json(result);
     } catch (error) {

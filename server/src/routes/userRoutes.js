@@ -1,11 +1,18 @@
 const { Router } = require('express');
 const userController = require('../controllers/userController');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
-  validateIdParam,
   validateUser,
-} = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
-const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
+  validatePasswordChange,
+} = require('../middleware/validation/userValidation');
+const {
+  validatePrivacyUpdate,
+} = require('../middleware/validation/validatePrivacyUpdate');
+const {
+  upload,
+  handleUploadError,
+} = require('../middleware/upload/uploadMiddleware');
 
 const userRoutes = Router();
 
@@ -42,7 +49,12 @@ userRoutes.patch(
 );
 
 // Обновление приватности пользователя
-userRoutes.put('/update-privacy', authMiddleware, userController.updatePrivacy);
+userRoutes.put(
+  '/update-privacy',
+  authMiddleware,
+  validatePrivacyUpdate,
+  userController.updatePrivacy
+);
 
 // Удаление пользователя
 userRoutes.delete('/delete', authMiddleware, userController.deleteUser);
@@ -51,6 +63,7 @@ userRoutes.delete('/delete', authMiddleware, userController.deleteUser);
 userRoutes.patch(
   '/change-password',
   authMiddleware,
+  validatePasswordChange,
   userController.changePassword
 );
 

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { api } from '../../../shared/api';
+import { parseApiError } from '../../../shared/lib';
 
 /**
  * Универсальный хук для загрузки файлов.
@@ -53,24 +54,19 @@ export const useFileUpload = (config, options = {}) => {
    */
   const cleanupUploadedFile = async () => {
     const uploadedFile = uploadedFileRef.current;
-    
+
     if (!uploadedFile || !config.deleteFn) {
-      return;
+      return false;
     }
 
     try {
       await config.deleteFn(uploadedFile);
       uploadedFileRef.current = null;
+      return true;
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.error ||
-        err.message ||
-        'Ошибка удаления загруженного файла';
+      setError(parseApiError(err, 'Ошибка загрузки файла'));
 
-      setError(errorMessage);
-      onError?.(errorMessage);
-
-      throw err;
+      return false;
     }
   };
 
@@ -151,14 +147,13 @@ export const useFileUpload = (config, options = {}) => {
 
       uploadedFileRef.current = result;
       onSuccess?.(result);
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.error || err.message || 'Ошибка загрузки файла';
 
-      setError(errorMessage);
-      onError?.(errorMessage);
+      return true;
+    } catch (err) {
+      setError(parseApiError(err, 'Ошибка загрузки файла'));
 
       setPreview(null);
+      return false;
     } finally {
       setIsUploading(false);
       e.target.value = '';

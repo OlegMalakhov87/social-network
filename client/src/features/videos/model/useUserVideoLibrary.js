@@ -1,7 +1,7 @@
 import {
   fetchMyVideoLibrary,
   fetchUserVideoLibrary,
-  normalizeVideo,
+  normalizeVideos,
 } from '../../../entities/video';
 import {
   useInfiniteScroll,
@@ -56,7 +56,7 @@ export const useUserVideoLibrary = ({
   /** Нормализация видео. */
   const videos = useNormalizedData({
     items: videosItems,
-    normalizeFn: normalizeVideo,
+    normalizeFn: normalizeVideos,
   });
 
   /** Объект с данными о видео библиотеке пользователя. */

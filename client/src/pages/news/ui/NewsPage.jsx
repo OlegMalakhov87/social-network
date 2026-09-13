@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { NEWS_TABS_MAP } from '../../../entities/news';
+import { useCallback, useRef, useState } from 'react';
+import { CATEGORIES } from '../../../entities/news';
 import { useCommentsPanel } from '../../../features/comments';
 import { NewsForm, useNews } from '../../../features/news';
 import { SORT_OPTIONS } from '../../../shared/config';
@@ -13,7 +13,6 @@ import {
   SectionCard,
   Toolbar,
 } from '../../../shared/ui';
-import { CommentsSection } from '../../../widgets/comments-list';
 import { NewsList } from '../../../widgets/news-list';
 import { VideoPlayer } from '../../../widgets/video-player';
 
@@ -24,7 +23,7 @@ import { VideoPlayer } from '../../../widgets/video-player';
 export const NewsPage = () => {
   const [showNewsForm, setShowNewsForm] = useState(null);
   const [newsVideo, setNewsVideo] = useState(null);
-  const commentsSectionRef = useRef(null);
+  const onVideoStartRef = useRef(null);
 
   /** Управление фильтрацией и сортировкой */
   const {
@@ -46,6 +45,7 @@ export const NewsPage = () => {
     hasMore,
     isLoading,
     isLoadingMore,
+    currentPage,
     error,
     loadMore,
     refetch,
@@ -61,9 +61,9 @@ export const NewsPage = () => {
     sortKey,
   });
 
-  // Управление панелью комментариев (панель закрывается при изменении страницы или вкладки)
+  /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
-    useCommentsPanel('news', sortKey, filter);
+    useCommentsPanel('news', sortKey, filter, currentPage);
 
   /** Получение функции для обновления количества комментариев открытой вкладки */
   const handleCommentChange = useCallback(
@@ -71,8 +71,20 @@ export const NewsPage = () => {
     [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для открытия модального окна с видео*/
-  const handleOpenVideo = useCallback((video) => setNewsVideo(video), []);
+  /** Обработчик для открытия модального окна с видео */
+  const handleOpenNewsVideo = useCallback((video) => {
+    if (!video || typeof video === 'function') return;
+    setNewsVideo(video);
+  }, []);
+
+  const setOnVideoStart = useCallback((handler) => {
+    onVideoStartRef.current = handler;
+  }, []);
+
+  const handleVideoPlayStart = useCallback((video) => {
+    onVideoStartRef.current?.(video);
+  }, []);
+
   /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setNewsVideo(null), []);
 
@@ -94,15 +106,6 @@ export const NewsPage = () => {
     setShowNewsForm(null);
   }, []);
 
-  /** Скролл к секции комментариев при открытии панели */
-  useEffect(() => {
-    if (!commentTarget?.id || !commentTarget?.type) return;
-    commentsSectionRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  }, [commentTarget?.id, commentTarget?.type]);
-
   return (
     <ErrorBoundary>
       <PageLayout
@@ -122,7 +125,7 @@ export const NewsPage = () => {
         {/* Панель фильтров и поиска */}
         <SectionCard>
           <Toolbar
-            tabs={NEWS_TABS_MAP}
+            tabs={CATEGORIES}
             activeTab={filter}
             onTabChange={handleFilterChange}
             rightSlot={
@@ -141,48 +144,50 @@ export const NewsPage = () => {
             }
           />
 
-          {showNewsForm && currentUser && (
-            <NewsForm
-              key={
-                showNewsForm === 'create' ? 'create' : `edit-${showNewsForm.id}`
-              }
-              initialData={showNewsForm === 'create' ? null : showNewsForm}
-              onClose={handleCloseForm}
-              onSubmit={handleFormSubmit}
-            />
-          )}
           <NewsList
             news={news}
             currentUser={currentUser}
-            hasMore={hasMore}
+            toggleComments={onToggleComments}
+            commentTarget={commentTarget}
+            onCloseComments={handleCloseComments}
+            onCommentChange={handleCommentChange}
+            toggleLike={toggleLike}
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
             error={error}
-            loadMore={loadMore}
-            onPlayNews={handleOpenVideo}
+            onVideoStart={setOnVideoStart}
             currentNews={newsVideo}
             isPlaying={Boolean(newsVideo)}
-            toggleLike={toggleLike}
-            onReadMore={incrementViewsCount}
-            toggleComments={onToggleComments}
+            updateViewsCount={incrementViewsCount}
             deleteNews={deleteNews}
             updateNews={setShowNewsForm}
+            onPlayNews={handleOpenNewsVideo}
+            hasMore={hasMore}
+            loadMore={loadMore}
             onRetry={refetch}
           />
         </SectionCard>
 
-        {commentTarget && currentUser && (
-          <CommentsSection
-            targetType={commentTarget?.type}
-            targetId={commentTarget?.id}
+        {/* Модальное окно с формой добавления/редактирования новости */}
+        {showNewsForm && currentUser && (
+          <NewsForm
+            key={
+              showNewsForm === 'create' ? 'create' : `edit-${showNewsForm.id}`
+            }
+            initialData={showNewsForm === 'create' ? null : showNewsForm}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
             currentUser={currentUser}
-            onChange={handleCommentChange}
-            onClose={handleCloseComments}
-            commentsSectionRef={commentsSectionRef}
           />
         )}
+
+        {/* Модальное окно с видео */}
         {newsVideo && (
-          <VideoPlayer video={newsVideo} onClose={handleCloseVideo} />
+          <VideoPlayer
+            video={newsVideo}
+            onClose={handleCloseVideo}
+            onPlayStart={handleVideoPlayStart}
+          />
         )}
       </PageLayout>
     </ErrorBoundary>

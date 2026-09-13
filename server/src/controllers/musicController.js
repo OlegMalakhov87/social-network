@@ -1,5 +1,6 @@
 const musicService = require('../services/musicService');
 const mediaService = require('../services/mediaService');
+const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const musicController = {
   /**
@@ -104,6 +105,30 @@ const musicController = {
   },
 
   /**
+   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять трек
+   */
+  deleteUploadedMedia: async (req, res, next) => {
+    try {
+      await musicService.deleteUploadedMedia(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Удаление загруженных медиа cover
+   */
+  deleteUploadedCover: async (req, res, next) => {
+    try {
+      await musicService.deleteUploadedCover(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Загрузка аудио файла для трека
    */
   uploadAudio: async (req, res, next) => {
@@ -117,8 +142,9 @@ const musicController = {
       const audioPath = req.file.path;
 
       const audioMetadata = await mediaService.getMetadata(audioPath);
+
       res.status(200).json({
-        audioUrl: `/${audioPath}`,
+        audioUrl: toPublicUrl(audioPath),
         duration: audioMetadata.duration,
         size: audioMetadata.size,
       });
@@ -137,7 +163,7 @@ const musicController = {
           .status(400)
           .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
       }
-      res.status(200).json({ coverUrl: `/${req.file.path}` });
+      res.status(200).json({ coverUrl: toPublicUrl(req.file.path) });
     } catch (error) {
       next(error);
     }

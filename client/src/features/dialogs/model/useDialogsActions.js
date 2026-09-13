@@ -7,7 +7,7 @@ import {
   sendMessageApi,
   updateMessageApi,
 } from '../../../entities/dialog';
-import { useNotify } from '../../../shared/hooks';
+import { parseApiError } from '../../../shared/lib';
 
 /**
  * Хук действий с сообщениями – предоставляет функции отправки, удаления (скрытия),
@@ -34,7 +34,7 @@ export const useDialogsActions = (
   clearSharedEntity
 ) => {
   const currentUser = useSelector(selectUser);
-  const notify = useNotify();
+  const currentUserId = currentUser?.id;
 
   /**
    * Отправить сообщение партнёру (оптимистично).
@@ -42,32 +42,36 @@ export const useDialogsActions = (
    * @param {string} text – текст сообщения
    */
   const sendMessage = useCallback(
-    async (partnerId, text) => {
-      if (!currentUser?.id || !text) return;
+    async (partnerId, content) => {
+      if (!currentUserId || !content) return false;
+
       const tempId = `temp-${Date.now()}`;
+
       const optimisticMsg = {
         id: tempId,
-        text,
-        senderId: currentUser?.id,
+        content: content.trim(),
+        senderId: currentUserId,
         receiverId: partnerId,
         createdAt: new Date().toISOString(),
         isRead: false,
       };
+
       addOptimistic?.(optimisticMsg);
+
       try {
-        const result = await sendMessageApi(partnerId, text.trim());
-        notify.success('send');
+        const result = await sendMessageApi(partnerId, content.trim());
+
         // Заменяем временное сообщение реальным
         replaceOptimistic?.(tempId, result);
         refetchDialogs?.();
+        return true;
       } catch (error) {
         // Удаляем временное сообщение при ошибке
         replaceOptimistic?.(tempId, null);
-        console.error('Ошибка отправки сообщения:', error);
-        notify.error('send');
+        throw parseApiError(error, 'Ошибка отправки сообщения');
       }
     },
-    [currentUser?.id, addOptimistic, replaceOptimistic, refetchDialogs, notify]
+    [currentUserId, addOptimistic, replaceOptimistic, refetchDialogs]
   );
 
   /**
@@ -76,18 +80,21 @@ export const useDialogsActions = (
    */
   const deleteMessage = useCallback(
     async (messageId) => {
-      if (!messageId) return;
-      removeOptimistic(messageId);
+      if (!messageId) return false;
+
+      removeOptimistic?.(messageId);
+
       try {
         await hideMessageApi(messageId);
+
         refetchDialogs?.();
-        notify.success('delete');
+        return true;
       } catch (error) {
-        console.error('Ошибка удаления сообщения:', error);
-        notify.error('delete');
+        refetchMessages?.();
+        throw parseApiError(error, 'Ошибка удаления сообщения');
       }
     },
-    [removeOptimistic, refetchDialogs, notify]
+    [removeOptimistic, refetchMessages, refetchDialogs]
   );
 
   /**
@@ -96,22 +103,26 @@ export const useDialogsActions = (
    * @param {string} newText – новый текст
    */
   const updateMessage = useCallback(
-    async (messageId, newText) => {
-      if (!newText.trim()) return;
+    async (messageId, content) => {
+      if (!content || !messageId) return false;
+
       updateMessageInState(messageId, {
-        text: newText,
+        content: content.trim(),
         isEdited: true,
         updatedAt: new Date().toISOString(),
       });
+
       try {
-        await updateMessageApi(messageId, newText.trim());
-        notify.success('edit');
+        const result = await updateMessageApi(messageId, content.trim());
+
+        replaceOptimistic?.(messageId, result);
+        return true;
       } catch (error) {
-        console.error('Ошибка редактирования:', error);
-        notify.error('edit');
+        refetchMessages?.();
+        throw parseApiError(error, 'Ошибка редактирования сообщения');
       }
     },
-    [updateMessageInState, notify]
+    [updateMessageInState, refetchMessages, replaceOptimistic]
   );
 
   /**
@@ -120,17 +131,20 @@ export const useDialogsActions = (
    */
   const clearChat = useCallback(
     async (partnerId) => {
+      if (!partnerId) return false;
+
       try {
         await clearChatApi(partnerId);
         refetchMessages?.();
         refetchDialogs?.();
-        notify.success('delete');
+        return true;
       } catch (err) {
-        console.error('Ошибка очистки чата:', err);
-        notify.error('delete');
+        refetchMessages?.();
+        refetchDialogs?.();
+        throw parseApiError(err, 'Ошибка очистки чата');
       }
     },
-    [refetchMessages, refetchDialogs, notify]
+    [refetchMessages, refetchDialogs]
   );
 
   /**
@@ -139,20 +153,42 @@ export const useDialogsActions = (
    */
   const sendSharedEntity = useCallback(
     async (partnerId) => {
-      if (!currentUser?.id) return;
-      const sharedEntity = getSharedEntity();
-      if (!sharedEntity) return;
+      if (!currentUserId || !partnerId) return false;
+
+      const sharedEntity = getSharedEntity?.();
+
+      if (!sharedEntity) return false;
+
+      const tempId = `temp-${Date.now()}`;
+
+      const optimisticMsg = {
+        id: tempId,
+        content: sharedEntity,
+        senderId: currentUserId,
+        receiverId: partnerId,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+      };
+
+      addOptimistic?.(optimisticMsg);
       try {
-        await sendMessageApi(partnerId, sharedEntity);
-        notify.success('send');
+        const result = await sendMessageApi(partnerId, sharedEntity);
+        replaceOptimistic?.(tempId, result);
+        return true;
       } catch (error) {
-        console.error('Ошибка отправки расшаренной сущности:', error);
-        notify.error('send');
+        replaceOptimistic?.(tempId, null);
+        throw parseApiError(error, 'Ошибка отправки сообщения');
       } finally {
-        clearSharedEntity();
+        clearSharedEntity?.();
       }
     },
-    [currentUser?.id, notify, getSharedEntity, clearSharedEntity]
+    [
+      currentUserId,
+      getSharedEntity,
+      clearSharedEntity,
+      replaceOptimistic,
+      addOptimistic,
+    ]
   );
 
   return {

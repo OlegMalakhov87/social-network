@@ -6,6 +6,7 @@ import {
   rejectFriendRequest,
   sendFriendRequest,
 } from '../../../entities/friend';
+import { parseApiError } from '../../../shared/lib';
 
 /**
  * Универсальный хук для управления дружбой.
@@ -52,24 +53,28 @@ export const useFriendshipActions = ({
    */
   const follow = useCallback(
     async (userId) => {
-      if (!userId) return;
+      if (!userId) return false;
+
       const prevData = getCurrentData();
       updateFriendshipFields(userId, {
         friendshipStatus: 'pending',
         friendshipDirection: 'outgoing',
         friendshipId: null,
       });
+
       try {
         const result = await sendFriendRequest(userId);
         const newFriendshipId = result?.friendshipId;
+
         if (newFriendshipId) {
           updateFriendshipFields(userId, { friendshipId: newFriendshipId });
         }
         onSuccess?.('Заявка отправлена');
+        return true;
       } catch (error) {
         setItems(prevData);
-        console.error('Ошибка при отправке запроса на дружбу', error);
-        onError?.('Ошибка при отправке заявки');
+        onError?.(parseApiError(error, 'Ошибка отправки заявки'));
+        return false;
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -81,20 +86,23 @@ export const useFriendshipActions = ({
    */
   const unfollow = useCallback(
     async (friendshipId, userId) => {
-      if (!friendshipId || !userId) return;
+      if (!friendshipId || !userId) return false;
+
       const prevData = getCurrentData();
       updateFriendshipFields(userId, {
         friendshipStatus: null,
         friendshipDirection: null,
         friendshipId: null,
       });
+
       try {
         await rejectFriendRequest(friendshipId);
         onSuccess?.('Заявка отменена');
+        return true;
       } catch (error) {
         setItems(prevData);
-        console.error('Ошибка при отмене запроса на дружбу', error);
-        onError?.('Ошибка при отмене заявки');
+        onError?.(parseApiError(error, 'Ошибка отмены заявки'));
+        return false;
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -106,20 +114,23 @@ export const useFriendshipActions = ({
    */
   const accept = useCallback(
     async (friendshipId, userId) => {
-      if (!friendshipId || !userId) return;
+      if (!friendshipId || !userId) return false;
+
       const prevData = getCurrentData();
       updateFriendshipFields(userId, {
         friendshipStatus: 'accepted',
         friendshipDirection: 'incoming',
         friendshipId,
       });
+
       try {
         await acceptFriendRequest(friendshipId);
         onSuccess?.('Заявка принята');
+        return true;
       } catch (error) {
         setItems(prevData);
-        console.error('Ошибка при принятии запроса на дружбу', error);
-        onError?.('Ошибка при принятии заявки');
+        onError?.(parseApiError(error, 'Ошибка принятия заявки'));
+        return false;
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -130,13 +141,15 @@ export const useFriendshipActions = ({
    */
   const block = useCallback(
     async (userId) => {
-      if (!userId) return;
+      if (!userId) return false;
+
       const prevData = getCurrentData();
       updateFriendshipFields(userId, {
         friendshipStatus: 'blocked',
         friendshipDirection: 'incoming',
         friendshipId: null,
       });
+
       try {
         const result = await blockUser(userId);
         const newFriendshipId = result?.friendshipId;
@@ -144,10 +157,11 @@ export const useFriendshipActions = ({
           updateFriendshipFields(userId, { friendshipId: newFriendshipId });
         }
         onSuccess?.('Пользователь заблокирован');
+        return true;
       } catch (error) {
         setItems(prevData);
-        console.error('Ошибка при блокировке пользователя', error);
-        onError?.('Ошибка при блокировке пользователя');
+        onError?.(parseApiError(error, 'Ошибка блокировки пользователя'));
+        return false;
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
@@ -159,20 +173,23 @@ export const useFriendshipActions = ({
    */
   const unlock = useCallback(
     async (friendshipId, userId) => {
-      if (!friendshipId || !userId) return;
+      if (!friendshipId || !userId) return false;
+
       const prevData = getCurrentData();
       updateFriendshipFields(userId, {
         friendshipStatus: null,
         friendshipDirection: null,
         friendshipId: null,
       });
+
       try {
         await deleteFriend(friendshipId);
         onSuccess?.('Пользователь разблокирован');
+        return true;
       } catch (error) {
         setItems(prevData);
-        console.error('Ошибка при разблокировке пользователя', error);
-        onError?.('Ошибка при разблокировке пользователя');
+        onError?.(parseApiError(error, 'Ошибка разблокировки пользователя'));
+        return false;
       }
     },
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]

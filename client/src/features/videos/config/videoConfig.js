@@ -15,7 +15,7 @@ export const VIDEO_CONFIG = [
     key: 'description',
     label: 'Описание',
     type: 'text',
-    placeholder: 'Введите описание видео',
+    placeholder: 'Введите описание видео (необязательно)',
     multiline: true,
     rows: 3,
   },

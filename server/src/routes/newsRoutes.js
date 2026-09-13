@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const newsController = require('../controllers/newsController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { validateNews } = require('../middleware/validation/newsValidation');
 const {
-  validateIdParam,
-  validateNews,
-} = require('../middleware/validationMiddleware');
-const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
+  upload,
+  handleUploadError,
+} = require('../middleware/upload/uploadMiddleware');
 
 const newsRoutes = Router();
 
@@ -20,8 +21,31 @@ newsRoutes.get(
   newsController.getNewsById
 );
 
+// Загрузка медиа файла для новости
+newsRoutes.post(
+  '/upload-media',
+  authMiddleware,
+  upload.single('newsUrl'),
+  handleUploadError,
+  newsController.uploadMedia
+);
+
 // Создать новость
-newsRoutes.post('/', authMiddleware, validateNews, newsController.createNews);
+newsRoutes.post(
+  '/add',
+  authMiddleware,
+  validateNews,
+  newsController.createNews
+);
+
+// Обновить новость (владелец)
+newsRoutes.put(
+  '/:newsId/update',
+  validateIdParam('newsId'),
+  authMiddleware,
+  validateNews,
+  newsController.updateNews
+);
 
 // Увеличить счетчик просмотров новости
 newsRoutes.put(
@@ -31,29 +55,19 @@ newsRoutes.put(
   newsController.incrementViewsCount
 );
 
-// Загрузка медиа файла для новости
-newsRoutes.post(
-  '/upload-media',
-  authMiddleware,
-  upload.single('newsUrl'),
-  handleUploadError,
-  newsController.uploadMedia
-);
-// Обновить новость
-newsRoutes.put(
-  '/:newsId',
-  validateIdParam('newsId'),
-  authMiddleware,
-  validateNews,
-  newsController.updateNews
-);
-
-// Удалить новость
+// Удалить новость (владелец)
 newsRoutes.delete(
-  '/:newsId',
+  '/:newsId/delete',
   validateIdParam('newsId'),
   authMiddleware,
   newsController.deleteNews
+);
+
+// Удаление (очистка мусора) загруженных медиа файлов
+newsRoutes.delete(
+  '/delete-uploaded-media',
+  authMiddleware,
+  newsController.deleteUploadedMedia
 );
 
 module.exports = newsRoutes;

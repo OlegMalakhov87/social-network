@@ -3,7 +3,7 @@
  * @param {Object} raw - видео из ответа сервера
  * @returns {Object} - нормализованные данные видео
  */
-export const normalizeVideo = (raw) => {
+export const normalizeVideos = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;
 
   return {

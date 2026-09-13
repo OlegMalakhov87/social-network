@@ -8,7 +8,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import { EntityWithComments } from '../../../entity-comments';
+import { CommentableGrid } from '../../../comment-grid';
 import styles from './PhotosTab.module.css';
 
 /**
@@ -81,28 +81,25 @@ export const PhotosTab = ({
         }
         onRetry={onRetry}
       >
-        <div className={styles.photosGrid}>
-          {photos.map((photo) => (
-            <EntityWithComments
-              key={photo.id}
-              entity={photo}
-              targetType="posts"
-              isOpen={commentTarget?.id === photo.id}
-              onClose={onCloseComments}
-              currentUser={currentUser}
-              onCommentChange={onCommentChange}
-              renderEntity={(entity) => (
-                <Photo
-                  photo={entity}
-                  currentUser={currentUser}
-                  onShareEntity={shareEntity}
-                  toggleLike={toggleLike}
-                  onDelete={deletePhoto}
-                  toggleComments={toggleComments}
-                />
-              )}
-            />
-          ))}
+        <div className={styles.content}>
+          <CommentableGrid
+            items={photos}
+            commentTarget={commentTarget}
+            onToggleComments={toggleComments}
+            onCloseComments={onCloseComments}
+            currentUser={currentUser} 
+            onCommentChange={onCommentChange}
+            renderItem={({ item, onToggleComments }) => (
+              <Photo
+                photo={item}
+                currentUser={currentUser}
+                onShareEntity={shareEntity}
+                toggleLike={toggleLike}
+                onDelete={deletePhoto}
+                toggleComments={onToggleComments}
+              />
+            )}
+          />
 
           <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 

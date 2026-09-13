@@ -35,7 +35,7 @@ export const fetchPostsApi = async ({
  */
 export const fetchPostById = async (postId) => {
   const response = await api.get(`/posts/${postId}/shared`);
-  return response.data;
+  return response.data.post;
 };
 
 /**
@@ -45,7 +45,7 @@ export const fetchPostById = async (postId) => {
  */
 export const addPostApi = async (data) => {
   const response = await api.post('/posts/add', data);
-  return response.data;
+  return response.data.post;
 };
 
 /**
@@ -56,7 +56,7 @@ export const addPostApi = async (data) => {
  */
 export const updatePostApi = async (postId, updates) => {
   const response = await api.put(`/posts/${postId}/update`, updates);
-  return response.data;
+  return response.data.post;
 };
 
 /**
@@ -72,7 +72,7 @@ export const updatePostsPrivacyApi = async (isPublic) => {
 /**
  * Удалить пост по ID.
  * @param {number} postId - ID поста
- * @returns {Promise<Object>} { postId }
+ * @returns {Promise<Object>} { success }
  */
 export const deletePostApi = async (postId) => {
   const response = await api.delete(`/posts/${postId}/delete`);
@@ -80,9 +80,9 @@ export const deletePostApi = async (postId) => {
 };
 
 /**
- * Удалить загруженные медиа постов.
+ * Удалить (очистка мусора) загруженные медиа файлы.
  * @param {Object} data - данные поста
- * @returns {Promise<Object>} { postId }
+ * @returns {Promise<Object>} { success }
  */
 export const deleteUploadedPostApi = async (data) => {
   const response = await api.delete('/posts/delete-uploaded-media', { data });

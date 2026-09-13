@@ -14,4 +14,4 @@ const toPublicUrl = (filePath) => {
   return `/${path.relative(process.cwd(), filePath).replaceAll(path.sep, '/')}`;
 };
 
-module.exports = toPublicUrl;
+module.exports = { toPublicUrl };

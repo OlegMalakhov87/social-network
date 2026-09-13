@@ -8,8 +8,8 @@ import {
   selectAuthError,
   selectIsAuthLoading,
 } from '../../../entities/auth';
-import { useForm, useNotify } from '../../../shared/hooks';
-import { email, getApiErrorDisplay, required } from '../../../shared/lib';
+import { useForm } from '../../../shared/hooks';
+import { email, maxLength, minLength, required } from '../../../shared/lib';
 import { Alert, BaseCard, Button, Input, Text } from '../../../shared/ui';
 import style from './AuthForm.module.css';
 
@@ -18,7 +18,6 @@ import style from './AuthForm.module.css';
  */
 export const LoginForm = () => {
   const dispatch = useDispatch();
-  const notify = useNotify();
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
 
@@ -30,14 +29,18 @@ export const LoginForm = () => {
     initialValues: { email: '', password: '' },
     rules: {
       email: [required('Email обязателен'), email('Неверный формат email')],
-      password: [required('Пароль обязателен')],
+      password: [
+        required('Пароль обязателен'),
+        minLength(6, 'Минимум 6 символов'),
+        maxLength(128, 'Максимум 128 символов'),
+      ],
     },
     onSubmit: async (values) => {
       try {
         await dispatch(login(values)).unwrap();
-      } catch (error) {
-        notify.error(getApiErrorDisplay(error, 'Ошибка авторизации'));
-        throw error;
+        form.reset();
+      } catch (err) {
+        throw err;
       }
     },
   });

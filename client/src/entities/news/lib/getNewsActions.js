@@ -33,7 +33,6 @@ export const getNewsActions = ({
       icon: news.isLiked ? '❤️' : '🤍',
       label: String(news.likesCount ?? 0),
       ariaLabel: news.isLiked ? 'Убрать лайк' : 'Поставить лайк',
-
       onClick: () => toggleLike?.(news.id, news.isLiked),
     },
     {
@@ -41,7 +40,6 @@ export const getNewsActions = ({
       icon: '💬',
       label: String(news.commentsCount ?? 0),
       ariaLabel: 'Комментировать',
-
       onClick: () => toggleComments?.(news.id),
     },
     {
@@ -49,7 +47,6 @@ export const getNewsActions = ({
       icon: '↗️',
       label: '',
       ariaLabel: 'Поделиться',
-
       onClick: () => onShare?.(),
     },
     {
@@ -66,7 +63,6 @@ export const getNewsActions = ({
       icon: '✏️',
       label: '',
       ariaLabel: 'Обновить новость',
-
       onClick: () => onUpdate?.(news),
     });
   }
@@ -77,7 +73,6 @@ export const getNewsActions = ({
       icon: '🗑️',
       label: '',
       ariaLabel: 'Удалить новость',
-
       onClick: () => onDelete?.(),
     });
   }

@@ -1,10 +1,23 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs').promises;
-const path = require('path');
 const { Op } = require('sequelize');
 const { User, Friend } = require('../../db/models');
 const { clients } = require('../websocket');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
+const { toPublicUrl } = require('../utils/toPublicUrl');
+
+const USER_PROFILE_FIELDS = [
+  'name',
+  'avatarUrl',
+  'nickname',
+  'birthDate',
+  'email',
+  'address',
+  'job',
+  'status',
+  'phone',
+];
 
 const userService = {
   /**
@@ -12,7 +25,7 @@ const userService = {
    * @param {Object} params - параметры запроса
    * @param {number} params.currentUserId - ID текущего пользователя
    * @param {number} params.targetUserId - ID пользователя, с которым проверяем статус дружбы
-   * @returns {Promise<Object>} { user, friendshipStatus, friendshipDirection, friendshipId }
+   * @returns {Promise<Object>} - Объект с результатом
    */
   async getUserProfileWithFriendshipStatus({ currentUserId, targetUserId }) {
     const isOwner = currentUserId === targetUserId;
@@ -68,23 +81,28 @@ const userService = {
       friendshipId: friendship?.id ?? null,
       canSeeFullProfile,
       isBlocked:
-        friendship?.status === 'blocked' &&
-        friendship?.direction === 'outgoing',
+        friendship?.status === 'blocked' && friendshipDirection === 'outgoing',
     };
   },
 
   /**
    * Проверка онлайн статуса пользователей
    * @param {Array<number>} userIds - Массив ID пользователей
-   * @returns {Promise<Object>} { users }
+   * @returns {Promise<Object>} - Объект с результатом
    */
   async checkOnlineBulk(userIds) {
     if (!Array.isArray(userIds)) {
       throw createError('Ожидался массив userIds', 400, 'INVALID_PAYLOAD');
     }
 
+    const normalizedIds = [
+      ...new Set(
+        userIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)
+      ),
+    ];
+
     return {
-      users: userIds.map((id) => ({
+      users: normalizedIds.map((id) => ({
         userId: id,
         online: clients.has(String(id)),
       })),
@@ -93,22 +111,38 @@ const userService = {
 
   /**
    * Обновление пользователя
-   * @param {number} userId - ID пользователя
-   * @param {Object} updates - Данные для обновления
-   * @returns {Promise<Object>} { user }
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {Object} updateData - Данные для обновления
+   * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateUser(userId, updates) {
-    const { passwordHash, ...safeUpdates } = updates;
+  async updateUser(currentUserId, updateData) {
+    const dbUpdates = Object.fromEntries(
+      USER_PROFILE_FIELDS.filter((field) =>
+        Object.hasOwn(updateData, field)
+      ).map((field) => [field, updateData[field]])
+    );
 
-    if (Object.keys(safeUpdates).length === 0) {
+    if (Object.keys(dbUpdates).length === 0) {
       throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
     }
 
-    const [affectedCount, updatedUser] = await User.update(safeUpdates, {
-      where: { id: userId },
-      returning: true,
-      plain: true,
-    });
+    try {
+      const [affectedCount, updatedUser] = await User.update(dbUpdates, {
+        where: { id: currentUserId },
+        returning: true,
+        plain: true,
+      });
+    } catch (error) {
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw createError(
+          'Email или nickname уже используется',
+          409,
+          'USER_FIELD_ALREADY_EXISTS'
+        );
+      }
+
+      throw error;
+    }
 
     if (affectedCount === 0) {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
@@ -121,15 +155,15 @@ const userService = {
 
   /**
    * Обновление приватности пользователя
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {boolean} isPublic - Приватность пользователя
-   * @returns {Promise<Object>} { isPublic }
+   * @returns {Promise<Object>} - Объект с результатом
    */
-  async updatePrivacy(userId, { isPublic }) {
+  async updatePrivacy(currentUserId, { isPublic }) {
     const [affectedCount, updatedUser] = await User.update(
       { isPublic },
       {
-        where: { id: userId },
+        where: { id: currentUserId },
         returning: true,
         plain: true,
       }
@@ -151,42 +185,28 @@ const userService = {
 
   /**
    * Загрузка аватара пользователя
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} file - Файл аватара
-   * @returns {Promise<Object>} { avatarUrl }
+   * @returns {Promise<Object>} - Объект с результатом
    */
-  async uploadAvatar(userId, file) {
+  async uploadAvatar(currentUserId, file) {
     if (!file) {
       throw createError('Файл не предоставлен', 400, 'NO_FILE_PROVIDED');
     }
 
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(currentUserId);
     if (!user) {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
     }
 
-    const isDefaultAvatar =
-      !user.avatarUrl || user.avatarUrl.includes('default-user.png');
-
-    if (!isDefaultAvatar) {
-      const oldFilePath = path.join(__dirname, '../../', user.avatarUrl);
-
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn(
-          `Не удалось удалить старый аватар ${oldFilePath}:`,
-          err.message
-        );
-      }
-    }
-
-    const newAvatarPath = `/${file.path}`;
+    const oldAvatarUrl = user.avatarUrl;
+    const newAvatarPath = file.path;
+    const newAvatarUrl = toPublicUrl(newAvatarPath);
 
     const [affectedCount, updatedUser] = await User.update(
       { avatarUrl: newAvatarPath },
       {
-        where: { id: userId },
+        where: { id: currentUserId },
         returning: true,
         plain: true,
         attributes: { exclude: ['passwordHash'] },
@@ -197,17 +217,33 @@ const userService = {
       throw createError('Не удалось обновить аватар', 500, 'UPDATE_FAILED');
     }
 
-    return { avatarUrl: newAvatarPath };
+    const isDefaultAvatar =
+      !oldAvatarUrl || oldAvatarUrl.includes('default-user.png');
+
+    if (!isDefaultAvatar) {
+      const filePath = fromPublicUrl(oldAvatarUrl);
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старый аватар ${oldAvatarUrl}:`,
+            error.message
+          );
+        }
+      }
+    }
+    return { avatarUrl: newAvatarUrl };
   },
 
   /**
    * Изменение пароля пользователя
-   * @param {number} userId - ID пользователя
+   * @param {number} currentUserId - ID текущего пользователя
    * @param {string} currentPassword - Текущий пароль
    * @param {string} newPassword - Новый пароль
-   * @returns {Promise<Object>} { message }
+   * @returns {Promise<Object>} - Объект с результатом
    */
-  async changePassword(userId, currentPassword, newPassword) {
+  async changePassword(currentUserId, currentPassword, newPassword) {
     if (!currentPassword || !newPassword) {
       throw createError(
         'Текущий и новый пароль обязательны',
@@ -216,7 +252,7 @@ const userService = {
       );
     }
 
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(currentUserId);
     if (!user) {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
     }
@@ -240,11 +276,12 @@ const userService = {
 
   /**
    * Удаление пользователя
-   * @param {number} userId - ID пользователя
-   * @returns {Promise<Object>} { message, userId }
+   * @param {number} currentUserId - ID текущего пользователя
+   * @returns {Promise<Object>} - Объект с результатом
    */
-  async deleteUser(userId) {
-    const user = await User.findByPk(userId);
+  async deleteUser(currentUserId) {
+    const user = await User.findByPk(currentUserId);
+
     if (!user) {
       throw createError(
         'Пользователь не найден или нет прав на удаление',
@@ -253,17 +290,23 @@ const userService = {
       );
     }
 
+    const avatarUrl = user.avatarUrl;
+
+    await user.destroy();
+
     // Логика очистки аватара пользователя
-    if (user.avatarUrl !== undefined) {
-      const oldFilePath = path.join(__dirname, '../../', user.avatarUrl);
+    if (avatarUrl) {
+      const filePath = fromPublicUrl(avatarUrl);
+
       try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старый аватар:', err.message);
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(`Не удалось удалить аватар ${filePath}:`, error.message);
+        }
       }
     }
-    await user.destroy();
-    return { message: 'Пользователь успешно удален', userId };
+    return { message: 'Пользователь успешно удален', userId: currentUserId };
   },
 };
 

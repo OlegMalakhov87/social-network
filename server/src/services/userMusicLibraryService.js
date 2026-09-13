@@ -8,7 +8,7 @@ const {
 } = require('../../db/models');
 const { Op } = require('sequelize');
 const { sequelize } = require('../../db/models');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {

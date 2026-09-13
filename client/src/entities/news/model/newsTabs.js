@@ -1,5 +1,5 @@
-/** Мапа для выбора вкладки новостей*/
-export const NEWS_TABS_MAP = [
+/** Мапа для выбора категории новостей*/
+export const CATEGORIES = [
   { id: 'all', label: 'Все', icon: '📰' },
   { id: 'technology', label: 'Технологии', icon: '💻' },
   { id: 'sports', label: 'Спорт', icon: '🏆' },

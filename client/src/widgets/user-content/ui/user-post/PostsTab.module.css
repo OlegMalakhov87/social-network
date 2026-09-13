@@ -1,6 +1,7 @@
 .contentArea {
   position: relative;
 }
+
 .postsList {
   display: flex;
   flex-direction: column;

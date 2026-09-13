@@ -63,6 +63,7 @@ export const ChatGrid = ({
 }) => {
   const navigate = useNavigate();
 
+  /** Хук для отметки сообщений как прочитанных.*/
   useEffect(() => {
     if (messages.length > 0 && selectedUser?.id) {
       markAsRead?.();

@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все публичные видео с возможностью фильтрации по категории и поиску.
@@ -39,7 +40,7 @@ export const fetchVideosApi = async ({
  */
 export const addVideoApi = async (formData) => {
   const response = await api.post('/videos/add', formData);
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -50,7 +51,7 @@ export const addVideoApi = async (formData) => {
  */
 export const updateVideoApi = async (videoId, updates) => {
   const response = await api.put(`/videos/${videoId}/update`, updates);
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -60,7 +61,7 @@ export const updateVideoApi = async (videoId, updates) => {
  */
 export const updateVideosPrivacyApi = async (isPublic) => {
   const response = await api.put(`/videos/update-privacy`, { isPublic });
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -70,7 +71,7 @@ export const updateVideosPrivacyApi = async (isPublic) => {
  */
 export const incrementVideoViewsCountApi = async (videoId) => {
   const response = await api.put(`/videos/${videoId}/views`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -80,7 +81,7 @@ export const incrementVideoViewsCountApi = async (videoId) => {
  */
 export const deleteVideoApi = async (videoId) => {
   const response = await api.delete(`/videos/${videoId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -90,7 +91,7 @@ export const deleteVideoApi = async (videoId) => {
  */
 export const deleteUploadedVideoApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-video', { data });
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -102,7 +103,7 @@ export const deleteUploadedPreviewApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-preview', {
     data,
   });
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };
 
 /**
@@ -114,5 +115,5 @@ export const deleteUploadedThumbnailApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-thumb', {
     data,
   });
-  return response.data;
+  return unwrapApiEntity(response.data, ['videos']);
 };

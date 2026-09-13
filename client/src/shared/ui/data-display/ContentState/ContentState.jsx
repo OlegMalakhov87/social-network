@@ -1,3 +1,4 @@
+import { getApiErrorDisplay } from '../../../lib';
 import { Alert, Button, ContentEmptyState, PageLoader } from '../../../ui';
 import style from './ContentState.module.css';
 
@@ -31,9 +32,7 @@ export const ContentState = ({
   const errorMessage =
     error == null
       ? null
-      : typeof error === 'string'
-        ? error
-        : error?.message || 'Не удалось загрузить данные';
+      : getApiErrorDisplay(error, 'Не удалось загрузить данные');
 
   if (loading) {
     return <PageLoader message={loadingMessage} />;

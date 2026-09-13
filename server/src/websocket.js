@@ -4,6 +4,11 @@ const jwt = require('jsonwebtoken');
 // Хранилище подключений: Map<userId, Set<WebSocket>>
 const clients = new Map();
 
+/**
+ * Настройка WebSocket сервера
+ * @param {http.Server} server - HTTP сервер
+ * @returns {Object} { wss, clients }
+ */
 function setupWebSocket(server) {
   const wss = new WebSocket.Server({ server });
 
@@ -85,6 +90,11 @@ function setupWebSocket(server) {
   return { wss, clients };
 }
 
+/**
+ * Отправить сообщение пользователю
+ * @param {number} userId - ID пользователя
+ * @param {Object} payload - данные для отправки
+ */
 function notifyUser(userId, payload) {
   const sockets = clients.get(userId);
   if (!sockets) return;

@@ -1,6 +1,6 @@
 const postService = require('../services/postService');
 const videoPreviewService = require('../services/videoPreviewService');
-const toPublicUrl = require('../utils/toPublicUrl');
+const { toPublicUrl } = require('../utils/toPublicUrl');
 const mediaService = require('../services/mediaService');
 
 const postController = {

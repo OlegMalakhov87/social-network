@@ -1,6 +1,6 @@
-const { Message, User } = require('../../db/models');
+const { Message, User, Like } = require('../../db/models');
 const { Op, QueryTypes } = require('sequelize');
-const { createError } = require('./authService');
+const { createError } = require('../utils/createError');
 const { sequelize } = require('../../db/models');
 
 /**
@@ -77,7 +77,7 @@ const messageService = {
         lastMessage: {
           id: d.id,
           content: d.content,
-          date: d.createdAt,
+          createdAt: d.createdAt,
           isRead: d.isRead,
           isOwn,
         },
@@ -90,15 +90,15 @@ const messageService = {
 
   /**
    * Получить переписку с конкретным пользователем
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} partnerId - ID собеседника
-   * @param {number} page - номер страницы
-   * @param {number} limit - количество сообщений на странице
+   *
+   * @param {Object} params
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.partnerId - ID собеседника
+   * @param {number} params.page - номер страницы
+   * @param {number} params.limit - количество сообщений на странице
    * @returns {Promise<Object>} { messages, pagination }
    */
-  async getConversation(currentUserId, partnerId, page = 1, limit = 50) {
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
+  async getConversation({ currentUserId, partnerId, page = 1, limit = 50 }) {
     const { count, rows: messages } = await Message.findAndCountAll({
       where: {
         [Op.and]: [
@@ -127,20 +127,55 @@ const messageService = {
           as: 'receiver',
           attributes: ['id', 'name', 'avatarUrl'],
         },
+        {
+          model: Like,
+          as: 'likes',
+          attributes: ['id', 'userId'],
+        },
       ],
       order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset,
+      limit: limit,
+      offset: (page - 1) * limit,
       distinct: true,
     });
 
     return {
-      messages,
+      messages: messages.map((message) => ({
+        ...message.toJSON(),
+        likesCount: message.likes?.length,
+        isLiked: message.likes?.some((like) => like.userId === currentUserId),
+      })),
       pagination: {
         totalMessages: count,
-        totalPages: Math.ceil(count / parseInt(limit)),
-        currentPage: parseInt(page),
-        hasMore: parseInt(page) * parseInt(limit) < count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
+      },
+    };
+  },
+
+  /**
+   * Получить сообщение по ID (для кнопки "Поделиться")
+   *
+   * @param {number} messageId - ID сообщения
+   * @param {number} currentUserId - ID текущего пользователя
+   * @returns {Promise<Object>} { message }
+   */
+  async getMessageById(messageId, currentUserId) {
+    const message = await Message.findByPk(messageId, {
+      include: [
+        { model: User, as: 'sender', attributes: ['id', 'name', 'avatarUrl'] },
+        { model: Like, as: 'likes', attributes: ['id', 'userId'] },
+      ],
+    });
+    if (!message) {
+      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
+    }
+    return {
+      message: {
+        ...message.toJSON(),
+        likesCount: message.likes?.length,
+        isLiked: message.likes?.some((like) => like.userId === currentUserId),
       },
     };
   },
@@ -149,10 +184,10 @@ const messageService = {
    * Отправить сообщение
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number} receiverId - ID собеседника
-   * @param {string} text - текст сообщения
+   * @param {string} content - контент сообщения
    * @returns {Promise<Object>} { message }
    */
-  async sendMessage(currentUserId, receiverId, text) {
+  async sendMessage(currentUserId, receiverId, content) {
     if (currentUserId === receiverId) {
       throw createError(
         'Нельзя отправить сообщение самому себе',
@@ -169,8 +204,11 @@ const messageService = {
     const newMessage = await Message.create({
       senderId: currentUserId,
       receiverId,
-      content: text.trim(),
+      content: content.trim(),
       isRead: false,
+      isEdited: false,
+      deletedBySender: false,
+      deletedByReceiver: false,
     });
 
     const messageWithUsers = await Message.findByPk(newMessage.id, {
@@ -189,8 +227,14 @@ const messageService = {
     };
   },
 
-  // 4. Обновить сообщение
-  async updateMessage(currentUserId, messageId, newText) {
+  /**
+   * Обновить сообщение
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {number} messageId - ID сообщения
+   * @param {string} content - новый контент сообщения
+   * @returns {Promise<Object>} { message }
+   */
+  async updateMessage(currentUserId, messageId, content) {
     const msg = await Message.findByPk(messageId);
     if (!msg)
       throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
@@ -203,15 +247,10 @@ const messageService = {
       );
     }
 
-    if (!newText || newText.trim().length === 0) {
-      throw createError('Сообщение не может быть пустым', 400, 'EMPTY_MESSAGE');
-    }
-
     const [, updatedRows] = await Message.update(
       {
-        content: newText.trim(),
+        content: content.trim(),
         isEdited: true,
-        updatedAt: new Date(),
       },
       {
         where: { id: messageId },
@@ -230,24 +269,6 @@ const messageService = {
     return {
       message: updatedRows.toJSON(),
     };
-  },
-
-  /**
-   * Скрыть сообщение (Soft Delete для текущего пользователя)
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} messageId - ID сообщения
-   * @returns {Promise<Object>} { success: boolean, messageId }
-   */
-  async hideMessage(currentUserId, messageId) {
-    const msg = await Message.findByPk(messageId);
-    if (!msg)
-      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
-
-    const updateField =
-      msg.senderId === currentUserId ? 'deletedBySender' : 'deletedByReceiver';
-
-    await msg.update({ [updateField]: true });
-    return { success: true, messageId };
   },
 
   /**
@@ -277,6 +298,24 @@ const messageService = {
     );
 
     return { success: true, updated: updatedCount };
+  },
+
+  /**
+   * Скрыть сообщение (для текущего пользователя)
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {number} messageId - ID сообщения
+   * @returns {Promise<Object>} { success: boolean, messageId }
+   */
+  async hideMessage(currentUserId, messageId) {
+    const msg = await Message.findByPk(messageId);
+    if (!msg)
+      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
+
+    const updateField =
+      msg.senderId === currentUserId ? 'deletedBySender' : 'deletedByReceiver';
+
+    await msg.update({ [updateField]: true });
+    return { success: true, messageId };
   },
 
   /**

@@ -3,28 +3,9 @@
  * @param {Object} raw - трек из ответа сервера
  * @returns {Object} - нормализованные данные трека
  */
-export const normalizeTrack = (raw) => {
+export const normalizeTracks = (raw) => {
   if (!raw || typeof raw !== 'object') {
-    return {
-      id: null,
-      title: '',
-      artist: '',
-      album: '',
-      year: null,
-      duration: null,
-      audio: '',
-      cover: '',
-      genre: '',
-      description: '',
-      isPublic: false,
-      isInLibrary: false,
-      libraryId: null,
-      playsCount: 0,
-      likesCount: 0,
-      isLiked: false,
-      commentsCount: 0,
-      comments: [],
-    };
+    return raw;
   }
 
   return {
@@ -35,15 +16,15 @@ export const normalizeTrack = (raw) => {
     album: raw.album,
     year: raw.year,
     duration: raw.duration,
-    audio: raw.audio,
-    cover: raw.cover,
-    genre: raw.genre,
+    audioUrl: raw.audioUrl,
+    coverUrl: raw.coverUrl,
+    category: raw.category,
     description: raw.description,
     isPublic: raw.isPublic,
     playsCount: raw.playsCount ?? 0,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    date: raw.updatedAt ?? raw.createdAt,
+    
     uploader: raw.uploader,
 
     isInLibrary: raw.isInLibrary ?? false,

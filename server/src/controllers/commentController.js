@@ -25,26 +25,6 @@ const commentController = {
   },
 
   /**
-   * Получение комментариев пользователя (для админки)
-   */
-  getAllCommentsUser: async (req, res, next) => {
-    try {
-      const { userId } = req.params;
-      const { page, limit, sortKey } = req.query;
-
-      const result = await commentService.getUserComments(
-        parseInt(userId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Получение комментария по ID
    */
   getCommentById: async (req, res, next) => {

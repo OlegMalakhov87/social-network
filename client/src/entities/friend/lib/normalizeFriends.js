@@ -4,7 +4,7 @@
  * @param {Object} user – один пользователь из ответа API
  * @returns {Object} – плоский объект друга
  */
-export function normalizeFriend(user) {
+export function normalizeFriends(user) {
   if (!user || typeof user !== 'object') return user;
 
   return {

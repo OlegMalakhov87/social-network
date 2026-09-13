@@ -1,38 +1,10 @@
 const { Router } = require('express');
 const likeController = require('../controllers/likeController');
-const authMiddleware = require('../middleware/authMiddleware');
-const {
-  validateIdParam,
-  validateLike,
-} = require('../middleware/validationMiddleware');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { validateLike } = require('../middleware/validation/likeValidation');
 
 const likeRoutes = Router();
-
-// Получить все лайки конкретной сущности
-likeRoutes.get(
-  '/:targetType/:targetId',
-  validateIdParam('targetId'),
-  authMiddleware,
-  validateLike,
-  likeController.getLikesByTarget
-);
-
-// Получить все лайки пользователя
-likeRoutes.get(
-  '/:userId',
-  validateIdParam('userId'),
-  authMiddleware,
-  likeController.getUserLikes
-);
-
-// Проверить, поставил ли текущий пользователь лайк
-likeRoutes.get(
-  ':targetType/:targetId/check',
-  validateIdParam('targetId'),
-  authMiddleware,
-  validateLike,
-  likeController.checkLike
-);
 
 // Поставить лайк
 likeRoutes.post(

@@ -68,8 +68,6 @@ export const useOptimisticLike = ({
           })
         );
 
-        console.error(`Ошибка лайка ${targetType}:`, err);
-
         return false;
       }
     },

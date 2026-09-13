@@ -12,7 +12,6 @@ import { useMemo } from 'react';
 export const useNormalizedData = ({ items, normalizeFn, userId = null }) => {
   return useMemo(() => {
     if (!Array.isArray(items) || items.length === 0) return [];
-
     return items.map((item) => normalizeFn(item, userId));
   }, [items, normalizeFn, userId]);
 };

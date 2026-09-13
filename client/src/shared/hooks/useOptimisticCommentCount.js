@@ -3,12 +3,14 @@ import { useCallback } from 'react';
 /**
  * Хук для обновления счётчика комментариев.
  *
- * @param {Function} setItems - функция для обновления массива элементов
+ * @param {Function} setItems - функция для обновления массива элементов`
  * @returns {Function} - функция для обновления счётчика комментариев
  */
 export const useOptimisticCommentCount = (setItems) => {
   const updateCommentCount = useCallback(
-    (itemId, delta) => {
+    (itemId, delta = 1) => {
+      if (!itemId) return false;
+
       setItems((prev) =>
         prev.map((item) =>
           item.id === itemId
@@ -19,6 +21,8 @@ export const useOptimisticCommentCount = (setItems) => {
             : item
         )
       );
+
+      return true;
     },
     [setItems]
   );

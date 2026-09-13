@@ -1,6 +1,12 @@
-import { GENRE_OPTIONS } from '../../../entities/track';
+import { TRACK_CONFIG } from '..';
+import { CATEGORY_OPTIONS } from '../../../entities/track';
 import { useForm, useNotify } from '../../../shared/hooks';
-import { getApiErrorDisplay, integer, maxLength, minLength, required } from '../../../shared/lib';
+import {
+  getApiErrorDisplay,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
 import {
   Button,
   ButtonGroup,
@@ -9,7 +15,6 @@ import {
   Input,
   Modal,
   Select,
-  TextArea,
 } from '../../../shared/ui';
 import {
   ALBUM_COVER_CONFIG,
@@ -27,17 +32,41 @@ import {
 export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
+
+  /** Обработчик отправки формы */
+  const handleSubmit = async (values) => {
+    try {
+      await onSubmit?.(values, isEdit, initialData?.id);
+      trackUpload.commit();
+      coverUpload.commit();
+      trackUpload.reset();
+      coverUpload.reset();
+      notify.success(
+        isEdit ? 'Трек успешно обновлен' : 'Трек успешно добавлен'
+      );
+      onClose?.();
+    } catch (error) {
+      notify.error(
+        getApiErrorDisplay(
+          error,
+          isEdit ? 'Ошибка обновления трека' : 'Ошибка добавления трека'
+        )
+      );
+      throw error;
+    }
+  };
+
   /** Форма для создания/редактирования трека с валидацией*/
   const form = useForm({
     initialValues: {
-      title: initialData?.title ?? '',
-      artist: initialData?.artist ?? '',
-      album: initialData?.album ?? '',
-      year: initialData?.year ?? '',
-      audioUrl: initialData?.audioUrl ?? '',
-      coverUrl: initialData?.coverUrl ?? '',
-      genre: initialData?.genre ?? '',
-      description: initialData?.description ?? '',
+      title: initialData?.title ?? null,
+      artist: initialData?.artist ?? null,
+      album: initialData?.album ?? null,
+      year: initialData?.year ?? new Date().getFullYear(),
+      audioUrl: initialData?.audioUrl ?? null,
+      coverUrl: initialData?.coverUrl ?? null,
+      category: initialData?.category ?? null,
+      description: initialData?.description ?? null,
       isPublic: initialData?.isPublic ?? true,
     },
     rules: () => ({
@@ -52,29 +81,33 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
         maxLength(100, 'Максимум 100 символов'),
       ],
       album: [
+        minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      year: [
-        integer(1900, new Date().getFullYear(), 'Год должен быть от 1900 до текущего'),
-      ],
       category: [required('Выберите жанр')],
-      description: [maxLength(2000, 'Максимум 2000 символов')],
-      audioUrl: [required('Загрузите аудиофайл')],
+      description: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(2000, 'Максимум 2000 символов'),
+      ],
+      audioUrl: [
+        required('Загрузите аудиофайл'),
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      coverUrl: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
     }),
-    onSubmit: async (values) => {
-      try {
-        await onSubmit?.(values, isEdit, initialData?.id);
-        onClose?.();
-      } catch (error) {
-        notify.error(getApiErrorDisplay(error, 'Ошибка добавления трека'));
-        throw error;
-      }
-    },
+    onSubmit: handleSubmit,
   });
 
   /** Хук для загрузки аудиофайла */
   const trackUpload = useFileUpload(TRACK_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('audioUrl', data.audioUrl),
+    onSuccess: (data) => {
+      form.setValue('audioUrl', data.audioUrl);
+      form.setValue('duration', data.duration);
+    },
   });
 
   /** Хук для загрузки обложки альбома */
@@ -85,45 +118,41 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   /** Флаг загрузки */
   const isUploading = trackUpload.isUploading || coverUpload.isUploading;
 
+  /** Обработчик закрытия формы */
+  const handleCancel = async () => {
+    try {
+      await Promise.all([
+        trackUpload.cleanupUploadedFile(),
+        coverUpload.cleanupUploadedFile(),
+      ]);
+    } finally {
+      trackUpload.reset();
+      coverUpload.reset();
+      form.reset();
+      onClose();
+    }
+  };
+
   return (
     <Modal
-      onClose={onClose}
+      onClose={handleCancel}
       title={isEdit ? '✏️ Редактировать трек' : '📰 Добавить трек'}
-      size="md"
+      size="sm"
     >
       <form onSubmit={form.submit}>
-        <Input
-          label="Название *"
-          {...form.register('title')}
-          placeholder="Название трека"
-          disabled={form.isSubmitting || isUploading}
-        />
-        <Input
-          label="Исполнитель *"
-          {...form.register('artist')}
-          placeholder="Имя исполнителя или группы"
-          disabled={form.isSubmitting || isUploading}
-        />
-        <Input
-          label="Альбом"
-          {...form.register('album')}
-          placeholder="Название альбома (необязательно)"
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <Input
-          label="Год"
-          {...form.register('year')}
-          placeholder="Год выпуска альбома"
-          disabled={form.isSubmitting || isUploading}
-        />
-
-        <Select
-          label="Категория *"
-          {...form.register('category')}
-          options={GENRE_OPTIONS}
-          disabled={form.isSubmitting || isUploading}
-        />
+        {TRACK_CONFIG.map((field) => (
+          <Input
+            key={field.key}
+            label={field.label}
+            required={field.required}
+            placeholder={field.placeholder}
+            type={field.multiline ? undefined : field.type}
+            multiline={field.multiline}
+            rows={field.rows}
+            disabled={form.isSubmitting || isUploading}
+            {...form.register(field.key)}
+          />
+        ))}
 
         <FileInput
           accept={TRACK_UPLOAD_CONFIG.accept}
@@ -132,35 +161,43 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
           preview={trackUpload.preview}
           isUploading={trackUpload.isUploading}
           progress={trackUpload.progress}
-          error={trackUpload.error}
+          error={trackUpload.error || form.errors.audioUrl}
           onChange={trackUpload.handleFileChange}
           disabled={form.isSubmitting || isUploading}
         />
 
         <FileInput
           accept={ALBUM_COVER_CONFIG.accept}
-          label="Обложка альбома"
+          label="Обложка"
+          hint="Можно загрузить свою обложку или оставить поле пустым."
           buttonText="Выбрать обложку"
           preview={coverUpload.preview}
           isUploading={coverUpload.isUploading}
           progress={coverUpload.progress}
-          error={coverUpload.error}
+          error={coverUpload.error || form.errors.coverUrl}
           onChange={coverUpload.handleFileChange}
           disabled={form.isSubmitting || isUploading}
         />
 
-        <TextArea
-          label="Описание"
-          {...form.register('description')}
-          placeholder="Введите описание трека"
-          rows={3}
+        <Select
+          label="Категория"
+          required={true}
+          {...form.register('category')}
+          options={CATEGORY_OPTIONS}
           disabled={form.isSubmitting || isUploading}
+          helperText={form.errors.category}
         />
 
         <Checkbox
           id="isPublic"
+          label="Кому доступен трек"
           name="isPublic"
-          label="Публичный трек (виден всем) *"
+          description={
+            form.values.isPublic
+              ? 'Всем пользователям'
+              : 'Только вам и вашим друзьям'
+          }
+          align="end"
           checked={form.values.isPublic}
           onChange={(e) => form.setValue('isPublic', e.target.checked)}
           disabled={form.isSubmitting || isUploading}
@@ -170,10 +207,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
           <Button
             variant="secondary"
             type="button"
-            onClick={() => {
-              form.reset();
-              onClose?.();
-            }}
+            onClick={handleCancel}
             disabled={form.isSubmitting || isUploading}
           >
             Отмена

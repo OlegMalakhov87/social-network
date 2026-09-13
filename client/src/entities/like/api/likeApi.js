@@ -5,7 +5,7 @@ import { unwrapApiEntity } from '../../../shared/lib';
  * Поставить лайк сущности.
  * @param {string} targetType - тип сущности
  * @param {number} targetId - ID сущности
- * @returns {Promise<Object>} ответ сервера
+ * @returns {Promise<Object>} { like }
  */
 export const addLikeApi = async (targetType, targetId) => {
   const response = await api.post(`/likes/${targetType}/${targetId}/add`);
@@ -16,7 +16,7 @@ export const addLikeApi = async (targetType, targetId) => {
  * Убрать лайк с сущности.
  * @param {string} targetType - тип сущности
  * @param {number} targetId - ID сущности
- * @returns {Promise<Object>} ответ сервера
+ * @returns {Promise<Object>} { success }
  */
 export const deleteLikeApi = async (targetType, targetId) => {
   const response = await api.delete(`/likes/${targetType}/${targetId}/delete`);

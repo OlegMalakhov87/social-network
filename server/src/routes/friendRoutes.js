@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const friendController = require('../controllers/friendController');
-const { validateIdParam } = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 
 const friendRoutes = Router();
 

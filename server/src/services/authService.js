@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../db/models');
-const createError = require('../utils/createError');
+const { createError } = require('../utils/createError');
 
 /**
  * Генерация JWT токена
@@ -110,4 +110,4 @@ const authService = {
   },
 };
 
-module.exports = { authService, createError };
+module.exports = { authService };

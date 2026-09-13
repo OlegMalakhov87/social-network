@@ -9,13 +9,12 @@ import {
   deleteVideoFromLibrary,
   fetchVideosApi,
   incrementVideoViewsCountApi,
-  normalizeVideo,
+  normalizeVideos,
   updateVideoApi,
 } from '../../../entities/video';
 import {
   useInfiniteScroll,
   useNormalizedData,
-  useNotify,
   useOptimisticCommentCount,
   useOptimisticCounter,
   useOptimisticLibraryToggle,
@@ -36,7 +35,6 @@ import { apiFetchItems } from '../../../shared/lib';
 export const useVideos = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
-  const notify = useNotify('videos');
 
   /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
@@ -57,7 +55,7 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUserId) {
+      if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchVideosApi, {
@@ -72,7 +70,13 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
       });
     },
     deps: scrollDeps,
-    onError: () => notify.error('load'),
+    options: {
+      autoFetch: Boolean(currentUserId),
+    },
+    initialData: {
+      items: [],
+      hasMore: false,
+    },
   });
 
   /** Оптимистическое управление библиотекой видео */
@@ -111,8 +115,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     addFn: addVideoApi,
     editFn: updateVideoApi,
     deleteFn: deleteVideoApi,
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
   /** Оптимистическое управление счётчиком комментариев видео */
@@ -121,7 +123,7 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
   /** Нормализация видео */
   const normalizeVideoFn = useCallback(
     (item) => ({
-      ...normalizeVideo(item),
+      ...normalizeVideos(item),
       profileLibraryId: null,
     }),
     []

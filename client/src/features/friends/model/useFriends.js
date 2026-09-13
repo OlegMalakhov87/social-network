@@ -2,21 +2,29 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useFriendshipActions } from '..';
 import { selectUser } from '../../../entities/auth';
-import { fetchFriendsApi, normalizeFriend } from '../../../entities/friend';
+import { fetchFriendsApi, normalizeFriends } from '../../../entities/friend';
 import { useOnline } from '../../../features/users';
 import { useInfiniteScroll, useNotify } from '../../../shared/hooks';
+import { apiFetchItems, getApiErrorDisplay } from '../../../shared/lib';
 
 /**
  * Хук для загрузки списка друзей/заявок с фильтрацией, поиском и бесконечным скроллом.
  *
  * @param {Object} params - параметры запроса
  * @param {string} params.filter - фильтр
- * @param {string} params.searchQuery - поисковый запрос
+ * @param {string} [params.searchQuery] - поисковый запрос
  * @returns {Object} - объект с данными о друзьях
  */
-export const useFriends = ({ filter, searchQuery }) => {
+export const useFriends = ({ filter, searchQuery = '' }) => {
   const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.id;
   const notify = useNotify();
+
+  /** Зависимости для бесконечного скролла */
+  const scrollDeps = useMemo(
+    () => [filter, searchQuery, currentUserId],
+    [filter, searchQuery, currentUserId]
+  );
 
   /** Получение пользователей со статусом связи с текущим пользователем. */
   const {
@@ -30,21 +38,22 @@ export const useFriends = ({ filter, searchQuery }) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUser?.id || currentUser?.id <= 0) {
+      if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
       }
-      return fetchFriendsApi({
-        filter: filter || 'all',
-        q: searchQuery,
-        page,
-        limit,
+      return apiFetchItems(fetchFriendsApi, {
+        params: {
+          filter,
+          q: searchQuery,
+          page,
+          limit,
+        },
         signal,
       });
     },
-    deps: [filter, searchQuery, currentUser?.id],
-    onError: () => notify.error('load'),
+    deps: scrollDeps,
     options: {
-      autoFetch: Boolean(currentUser?.id),
+      autoFetch: Boolean(currentUserId),
     },
     initialData: {
       items: [],
@@ -58,7 +67,8 @@ export const useFriends = ({ filter, searchQuery }) => {
     getCurrentData: () => friendsItems,
     getUserId: (data) => data?.id,
     onSuccess: (action) => notify.info(action),
-    onError: (action) => notify.error(action),
+    onError: (error) =>
+      notify.error(getApiErrorDisplay(error, 'Ошибка выполнения')),
   });
 
   /** Получение ID пользователей из списка друзей. */
@@ -82,7 +92,7 @@ export const useFriends = ({ filter, searchQuery }) => {
 
   /** Нормализация под компоненты. */
   const normalizedFriends = useMemo(
-    () => enrichedData.map(normalizeFriend),
+    () => enrichedData.map(normalizeFriends),
     [enrichedData]
   );
 
@@ -93,7 +103,7 @@ export const useFriends = ({ filter, searchQuery }) => {
     hasMore,
     loadMore,
     error,
-    currentUserId: currentUser?.id,
+    currentUserId,
     follow: friendshipActions?.follow,
     unfollow: friendshipActions?.unfollow,
     accept: friendshipActions?.accept,

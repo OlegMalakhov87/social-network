@@ -49,8 +49,6 @@ export const EditProfileForm = ({ currentUser }) => {
       address: currentUser?.address ?? null,
       job: currentUser?.job ?? null,
       status: currentUser?.status ?? null,
-      isPublic: currentUser?.isPublic ?? true,
-      gender: currentUser?.gender ?? 'male',
     },
     rules: {
       name: [
@@ -58,19 +56,37 @@ export const EditProfileForm = ({ currentUser }) => {
         minLength(1, 'Минимум 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      nickname: [maxLength(100, 'Максимум 100 символов'), slug()],
+      avatarUrl: [
+        required('Аватар обязательно'),
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      nickname: [
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(100, 'Максимум 100 символов'),
+        slug(),
+      ],
       email: [required('Email обязательно'), email('Неверный формат email')],
-      phone: [phone()],
+      phone: [phone('Введите корректный номер телефона')],
       birthDate: [date('Введите корректную дату рождения')],
-      address: [maxLength(500, 'Максимум 500 символов')],
-      job: [maxLength(100, 'Максимум 100 символов')],
-      status: [maxLength(500, 'Максимум 500 символов')],
-      gender: [required('Пол обязательно')],
+      address: [
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
+      job: [
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(100, 'Максимум 100 символов'),
+      ],
+      status: [
+        minLength(1, 'Минимум 1 символ'),
+        maxLength(500, 'Максимум 500 символов'),
+      ],
     },
     onSubmit: async (values) => {
       try {
         await dispatch(updateUser(values)).unwrap();
         notify.success('Профиль успешно обновлён');
+        form.reset();
         navigate('/profile');
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка обновления профиля'));
@@ -87,9 +103,8 @@ export const EditProfileForm = ({ currentUser }) => {
         try {
           const result = await dispatch(uploadAvatar(data)).unwrap();
           form.setValue('avatarUrl', result.avatarUrl);
-          notify.success('Аватар успешно загружен');
         } catch (error) {
-          notify.error('Ошибка загрузки аватара');
+          notify.error(getApiErrorDisplay(error, 'Ошибка загрузки аватара'));
         }
       },
     }
@@ -124,12 +139,12 @@ export const EditProfileForm = ({ currentUser }) => {
         <div className={style.fieldsGrid}>
           {PROFILE_SETTINGS_CONFIG.map((field) => (
             <div
+              key={field.key}
               className={classNames(
                 field.half ? style.halfWidth : style.fullWidth
               )}
             >
               <Input
-                key={field.key}
                 label={field.label}
                 required={field.required}
                 type={field.multiline ? undefined : field.type}

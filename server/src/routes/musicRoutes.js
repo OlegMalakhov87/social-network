@@ -1,18 +1,22 @@
 const { Router } = require('express');
 const musicController = require('../controllers/musicController');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { validateMusic } = require('../middleware/validation/musicValidation');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
-  validateIdParam,
-  validateMusic,
-} = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
-const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
+  validatePrivacyUpdate,
+} = require('../middleware/validation/validatePrivacyUpdate');
+const {
+  upload,
+  handleUploadError,
+} = require('../middleware/upload/uploadMiddleware');
 
 const musicRoutes = Router();
 
 // Публичная лента и поиск (объединено)
 musicRoutes.get('/', authMiddleware, musicController.getMusic);
 
-// Загрузка медиа файла для трека
+// Загрузка аудио файла 
 musicRoutes.post(
   '/upload-audio',
   authMiddleware,
@@ -38,7 +42,7 @@ musicRoutes.post(
   musicController.createMusic
 );
 
-// Обновление метаданных трека (владелец)
+// Обновление трека (владелец)
 musicRoutes.put(
   '/:trackId/update',
   validateIdParam('trackId'),
@@ -48,7 +52,12 @@ musicRoutes.put(
 );
 
 // Обновление приватности треков
-musicRoutes.put('/update-privacy', authMiddleware, musicController.updateMusicPrivacy);
+musicRoutes.put(
+  '/update-privacy',
+  authMiddleware,
+  validatePrivacyUpdate,
+  musicController.updateMusicPrivacy
+);
 
 // Инкремент счетчика прослушиваний
 musicRoutes.put(
@@ -58,14 +67,26 @@ musicRoutes.put(
   musicController.incrementPlaysCount
 );
 
-
-
 // Удаление трека (владелец)
 musicRoutes.delete(
   '/:trackId/delete',
   validateIdParam('trackId'),
   authMiddleware,
   musicController.deleteMusic
+);
+
+// Удаление (очистка мусора) загруженных медиа файлов
+musicRoutes.delete(
+  '/delete-uploaded-audio',
+  authMiddleware,
+  musicController.deleteUploadedMedia
+);
+
+// Удаление загруженных медиа обложек
+musicRoutes.delete(
+  '/delete-uploaded-cover',
+  authMiddleware,
+  musicController.deleteUploadedCover
 );
 
 module.exports = musicRoutes;

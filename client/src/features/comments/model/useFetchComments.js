@@ -9,7 +9,6 @@ import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   useInfiniteScroll,
   useNormalizedData,
-  useNotify,
   useOptimisticLike,
   useOptimisticMutation,
 } from '../../../shared/hooks';
@@ -33,8 +32,6 @@ export const useFetchComments = ({
   onChange,
   sortKey,
 }) => {
-  const notify = useNotify();
-
   /** Получение комментариев с бесконечным скроллом. */
   const {
     items: commentsItems,
@@ -62,7 +59,6 @@ export const useFetchComments = ({
       });
     },
     deps: [targetType, targetId, sortKey],
-    onError: () => notify.error('load'),
   });
 
   /** Оптимистичный лайк. */
@@ -82,32 +78,31 @@ export const useFetchComments = ({
   } = useOptimisticMutation({
     items: commentsItems,
     setItems: setCommentsItems,
+
     addFn: async (data) => {
       const res = await addCommentApi({
         targetType,
         targetId,
         text: data.text,
-        isEdited: data.isEdited,
       });
       onChange?.(+1);
       return res?.comment ?? res;
     },
+
     editFn: async (commentId, data) => {
       const res = await updateCommentApi(commentId, {
         targetType,
         targetId,
         text: data.text,
-        isEdited: data.isEdited,
       });
       return res?.comment ?? res;
     },
+
     deleteFn: async (commentId) => {
       const res = await deleteCommentApi(commentId);
       onChange?.(-1);
       return res?.comment ?? res;
     },
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
   /** Нормализация комментариев. */
@@ -116,6 +111,7 @@ export const useFetchComments = ({
     normalizeFn: normalizeComment,
   });
 
+  /** Возвращаем данные о комментариях. */
   return {
     comments,
     toggleLike,

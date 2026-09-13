@@ -1,11 +1,15 @@
 const { Router } = require('express');
 const postController = require('../controllers/postController');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { validatePost } = require('../middleware/validation/postValidation');
 const {
-  validatePost,
-  validateIdParam,
-} = require('../middleware/validationMiddleware');
-const authMiddleware = require('../middleware/authMiddleware');
-const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
+  validatePrivacyUpdate,
+} = require('../middleware/validation/validatePrivacyUpdate');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const {
+  upload,
+  handleUploadError,
+} = require('../middleware/upload/uploadMiddleware');
 
 const postRoutes = Router();
 
@@ -55,6 +59,7 @@ postRoutes.put(
 postRoutes.put(
   '/update-privacy',
   authMiddleware,
+  validatePrivacyUpdate,
   postController.updatePostPrivacy
 );
 

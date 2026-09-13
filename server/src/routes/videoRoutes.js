@@ -1,15 +1,19 @@
 const { Router } = require('express');
 const videoController = require('../controllers/videoController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const { validateIdParam } = require('../middleware/validation/paramValidation');
+const { validateVideo } = require('../middleware/validation/videoValidation');
 const {
-  validateIdParam,
-  validateVideo,
-} = require('../middleware/validationMiddleware');
-const { upload, handleUploadError } = require('../middleware/uploadMiddleware');
+  validatePrivacyUpdate,
+} = require('../middleware/validation/validatePrivacyUpdate');
+const {
+  upload,
+  handleUploadError,
+} = require('../middleware/upload/uploadMiddleware');
 
 const videoRoutes = Router();
 
-// Публичная лента и поиск
+// Публичная лента и поиск (объединено)
 videoRoutes.get('/', authMiddleware, videoController.getVideos);
 
 // Загрузка видео файла
@@ -60,6 +64,7 @@ videoRoutes.put(
 videoRoutes.put(
   '/update-privacy',
   authMiddleware,
+  validatePrivacyUpdate,
   videoController.updateVideoPrivacy
 );
 
@@ -68,7 +73,7 @@ videoRoutes.put(
   '/:videoId/views',
   validateIdParam('videoId'),
   authMiddleware,
-  videoController.incrementViewCount
+  videoController.incrementViewsCount
 );
 
 // Удаление видео (владелец)

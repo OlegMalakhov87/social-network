@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { createAbortableFetch } from '../lib';
+import { createAbortableFetch, parseApiError } from '../lib';
 
 /**
  * Проверяет, является ли ошибка отменённым запросом.
@@ -81,9 +81,9 @@ export const useInfiniteScroll = ({
       onSuccessRef.current?.(result);
     } catch (err) {
       if (isRequestCanceled(err)) return;
-      setError(err);
-      console.error('Ошибка загрузки данных:', err);
-      onErrorRef.current?.(err);
+      const parsedError = parseApiError(err, 'Ошибка загрузки данных');
+      setError(parsedError);
+      onErrorRef.current?.(parsedError);
     } finally {
       if (!controller.signal.aborted) {
         setIsLoading(false);
@@ -116,9 +116,9 @@ export const useInfiniteScroll = ({
       onSuccessRef.current?.(result);
     } catch (err) {
       if (isRequestCanceled(err)) return;
-      setError(err);
-      console.error('Ошибка загрузки данных:', err);
-      onErrorRef.current?.(err);
+      const parsedError = parseApiError(err, 'Ошибка загрузки данных');
+      setError(parsedError);
+      onErrorRef.current?.(parsedError);
     } finally {
       if (!controller.signal.aborted) {
         setIsLoadingMore(false);

@@ -1,7 +1,7 @@
 import {
   fetchMyMusicLibrary,
   fetchUserMusicLibrary,
-  normalizeTrack,
+  normalizeTracks,
 } from '../../../entities/track';
 import {
   useInfiniteScroll,
@@ -57,7 +57,7 @@ export const useUserMusicLibrary = ({
   /** Нормализация треков. */
   const tracks = useNormalizedData({
     items: tracksItems,
-    normalizeFn: normalizeTrack,
+    normalizeFn: normalizeTracks,
     userId: currentUserId,
   });
 

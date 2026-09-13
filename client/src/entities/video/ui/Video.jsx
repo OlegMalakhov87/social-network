@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { getVideoActions, VideoMeta } from '..';
+import { useNotify } from '../../../shared/hooks';
+import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   ActionChip,
   BaseCard,
@@ -46,15 +48,21 @@ export const Video = ({
   deleteVideo,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const notify = useNotify();
+
   if (!video?.id) return null;
 
+  /** Флаг владельца видео. */
   const isOwn = video.uploadedBy === currentUser?.id;
 
+  /** Флаг отображения избранного. */
   const showFavorite = mode === 'profile' && isOwnProfile && video.isInLibrary;
 
+  /** Флаг отключения кнопки. */
   const disabledButton =
     mode === 'profile' && isOwnProfile && !video.isInLibrary;
 
+  /** Конфигурация элементов управления карточкой видео. */
   const actions = getVideoActions({
     video,
     isOwn,
@@ -66,9 +74,14 @@ export const Video = ({
     disabledButton,
   });
 
-  const handleConfirmDelete = () => {
-    deleteVideo?.(video?.id);
-    setShowDeleteDialog(false);
+  /** Обработчик подтверждения удаления видео. */
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteVideo?.(video?.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      notify.error(getApiErrorDisplay(error, 'Ошибка удаления видео'));
+    }
   };
 
   return (

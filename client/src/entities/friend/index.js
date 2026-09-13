@@ -8,7 +8,7 @@ export {
   getFriendshipBadge,
 } from './lib/getFriendshipBadge'; // Функция для получения конфигурации значка дружбы
 export { getFriendshipButtonConfig } from './lib/getFriendshipButtonConfig'; // Функция для управления кнопками дружбы
-export { normalizeFriend } from './lib/normalizeFriend'; // Функция для нормализации данных друга
+export { normalizeFriends } from './lib/normalizeFriends'; // Функция для нормализации данных друзей
 
 export * from './model/friendsTab'; // Мапа для выбора вкладки друзей и категории друга
 

@@ -1,9 +1,8 @@
 const fs = require('fs').promises;
-const path = require('path');
 const { Post, User, Friend, Like, Comment } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
-const fromPublicUrl = require('../utils/fromPublicUrl');
+const { createError } = require('../utils/createError');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -12,6 +11,17 @@ const SORT_MAP = {
   viewsDesc: [['likesCount', 'DESC']],
   viewsAsc: [['likesCount', 'ASC']],
 };
+
+// Поля поста, которые можно обновлять
+const POST_FIELDS = [
+  'text',
+  'type',
+  'postUrl',
+  'previewUrl',
+  'thumbnailUrl',
+  'isPublic',
+  'pinned',
+];
 
 const postService = {
   /**
@@ -63,7 +73,7 @@ const postService = {
           model: Comment,
           as: 'comments',
           limit: 100,
-          order: [['createdAt', 'DESC']],
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: User,
@@ -84,10 +94,9 @@ const postService = {
     return {
       posts: posts.map((post) => ({
         ...post.toJSON(),
-        likesCount: post.likes?.length ?? 0,
-        isLiked:
-          post.likes?.some((like) => like.userId === currentUserId) ?? false,
-        commentsCount: post.comments?.length ?? 0,
+        likesCount: post.likes?.length,
+        isLiked: post.likes?.some((like) => like.userId === currentUserId),
+        commentsCount: post.comments?.length,
       })),
       pagination: {
         totalPosts: count,
@@ -103,6 +112,7 @@ const postService = {
   /**
    * Получение поста по ID
    * @param {number} postId - ID поста
+   * @param {number} currentUserId - ID текущего пользователя
    * @returns {Promise<Object>} - Объект с постом
    */
   async getPostById(postId, currentUserId) {
@@ -117,13 +127,14 @@ const postService = {
     if (!post) {
       throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
     }
+
+    // Обогащаем пост данными о лайках и комментариях
     return {
       post: {
         ...post.toJSON(),
-        likesCount: post.likes?.length ?? 0,
-        isLiked:
-          post.likes?.some((like) => like.userId === currentUserId) ?? false,
-        commentsCount: post.comments?.length ?? 0,
+        likesCount: post.likes?.length,
+        isLiked: post.likes?.some((like) => like.userId === currentUserId),
+        commentsCount: post.comments?.length,
       },
     };
   },
@@ -136,7 +147,13 @@ const postService = {
    */
   async createPost(currentUserId, postData) {
     const dbData = {
-      ...postData,
+      text: postData.text,
+      type: postData.type,
+      postUrl: postData.postUrl,
+      previewUrl: postData.previewUrl,
+      thumbnailUrl: postData.thumbnailUrl,
+      isPublic: postData.isPublic,
+      pinned: postData.pinned,
       userId: currentUserId,
     };
 
@@ -196,15 +213,25 @@ const postService = {
       );
     }
 
+    // Выбираем только разрешенные поля
+    const dbUpdates = Object.fromEntries(
+      POST_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
+        (field) => [field, updateData[field]]
+      )
+    );
+
     const nextType = updateData.type ?? post.type;
 
-    const dbUpdates = {
-      isEdited: true,
-      postUrl: nextType === 'text' ? null : (updateData.postUrl ?? null),
-      previewUrl: nextType === 'video' ? (updateData.previewUrl ?? null) : null,
-      thumbnailUrl:
-        nextType === 'video' ? (updateData.thumbnailUrl ?? null) : null,
-    };
+    dbUpdates.postUrl =
+      nextType === 'text' ? null : (updateData.postUrl ?? post.postUrl);
+
+    dbUpdates.previewUrl =
+      nextType === 'video' ? (updateData.previewUrl ?? news.previewUrl) : null;
+
+    dbUpdates.thumbnailUrl =
+      nextType === 'video'
+        ? (updateData.thumbnailUrl ?? news.thumbnailUrl)
+        : null;
 
     const [, updatedPost] = await Post.update(dbUpdates, {
       where: { id: postId },
@@ -270,10 +297,12 @@ const postService = {
       throw createError('Вы не можете удалить этот пост', 403, 'FORBIDDEN');
     }
 
+    const oldMedia = [post.postUrl, post.previewUrl, post.thumbnailUrl];
+
     await post.destroy();
 
     // Логика очистки старого медиа файла
-    for (const url of [post.postUrl, post.previewUrl, post.thumbnailUrl]) {
+    for (const url of oldMedia) {
       if (!url) continue;
 
       try {
@@ -297,9 +326,12 @@ const postService = {
    */
   async deleteUploadedMedia({ postUrl, previewUrl, thumbnailUrl }) {
     const urls = [postUrl, previewUrl, thumbnailUrl];
+
     for (const url of urls) {
       if (!url) continue;
+
       const filePath = fromPublicUrl(url);
+
       try {
         await fs.unlink(filePath);
       } catch (err) {

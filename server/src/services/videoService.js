@@ -1,5 +1,4 @@
 const fs = require('fs').promises;
-const path = require('path');
 const {
   Video,
   User,
@@ -8,8 +7,8 @@ const {
   UserVideoLibrary,
 } = require('../../db/models');
 const { Op } = require('sequelize');
-const createError = require('../utils/createError');
-const fromPublicUrl = require('../utils/fromPublicUrl');
+const { createError } = require('../utils/createError');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -18,6 +17,17 @@ const SORT_MAP = {
   viewsDesc: [['viewsCount', 'DESC']],
   viewsAsc: [['viewsCount', 'ASC']],
 };
+
+// Поля видео, которые можно обновлять
+const VIDEO_FIELDS = [
+  'title',
+  'description',
+  'videoUrl',
+  'thumbnailUrl',
+  'previewUrl',
+  'category',
+  'isPublic',
+];
 
 const videoService = {
   /**
@@ -40,6 +50,7 @@ const videoService = {
     sortKey = 'dateDesc',
   } = {}) {
     const where = { isPublic: true }; // По умолчанию показываем только публичные
+
     if (category && category !== 'all') {
       where.category = { [Op.iLike]: category };
     }
@@ -125,10 +136,17 @@ const videoService = {
    */
   async createVideo(currentUserId, videoData) {
     const dbData = {
-      ...videoData,
-      viewsCount: 0,
-      year: new Date().getFullYear(),
+      title: videoData.title,
+      description: videoData.description,
+      videoUrl: videoData.videoUrl,
+      thumbnailUrl: videoData.thumbnailUrl,
+      previewUrl: videoData.previewUrl,
+      category: videoData.category,
+      isPublic: videoData.isPublic,
+
       uploadedBy: currentUserId,
+      year: new Date().getFullYear(),
+      viewsCount: 0,
     };
 
     const video = await Video.create(dbData);
@@ -171,10 +189,10 @@ const videoService = {
    * Обновление видео (владелец)
    * @param {number} videoId - ID видео
    * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updates - Обновляемые данные
+   * @param {Object} updateData - Обновляемые данные
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async updateVideo(videoId, currentUserId, updates) {
+  async updateVideo(videoId, currentUserId, updateData) {
     const video = await Video.findByPk(videoId);
     if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
 
@@ -185,68 +203,56 @@ const videoService = {
         'FORBIDDEN'
       );
 
-    const dbUpdates = { ...updates };
-
-    // Логика очистки старого видео файла
-    if (updates.videoUrl) {
-      const newVideoUrl = updates.videoUrl;
-      if (
-        newVideoUrl !== video.videoUrl &&
-        !video.videoUrl.includes('/default-video.mp4')
-      ) {
-        const oldFilePath = fromPublicUrl(video.videoUrl);
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn('Не удалось удалить старое видео:', err.message);
-        }
-      }
-      dbUpdates.videoUrl = newVideoUrl;
-    }
-
-    // Логика очистки старой обложки
-    if (updates.thumbnailUrl) {
-      const newThumbnailUrl = updates.thumbnailUrl;
-      if (
-        newThumbnailUrl !== video.thumbnailUrl &&
-        !video.thumbnailUrl.includes('/default-image.jpg')
-      ) {
-        const oldFilePath = fromPublicUrl(video.thumbnailUrl);
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn('Не удалось удалить старую обложку:', err.message);
-        }
-      }
-      dbUpdates.thumbnailUrl = newThumbnailUrl;
-    }
-
-    // Логика очистки старой превью
-    if (updates.previewUrl) {
-      const newPreviewUrl = updates.previewUrl;
-      if (
-        newPreviewUrl !== video.previewUrl &&
-        !video.previewUrl.includes('/default-preview.mp4')
-      ) {
-        const oldFilePath = fromPublicUrl(video.previewUrl);
-        try {
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          console.warn('Не удалось удалить старую превью:', err.message);
-        }
-      }
-      dbUpdates.previewUrl = newPreviewUrl;
-    }
-
-    /** Проверка на наличие данных для обновления */
-    if (Object.keys(dbUpdates).length === 0)
-      throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
+    // Выбираем только разрешенные поля
+    const dbUpdates = Object.fromEntries(
+      VIDEO_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
+        (field) => [field, updateData[field]]
+      )
+    );
 
     const [, updatedRows] = await Video.update(dbUpdates, {
       where: { id: videoId },
       returning: true,
       plain: true,
     });
+
+    const oldMedia = [video.videoUrl, video.thumbnailUrl, video.previewUrl];
+
+    const defaultMedia = [
+      '/default-video.mp4',
+      '/default-image.jpg',
+      '/default-preview.mp4',
+    ];
+
+    const newMedia = [
+      updatedRows.videoUrl,
+      updatedRows.thumbnailUrl,
+      updatedRows.previewUrl,
+    ];
+
+    // Логика очистки старого видео файла
+    for (const oldUrl of oldMedia) {
+      if (
+        !oldUrl ||
+        newMedia.includes(oldUrl) ||
+        defaultMedia.includes(oldUrl)
+      ) {
+        continue;
+      }
+
+      const filePath = fromPublicUrl(oldUrl);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа видео ${oldUrl}:`,
+            error.message
+          );
+        }
+      }
+    }
 
     return { video: updatedRows.toJSON() };
   },
@@ -256,7 +262,7 @@ const videoService = {
    * @param {number} videoId - ID видео
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async incrementViewCount(videoId) {
+  async incrementViewsCount(videoId) {
     await Video.increment('viewsCount', {
       by: 1,
       where: { id: videoId },
@@ -287,34 +293,28 @@ const videoService = {
       );
     }
 
-    // Логика очистки старого видео
-    if (video.videoUrl) {
-      const oldFilePath = fromPublicUrl(video.videoUrl);
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старое видео:', err.message);
-      }
-    }
-    // Логика очистки старой обложки
-    if (video.thumbnailUrl) {
-      const oldFilePath = fromPublicUrl(video.thumbnailUrl);
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старую обложку:', err.message);
-      }
-    }
-    // Логика очистки старого превью
-    if (video.previewUrl) {
-      const oldFilePath = fromPublicUrl(video.previewUrl);
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.warn('Не удалось удалить старое превью:', err.message);
-      }
-    }
+    const oldMedia = [video.videoUrl, video.thumbnailUrl, video.previewUrl];
+
     await video.destroy();
+
+    // Логика очистки старого медиа файла
+    for (const url of oldMedia) {
+      if (!url) continue;
+
+      const filePath = fromPublicUrl(url);
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить старое медиа видео ${url}:`,
+            error.message
+          );
+        }
+      }
+    }
+
     return { message: 'Видео успешно удалено', videoId };
   },
 

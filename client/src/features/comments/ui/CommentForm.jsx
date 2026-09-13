@@ -1,6 +1,11 @@
 import { useForm, useNotify } from '../../../shared/hooks';
-import { getApiErrorDisplay, maxLength, required } from '../../../shared/lib';
-import { Button, Input } from '../../../shared/ui';
+import {
+  getApiErrorDisplay,
+  maxLength,
+  minLength,
+  required,
+} from '../../../shared/lib';
+import { IconButton, Input } from '../../../shared/ui';
 
 /**
  * Компонент формы для добавления комментария
@@ -12,10 +17,11 @@ export const CommentForm = ({ onSubmit }) => {
 
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { text: null, isEdited: false },
-    rules: () => ({
+    initialValues: { text: null },
+    rules: (values) => ({
       text: [
         required('Напишите комментарий'),
+        minLength(1, 'Минимально 1 символ'),
         maxLength(2000, 'Максимум 2000 символов'),
       ],
     }),
@@ -39,18 +45,17 @@ export const CommentForm = ({ onSubmit }) => {
         {...form.register('text')}
         placeholder="Что вы думаете по этому поводу?"
         rows={1}
-        rightIcon={
-          <Button
-            type="submit"
-            size="md"
-            variant="ghost"
-            disabled={form.isSubmitting}
-            loading={form.isSubmitting}
-          >
-            ▶
-          </Button>
-        }
         disabled={form.isSubmitting}
+        rightIcon={
+          <IconButton
+            icon="➤"
+            size="lg"
+            variant="ghost"
+            type="submit"
+            disabled={form.isSubmitting}
+            ariaLabel="Отправить комментарий"
+          />
+        }
       />
     </form>
   );

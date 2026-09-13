@@ -1,4 +1,5 @@
 export { useAbortableRequest } from './useAbortableRequest'; // Хук для отмены запроса
+export { useCommentsPanelInteraction } from './useCommentsPanelInteraction'; // Хук для взаимодействия с панелью комментариев
 export { useEscapeKey } from './useEscapeKey'; // Хук для обработки нажатий клавиш
 export { useFilterControls } from './useFilterControls'; // Хук для управления фильтрами
 export { useForm } from './useForm'; // Хук для управления формой

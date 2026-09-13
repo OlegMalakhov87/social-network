@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { createError } = require('../services/authService');
+const { createError } = require('../../utils/createError');
 
 /**
  * Middleware для проверки авторизации пользователя
@@ -38,4 +38,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+module.exports = { authMiddleware };

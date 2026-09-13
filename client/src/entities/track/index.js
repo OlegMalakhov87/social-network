@@ -5,7 +5,7 @@ export * from './model/tracksTabs'; // Мапа для выбора вкладк
 
 export { getTrackActions } from './lib/getTrackActions'; // Функция для получения действий для трека
 export { getTrackMeta } from './lib/getTrackMeta'; // Функция для получения метаданных для трека
-export { normalizeTrack } from './lib/normalizeTrack'; // Функция для нормализации данных трека
+export { normalizeTracks } from './lib/normalizeTracks'; // Функция для нормализации данных треков
 
 export { Track } from './ui/Track'; // Компонент для отображения трека
 
