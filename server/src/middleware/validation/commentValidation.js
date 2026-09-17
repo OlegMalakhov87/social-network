@@ -14,12 +14,12 @@ const validateComment = [
 
   body('targetType')
     .notEmpty()
+    .isString()
     .trim()
     .isIn(['posts', 'tracks', 'videos', 'news'])
     .withMessage('Некорректный тип комментария'),
 
   body('targetId')
-    .notEmpty()
     .isInt({ min: 1 })
     .toInt()
     .withMessage('Некорректный ID сущности'),

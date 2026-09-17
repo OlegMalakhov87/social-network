@@ -105,6 +105,18 @@ const userController = {
       next(error);
     }
   },
+
+  /**
+   * Удаление загруженного аватара пользователя
+   */
+  deleteUploadedAvatar: async (req, res, next) => {
+    try {
+      await userService.deleteUploadedAvatar(req.body);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = userController;

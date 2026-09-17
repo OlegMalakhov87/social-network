@@ -272,7 +272,7 @@ const messageService = {
   },
 
   /**
-   * Отметить сообщения как прочитанные (ОПТИМИЗИРОВАННО)
+   * Отметить сообщения как прочитанные
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number[]} messageIds - массив ID сообщений
    * @returns {Promise<Object>} { success: boolean, updated: number }
@@ -297,7 +297,9 @@ const messageService = {
       }
     );
 
-    return { success: true, updated: updatedCount };
+    return {
+      message: `Сообщения успешно прочитаны: ${updatedCount}`,
+    };
   },
 
   /**
@@ -315,7 +317,7 @@ const messageService = {
       msg.senderId === currentUserId ? 'deletedBySender' : 'deletedByReceiver';
 
     await msg.update({ [updateField]: true });
-    return { success: true, messageId };
+    return { message: `Сообщение успешно скрыто: ${messageId}` };
   },
 
   /**
@@ -345,8 +347,7 @@ const messageService = {
         },
       }
     );
-
-    return { success: true, message: 'Чат очищен' };
+    return { message: `Чат успешно очищен` };
   },
 };
 

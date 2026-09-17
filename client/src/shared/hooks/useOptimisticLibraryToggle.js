@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { getApiErrorDisplay, parseApiError } from '../lib';
 import { useNotify } from './';
 
 /**
@@ -24,7 +25,7 @@ export const useOptimisticLibraryToggle = ({
   /** Функция для добавления элемента в библиотеку */
   const addToLibrary = useCallback(
     async (itemId) => {
-      if (!itemId) return;
+      if (!itemId) return false;
 
       setItems((prev) =>
         prev.map((item) =>
@@ -66,8 +67,14 @@ export const useOptimisticLibraryToggle = ({
               : item
           )
         );
-        notify.error('Ошибка добавления в библиотеку');
-        console.error('Ошибка добавления в библиотеку', err);
+        const parsedError = parseApiError(
+          err,
+          'Ошибка добавления в библиотеку'
+        );
+        notify.error(
+          getApiErrorDisplay(parsedError, 'Ошибка добавления в библиотеку')
+        );
+        return false;
       }
     },
     [setItems, addFn, mapOnAdd, notify]
@@ -76,7 +83,7 @@ export const useOptimisticLibraryToggle = ({
   /** Функция для удаления элемента из библиотеки */
   const deleteFromLibrary = useCallback(
     async (libraryId, itemId) => {
-      if (!libraryId || !itemId) return;
+      if (!libraryId || !itemId) return false;
 
       setItems((prev) =>
         prev.map((item) =>
@@ -118,8 +125,11 @@ export const useOptimisticLibraryToggle = ({
               : item
           )
         );
-        notify.error('Ошибка удаления из библиотеки');
-        console.error('Ошибка удаления из библиотеки', err);
+        const parsedError = parseApiError(err, 'Ошибка удаления из библиотеки');
+        notify.error(
+          getApiErrorDisplay(parsedError, 'Ошибка удаления из библиотеки')
+        );
+        return false;
       }
     },
     [setItems, deleteFn, mapOnRemove, notify]

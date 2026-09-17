@@ -93,9 +93,9 @@ const commentService = {
       // Обогащаем комментарии данными о количестве лайков
       comments: comments.map((comment) => ({
         ...comment.toJSON(),
-        likesCount: comment.likes?.length ?? 0,
+        likesCount: comment.likes?.length,
         isLiked:
-          comment.likes?.some((like) => like.userId === currentUserId) ?? false,
+          comment.likes?.some((like) => like.userId === currentUserId),
       })),
       pagination: {
         totalComments: count,

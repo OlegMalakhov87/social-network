@@ -23,13 +23,13 @@ const validateVideo = [
     .optional({ nullable: true })
     .isInt({ min: 1, max: 1800 })
     .toInt()
-    .withMessage('Некорректная длительность'),
+    .withMessage('Некорректная длительность видео'),
 
   body('size')
     .optional({ nullable: true })
     .isInt({ min: 1024 })
     .toInt()
-    .withMessage('Некорректный размер'),
+    .withMessage('Некорректный размер видео'),
 
   body('year')
     .optional({ nullable: true })
@@ -38,7 +38,7 @@ const validateVideo = [
     .withMessage('Некорректный год'),
 
   body('videoUrl')
-    .notEmpty()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
@@ -66,7 +66,6 @@ const validateVideo = [
     .withMessage('Некорректная длинна категории'),
 
   body('isPublic')
-    .notEmpty()
     .isBoolean()
     .withMessage('Некорректный статус приватности'),
 

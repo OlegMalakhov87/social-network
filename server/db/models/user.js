@@ -85,13 +85,11 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: {
           len: [1, 100],
-          notEmpty: true,
         },
       },
       name: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -102,7 +100,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           isDate: true,
-          notEmpty: true,
         },
       },
       email: {
@@ -120,7 +117,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       job: {
@@ -128,7 +124,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 100],
-          notEmpty: true,
         },
       },
       status: {
@@ -136,7 +131,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       phone: {
@@ -145,16 +139,13 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         validate: {
           len: [1, 25],
-          notEmpty: true,
         },
       },
       avatarUrl: {
         type: DataTypes.STRING(500),
-        allowNull: false,
-        defaultValue: '/default-user.png',
+        allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       isPublic: {

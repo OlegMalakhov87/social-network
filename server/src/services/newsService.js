@@ -355,11 +355,10 @@ const newsService = {
       try {
         await fs.unlink(filePath);
       } catch (err) {
-        if (err.code !== 'ENOENT') {
-          throw err;
-        }
+        if (err.code !== 'ENOENT') throw err;
       }
     }
+    return { message: 'Загруженные медиа файлы успешно удалены' };
   },
 };
 

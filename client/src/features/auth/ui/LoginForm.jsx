@@ -26,7 +26,7 @@ export const LoginForm = () => {
   }, [dispatch]);
 
   const form = useForm({
-    initialValues: { email: '', password: '' },
+    initialValues: { email: null, password: null },
     rules: {
       email: [required('Email обязателен'), email('Неверный формат email')],
       password: [

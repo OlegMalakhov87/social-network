@@ -71,7 +71,7 @@ export const getTrackActions = ({
     actions.push({
       key: 'visible',
       icon: '🔒',
-      label: 'Личное',
+      label: '',
       ariaLabel: 'Личное',
       disabled: true,
     });

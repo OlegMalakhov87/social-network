@@ -2,6 +2,9 @@ const { Router } = require('express');
 const userMusicLibraryController = require('../controllers/userMusicLibraryController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const {
+  validateFavoriteUpdate,
+} = require('../middleware/validation/validateFavoriteUpdate');
 
 const userMusicLibraryRoutes = Router();
 
@@ -29,15 +32,16 @@ userMusicLibraryRoutes.post(
 );
 
 // Обновить запись в библиотеке (избранное)
-userMusicLibraryRoutes.put(
+userMusicLibraryRoutes.patch(
   '/:libraryId/favorite',
   validateIdParam('libraryId'),
   authMiddleware,
+  validateFavoriteUpdate,
   userMusicLibraryController.updateFavoriteTrack
 );
 
 // Увеличить счетчик прослушиваний трека из библиотеки
-userMusicLibraryRoutes.put(
+userMusicLibraryRoutes.patch(
   '/:libraryId/plays',
   validateIdParam('libraryId'),
   authMiddleware,

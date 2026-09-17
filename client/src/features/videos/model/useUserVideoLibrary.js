@@ -1,13 +1,10 @@
+import { useMemo } from 'react';
 import {
   fetchMyVideoLibrary,
   fetchUserVideoLibrary,
   normalizeVideos,
 } from '../../../entities/video';
-import {
-  useInfiniteScroll,
-  useNormalizedData,
-  useNotify,
-} from '../../../shared/hooks';
+import { useInfiniteScroll, useNormalizedData } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
@@ -24,8 +21,11 @@ export const useUserVideoLibrary = ({
   isOwnProfile,
   sortKey,
 }) => {
-  const notify = useNotify('videos');
-
+  /** Зависимости для скролла */
+  const scrollDeps = useMemo(
+    () => [profileUserId, sortKey],
+    [profileUserId, sortKey]
+  );
   /** Получение видео библиотеки пользователя. */
   const {
     items: videosItems,
@@ -49,8 +49,7 @@ export const useUserVideoLibrary = ({
         }
       );
     },
-    deps: [profileUserId, sortKey],
-    onError: () => notify.error('load'),
+    deps: scrollDeps,
   });
 
   /** Нормализация видео. */

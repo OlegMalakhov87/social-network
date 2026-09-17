@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить треки из библиотеки текущего пользователя.
@@ -7,7 +8,7 @@ import { api } from '../../../shared/api';
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { items, pagination }
+ * @returns {Promise<Object>} { tracks, pagination }
  */
 export const fetchMyMusicLibrary = async ({
   page,
@@ -30,7 +31,7 @@ export const fetchMyMusicLibrary = async ({
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { items, pagination }
+ * @returns {Promise<Object>} { tracks, pagination }
  */
 export const fetchUserMusicLibrary = async ({
   userId,
@@ -53,42 +54,42 @@ export const fetchUserMusicLibrary = async ({
 /**
  * Добавить трек в библиотеку.
  * @param {number} trackId - ID трека, который добавляем
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryItem }
  */
 export const addTrackToLibrary = async (trackId) => {
   const response = await api.post(`/usermusiclibrary/${trackId}/add`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить трек из библиотеки (добавить/удалить из избранного).
  * @param {number} libraryId - ID записи в библиотеке
  * @param {boolean} isFavorite - состояние в избраном
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryItem }
  */
 export const updateFavoriteTrack = async (libraryId, { isFavorite }) => {
-  const response = await api.put(`/usermusiclibrary/${libraryId}/favorite`, {
+  const response = await api.patch(`/usermusiclibrary/${libraryId}/favorite`, {
     isFavorite,
   });
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Увеличить счетчик прослушиваний трека из библиотеки.
  * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryId, playsCount }
  */
 export const incrementPlaysCount = async (libraryId) => {
-  const response = await api.put(`/usermusiclibrary/${libraryId}/plays`);
-  return response.data;
+  const response = await api.patch(`/usermusiclibrary/${libraryId}/plays`);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить трек из библиотеки.
  * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { message, libraryId }
  */
 export const deleteTrackFromLibrary = async (libraryId) => {
   const response = await api.delete(`/usermusiclibrary/${libraryId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };

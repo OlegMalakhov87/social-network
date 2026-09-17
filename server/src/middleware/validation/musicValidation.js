@@ -43,10 +43,10 @@ const validateMusic = [
     .optional({ nullable: true })
     .isInt({ min: 1, max: 600 })
     .toInt()
-    .withMessage('Некорректная длительность'),
+    .withMessage('Некорректная длительность трека'),
 
   body('audioUrl')
-    .notEmpty()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
@@ -67,7 +67,6 @@ const validateMusic = [
     .withMessage('Некорректная длинна категории'),
 
   body('isPublic')
-    .notEmpty()
     .isBoolean()
     .withMessage('Некорректный статус приватности'),
 

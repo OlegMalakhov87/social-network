@@ -17,7 +17,7 @@ export function normalizeFriends(user) {
     address: user.address,
     job: user.job,
     status: user.status,
-    isPublic: user.isPublic,
+    isPublic: user.isPublic ?? false,
     gender: user.gender,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

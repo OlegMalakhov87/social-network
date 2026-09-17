@@ -31,6 +31,7 @@ export const SegmentedControl = ({
           )}
           onClick={() => onChange(option.value)}
           disabled={disabled}
+          aria-pressed={value === option.value}
         >
           {option.icon && <span className={styles.icon}>{option.icon}</span>}
 

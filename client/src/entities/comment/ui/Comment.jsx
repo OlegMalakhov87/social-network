@@ -66,7 +66,11 @@ export const Comment = ({
 
   /** Обработчик сохранения изменений в комментарии. */
   const handleSave = async () => {
-    if (editText.trim() && currentUserId) {
+    if (
+      editText.trim() &&
+      comment.text.trim() !== editText.trim() &&
+      currentUserId
+    ) {
       try {
         await onEdit?.(comment.id, { text: editText.trim() });
         setIsEditing(false);
@@ -139,19 +143,20 @@ export const Comment = ({
               <>
                 <TextArea
                   value={editText}
+                  placeholder="Введите комментарий"
                   onChange={(e) => setEditText(e.target.value)}
                   autoFocus
                   rows={3}
                 />
                 <ButtonGroup>
-                  <Button variant="secondary" size="sm" onClick={handleCancel}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleCancel}
+                  >
                     Отмена
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={!editText.trim()}
-                  >
+                  <Button size="sm" onClick={handleSave} >
                     Сохранить
                   </Button>
                 </ButtonGroup>

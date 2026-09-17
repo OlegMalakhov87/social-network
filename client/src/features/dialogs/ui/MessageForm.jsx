@@ -16,12 +16,12 @@ import style from './MessageForm.module.css';
  * @param {Function} props.sendMessage - функция для отправки сообщения
  * @returns {React.ReactNode} - компонент MessageForm
  */
-export const MessageForm = ({ partnerId, onSubmit }) => {
+export const MessageForm = ({ partnerId, onSubmit, currentUser }) => {
   const notify = useNotify();
 
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { content: null },
+    initialValues: { content: null, author: currentUser },
     rules: (values) => ({
       content: [
         required('Напишите сообщение'),
@@ -31,7 +31,7 @@ export const MessageForm = ({ partnerId, onSubmit }) => {
     }),
     onSubmit: async (values) => {
       try {
-        await onSubmit?.(partnerId, values.content);
+        await onSubmit?.(partnerId, values);
         form.reset();
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка отправки сообщения'));

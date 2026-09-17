@@ -7,14 +7,14 @@ export const normalizePosts = (raw) => {
   return {
     id: raw.id,
     userId: raw.userId,
+    type: raw.type,
     text: raw.text,
     postUrl: raw.postUrl,
     previewUrl: raw.previewUrl,
     thumbnailUrl: raw.thumbnailUrl,
-    isPublic: raw.isPublic,
-    type: raw.type,
-    pinned: raw.pinned,
-    isEdited: raw.isEdited,
+    pinned: raw.pinned ?? false,
+    isPublic: raw.isPublic ?? true,
+    isEdited: raw.isEdited ?? false,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
 

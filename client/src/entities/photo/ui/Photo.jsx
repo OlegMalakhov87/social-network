@@ -49,7 +49,7 @@ export const Photo = ({
 
   const handleConfirmDelete = async () => {
     try {
-      await onDelete?.(photo?.id);
+      await onDelete?.(photo.id);
       setShowDeleteDialog(false);
     } catch (error) {
       notify.error(getApiErrorDisplay(error, 'Ошибка удаления фото'));
@@ -66,7 +66,7 @@ export const Photo = ({
                 <ActionChip
                   icon="🗑"
                   onClick={() => setShowDeleteDialog(true)}
-                  aria-label="Удалить фото"
+                  ariaLabel="Удалить фото"
                 />
               )
             }
@@ -76,9 +76,9 @@ export const Photo = ({
         }
         content={
           <EntityContent>
-            {photo?.postUrl && (
+            {photo.postUrl && (
               <MediaPreview
-                src={photo?.postUrl}
+                src={photo.postUrl}
                 alt="Фото"
                 className={styles.media}
               />

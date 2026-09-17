@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить видео из библиотеки текущего пользователя.
@@ -7,7 +8,7 @@ import { api } from '../../../shared/api';
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { items, pagination } - данные видео и пагинация
+ * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
  */
 export const fetchMyVideoLibrary = async ({
   page,
@@ -30,7 +31,7 @@ export const fetchMyVideoLibrary = async ({
  * @param {number} params.limit - количество на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
  * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { items, pagination }
+ * @returns {Promise<Object>} { videos, pagination }
  */
 export const fetchUserVideoLibrary = async ({
   userId,
@@ -53,42 +54,42 @@ export const fetchUserVideoLibrary = async ({
 /**
  * Добавить видео в библиотеку.
  * @param {number} videoId – ID видео, которое добавляем
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryItem }
  */
 export const addVideoToLibrary = async (videoId) => {
   const response = await api.post(`/uservideolibrary/${videoId}/add`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить видео из библиотеки (добавить/удалить из избранного)
  * @param {number} libraryId – ID записи в библиотеке
  * @param {boolean} isFavorite – состояние в избраном
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryItem }
  */
 export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
-  const response = await api.put(`/uservideolibrary/${libraryId}/favorite`, {
+  const response = await api.patch(`/uservideolibrary/${libraryId}/favorite`, {
     isFavorite,
   });
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Увеличить счетчик просмотров видео в библиотеке.
  * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { libraryId, viewsCount }
  */
 export const incrementViewsCount = async (libraryId) => {
-  const response = await api.put(`/uservideolibrary/${libraryId}/views`);
-  return response.data;
+  const response = await api.patch(`/uservideolibrary/${libraryId}/views`);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить видео из библиотеки.
  * @param {number} libraryId – ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId }
+ * @returns {Promise<Object>} { message, libraryId }
  */
 export const deleteVideoFromLibrary = async (libraryId) => {
   const response = await api.delete(`/uservideolibrary/${libraryId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };

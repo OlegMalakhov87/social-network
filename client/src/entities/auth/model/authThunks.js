@@ -1,14 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { getCurrentUser, loginUser, registerUser } from '..';
 import { parseApiError } from '../../../shared/lib';
 import {
   changePasswordApi,
   deleteCurrentUser,
-  getCurrentUser,
-  loginUser,
-  registerUser,
   updateCurrentUser,
   uploadAvatarApi,
-} from '../api/authApi';
+} from '../../user';
 import { getToken } from '../lib/authStorage';
 
 /** Авторизация пользователя. */
@@ -37,30 +35,17 @@ export const register = createAsyncThunk(
   }
 );
 
-/** Получение текущего пользователя. */
-export const fetchCurrentUser = createAsyncThunk(
-  'auth/fetchCurrentUser',
-  async (_, thunkAPI) => {
-    try {
-      const data = await getCurrentUser();
-      return data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(parseApiError(error));
-    }
-  }
-);
-
 /** Проверка авторизации при запуске приложения. */
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, thunkAPI) => {
     const token = getToken();
     if (!token) {
-      return { skipped: true, user: null, token: null };
+      return { skipped: true };
     }
     try {
       const data = await getCurrentUser();
-      return { user: data.user, token };
+      return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));
     }

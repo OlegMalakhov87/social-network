@@ -121,9 +121,11 @@ export const TracksTab = ({
         emptyIcon="🎵"
         emptyTitle="Нет треков"
         emptyDescription={
-          isOwnProfile
-            ? 'Добавьте свои первые треки.'
-            : 'У пользователя пока нет публичных треков.'
+          mode === 'profile'
+            ? isOwnProfile
+              ? 'Добавьте свои первые треки.'
+              : 'У пользователя пока нет публичных треков.'
+            : 'Попробуйте изменить категорию или поисковый запрос.'
         }
         onRetry={onRetry}
       >

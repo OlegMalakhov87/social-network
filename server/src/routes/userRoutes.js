@@ -41,7 +41,7 @@ userRoutes.post(
 );
 
 // Обновление пользователя
-userRoutes.patch(
+userRoutes.put(
   '/update',
   authMiddleware,
   validateUser,
@@ -49,15 +49,12 @@ userRoutes.patch(
 );
 
 // Обновление приватности пользователя
-userRoutes.put(
+userRoutes.patch(
   '/update-privacy',
   authMiddleware,
   validatePrivacyUpdate,
   userController.updatePrivacy
 );
-
-// Удаление пользователя
-userRoutes.delete('/delete', authMiddleware, userController.deleteUser);
 
 // Изменение пароля пользователя
 userRoutes.patch(
@@ -65,6 +62,16 @@ userRoutes.patch(
   authMiddleware,
   validatePasswordChange,
   userController.changePassword
+);
+
+// Удаление пользователя
+userRoutes.delete('/delete', authMiddleware, userController.deleteUser);
+
+// Удаление загруженного аватара
+userRoutes.delete(
+  '/delete-uploaded-avatar',
+  authMiddleware,
+  userController.deleteUploadedAvatar
 );
 
 module.exports = userRoutes;

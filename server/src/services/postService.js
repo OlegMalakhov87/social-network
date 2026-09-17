@@ -104,8 +104,6 @@ const postService = {
         currentPage: page,
         hasMore: page * limit < count,
       },
-      isOwner,
-      isFriend,
     };
   },
 
@@ -152,8 +150,9 @@ const postService = {
       postUrl: postData.postUrl,
       previewUrl: postData.previewUrl,
       thumbnailUrl: postData.thumbnailUrl,
-      isPublic: postData.isPublic,
       pinned: postData.pinned,
+      isPublic: postData.isPublic,
+      isEdited: false,
       userId: currentUserId,
     };
 
@@ -233,6 +232,8 @@ const postService = {
         ? (updateData.thumbnailUrl ?? news.thumbnailUrl)
         : null;
 
+    dbUpdates.isEdited = true;
+
     const [, updatedPost] = await Post.update(dbUpdates, {
       where: { id: postId },
       returning: true,
@@ -252,8 +253,9 @@ const postService = {
         continue;
       }
 
+      const filePath = fromPublicUrl(oldUrl);
+
       try {
-        const filePath = fromPublicUrl(oldUrl);
         await fs.unlink(filePath);
       } catch (error) {
         if (error.code !== 'ENOENT') {
@@ -335,11 +337,10 @@ const postService = {
       try {
         await fs.unlink(filePath);
       } catch (err) {
-        if (err.code !== 'ENOENT') {
-          throw err;
-        }
+        if (err.code !== 'ENOENT') throw err;
       }
     }
+    return { message: 'Загруженные медиа файлы успешно удалены' };
   },
 };
 

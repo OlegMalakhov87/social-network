@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Music', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       uploadedBy: {
         type: Sequelize.INTEGER,
@@ -18,15 +18,17 @@ module.exports = {
       title: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
       },
       artist: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
       },
       album: {
         type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      description: {
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       year: {
@@ -39,22 +41,15 @@ module.exports = {
       },
       audioUrl: {
         type: Sequelize.STRING(500),
-        allowNull: false,
-        defaultValue: '/default-audio.mp3',
+        allowNull: true,
       },
       coverUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: null,
       },
       category: {
         type: Sequelize.STRING(50),
         allowNull: false,
-        defaultValue: 'other',
-      },
-      description: {
-        type: Sequelize.TEXT,
-        allowNull: true,
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
@@ -66,7 +61,6 @@ module.exports = {
         allowNull: false,
         defaultValue: 0,
       },
-
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

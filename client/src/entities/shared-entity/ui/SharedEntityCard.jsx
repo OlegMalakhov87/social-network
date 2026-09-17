@@ -31,8 +31,8 @@ export const SharedEntityCard = ({ entity, onPlayMedia }) => {
     <BaseCard
       header={
         <EntityMeta
-          avatar={entity.author?.photoUrl}
-          title={entity.author?.name || entity.author}
+          avatar={entity.author?.avatarUrl}
+          title={entity.author?.name}
         />
       }
       content={
@@ -51,7 +51,7 @@ export const SharedEntityCard = ({ entity, onPlayMedia }) => {
                 <Image
                   src={entity.mediaUrl}
                   alt={entity.title || 'Изображение'}
-                  fallback="/error-page.png"
+                  fallback="/image.jpg"
                   className={style.image}
                 />
               )}

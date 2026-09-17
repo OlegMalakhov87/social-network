@@ -39,10 +39,10 @@ export const RegisterForm = () => {
 
   const form = useForm({
     initialValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      name: null,
+      email: null,
+      password: null,
+      confirmPassword: null,
       gender: 'male',
       agreeTerms: false,
     },

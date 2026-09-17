@@ -16,6 +16,14 @@ const videoRoutes = Router();
 // Публичная лента и поиск (объединено)
 videoRoutes.get('/', authMiddleware, videoController.getVideos);
 
+// Создание видео
+videoRoutes.post(
+  '/add',
+  authMiddleware,
+  validateVideo,
+  videoController.createVideo
+);
+
 // Загрузка видео файла
 videoRoutes.post(
   '/upload-video',
@@ -43,14 +51,6 @@ videoRoutes.post(
   videoController.uploadPreview
 );
 
-// Создание видео
-videoRoutes.post(
-  '/add',
-  authMiddleware,
-  validateVideo,
-  videoController.createVideo
-);
-
 // Обновление видео (владелец)
 videoRoutes.put(
   '/:videoId/update',
@@ -61,7 +61,7 @@ videoRoutes.put(
 );
 
 // Обновление приватности видео
-videoRoutes.put(
+videoRoutes.patch(
   '/update-privacy',
   authMiddleware,
   validatePrivacyUpdate,
@@ -69,7 +69,7 @@ videoRoutes.put(
 );
 
 // Инкремент счетчика просмотров видео
-videoRoutes.put(
+videoRoutes.patch(
   '/:videoId/views',
   validateIdParam('videoId'),
   authMiddleware,

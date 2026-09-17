@@ -35,7 +35,7 @@ export const fetchCommentsApi = async ({
  */
 export const fetchCommentById = async (commentId) => {
   const response = await api.get(`/comments/${commentId}/shared`);
-  return unwrapApiEntity(response.data, ['comments']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -45,7 +45,7 @@ export const fetchCommentById = async (commentId) => {
  */
 export const addCommentApi = async (data) => {
   const response = await api.post(`/comments/add`, data);
-  return unwrapApiEntity(response.data, ['comments']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -55,16 +55,16 @@ export const addCommentApi = async (data) => {
  * @returns {Promise<Object>} { comment }
  */
 export const updateCommentApi = async (commentId, updates) => {
-  const response = await api.put(`/comments/${commentId}/update`, updates);
-  return unwrapApiEntity(response.data, ['comments']);
+  const response = await api.patch(`/comments/${commentId}/update`, updates);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить комментарий по ID
  * @param {number} commentId - ID комментария
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message, commentId }
  */
 export const deleteCommentApi = async (commentId) => {
   const response = await api.delete(`/comments/${commentId}/delete`);
-  return unwrapApiEntity(response.data, ['comments']);
+  return unwrapApiEntity(response.data);
 };

@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить посты пользователя.
@@ -8,7 +9,7 @@ import { api } from '../../../shared/api';
  * @param {number} params.limit - количество на странице
  * @param {string} params.sortKey - ключ сортировки
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { items, pagination }
+ * @returns {Promise<Object>} { posts, pagination }
  */
 export const fetchPostsApi = async ({
   userId,
@@ -35,7 +36,7 @@ export const fetchPostsApi = async ({
  */
 export const fetchPostById = async (postId) => {
   const response = await api.get(`/posts/${postId}/shared`);
-  return response.data.post;
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -45,7 +46,17 @@ export const fetchPostById = async (postId) => {
  */
 export const addPostApi = async (data) => {
   const response = await api.post('/posts/add', data);
-  return response.data.post;
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для поста.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { postUrl }
+ */
+export const uploadPostMediaApi = async (formData) => {
+  const response = await api.post('/posts/upload-media', formData);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -56,35 +67,35 @@ export const addPostApi = async (data) => {
  */
 export const updatePostApi = async (postId, updates) => {
   const response = await api.put(`/posts/${postId}/update`, updates);
-  return response.data.post;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить приватность постов.
  * @param {boolean} isPublic - видимость постов
- * @returns {Promise<Object>} { isPublic }
+ * @returns {Promise<Object>} { message, posts }
  */
 export const updatePostsPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/posts/update-privacy`, { isPublic });
-  return response.data;
+  const response = await api.patch(`/posts/update-privacy`, { isPublic });
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить пост по ID.
  * @param {number} postId - ID поста
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message, postId }
  */
 export const deletePostApi = async (postId) => {
   const response = await api.delete(`/posts/${postId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить (очистка мусора) загруженные медиа файлы.
  * @param {Object} data - данные поста
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedPostApi = async (data) => {
   const response = await api.delete('/posts/delete-uploaded-media', { data });
-  return response.data;
+  return unwrapApiEntity(response.data);
 };

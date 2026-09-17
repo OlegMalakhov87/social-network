@@ -14,13 +14,13 @@ export const normalizeMessages = (raw) => {
     senderId: raw.senderId,
     receiverId: raw.receiverId,
     content: raw.content,
-    isRead: raw.isRead,
-    isEdited: raw.isEdited,
-    deletedBySender: raw.deletedBySender,
-    deletedByReceiver: raw.deletedByReceiver,
+    isRead: raw.isRead ?? false,
+    isEdited: raw.isEdited ?? false,
+    deletedBySender: raw.deletedBySender ?? false,
+    deletedByReceiver: raw.deletedByReceiver ?? false,
     createDate: raw.createdAt,
     updateDate: raw.updatedAt,
-   
+
     author: raw.author,
 
     likesCount: raw.likesCount ?? 0,

@@ -75,7 +75,7 @@ export const AudioPlayer = ({
           width={50}
           height={50}
           className={style.playerCover}
-          fallbackSrc="/error.png"
+          fallbackSrc="/image.jpg"
         />
         <div className={style.trackDetails}>
           <div className={style.playerTrack}>{currentTrack.title}</div>

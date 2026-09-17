@@ -10,21 +10,26 @@ const validateRegister = [
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage('Имя от 1 до 100 символов'),
+    .withMessage('Некорректная длинна имени'),
 
-  body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
+  body('email')
+    .notEmpty()
+    .isEmail()
+    .normalizeEmail()
+    .isLength({ min: 5, max: 55 })
+    .withMessage('Некорректный email'),
 
   body('password')
     .notEmpty()
     .isString()
     .trim()
     .isLength({ min: 6, max: 128 })
-    .withMessage('Пароль от 6 до 128 символов'),
+    .withMessage('Некорректная длинна пароля'),
 
   body('gender')
     .notEmpty()
     .isIn(['male', 'female'])
-    .withMessage('Пол должен быть male или female'),
+    .withMessage('Некорректный пол'),
 
   validateErrors('Ошибка регистрации'),
 ];
@@ -33,14 +38,19 @@ const validateRegister = [
  * Валидация для входа в систему
  */
 const validateLogin = [
-  body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
+  body('email')
+    .notEmpty()
+    .isEmail()
+    .normalizeEmail()
+    .isLength({ min: 5, max: 55 })
+    .withMessage('Некорректный email'),
 
   body('password')
     .notEmpty()
     .isString()
     .trim()
     .isLength({ min: 6, max: 128 })
-    .withMessage('Пароль от 6 до 128 символов'),
+    .withMessage('Некорректная длинна пароля'),
 
   validateErrors('Ошибка входа в систему'),
 ];
@@ -54,56 +64,61 @@ const validateUser = [
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage('Имя от 1 до 100 символов'),
+    .withMessage('Некорректная длинна имени'),
 
   body('avatarUrl')
-    .notEmpty()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Аватар URL до 500 символов'),
+    .withMessage('Некорректная длинна URL аватара'),
 
   body('nickname')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage('Никнейм от 1 до 100 символов'),
+    .withMessage('Некорректная длинна никнейма'),
 
   body('birthDate')
     .optional({ nullable: true })
     .isDate()
-    .withMessage('Некорректная дата'),
+    .withMessage('Некорректное значение даты'),
 
-  body('email').isEmail().withMessage('Некорректный email').normalizeEmail(),
+  body('email')
+    .notEmpty()
+    .isEmail()
+    .normalizeEmail()
+    .isLength({ min: 5, max: 55 })
+    .withMessage('Некорректный email'),
 
   body('address')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Адрес до 500 символов'),
+    .withMessage('Некорректная длинна поля "адрес"'),
 
   body('job')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage('Должность до 100 символов'),
+    .withMessage('Некорректная длинна поля "работа"'),
 
   body('status')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Статус до 500 символов'),
+    .withMessage('Некорректная длинна поля "статус"'),
 
   body('phone')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 25 })
-    .withMessage('Телефон от 1 до 25 символов'),
+    .withMessage('Некорректная длинна номера телефона'),
 
   validateErrors('Ошибка обновления пользователя'),
 ];
@@ -116,15 +131,15 @@ const validatePasswordChange = [
     .notEmpty()
     .isString()
     .trim()
-    .isLength({ min: 6 })
-    .withMessage('Введите текущий пароль от 6 символов'),
+    .isLength({ min: 6, max: 128 })
+    .withMessage('Некорректная длинна текущего пароля'),
 
   body('newPassword')
     .notEmpty()
     .isString()
     .trim()
     .isLength({ min: 6, max: 128 })
-    .withMessage('Введите новый пароль от 6 до 128 символов'),
+    .withMessage('Некорректная длинна нового пароля'),
 
   validateErrors('Ошибка изменения пароля'),
 ];

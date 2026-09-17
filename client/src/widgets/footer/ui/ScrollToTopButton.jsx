@@ -28,7 +28,7 @@ export const ScrollToTopButton = () => {
       variant="primary"
       className={classNames(style.scrollTop, isVisible && style.visible)}
       onClick={scrollToTop}
-      aria-label="Прокрутить наверх"
+      ariaLabel="Прокрутить наверх"
     >
       ↑
     </Button>

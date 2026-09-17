@@ -2,7 +2,6 @@ import { extractPaginatedItems } from './';
 
 /**
  * Вспомогательная функция для запроса данных с пагинацией.
- * Fetch может вернуть { items } или типичные ключи сервера (posts, tracks, …).
  *
  * @param {Function} fetchApi
  * @param {{ params: Object, signal?: AbortSignal }} options

@@ -16,7 +16,6 @@ module.exports = {
       name: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
       },
       birthDate: {
         type: Sequelize.DATE,
@@ -41,13 +40,13 @@ module.exports = {
       },
       phone: {
         type: Sequelize.STRING(25),
-        unique: true,
         allowNull: true,
+        unique: true,
+       
       },
       avatarUrl: {
         type: Sequelize.STRING(500),
         allowNull: true,
-        defaultValue: '/default-user.png',
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
@@ -85,5 +84,6 @@ module.exports = {
     await queryInterface.sequelize.query(
       'DROP TYPE IF EXISTS "enum_Users_gender";'
     );
+    
   },
 };

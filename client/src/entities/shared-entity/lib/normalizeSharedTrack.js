@@ -4,12 +4,11 @@
 export const normalizeSharedTrack = (track) => ({
   id: track.id,
   type: 'track',
-  author: track.artist || track.uploader?.name || null,
+  author: track.uploader || null,
   title: track.title || null,
   text: track.description || null,
-  mediaUrl: track.audio ?? track.fileUrl ?? null,
-  mediaType: 'audio',
-  date: track.date ?? track.updatedAt ?? track.createdAt ?? null,
+  mediaUrl: track.audioUrl || null,
+  date: (track.updatedAt ?? track.createdAt) || null,
   stats: {
     likesCount: track.likesCount ?? 0,
     commentsCount: track.commentsCount ?? 0,

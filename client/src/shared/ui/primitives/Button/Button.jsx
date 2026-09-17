@@ -12,11 +12,13 @@ import styles from './Button.module.css';
  * @param {boolean} [props.fullWidth=false] - Растянуть кнопку на всю ширину.
  * @param {boolean} [props.loading=false] - Показывать состояние загрузки.
  * @param {boolean} [props.disabled=false] - Заблокировать кнопку.
- * @param {string} [props.hoverText=''] - Текст при наведении.
+ * @param {string} [props.hoverText] - Текст при наведении.
  * @param {React.ReactNode} [props.leftIcon] - Иконка слева.
  * @param {React.ReactNode} [props.rightIcon] - Иконка справа.
  * @param {Function} [props.onClick] - Обработчик нажатия.
- * @param {string} [props.className=''] - Дополнительный CSS класс.
+ * @param {string} [props.className] - Дополнительный CSS класс.
+ * @param {string} [props.ariaLabel] - aria-label для кнопки.
+ * @param {string} [props.ariaCurrent] - aria-current для кнопки.
  */
 
 export const Button = ({
@@ -30,8 +32,10 @@ export const Button = ({
   hoverText,
   leftIcon,
   rightIcon,
-  className = '',
+  className,
   onClick,
+  ariaLabel,
+  ariaCurrent,
   ...rest
 }) => {
   const buttonClassName = classNames(
@@ -49,6 +53,8 @@ export const Button = ({
       className={buttonClassName}
       disabled={disabled || loading}
       onClick={onClick}
+      aria-label={ariaLabel}
+      aria-current={ariaCurrent}
       {...rest}
     >
       {loading && <span className={styles.spinner} />}

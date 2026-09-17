@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
-
+import { parseApiError } from '../lib';
 /**
  * Универсальный хук для оптимистичного управления избранным.
  *
  * @param {Object} params - параметры запроса
  * @param {Function} params.setItems - функция обновления массива
  * @param {Function} params.updateFavoriteFn - функция обновления избранного
- * @param {string} params.targetType - тип сущности
  * @param {Function} [params.onSuccess] - функция обработки успеха.
  * @param {Function} [params.onError] - функция обработки ошибки
  * @returns {Function} - функция для добавления/удаления из избранного
@@ -14,13 +13,12 @@ import { useCallback } from 'react';
 export const useOptimisticFavorite = ({
   setItems,
   updateFavoriteFn,
-  targetType,
   onSuccess,
   onError,
 }) => {
   const toggleFavorite = useCallback(
     async (itemId, libraryId, currentlyFavorite) => {
-      if (!itemId || !libraryId) return;
+      if (!itemId || !libraryId) return false;
       const newFavorite = !currentlyFavorite;
       setItems((prev) =>
         prev.map((item) =>
@@ -28,11 +26,11 @@ export const useOptimisticFavorite = ({
         )
       );
       try {
-        const result = await updateFavoriteFn(libraryId, {
+        await updateFavoriteFn(libraryId, {
           isFavorite: newFavorite,
         });
-        onSuccess?.(newFavorite ? 'add' : 'delete', result);
-        return result;
+        onSuccess?.(newFavorite);
+        return true;
       } catch (err) {
         // Откат при ошибке
         setItems((prev) =>
@@ -42,12 +40,11 @@ export const useOptimisticFavorite = ({
               : item
           )
         );
-        console.error(`Ошибка избранного ${targetType}:`, err);
-        onError?.(newFavorite ? 'add' : 'delete', err);
+        onError?.(parseApiError(err, 'Ошибка избранного'));
         return false;
       }
     },
-    [targetType, setItems, updateFavoriteFn, onError, onSuccess]
+    [setItems, updateFavoriteFn, onError, onSuccess]
   );
   return toggleFavorite;
 };

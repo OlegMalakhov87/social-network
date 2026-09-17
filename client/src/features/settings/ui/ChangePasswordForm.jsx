@@ -31,9 +31,9 @@ export const ChangePasswordForm = () => {
   /** Форма для смены пароля */
   const form = useForm({
     initialValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      currentPassword: null,
+      newPassword: null,
+      confirmPassword: null,
     },
     rules: {
       currentPassword: [

@@ -11,13 +11,14 @@ import { IconButton, Input } from '../../../shared/ui';
  * Компонент формы для добавления комментария
  * @param {Object} props
  * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Object} props.currentUser - текущий пользователь
  */
-export const CommentForm = ({ onSubmit }) => {
+export const CommentForm = ({ onSubmit, currentUser }) => {
   const notify = useNotify();
 
   /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { text: null },
+    initialValues: { text: null, author: currentUser },
     rules: (values) => ({
       text: [
         required('Напишите комментарий'),

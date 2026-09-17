@@ -52,13 +52,6 @@ export const useFriends = ({ filter, searchQuery = '' }) => {
       });
     },
     deps: scrollDeps,
-    options: {
-      autoFetch: Boolean(currentUserId),
-    },
-    initialData: {
-      items: [],
-      hasMore: false,
-    },
   });
 
   /** Экшены для управления статусом дружбы. */

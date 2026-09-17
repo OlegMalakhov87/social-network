@@ -61,7 +61,7 @@ export const Modal = ({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              aria-label="Закрыть окно"
+              ariaLabel="Закрыть окно"
             >
               ✕
             </Button>

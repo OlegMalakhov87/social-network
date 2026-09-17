@@ -10,7 +10,7 @@
 
 export const Image = ({
   src,
-  fallback = '/error-page.png',
+  fallback = '/image.jpg',
   alt = 'Изображение',
   className = '',
   ...rest

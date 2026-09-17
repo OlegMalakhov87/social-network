@@ -40,7 +40,27 @@ export const fetchTracksApi = async ({
  */
 export const addTrackApi = async (formData) => {
   const response = await api.post('/music/add', formData);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для трека.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { audioUrl }
+ */
+export const uploadTrackAudioApi = async (formData) => {
+  const response = await api.post('/music/upload-audio', formData);
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для обложки трека.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { coverUrl }
+ */
+export const uploadTrackCoverApi = async (formData) => {
+  const response = await api.post('/music/upload-cover', formData);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -51,55 +71,55 @@ export const addTrackApi = async (formData) => {
  */
 export const updateTrackApi = async (trackId, updates) => {
   const response = await api.put(`/music/${trackId}/update`, updates);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить приватность треков.
  * @param {boolean} isPublic - видимость треков
- * @returns {Promise<Object>} { isPublic }
+ * @returns {Promise<Object>} { message, tracks }
  */
 export const updateTracksPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/music/update-privacy`, { isPublic });
-  return unwrapApiEntity(response.data, ['tracks']);
+  const response = await api.patch(`/music/update-privacy`, { isPublic });
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить счетчик прослушиваний трека.
  * @param {number} trackId - ID трека
- * @returns {Promise<Object>} { track }
+ * @returns {Promise<Object>} { success, playsCount }
  */
 export const incrementTrackPlaysCount = async (trackId) => {
-  const response = await api.put(`/music/${trackId}/plays`);
-  return unwrapApiEntity(response.data, ['tracks']);
+  const response = await api.patch(`/music/${trackId}/plays`);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить трек.
  * @param {number} trackId - ID трека
- * @returns {Promise<Object>} { trackId }
+ * @returns {Promise<Object>} { message, trackId }
  */
 export const deleteTrackApi = async (trackId) => {
   const response = await api.delete(`/music/${trackId}/delete`);
-  return unwrapApiEntity(response.data, ['tracks']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить загруженные медиа треков (очистка мусора).
  * @param {Object} data - данные трека
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedAudioApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-audio', { data });
-  return unwrapApiEntity(response.data, ['tracks']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить загруженные медиа обложек.
  * @param {Object} data - данные обложки
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedCoverApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-cover', { data });
-  return unwrapApiEntity(response.data, ['tracks']);
+  return unwrapApiEntity(response.data);
 };

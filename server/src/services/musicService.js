@@ -224,16 +224,10 @@ const musicService = {
 
     const oldMedia = [track.audioUrl, track.coverUrl];
 
-    const defaultMedia = ['/default-track.mp3', '/default-image.jpg'];
-
     const newMedia = [updatedRows.audioUrl, updatedRows.coverUrl];
 
     for (const oldUrl of oldMedia) {
-      if (
-        !oldUrl ||
-        newMedia.includes(oldUrl) ||
-        defaultMedia.includes(oldUrl)
-      ) {
+      if (!oldUrl || newMedia.includes(oldUrl)) {
         continue;
       }
 
@@ -331,11 +325,10 @@ const musicService = {
       try {
         await fs.unlink(filePath);
       } catch (error) {
-        if (error.code !== 'ENOENT') {
-          throw error;
-        }
+        if (error.code !== 'ENOENT') throw error;
       }
     }
+    return { message: 'Загруженные медиа файлы успешно удалены' };
   },
 
   /**
@@ -353,6 +346,7 @@ const musicService = {
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
+    return { message: 'Загруженные медиа обложек успешно удалены' };
   },
 };
 

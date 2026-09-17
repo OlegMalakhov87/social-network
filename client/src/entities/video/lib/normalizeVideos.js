@@ -18,7 +18,7 @@ export const normalizeVideos = (raw) => {
     previewUrl: raw.previewUrl,
     thumbnailUrl: raw.thumbnailUrl,
     category: raw.category,
-    isPublic: raw.isPublic,
+    isPublic: raw.isPublic ?? false,
     viewsCount: raw.viewsCount ?? 0,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,

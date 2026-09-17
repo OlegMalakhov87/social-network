@@ -25,7 +25,7 @@ export const EmptyState = ({
       <div className={styles.emptyTitle}>{title}</div>
       {description && <div className={styles.emptyText}>{description}</div>}
       {actionLabel && onAction && (
-        <Button size="sm" onClick={onAction}>
+        <Button size="sm" onClick={onAction} ariaLabel={actionLabel}>
           {actionLabel}
         </Button>
       )}

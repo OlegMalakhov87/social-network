@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Messages', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       senderId: {
         type: Sequelize.INTEGER,
@@ -37,13 +37,13 @@ module.exports = {
         defaultValue: false,
       },
       deletedBySender: {
-        allowNull: false,
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       deletedByReceiver: {
-        allowNull: false,
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       createdAt: {

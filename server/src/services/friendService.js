@@ -10,7 +10,7 @@ const friendService = {
    * @param {number} params.currentUserId - ID текущего пользователя
    * @param {number} [params.page=1] - номер страницы
    * @param {number} [params.limit=30] - количество на странице
-   * @param {string} [params.category='all'] - категория: all, friends, friendsOfFriends, subscribers, subscriptions
+   * @param {string} [params.category='all'] - категория
    * @param {string} [params.q=''] - поисковый запрос
    * @returns {Promise<Object>} { users, pagination }
    */
@@ -309,7 +309,7 @@ const friendService = {
     }
 
     await friendship.destroy();
-    return { message: 'Заявка удалена', friendshipId };
+    return { message: `Заявка успешно удалена: ${friendshipId}` };
   },
 
   /**
@@ -333,7 +333,7 @@ const friendService = {
     }
 
     await friendship.destroy();
-    return { message: 'Связь удалена', friendshipId };
+    return { message: `Связь успешно удалена: ${friendshipId}` };
   },
 
   /**
@@ -373,8 +373,7 @@ const friendService = {
     }
 
     return {
-      message: 'Пользователь заблокирован',
-      friendshipId: friendship.id,
+      message: `Пользователь успешно заблокирован: ${friendship.id}`,
     };
   },
 };

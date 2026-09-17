@@ -1,20 +1,10 @@
 const fs = require('fs').promises;
 const path = require('path');
-
-const MEDIA_CLEANUP_CONFIG = require('../../config/mediaCleanupConfig');
-const fromPublicUrl = require('../utils/fromPublicUrl');
+const { MEDIA_CLEANUP_CONFIG } = require('../../config/mediaCleanupConfig');
+const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 /** Время жизни orphan-файла — 24 часа */
 const ONE_DAY = 24 * 60 * 60 * 1000;
-
-/** Файлы, которые нельзя удалять */
-const PROTECTED_FILES = new Set([
-  'default-user.png',
-  'default-image.jpg',
-  'default-video.mp4',
-  'default-preview.mp4',
-  'default-track.mp3',
-]);
 
 const mediaCleanupService = {
   /**
@@ -42,9 +32,15 @@ const mediaCleanupService = {
             try {
               const filePath = fromPublicUrl(url);
 
+              if (!filePath) {
+                continue;
+              }
+
               usedFiles.add(path.resolve(filePath));
-            } catch {
-              // Некорректный URL пропускаем.
+            } catch (error) {
+              throw new Error(
+                `[MediaCleanup] Не удалось обработать media URL "${url}": ${error.message}`
+              );
             }
           }
         }
@@ -119,8 +115,20 @@ const mediaCleanupService = {
    * которые старше 24 часов.
    */
   async cleanup() {
+    console.log('[MediaCleanup] MEDIA_ROOT:', MEDIA_CLEANUP_CONFIG.root);
+    console.log('[MediaCleanup] process.cwd():', process.cwd());
+
     const usedFiles = await this.collectUsedFiles();
     const files = await this.getAllFiles();
+
+    console.log('[MediaCleanup] usedFiles:', usedFiles.size);
+    console.log('[MediaCleanup] files:', files.length);
+
+    if (files.length > 0 && usedFiles.size === 0) {
+      throw new Error(
+        '[MediaCleanup] Safety stop: no used media files detected'
+      );
+    }
 
     const now = Date.now();
 
@@ -129,6 +137,10 @@ const mediaCleanupService = {
 
     for (const filePath of files) {
       const absolutePath = path.resolve(filePath);
+      console.log({
+        file: absolutePath,
+        used: usedFiles.has(absolutePath),
+      });
 
       // Дополнительная защита от удаления файлов за пределами uploads.
       if (!this.isInsideMediaRoot(absolutePath)) {
@@ -138,12 +150,6 @@ const mediaCleanupService = {
 
       // Файл используется сущностью.
       if (usedFiles.has(absolutePath)) {
-        skippedCount++;
-        continue;
-      }
-
-      // Защищённый файл.
-      if (PROTECTED_FILES.has(path.basename(absolutePath))) {
         skippedCount++;
         continue;
       }

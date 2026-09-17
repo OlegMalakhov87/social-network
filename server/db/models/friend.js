@@ -18,16 +18,19 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: { min: 1, isInt: true },
+        validate: { min: 1 },
       },
       friendId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: { min: 1, isInt: true },
+        validate: { min: 1 },
       },
       status: {
         type: DataTypes.ENUM('pending', 'accepted', 'blocked'),
         defaultValue: 'pending',
+        validate: {
+          notEmpty: true,
+        },
       },
     },
     {

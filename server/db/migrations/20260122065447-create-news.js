@@ -23,19 +23,9 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
-      date: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-      },
-      author: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-        defaultValue: 'Unknown',
-      },
       category: {
         type: Sequelize.STRING(50),
         allowNull: false,
-        defaultValue: 'other',
       },
       type: {
         type: Sequelize.ENUM('text', 'image', 'video'),
@@ -50,15 +40,23 @@ module.exports = {
         type: Sequelize.STRING(500),
         allowNull: true,
       },
-      viewsCount: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
+      previewUrl: {
+        type: Sequelize.STRING(500),
+        allowNull: true,
+      },
+      thumbnailUrl: {
+        type: Sequelize.STRING(500),
+        allowNull: true,
       },
       isEdited: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+      },
+      viewsCount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
       },
       createdAt: {
         allowNull: false,
@@ -71,11 +69,9 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW'),
       },
     });
-    await queryInterface.addIndex('News', ['date']);
     await queryInterface.addIndex('News', ['category']);
     await queryInterface.addIndex('News', ['viewsCount']);
     await queryInterface.addIndex('News', ['type']);
-    await queryInterface.addIndex('News', ['author']);
   },
 
   async down(queryInterface, Sequelize) {

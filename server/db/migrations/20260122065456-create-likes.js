@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Likes', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -16,7 +16,6 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       targetType: {
-        allowNull: false,
         type: Sequelize.ENUM(
           'Post',
           'Music',
@@ -25,6 +24,7 @@ module.exports = {
           'Comment',
           'Message'
         ),
+        allowNull: false,
       },
       targetId: {
         type: Sequelize.INTEGER,

@@ -180,8 +180,7 @@ const videoService = {
     }
 
     return {
-      message: 'Приватность видео успешно обновлена',
-      videos: affectedCount,
+      message: `Приватность видео успешно обновлена: ${affectedCount}`,
     };
   },
 
@@ -218,12 +217,6 @@ const videoService = {
 
     const oldMedia = [video.videoUrl, video.thumbnailUrl, video.previewUrl];
 
-    const defaultMedia = [
-      '/default-video.mp4',
-      '/default-image.jpg',
-      '/default-preview.mp4',
-    ];
-
     const newMedia = [
       updatedRows.videoUrl,
       updatedRows.thumbnailUrl,
@@ -232,11 +225,7 @@ const videoService = {
 
     // Логика очистки старого видео файла
     for (const oldUrl of oldMedia) {
-      if (
-        !oldUrl ||
-        newMedia.includes(oldUrl) ||
-        defaultMedia.includes(oldUrl)
-      ) {
+      if (!oldUrl || newMedia.includes(oldUrl)) {
         continue;
       }
 
@@ -267,11 +256,8 @@ const videoService = {
       by: 1,
       where: { id: videoId },
     });
-    const updated = await Video.findByPk(videoId, {
-      attributes: ['viewsCount'],
-    });
 
-    return { success: true, viewsCount: updated.viewsCount };
+    return { success: true };
   },
 
   /**
@@ -314,8 +300,7 @@ const videoService = {
         }
       }
     }
-
-    return { message: 'Видео успешно удалено', videoId };
+    return { message: `Видео успешно удалено: ${videoId}` };
   },
 
   /**
@@ -336,11 +321,10 @@ const videoService = {
       try {
         await fs.unlink(filePath);
       } catch (error) {
-        if (error.code !== 'ENOENT') {
-          throw error;
-        }
+        if (error.code !== 'ENOENT') throw error;
       }
     }
+    return { message: 'Загруженные медиа файлы успешно удалены' };
   },
 
   /**
@@ -356,10 +340,9 @@ const videoService = {
     try {
       await fs.unlink(filePath);
     } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error;
-      }
+      if (error.code !== 'ENOENT') throw error;
     }
+    return { message: 'Загруженные медиа превью успешно удалены' };
   },
 
   /**
@@ -375,10 +358,9 @@ const videoService = {
     try {
       await fs.unlink(filePath);
     } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error;
-      }
+      if (error.code !== 'ENOENT') throw error;
     }
+    return { message: 'Загруженные медиа thumbnail успешно удалены' };
   },
 };
 

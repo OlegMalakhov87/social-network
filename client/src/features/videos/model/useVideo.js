@@ -70,13 +70,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
       });
     },
     deps: scrollDeps,
-    options: {
-      autoFetch: Boolean(currentUserId),
-    },
-    initialData: {
-      items: [],
-      hasMore: false,
-    },
   });
 
   /** Оптимистическое управление библиотекой видео */

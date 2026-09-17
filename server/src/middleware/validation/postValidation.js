@@ -10,43 +10,39 @@ const validatePost = [
     .isString()
     .trim()
     .isLength({ min: 1, max: 5000 })
-    .withMessage('Текст от 1 до 5000 символов'),
+    .withMessage('Некорректная длинна текста'),
 
   body('type')
     .notEmpty()
     .isIn(['text', 'image', 'video'])
-    .withMessage('Тип должен быть text, image или video'),
+    .withMessage('Некорректный тип поста'),
 
   body('postUrl')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Пост до 500 символов'),
+    .withMessage('Некорректный URL поста'),
 
   body('previewUrl')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Превью до 500 символов'),
+    .withMessage('Некорректный URL превью'),
 
   body('thumbnailUrl')
     .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 500 })
-    .withMessage('Обложка до 500 символов'),
+    .withMessage('Некорректный URL обложки'),
 
-  body('isPublic')
-    .notEmpty()
-    .isBoolean()
-    .withMessage('isPublic должен быть true или false'),
+  body('isPublic').isBoolean().withMessage('Некорректный статус приватности'),
 
   body('pinned')
-    .notEmpty()
     .isBoolean()
-    .withMessage('pinned должен быть true или false'),
+    .withMessage('Некорректный статус поля "Закрепить"'),
 
   validateErrors('Ошибка создания поста'),
 ];

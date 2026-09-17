@@ -20,10 +20,11 @@ import { apiFetchItems } from '../../../shared/lib';
  * Предоставляет оптимистичное добавление, замену, удаление,
  * отметку прочтения и обновление отдельных полей сообщений.
  *
- * @param {number|null} userId – ID собеседника
+ * @param {Object} params - параметры запроса
+ * @param {number} [params.userId=null] - ID собеседника
  * @returns { Object } - объект с данными о сообщениях
  */
-export function useMessages(userId) {
+export function useMessages({ userId = null }) {
   const currentUser = useSelector(selectUser);
   const token = useSelector(selectToken);
   const currentUserId = currentUser?.id;
@@ -58,13 +59,6 @@ export function useMessages(userId) {
       });
     },
     deps: scrollDeps,
-    options: {
-      autoFetch: Boolean(currentUserId),
-    },
-    initialData: {
-      items: [],
-      hasMore: false,
-    },
   });
 
   /** WebSocket: получение новых сообщений в реальном времени. */

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   addCommentApi,
   deleteCommentApi,
@@ -32,6 +33,12 @@ export const useFetchComments = ({
   onChange,
   sortKey,
 }) => {
+  /** Зависимости для бесконечного скролла */
+  const scrollDeps = useMemo(
+    () => [targetType, targetId, sortKey, currentUserId],
+    [targetType, targetId, sortKey, currentUserId]
+  );
+
   /** Получение комментариев с бесконечным скроллом. */
   const {
     items: commentsItems,
@@ -58,7 +65,7 @@ export const useFetchComments = ({
         signal,
       });
     },
-    deps: [targetType, targetId, sortKey],
+    deps: scrollDeps,
   });
 
   /** Оптимистичный лайк. */
@@ -83,7 +90,7 @@ export const useFetchComments = ({
       const res = await addCommentApi({
         targetType,
         targetId,
-        text: data.text,
+        text: data.text.trim(),
       });
       onChange?.(+1);
       return res?.comment ?? res;
@@ -93,7 +100,7 @@ export const useFetchComments = ({
       const res = await updateCommentApi(commentId, {
         targetType,
         targetId,
-        text: data.text,
+        text: data.text.trim(),
       });
       return res?.comment ?? res;
     },

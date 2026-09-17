@@ -1,6 +1,7 @@
 /** Ключи массивов в типичных ответах API (порядок важен). */
 const LIST_KEYS = [
   'items',
+  'users',
   'posts',
   'tracks',
   'videos',
@@ -8,14 +9,17 @@ const LIST_KEYS = [
   'comments',
   'messages',
   'dialogs',
-  'users',
+  'likes',
+  'friends',
+  'libraryItems',
 ];
 
 /**
  * Достаёт массив элементов и pagination из ответа сервера.
+ * 
  *
- * @param {Object|null|undefined} data
- * @returns {{ items: Array, pagination: Object }}
+ * @param {Object|null|undefined} data - ответ сервера
+ * @returns {{ items: Array, pagination: Object }} - массив элементов и pagination
  */
 export const extractPaginatedItems = (data) => {
   if (!data) {

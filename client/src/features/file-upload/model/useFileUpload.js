@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { api } from '../../../shared/api';
 import { parseApiError } from '../../../shared/lib';
 
 /**
@@ -14,17 +13,16 @@ import { parseApiError } from '../../../shared/lib';
  * - фиксацией файла после успешного сохранения сущности.
  *
  * @param {Object} config - конфигурация загрузки
- * @param {string} config.endpoint - endpoint API
  * @param {string} config.fieldName - имя поля FormData
  * @param {Function} config.validators - валидаторы файла
+ * @param {Function} config.uploadFn - функция загрузки файла
  * @param {Function} [config.deleteFn] - функция удаления загруженного файла
  * @param {Object} [options]
- * @param {Function} [options.uploadFn] - кастомная функция загрузки
  * @param {Function} [options.onSuccess] - callback после успешной загрузки
  * @param {Function} [options.onError] - callback ошибки
  */
 export const useFileUpload = (config, options = {}) => {
-  const { uploadFn, onSuccess, onError } = options;
+  const { onSuccess, onError } = options;
 
   const [preview, setPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -55,12 +53,12 @@ export const useFileUpload = (config, options = {}) => {
   const cleanupUploadedFile = async () => {
     const uploadedFile = uploadedFileRef.current;
 
-    if (!uploadedFile || !config.deleteFn) {
+    if (!uploadedFile || !config?.deleteFn) {
       return false;
     }
 
     try {
-      await config.deleteFn(uploadedFile);
+      await config?.deleteFn?.(uploadedFile);
       uploadedFileRef.current = null;
       return true;
     } catch (err) {
@@ -89,7 +87,7 @@ export const useFileUpload = (config, options = {}) => {
     if (!file) return;
 
     // Сначала проверяем новый файл.
-    const validationError = await config.validators(file);
+    const validationError = await config?.validators?.(file);
 
     if (validationError) {
       setError(validationError);
@@ -121,32 +119,24 @@ export const useFileUpload = (config, options = {}) => {
     setPreview(objectUrl);
 
     try {
-      let result;
+      const formData = new FormData();
+      formData.append(config?.fieldName, file);
 
-      if (uploadFn) {
-        result = await uploadFn(file);
-      } else {
-        const formData = new FormData();
-        formData.append(config.fieldName, file);
+      const res = await config?.uploadFn?.(formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
 
-        const response = await api.post(config.endpoint, formData, {
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percent = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
+            setProgress(percent);
+          }
+        },
+        timeout: 120000,
+      });
 
-              setProgress(percent);
-            }
-          },
-          timeout: 120000,
-        });
-
-        result = response.data;
-      }
-
-      uploadedFileRef.current = result;
-      onSuccess?.(result);
+      uploadedFileRef.current = res?.data ?? res;
+      onSuccess?.(res?.data ?? res);
 
       return true;
     } catch (err) {

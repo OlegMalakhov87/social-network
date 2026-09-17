@@ -29,6 +29,14 @@ postRoutes.get(
   postController.getPostById
 );
 
+// Создание поста
+postRoutes.post(
+  '/add',
+  authMiddleware,
+  validatePost,
+  postController.createPost
+);
+
 // Загрузка медиа файла для поста
 postRoutes.post(
   '/upload-media',
@@ -36,14 +44,6 @@ postRoutes.post(
   upload.single('postUrl'),
   handleUploadError,
   postController.uploadMedia
-);
-
-// Создание поста
-postRoutes.post(
-  '/add',
-  authMiddleware,
-  validatePost,
-  postController.createPost
 );
 
 // Обновление поста (владелец)
@@ -56,7 +56,7 @@ postRoutes.put(
 );
 
 // Обновление приватности постов
-postRoutes.put(
+postRoutes.patch(
   '/update-privacy',
   authMiddleware,
   validatePrivacyUpdate,

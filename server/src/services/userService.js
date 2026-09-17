@@ -71,17 +71,20 @@ const userService = {
     }
 
     return {
-      ...userData,
-      friendshipStatus: friendship?.status ?? null,
-      friendshipDirection: friendship
-        ? friendship.userId === currentUserId
-          ? 'outgoing'
-          : 'incoming'
-        : null,
-      friendshipId: friendship?.id ?? null,
-      canSeeFullProfile,
-      isBlocked:
-        friendship?.status === 'blocked' && friendshipDirection === 'outgoing',
+      user: {
+        ...userData,
+        friendshipStatus: friendship?.status ?? null,
+        friendshipDirection: friendship
+          ? friendship.userId === currentUserId
+            ? 'outgoing'
+            : 'incoming'
+          : null,
+        friendshipId: friendship?.id ?? null,
+        canSeeFullProfile,
+        isBlocked:
+          friendship?.status === 'blocked' &&
+          friendshipDirection === 'outgoing',
+      },
     };
   },
 
@@ -110,7 +113,7 @@ const userService = {
   },
 
   /**
-   * Обновление пользователя
+   * Обновление профиля текущего пользователя
    * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} updateData - Данные для обновления
    * @returns {Promise<Object>} - Объект с результатом
@@ -126,8 +129,11 @@ const userService = {
       throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
     }
 
+    let affectedCount = 0;
+    let updatedUser = null;
+
     try {
-      const [affectedCount, updatedUser] = await User.update(dbUpdates, {
+      [affectedCount, updatedUser] = await User.update(dbUpdates, {
         where: { id: currentUserId },
         returning: true,
         plain: true,
@@ -154,36 +160,6 @@ const userService = {
   },
 
   /**
-   * Обновление приватности пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {boolean} isPublic - Приватность пользователя
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async updatePrivacy(currentUserId, { isPublic }) {
-    const [affectedCount, updatedUser] = await User.update(
-      { isPublic },
-      {
-        where: { id: currentUserId },
-        returning: true,
-        plain: true,
-      }
-    );
-
-    if (affectedCount === 0) {
-      throw createError(
-        'Не удалось обновить приватность',
-        500,
-        'UPDATE_FAILED'
-      );
-    }
-
-    return {
-      message: 'Приватность пользователя успешно обновлена',
-      isPublic: updatedUser.isPublic,
-    };
-  },
-
-  /**
    * Загрузка аватара пользователя
    * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} file - Файл аватара
@@ -203,24 +179,31 @@ const userService = {
     const newAvatarPath = file.path;
     const newAvatarUrl = toPublicUrl(newAvatarPath);
 
-    const [affectedCount, updatedUser] = await User.update(
-      { avatarUrl: newAvatarPath },
+    const [affectedCount] = await User.update(
+      { avatarUrl: newAvatarUrl },
       {
         where: { id: currentUserId },
-        returning: true,
-        plain: true,
-        attributes: { exclude: ['passwordHash'] },
       }
     );
 
+    // Если обновление в БД не удалось, удаляем новый аватар
     if (affectedCount === 0) {
+      try {
+        await fs.unlink(newAvatarPath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить новый аватар ${newAvatarPath}:`,
+            error.message
+          );
+        }
+      }
+
       throw createError('Не удалось обновить аватар', 500, 'UPDATE_FAILED');
     }
 
-    const isDefaultAvatar =
-      !oldAvatarUrl || oldAvatarUrl.includes('default-user.png');
-
-    if (!isDefaultAvatar) {
+    // Если старый аватар существует, удаляем его
+    if (oldAvatarUrl) {
       const filePath = fromPublicUrl(oldAvatarUrl);
       try {
         await fs.unlink(filePath);
@@ -234,6 +217,37 @@ const userService = {
       }
     }
     return { avatarUrl: newAvatarUrl };
+  },
+
+  /**
+   * Обновление приватности пользователя
+   * @param {number} currentUserId - ID текущего пользователя
+   * @param {boolean} isPublic - Приватность пользователя
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+  async updatePrivacy(currentUserId, { isPublic }) {
+    const [affectedCount, updatedUser] = await User.update(
+      { isPublic },
+      {
+        where: { id: currentUserId },
+        returning: true,
+        plain: true,
+      }
+    );
+
+    // Если обновление в БД не удалось, выбрасываем ошибку
+    if (affectedCount === 0) {
+      throw createError(
+        'Не удалось обновить приватность',
+        500,
+        'UPDATE_FAILED'
+      );
+    }
+
+    return {
+      message: 'Приватность пользователя успешно обновлена',
+      isPublic: updatedUser.isPublic,
+    };
   },
 
   /**
@@ -307,6 +321,24 @@ const userService = {
       }
     }
     return { message: 'Пользователь успешно удален', userId: currentUserId };
+  },
+
+   /**
+   * Удаление загруженного аватара пользователя
+   * @param {string} avatarUrl - URL аватара файла
+   * @returns {Promise<Object>} - Объект с результатом
+   */
+   async deleteUploadedAvatar({ avatarUrl }) {
+    if (!avatarUrl) return;
+
+    const filePath = fromPublicUrl(avatarUrl);
+
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+    return { message: 'Загруженный аватар успешно удален' };
   },
 };
 

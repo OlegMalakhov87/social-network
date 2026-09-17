@@ -2,6 +2,9 @@ const { Router } = require('express');
 const userVideoLibraryController = require('../controllers/userVideoLibraryController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const {
+  validateFavoriteUpdate,
+} = require('../middleware/validation/validateFavoriteUpdate');
 
 const userVideoLibraryRoutes = Router();
 
@@ -29,7 +32,7 @@ userVideoLibraryRoutes.post(
 );
 
 // Обновить запись в библиотеке (избранное)
-userVideoLibraryRoutes.put(
+userVideoLibraryRoutes.patch(
   '/:libraryId/favorite',
   validateIdParam('libraryId'),
   authMiddleware,
@@ -37,7 +40,7 @@ userVideoLibraryRoutes.put(
 );
 
 // Увеличить счетчик просмотров видео в библиотеке
-userVideoLibraryRoutes.put(
+userVideoLibraryRoutes.patch(
   '/:libraryId/views',
   validateIdParam('libraryId'),
   authMiddleware,

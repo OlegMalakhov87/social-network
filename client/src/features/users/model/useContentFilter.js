@@ -2,9 +2,9 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsAuthReady, selectUser } from '../../../entities/auth';
 import { useOptimisticCommentCount } from '../../../shared/hooks';
-import { useUserPosts } from '../../posts';
+import { usePosts } from '../../posts';
 import { useUserMusicLibrary } from '../../tracks';
-import { useLibraryResource, useUserProfile } from '../../users';
+import { useLibraryResource, useProfile } from '../../users';
 import { useUserVideoLibrary } from '../../videos';
 
 /**
@@ -16,7 +16,7 @@ import { useUserVideoLibrary } from '../../videos';
  * @param {string} [params.sortKey] - ключ сортировки из SORT_OPTIONS
  * @returns {Object} - объект с данными о контенте пользователя
  */
-export const useUserContentFilter = ({
+export const useContentFilter = ({
   activeTab = 'posts',
   userIdParam = null,
   sortKey = 'dateDesc',
@@ -48,7 +48,7 @@ export const useUserContentFilter = ({
     acceptUser,
     blockUser,
     unlockUser,
-  } = useUserProfile(profileUserId);
+  } = useProfile(profileUserId);
 
   //Проверяем, является ли текущий пользователь владельцем профиля
   const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;
@@ -83,7 +83,7 @@ export const useUserContentFilter = ({
     updatePost,
     deletePost,
     setPostsItems,
-  } = useUserPosts({
+  } = usePosts({
     profileUserId: config.posts ? targetUser?.id : null,
     currentUserId: currentUser?.id,
     isOwnProfile,

@@ -16,12 +16,15 @@ friendRoutes.get(
 friendRoutes.post('/requests', authMiddleware, friendController.sendRequest);
 
 // Принять заявку
-friendRoutes.put(
+friendRoutes.patch(
   '/:friendshipId/accept',
   validateIdParam('friendshipId'),
   authMiddleware,
   friendController.acceptRequest
 );
+
+// Заблокировать пользователя
+friendRoutes.patch('/block', authMiddleware, friendController.blockUser);
 
 // Отклонить/отменить заявку
 friendRoutes.delete(
@@ -38,8 +41,5 @@ friendRoutes.delete(
   authMiddleware,
   friendController.deleteFriendship
 );
-
-// Заблокировать пользователя
-friendRoutes.post('/block', authMiddleware, friendController.blockUser);
 
 module.exports = friendRoutes;

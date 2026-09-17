@@ -9,16 +9,16 @@ import { unwrapApiEntity } from '../../../shared/lib';
  */
 export const addLikeApi = async (targetType, targetId) => {
   const response = await api.post(`/likes/${targetType}/${targetId}/add`);
-  return unwrapApiEntity(response.data, ['likes']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Убрать лайк с сущности.
  * @param {string} targetType - тип сущности
  * @param {number} targetId - ID сущности
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message, targetType, targetId, likesCount }
  */
 export const deleteLikeApi = async (targetType, targetId) => {
   const response = await api.delete(`/likes/${targetType}/${targetId}/delete`);
-  return unwrapApiEntity(response.data, ['likes']);
+  return unwrapApiEntity(response.data);
 };

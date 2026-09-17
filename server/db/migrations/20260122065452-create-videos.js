@@ -3,10 +3,10 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Videos', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
       },
       uploadedBy: {
         type: Sequelize.INTEGER,
@@ -18,7 +18,6 @@ module.exports = {
       title: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        defaultValue: 'Untitled',
       },
       description: {
         type: Sequelize.TEXT,
@@ -38,8 +37,7 @@ module.exports = {
       },
       videoUrl: {
         type: Sequelize.STRING(500),
-        allowNull: false,
-        defaultValue: '/default-video.mp4',
+        allowNull: true,
       },
       thumbnailUrl: {
         type: Sequelize.STRING(500),
@@ -52,7 +50,6 @@ module.exports = {
       category: {
         type: Sequelize.STRING(50),
         allowNull: false,
-        defaultValue: 'other',
       },
       isPublic: {
         type: Sequelize.BOOLEAN,
@@ -61,8 +58,8 @@ module.exports = {
       },
       viewsCount: {
         type: Sequelize.INTEGER,
-        defaultValue: 0,
         allowNull: false,
+        defaultValue: 0,
       },
       createdAt: {
         allowNull: false,

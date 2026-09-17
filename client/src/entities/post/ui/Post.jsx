@@ -119,7 +119,11 @@ export const Post = ({
               {post.text}
             </Text>
             {post.text && post.text.length > 75 && (
-              <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleExpand}
+              >
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>
             )}

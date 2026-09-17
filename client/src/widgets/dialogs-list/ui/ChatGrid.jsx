@@ -116,7 +116,7 @@ export const ChatGrid = ({
             <EntityMeta
               avatar={selectedUser?.avatar}
               title={selectedUser?.name}
-              fallback="/userPhoto.jpg"
+              fallback="/user.jpg"
             />
             <StatusBadge
               status={partnerOnline ? 'online' : 'offline'}

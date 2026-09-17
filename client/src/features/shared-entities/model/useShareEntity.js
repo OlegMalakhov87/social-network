@@ -7,13 +7,8 @@ import { useCallback } from 'react';
  * @param {Function} params.normalizeFn - функция нормализации сущности
  * @param {string} [params.storageKey='sharedEntity'] - ключ sessionStorage
  * @param {Function} [params.onSuccess] - вызывается после успешного сохранения
- *
- * @returns {{
- *   shareEntity: (entity:Object)=>void,
- *   clearSharedEntity: ()=>void,
- *   getSharedEntity: ()=>Object|null
- * }}
  */
+
 export const useShareEntity = ({
   normalizeFn,
   storageKey = 'sharedEntity',

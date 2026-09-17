@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCommentsPanel } from '../../../features/comments';
 import { PostForm } from '../../../features/posts';
-import { useUserContentFilter } from '../../../features/users';
+import { useContentFilter } from '../../../features/users';
 import { SORT_OPTIONS } from '../../../shared/config';
 import { useFilterControls } from '../../../shared/hooks';
 import {
@@ -93,7 +93,7 @@ export const ProfilePage = () => {
     currentPageVideos,
     loadMoreVideos,
     refetchVideos,
-  } = useUserContentFilter({
+  } = useContentFilter({
     activeTab,
     sortKey,
     userIdParam,
@@ -279,7 +279,7 @@ export const ProfilePage = () => {
                     variant="primary"
                     size="sm"
                     onClick={() => setShowPostForm('create')}
-                    aria-label="Добавить пост"
+                    ariaLabel="Добавить пост"
                   />
                 )}
               </>

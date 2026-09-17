@@ -19,8 +19,8 @@ export const normalizeDialogs = (raw) => {
           id: last.id,
           content: last.content,
           createdAt: last.createdAt,
-          isRead: last.isRead,
-          isOwn: last.isOwn,
+          isRead: last.isRead ?? false,
+          isOwn: last.isOwn ?? false,
         }
       : null,
   };

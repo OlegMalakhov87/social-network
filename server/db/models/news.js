@@ -42,7 +42,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       title: {
@@ -61,22 +60,11 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: true,
         },
       },
-      date: { type: DataTypes.DATEONLY, allowNull: true },
-      author: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        defaultValue: 'Unknown',
-        validate: {
-          len: [1, 100],
-          notEmpty: true,
-        },
-      },
       category: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        defaultValue: 'other',
         validate: {
-          len: [1, 20],
+          len: [1, 50],
           notEmpty: true,
         },
       },
@@ -84,13 +72,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM('text', 'image', 'video'),
         allowNull: false,
         defaultValue: 'text',
+        validate: {
+          notEmpty: true,
+        },
       },
       source: {
         type: DataTypes.STRING(100),
         allowNull: true,
         validate: {
           len: [1, 100],
-          notEmpty: true,
         },
       },
       newsUrl: {
@@ -98,7 +88,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       previewUrl: {
@@ -106,7 +95,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       thumbnailUrl: {
@@ -114,8 +102,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
+      },
+      isEdited: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       viewsCount: {
         type: DataTypes.INTEGER,
@@ -123,13 +115,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 0,
         validate: {
           min: 0,
-          isInt: true,
         },
-      },
-      isEdited: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
       },
     },
     {
@@ -141,11 +127,9 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: 'updatedAt',
       //underscored: true,
       indexes: [
-        { fields: ['date'] },
         { fields: ['category'] },
         { fields: ['viewsCount'] },
         { fields: ['type'] },
-        { fields: ['author'] },
       ],
     }
   );

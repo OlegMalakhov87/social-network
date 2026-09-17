@@ -29,7 +29,11 @@ export const Alert = ({ variant, title, closable, children, onClose }) => {
       <span className={style.title}>{title}</span>
       <span className={style.message}>{children}</span>
       {closable && (
-        <button className={style.closeButton} onClick={onClose}>
+        <button
+          className={style.closeButton}
+          onClick={onClose}
+          aria-label="Закрыть уведомление"
+        >
           ✕
         </button>
       )}

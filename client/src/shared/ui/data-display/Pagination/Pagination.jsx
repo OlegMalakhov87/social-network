@@ -51,7 +51,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
         className={style.pageButton}
         onClick={() => onPageChange(safePage - 1)}
         disabled={safePage === 1}
-        aria-label="Предыдущая страница"
+        ariaLabel="Предыдущая страница"
       >
         ←
       </Button>
@@ -68,7 +68,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
             className={style.pageButton}
             onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
             disabled={isDots || isActive}
-            aria-current={isActive ? 'page' : undefined}
+            ariaCurrent={isActive ? 'page' : undefined}
           >
             {pageNum}
           </Button>
@@ -81,7 +81,7 @@ export const Pagination = ({ totalPages, page, onPageChange }) => {
         className={style.pageButton}
         onClick={() => onPageChange(safePage + 1)}
         disabled={safePage === safeTotal}
-        aria-label="Следующая страница"
+        ariaLabel="Следующая страница"
       >
         →
       </Button>

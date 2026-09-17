@@ -41,7 +41,7 @@ module.exports = {
       {
         senderId: 5,
         receiverId: 8,
-        content: 'Привет! Давно не общались. Как у тебя с работой?',
+        content: 'Привет! Как дела?',
         isRead: true,
         isEdited: false,
         deletedBySender: false,
@@ -50,8 +50,7 @@ module.exports = {
       {
         senderId: 8,
         receiverId: 5,
-        content:
-          'Привет, да, очень давно. Извини, я весь в запарках, учу JS. Как у тебя дела?',
+        content: 'Привет! Все хорошо, спасибо! Как у тебя?',
         isRead: true,
         isEdited: false,
         deletedBySender: false,
@@ -60,7 +59,7 @@ module.exports = {
       {
         senderId: 5,
         receiverId: 8,
-        content: 'Все хорошо, работаю в Яндекс',
+        content: 'Неплохо, устроилась на работу в IT компанию',
         isRead: true,
         isEdited: false,
         deletedBySender: false,
@@ -79,7 +78,7 @@ module.exports = {
       {
         senderId: 2,
         receiverId: 8,
-        content: 'Чем занимаешься сейчас? Закончил свой проект?',
+        content: 'Привет, как дела? Чем занимаешься, не забыл про проект?',
         isRead: true,
         isEdited: false,
         deletedBySender: false,
@@ -88,7 +87,8 @@ module.exports = {
       {
         senderId: 8,
         receiverId: 2,
-        content: 'Пока нет. Думал, что получится закончить раньше, но увы.',
+        content:
+          'Привет, нормально. Конечно не забыл, думал, что получится закончить раньше, но увы. Как у тебя дела?',
         isRead: false,
         isEdited: false,
         deletedBySender: false,
@@ -97,7 +97,7 @@ module.exports = {
       {
         senderId: 7,
         receiverId: 8,
-        content: 'Привет, давно не виделись, чем занимаешься?',
+        content: 'Привет, давно не виделись. У меня хорошие новости для тебя',
         isRead: false,
         isEdited: false,
         deletedBySender: false,

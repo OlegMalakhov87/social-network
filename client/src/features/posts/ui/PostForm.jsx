@@ -70,7 +70,7 @@ export const PostForm = ({
   /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
-      author: currentUser,
+      userId: currentUser?.id,
       text: initialData?.text ?? null,
       type: initialData?.type ?? 'text',
       postUrl: initialData?.postUrl ?? null,
@@ -78,6 +78,7 @@ export const PostForm = ({
       thumbnailUrl: initialData?.thumbnailUrl ?? null,
       isPublic: initialData?.isPublic ?? true,
       pinned: initialData?.pinned ?? false,
+      author: currentUser,
     },
     rules: (values) => ({
       text:

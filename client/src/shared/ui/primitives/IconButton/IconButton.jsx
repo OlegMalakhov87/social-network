@@ -5,15 +5,17 @@ import style from './IconButton.module.css';
  * Универсальная кнопка с иконкой.
  *
  * @param {Object} props
+ * @param {string} [props.type='button'] - тип кнопки
  * @param {React.ReactNode} props.icon - иконка (эмодзи или SVG)
  * @param {'ghost' | 'overlay' | 'primary' | 'danger' | 'warning' | 'success'} [props.variant='ghost'] - вариант оформления
  * @param {'sm' | 'md' | 'lg'} [props.size='md'] - размер
  * @param {Function} props.onClick - обработчик клика
  * @param {boolean} [props.disabled=false] - заблокирована
- * @param {string} [props.ariaLabel] - доступное название
+ * @param {string} [props.ariaLabel] - aria-label для кнопки
  * @param {string} [props.className] - дополнительный CSS-класс
  */
 export const IconButton = ({
+  type = 'button',
   icon,
   variant = 'ghost',
   size = 'md',
@@ -24,7 +26,7 @@ export const IconButton = ({
 }) => {
   return (
     <button
-      type="button"
+      type={type}
       className={classNames(
         style.button,
         style[variant],
@@ -33,10 +35,10 @@ export const IconButton = ({
         className
       )}
       onClick={onClick}
+      aria-label={ariaLabel}
       onKeyDown={(e) => handleKeyboardClick(e, onClick)}
       tabIndex={0}
       disabled={disabled}
-      aria-label={ariaLabel}
     >
       {icon}
     </button>

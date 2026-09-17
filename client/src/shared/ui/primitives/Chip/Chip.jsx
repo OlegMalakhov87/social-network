@@ -8,9 +8,16 @@ import styles from './Chip.module.css';
  * @param {string} props.filter - текущий активный фильтр
  * @param {Function} props.onChangeButtonFilter - колбэк при выборе (получает id категории)
  * @param {boolean} [props.disabled=false] - заблокирован ли фильтр
+ * @param {string} [props.ariaLabel] - aria-label для кнопки
  */
-export const Chip = ({ item, filter, onChangeButtonFilter, disabled = false }) => {
-  if (!item?.id) return null; // защита от невалидных данных
+export const Chip = ({
+  item,
+  filter,
+  onChangeButtonFilter,
+  disabled = false,
+  ariaLabel,
+}) => {
+  if (!item?.id) return null;
 
   const isActive = filter === item.id;
 
@@ -21,6 +28,7 @@ export const Chip = ({ item, filter, onChangeButtonFilter, disabled = false }) =
       onClick={() => onChangeButtonFilter(item.id)}
       aria-pressed={isActive}
       disabled={disabled}
+      aria-label={ariaLabel}
     >
       {item.name}
     </button>

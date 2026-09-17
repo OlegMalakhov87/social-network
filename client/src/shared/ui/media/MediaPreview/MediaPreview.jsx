@@ -38,7 +38,7 @@ export const MediaPreview = ({
   alt,
   onClick,
   clickable = item.type === 'video',
-  fallback = '/default-image.jpg',
+  fallback = '/image.jpg',
   className = '',
   disabled = false,
 }) => {

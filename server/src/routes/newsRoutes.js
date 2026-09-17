@@ -21,6 +21,14 @@ newsRoutes.get(
   newsController.getNewsById
 );
 
+// Создать новость
+newsRoutes.post(
+  '/add',
+  authMiddleware,
+  validateNews,
+  newsController.createNews
+);
+
 // Загрузка медиа файла для новости
 newsRoutes.post(
   '/upload-media',
@@ -28,14 +36,6 @@ newsRoutes.post(
   upload.single('newsUrl'),
   handleUploadError,
   newsController.uploadMedia
-);
-
-// Создать новость
-newsRoutes.post(
-  '/add',
-  authMiddleware,
-  validateNews,
-  newsController.createNews
 );
 
 // Обновить новость (владелец)
@@ -48,7 +48,7 @@ newsRoutes.put(
 );
 
 // Увеличить счетчик просмотров новости
-newsRoutes.put(
+newsRoutes.patch(
   '/:newsId/views',
   validateIdParam('newsId'),
   authMiddleware,

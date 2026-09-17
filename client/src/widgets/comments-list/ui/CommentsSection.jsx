@@ -89,7 +89,7 @@ export const CommentsSection = ({
       <div className={styles.body}>
         <div className={styles.scrollContainer} ref={bodyRef}>
           <div className={styles.commentComposer}>
-            <CommentForm onSubmit={addComment} />
+            <CommentForm onSubmit={addComment} currentUser={currentUser} />
           </div>
           <CommentsList
             comments={comments}

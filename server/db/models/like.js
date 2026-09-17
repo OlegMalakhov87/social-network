@@ -74,7 +74,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       targetType: {
@@ -87,13 +86,15 @@ module.exports = (sequelize, DataTypes) => {
           'Message'
         ),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       targetId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
     },

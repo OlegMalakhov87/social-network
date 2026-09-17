@@ -40,7 +40,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       text: {
@@ -48,7 +47,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 5000],
-          notEmpty: true,
         },
       },
       postUrl: {
@@ -56,7 +54,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       previewUrl: {
@@ -64,7 +61,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       thumbnailUrl: {
@@ -72,23 +68,25 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
-      },
-      isPublic: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
       },
       type: {
         type: DataTypes.ENUM('text', 'image', 'video'),
         allowNull: false,
         defaultValue: 'text',
+        validate: {
+          notEmpty: true,
+        },
       },
       pinned: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+      },
+      isPublic: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       isEdited: {
         type: DataTypes.BOOLEAN,

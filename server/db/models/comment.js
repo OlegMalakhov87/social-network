@@ -58,19 +58,20 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       targetType: {
         type: DataTypes.ENUM('Post', 'Music', 'Video', 'News'),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       targetId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       text: {

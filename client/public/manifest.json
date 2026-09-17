@@ -1,20 +1,19 @@
-
 {
   "short_name": "SocialNet",
   "name": "SocialNet — Социальная сеть",
   "icons": [
     {
-      "src": "sit-in1.png",
+      "src": "sit1.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "sit-in2.png",
+      "src": "sit2.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "sit-in3.png",
+      "src": "sit3.png",
       "type": "image/png",
       "sizes": "512x512"
     }

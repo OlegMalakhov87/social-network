@@ -20,7 +20,7 @@ export const normalizeTracks = (raw) => {
     coverUrl: raw.coverUrl,
     category: raw.category,
     description: raw.description,
-    isPublic: raw.isPublic,
+    isPublic: raw.isPublic ?? false,
     playsCount: raw.playsCount ?? 0,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,

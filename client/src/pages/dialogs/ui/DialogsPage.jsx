@@ -6,7 +6,7 @@ import {
   useMessages,
 } from '../../../features/dialogs';
 import { useShareEntity } from '../../../features/shared-entities';
-import { useOnline, useUserProfile } from '../../../features/users';
+import { useOnline, useProfile } from '../../../features/users';
 import {
   ErrorBoundary,
   PageLayout,
@@ -41,7 +41,7 @@ export const DialogsPage = () => {
     error: dialogsError,
     loadMore: loadDialogs,
     refetch: refetchDialogs,
-  } = useDialogs(searchQuery);
+  } = useDialogs({ searchQuery });
 
   /** Получение данных о сообщениях. */
   const {
@@ -58,7 +58,7 @@ export const DialogsPage = () => {
     addOptimistic,
     removeOptimistic,
     toggleLike,
-  } = useMessages(selectedUser?.id);
+  } = useMessages({ userId: selectedUser?.id ?? null });
 
   /** Действия над диалогами и сообщениями. */
   const {
@@ -83,7 +83,7 @@ export const DialogsPage = () => {
     user: loadedUser,
     isLoading: userLoading,
     error: userError,
-  } = useUserProfile(userParam && !selectedUser ? Number(userParam) : null);
+  } = useProfile(userParam && !selectedUser ? Number(userParam) : null);
 
   /** Проверка онлайн статуса собеседника. */
   const onlineMap = useOnline(selectedUser?.id);

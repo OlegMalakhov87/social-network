@@ -23,10 +23,13 @@ module.exports = {
         type: Sequelize.STRING(500),
         allowNull: true,
       },
-      isPublic: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
+      previewUrl: {
+        type: Sequelize.STRING(500),
+        allowNull: true,
+      },
+      thumbnailUrl: {
+        type: Sequelize.STRING(500),
+        allowNull: true,
       },
       type: {
         type: Sequelize.ENUM('text', 'image', 'video'),
@@ -37,6 +40,11 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+      },
+      isPublic: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       isEdited: {
         type: Sequelize.BOOLEAN,

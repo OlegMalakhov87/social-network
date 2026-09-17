@@ -16,7 +16,15 @@ const musicRoutes = Router();
 // Публичная лента и поиск (объединено)
 musicRoutes.get('/', authMiddleware, musicController.getMusic);
 
-// Загрузка аудио файла 
+// Создание трека
+musicRoutes.post(
+  '/add',
+  authMiddleware,
+  validateMusic,
+  musicController.createMusic
+);
+
+// Загрузка аудио файла
 musicRoutes.post(
   '/upload-audio',
   authMiddleware,
@@ -34,14 +42,6 @@ musicRoutes.post(
   musicController.uploadCover
 );
 
-// Создание трека
-musicRoutes.post(
-  '/add',
-  authMiddleware,
-  validateMusic,
-  musicController.createMusic
-);
-
 // Обновление трека (владелец)
 musicRoutes.put(
   '/:trackId/update',
@@ -52,7 +52,7 @@ musicRoutes.put(
 );
 
 // Обновление приватности треков
-musicRoutes.put(
+musicRoutes.patch(
   '/update-privacy',
   authMiddleware,
   validatePrivacyUpdate,
@@ -60,7 +60,7 @@ musicRoutes.put(
 );
 
 // Инкремент счетчика прослушиваний
-musicRoutes.put(
+musicRoutes.patch(
   '/:trackId/plays',
   validateIdParam('trackId'),
   authMiddleware,

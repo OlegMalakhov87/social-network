@@ -7,6 +7,7 @@ const { validateErrors } = require('../../utils/validateErrors');
 const validateLike = [
   param('targetType')
     .notEmpty()
+    .isString()
     .trim()
     .isIn(['posts', 'tracks', 'videos', 'news', 'comments', 'messages'])
     .withMessage('Некорректный тип сущности'),

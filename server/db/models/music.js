@@ -53,13 +53,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           min: 1,
-          isInt: true,
         },
       },
       title: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
@@ -68,20 +66,29 @@ module.exports = (sequelize, DataTypes) => {
       artist: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        defaultValue: 'Unknown',
         validate: {
           len: [1, 100],
           notEmpty: true,
         },
       },
-      album: { type: DataTypes.STRING(100), allowNull: true },
+      album: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        validate: { len: [1, 100] },
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+          len: [1, 2000],
+        },
+      },
       year: {
         type: DataTypes.INTEGER,
         allowNull: true,
         validate: {
           min: 1900,
           max: new Date().getFullYear(),
-          isInt: true,
         },
       },
       duration: {
@@ -90,37 +97,28 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           min: 1,
           max: 600,
-          isInt: true,
         },
       },
       audioUrl: {
         type: DataTypes.STRING(500),
-        allowNull: false,
-        defaultValue: '/default-audio.mp3',
+        allowNull: true,
+        validate: {
+          len: [1, 500],
+        },
       },
       coverUrl: {
         type: DataTypes.STRING(500),
         allowNull: true,
         validate: {
           len: [1, 500],
-          notEmpty: true,
         },
       },
       category: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        defaultValue: 'other',
         validate: {
+          notEmpty: true,
           len: [1, 50],
-          notEmpty: true,
-        },
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        validate: {
-          len: [1, 2000],
-          notEmpty: true,
         },
       },
       isPublic: {
@@ -134,7 +132,6 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 0,
         validate: {
           min: 0,
-          isInt: true,
         },
       },
     },
@@ -151,7 +148,7 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['createdAt'] },
         { fields: ['title'] },
         { fields: ['artist'] },
-        { fields: ['genre'] },
+        { fields: ['category'] },
         { fields: ['isPublic'] },
         { fields: ['playsCount'] },
       ],

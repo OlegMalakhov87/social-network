@@ -24,7 +24,7 @@ export const Toast = ({ message, type, onClose }) => {
 
       <span className={styles.message}>{message}</span>
 
-      <button onClick={onClose} className={styles.close}>
+      <button onClick={onClose} className={styles.close} ariaLabel="Закрыть уведомление">
         ✕
       </button>
     </div>

@@ -3,7 +3,6 @@ import {
   changePassword,
   checkAuth,
   deleteUser,
-  fetchCurrentUser,
   getToken,
   login,
   register,
@@ -16,12 +15,12 @@ import { apiErrorMessageFromPayload } from '../../../shared/lib';
 
 /** Начальное состояние авторизации.*/
 const initialState = {
-  user: null,
-  token: getToken(),
-  isAuthenticated: false,
+  user: null, // пользователь
+  token: getToken(), // токен авторизации
+  isCheckingAuth: true, // проверка авторизации при загрузке страницы (true/false)
+  isAuthenticated: false, // авторизован или нет (true/false)
   status: 'idle', // idle - нет авторизации, loading - проверяем авторизацию, succeeded - авторизован, failed - ошибка авторизации
-  error: null,
-  isCheckingAuth: true, // true - проверяем авторизацию, false - не проверяем
+  error: null, // ошибка авторизации
 };
 
 const authSlice = createSlice({
@@ -86,30 +85,6 @@ const authSlice = createSlice({
           action.payload,
           'Ошибка регистрации'
         );
-      })
-
-      /** Получение пользователя.*/
-      .addCase(fetchCurrentUser.pending, (state) => {
-        state.status = 'loading';
-        state.isCheckingAuth = false;
-      })
-      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-        state.isCheckingAuth = false;
-      })
-      .addCase(fetchCurrentUser.rejected, (state, action) => {
-        state.status = 'failed';
-        state.user = null;
-        state.token = null;
-        state.isAuthenticated = false;
-        state.error = apiErrorMessageFromPayload(
-          action.payload,
-          'Не удалось получить пользователя'
-        );
-        removeToken();
-        state.isCheckingAuth = false;
       })
 
       /** Проверка авторизации пользователя.*/

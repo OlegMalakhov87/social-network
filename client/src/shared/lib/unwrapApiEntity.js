@@ -1,29 +1,32 @@
+/** Ключи сущностей в типичных ответах API (порядок важен). */
+const ENTITY_KEYS = [
+  'item',
+  'user',
+  'post',
+  'track',
+  'video',
+  'news',
+  'comment',
+  'message',
+  'dialog',
+  'like',
+  'friend',
+  'libraryItem',
+];
+
 /**
  * Из ответа API возвращает вложенную сущность.
  * Если обёртки нет — возвращает data как есть.
  *
  * @param {Object} data - тело ответа
- * @param {string[]} [entityKeys] - ключи сущностей по приоритету
- * @returns {Object}
+ * @returns {Object} - вложенная сущность
  */
-export const unwrapApiEntity = (
-  data,
-  entityKeys = [
-    'users',
-    'posts',
-    'news',
-    'videos',
-    'tracks',
-    'likes',
-    'comments',
-    'messages',
-  ]
-) => {
+export const unwrapApiEntity = (data) => {
   if (!data || typeof data !== 'object') {
     return data;
   }
 
-  for (const key of entityKeys) {
+  for (const key of ENTITY_KEYS) {
     const entity = data[key];
     if (
       entity != null &&

@@ -11,7 +11,7 @@ import { useFriendshipActions } from '../../friends';
  * @param {number} profileUserId - ID пользователя, с которым проверяем статус дружбы
  * @returns {Object} - объект с данными о статусе дружбы и экшенами
  */
-export const useUserProfile = (profileUserId) => {
+export const useProfile = (profileUserId) => {
   const notify = useNotify();
 
   /**
@@ -56,6 +56,7 @@ export const useUserProfile = (profileUserId) => {
     [user, onlineMap]
   );
 
+  /** Возвращаемые значения */
   return {
     user: enrichedUser,
     userLoading: isLoading,

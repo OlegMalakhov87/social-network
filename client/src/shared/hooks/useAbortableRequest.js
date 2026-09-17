@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { parseApiError } from '../lib';
 /**
  * Универсальный хук для отменяемых асинхронных запросов.
  *
@@ -94,9 +94,9 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
         if (err.name === 'AbortError' || !isMountedRef.current) {
           return undefined;
         }
-        setError(err);
-        console.error('Ошибка запроса:', err);
-        onErrorRef.current?.(err);
+        const parsedError = parseApiError(err, 'Ошибка запроса');
+        setError(parsedError);
+        onErrorRef.current?.(parsedError);
         throw err;
       } finally {
         if (controller.signal.aborted || !isMountedRef.current) {

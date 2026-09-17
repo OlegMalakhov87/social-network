@@ -33,7 +33,7 @@ commentRoutes.post(
 );
 
 // Обновление комментария
-commentRoutes.put(
+commentRoutes.patch(
   '/:commentId/update',
   validateIdParam('commentId'),
   authMiddleware,

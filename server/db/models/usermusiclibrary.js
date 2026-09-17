@@ -25,25 +25,24 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: { min: 1, isInt: true },
+        validate: { min: 1 },
       },
       trackId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: { min: 1, isInt: true },
+        validate: { min: 1 },
       },
       isFavorite: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
         allowNull: false,
+        defaultValue: false,
       },
       playsCount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0,
         allowNull: false,
+        defaultValue: 0,
         validate: {
           min: 0,
-          isInt: true,
         },
       },
     },

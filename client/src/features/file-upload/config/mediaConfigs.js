@@ -1,13 +1,28 @@
-import { deleteUploadedNewsApi } from '../../../entities/news';
-import { deleteUploadedPostApi } from '../../../entities/post';
+import {
+  deleteUploadedNewsApi,
+  uploadNewsMediaApi,
+} from '../../../entities/news';
+import {
+  deleteUploadedPostApi,
+  uploadPostMediaApi,
+} from '../../../entities/post';
 import {
   deleteUploadedAudioApi,
   deleteUploadedCoverApi,
+  uploadTrackAudioApi,
+  uploadTrackCoverApi,
 } from '../../../entities/track';
+import {
+  deleteUploadedAvatarApi,
+  uploadAvatarApi,
+} from '../../../entities/user';
 import {
   deleteUploadedPreviewApi,
   deleteUploadedThumbnailApi,
   deleteUploadedVideoApi,
+  uploadVideoApi,
+  uploadVideoPreviewApi,
+  uploadVideoThumbnailApi,
 } from '../../../entities/video';
 import {
   composeValidators,
@@ -25,46 +40,49 @@ import {
  * Конфигурация загрузки аватара профиля.
  */
 export const AVATAR_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg',
+  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Аватар не должен превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG'
+      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
+      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg']),
+    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(200, 200, 'Минимальное разрешение аватара: 200x200px'),
   ]),
-  endpoint: '/profile/upload-avatar',
+  uploadFn: uploadAvatarApi,
+  deleteFn: deleteUploadedAvatarApi,
   fieldName: 'avatarUrl',
-  previewType: 'image',
 };
 
 /**
  * Конфигурация загрузки изображения для поста.
  */
 export const POST_IMAGE_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/gif,image/jpg',
+  accept: 'image/jpeg,image/png,image/webp,image/gif,image/jpg,image/jfif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
-    fileType([
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-      'image/gif',
-      'image/jpg',
-    ]),
-    fileExtension(['.jpeg', '.png', '.webp', '.gif', '.jpg']),
+    fileType(
+      [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/jpg',
+        'image/jfif',
+      ],
+      'Поддерживаются только JPEG, PNG, WEBP, GIF, JPG, JFIF'
+    ),
+    fileExtension(['.jpeg', '.png', '.webp', '.gif', '.jpg', '.jfif']),
     minImageResolution(
       200,
       200,
       'Минимальное разрешение изображения: 200x200px'
     ),
   ]),
-  endpoint: '/posts/upload-media',
+  uploadFn: uploadPostMediaApi,
   deleteFn: deleteUploadedPostApi,
   fieldName: 'postUrl',
-  previewType: 'image',
 };
 
 /**
@@ -81,34 +99,32 @@ export const POST_VIDEO_UPLOAD_CONFIG = {
     fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
     maxDuration(60, 'Длительность видео не должна превышать 1 минуты'),
   ]),
-  endpoint: '/posts/upload-media',
+  uploadFn: uploadPostMediaApi,
   deleteFn: deleteUploadedPostApi,
   fieldName: 'postUrl',
-  previewType: 'video',
 };
 
 /**
  * Конфигурация загрузки изображения для новости.
  */
 export const NEWS_IMAGE_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg',
+  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG'
+      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
+      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg']),
+    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(
       200,
       200,
       'Минимальное разрешение изображения: 200x200px'
     ),
   ]),
-  endpoint: '/news/upload-media',
+  uploadFn: uploadNewsMediaApi,
   deleteFn: deleteUploadedNewsApi,
   fieldName: 'newsUrl',
-  previewType: 'image',
 };
 
 /**
@@ -125,31 +141,29 @@ export const NEWS_VIDEO_UPLOAD_CONFIG = {
     fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
     maxDuration(60, 'Длительность видео не должна превышать 1 минуты'),
   ]),
-  endpoint: '/news/upload-media',
+  uploadFn: uploadNewsMediaApi,
   deleteFn: deleteUploadedNewsApi,
   fieldName: 'newsUrl',
-  previewType: 'video',
 };
 
 /**
  * Конфигурация загрузки превью (обложки) видео.
  */
 export const VIDEO_THUMBNAIL_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg',
+  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Обложка не должна превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG'
+      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
+      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg']),
+    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
     aspectRatio(16 / 9, 0.1, 'Обложка должна быть в формате 16:9'),
   ]),
-  endpoint: '/videos/upload-thumbnail',
+  uploadFn: uploadVideoThumbnailApi,
   deleteFn: deleteUploadedThumbnailApi,
   fieldName: 'thumbnailUrl',
-  previewType: 'image',
 };
 
 /**
@@ -166,10 +180,9 @@ export const VIDEO_PREVIEW_CONFIG = {
     fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
     maxDuration(6, 'Превью не должно быть длиннее 6 секунд'),
   ]),
-  endpoint: '/videos/upload-preview',
+  uploadFn: uploadVideoPreviewApi,
   deleteFn: deleteUploadedPreviewApi,
   fieldName: 'previewUrl',
-  previewType: 'video',
 };
 
 /**
@@ -186,31 +199,29 @@ export const VIDEO_UPLOAD_CONFIG = {
     fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
     maxDuration(1800, 'Длительность видео не должна превышать 30 минут'),
   ]),
-  endpoint: '/videos/upload-video',
+  uploadFn: uploadVideoApi,
   deleteFn: deleteUploadedVideoApi,
   fieldName: 'videoUrl',
-  previewType: 'video',
 };
 
 /**
  * Конфигурация загрузки обложки альбома (трека).
  */
 export const ALBUM_COVER_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg',
+  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Обложка не должна превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG'
+      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
+      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg']),
+    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
     aspectRatio(16 / 9, 0.1, 'Обложка должна быть в формате 16:9'),
   ]),
-  endpoint: '/music/upload-cover',
+  uploadFn: uploadTrackCoverApi,
   deleteFn: deleteUploadedCoverApi,
   fieldName: 'coverUrl',
-  previewType: 'image',
 };
 
 /**
@@ -227,8 +238,7 @@ export const TRACK_UPLOAD_CONFIG = {
     fileExtension(['.mp3', '.wav', '.ogg', '.flac']),
     maxDuration(600, 'Длительность трека не должна превышать 10 минут'),
   ]),
-  endpoint: '/music/upload-audio',
+  uploadFn: uploadTrackAudioApi,
   deleteFn: deleteUploadedAudioApi,
   fieldName: 'audioUrl',
-  previewType: 'audio',
 };

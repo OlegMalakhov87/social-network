@@ -36,7 +36,7 @@ messageRoutes.post(
 );
 
 // Обновить сообщение (владелец сообщения)
-messageRoutes.put(
+messageRoutes.patch(
   '/:messageId/edit',
   validateIdParam('messageId'),
   authMiddleware,
@@ -45,10 +45,10 @@ messageRoutes.put(
 );
 
 // Отметить сообщения как прочитанные
-messageRoutes.put('/read', authMiddleware, messageController.markAsRead);
+messageRoutes.patch('/read', authMiddleware, messageController.markAsRead);
 
 // Скрыть сообщение (удалить у себя)
-messageRoutes.delete(
+messageRoutes.patch(
   '/:messageId/hide',
   validateIdParam('messageId'),
   authMiddleware,
@@ -56,7 +56,7 @@ messageRoutes.delete(
 );
 
 // Очистить чат (удалить всю переписку с пользователем у себя)
-messageRoutes.put(
+messageRoutes.patch(
   '/clear/:receiverId',
   validateIdParam('receiverId'),
   authMiddleware,

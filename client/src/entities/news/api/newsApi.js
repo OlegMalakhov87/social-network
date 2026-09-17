@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все новости с возможностью фильтрации по категории и поиску.
@@ -9,7 +10,7 @@ import { api } from '../../../shared/api';
  * @param {string} params.filter - фильтр по категории
  * @param {string} [params.q] - поисковый запрос
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} - { items, pagination }
+ * @returns {Promise<Object>} - { news, pagination }
  */
 
 export const fetchNewsApi = async ({
@@ -40,7 +41,7 @@ export const fetchNewsApi = async ({
  */
 export const fetchNewsById = async (newsId) => {
   const response = await api.get(`/news/${newsId}/shared`);
-  return response.data.news;
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -50,7 +51,17 @@ export const fetchNewsById = async (newsId) => {
  */
 export const addNewsApi = async (formData) => {
   const response = await api.post('/news/add', formData);
-  return response.data.news;
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для новости.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { newsUrl }
+ */
+export const uploadNewsMediaApi = async (formData) => {
+  const response = await api.post('/news/upload-media', formData);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -61,7 +72,7 @@ export const addNewsApi = async (formData) => {
  */
 export const updateNewsApi = async (newsId, updates) => {
   const response = await api.put(`/news/${newsId}/update`, updates);
-  return response.data.news;
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -70,26 +81,26 @@ export const updateNewsApi = async (newsId, updates) => {
  * @returns {Promise<Object>}  { success, viewsCount }
  */
 export const updateNewsViewsCountApi = async (newsId) => {
-  const response = await api.put(`/news/${newsId}/views`);
-  return response.data;
+  const response = await api.patch(`/news/${newsId}/views`);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить новость по ID.
  * @param {number} newsId - ID новости
- * @returns {Promise<Object>} {message,newsId}
+ * @returns {Promise<Object>} { message, newsId }
  */
 export const deleteNewsApi = async (newsId) => {
   const response = await api.delete(`/news/${newsId}/delete`);
-  return response.data;
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить (очистка мусора) загруженные медиа файлы.
  * @param {Object} data - данные новости
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedNewsApi = async (data) => {
   const response = await api.delete('/news/delete-uploaded-media', { data });
-  return response.data;
+  return unwrapApiEntity(response.data);
 };

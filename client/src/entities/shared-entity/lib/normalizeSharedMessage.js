@@ -6,19 +6,12 @@
  */
 export const normalizeSharedMessage = (message) => ({
   id: message.id,
-
   type: 'message',
-
-  author: message.author||null,
-
-  title: message.title||null,
-
-  mediaUrl: message.mediaUrl||null,
-
-  text: message.text||null,
-
-  date: (message.updateDate ?? message.createDate)||null,
-
+  author: message.author || null,
+  title: message.title || null,
+  mediaUrl: message.mediaUrl || null,
+  text: message.content || null,
+  date: (message.updatedAt ?? message.createdAt) || null,
   stats: {
     likesCount: message.likesCount ?? 0,
   },

@@ -36,4 +36,4 @@ const MEDIA_CLEANUP_CONFIG = {
   ],
 };
 
-module.exports = MEDIA_CLEANUP_CONFIG;
+module.exports = { MEDIA_CLEANUP_CONFIG, MEDIA_ROOT };

@@ -52,7 +52,7 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUserId) {
+      if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchNewsApi, {

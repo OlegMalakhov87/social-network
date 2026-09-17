@@ -33,8 +33,12 @@ export const LEGAL_LINKS = [
 ];
 
 export const CONTACT_INFO = [
-  { icon: '📍', text: 'г. Смоленск, пр-т Строителей, 1/42' },
-  { icon: '📧', text: 'support@socialnetwork.ru', href: 'mailto:malahov.1987@mail.ru' },
+  { icon: '📍', text: 'г. Смоленск' },
+  {
+    icon: '📧',
+    text: 'malahov.1987@mail.ru',
+    href: 'mailto:malahov.1987@mail.ru',
+  },
   { icon: '📞', text: '+7 (915) 654-88-42', href: 'tel:+79156548842' },
   { icon: '⏰', text: 'Пн-Пт: 08:00 - 20:00' },
 ];

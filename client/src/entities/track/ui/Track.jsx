@@ -107,6 +107,11 @@ export const Track = ({
                 showFavorite && (
                   <ActionChip
                     icon={track.isFavorite ? '⭐' : '☆'}
+                    ariaLabel={
+                      track.isFavorite
+                        ? 'Убрать из избранного'
+                        : 'Добавить в избранное'
+                    }
                     onClick={() =>
                       toggleFavorite?.(
                         track.id,
@@ -121,6 +126,7 @@ export const Track = ({
                 isOwn && (
                   <ActionChip
                     icon="🗑"
+                    ariaLabel="Удалить трек"
                     onClick={() => setShowDeleteDialog(true)}
                   />
                 )

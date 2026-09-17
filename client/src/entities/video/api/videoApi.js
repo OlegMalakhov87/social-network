@@ -40,7 +40,37 @@ export const fetchVideosApi = async ({
  */
 export const addVideoApi = async (formData) => {
   const response = await api.post('/videos/add', formData);
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для видео.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { videoUrl }
+ */
+export const uploadVideoApi = async (formData) => {
+  const response = await api.post('/videos/upload-video', formData);
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для обложки видео.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { thumbnailUrl }
+ */
+export const uploadVideoThumbnailApi = async (formData) => {
+  const response = await api.post('/videos/upload-thumbnail', formData);
+  return unwrapApiEntity(response.data);
+};
+
+/**
+ * Загрузить медиа файл для превью видео.
+ * @param {FormData} formData - формат данных медиа файла
+ * @returns {Promise<{Object}>} { previewUrl }
+ */
+export const uploadVideoPreviewApi = async (formData) => {
+  const response = await api.post('/videos/upload-preview', formData);
+  return unwrapApiEntity(response.data);
 };
 
 /**
@@ -51,69 +81,69 @@ export const addVideoApi = async (formData) => {
  */
 export const updateVideoApi = async (videoId, updates) => {
   const response = await api.put(`/videos/${videoId}/update`, updates);
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Обновить приватность видео.
  * @param {boolean} isPublic - видимость видео
- * @returns {Promise<Object>} { isPublic }
+ * @returns {Promise<Object>} { message, videos }
  */
 export const updateVideosPrivacyApi = async (isPublic) => {
-  const response = await api.put(`/videos/update-privacy`, { isPublic });
-  return unwrapApiEntity(response.data, ['videos']);
+  const response = await api.patch(`/videos/update-privacy`, { isPublic });
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Инкрементировать счетчик просмотров видео.
  * @param {number} videoId - ID видео
- * @returns {Promise<Object>} { video }
+ * @returns {Promise<Object>} { success, viewsCount }
  */
 export const incrementVideoViewsCountApi = async (videoId) => {
-  const response = await api.put(`/videos/${videoId}/views`);
-  return unwrapApiEntity(response.data, ['videos']);
+  const response = await api.patch(`/videos/${videoId}/views`);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить видео.
  * @param {number} videoId - ID видео
- * @returns {Promise<Object>} { videoId }
+ * @returns {Promise<Object>} { message, videoId }
  */
 export const deleteVideoApi = async (videoId) => {
   const response = await api.delete(`/videos/${videoId}/delete`);
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить (очистка мусора) загруженные медиа файлы.
  * @param {Object} data - данные медиа файлов (videoUrl, previewUrl, thumbnailUrl)
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedVideoApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-video', { data });
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить загруженные медиа превью.
  * @param {Object} data - данные превью
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedPreviewApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-preview', {
     data,
   });
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
 };
 
 /**
  * Удалить загруженные медиа thumbnail.
  * @param {Object} data - данные thumbnail
- * @returns {Promise<Object>} { success }
+ * @returns {Promise<Object>} { message }
  */
 export const deleteUploadedThumbnailApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-thumb', {
     data,
   });
-  return unwrapApiEntity(response.data, ['videos']);
+  return unwrapApiEntity(response.data);
 };

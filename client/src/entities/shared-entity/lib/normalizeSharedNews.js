@@ -4,12 +4,11 @@
 export const normalizeSharedNews = (news) => ({
   id: news.id,
   type: 'news',
-  author: news.author || news.uploader?.name || null,
+  author: news.uploader || null,
   title: news.title || null,
-  text: news.text ?? news.content ?? null,
-  mediaUrl: news.media ?? news.mediaUrl ?? null,
-  mediaType: news.type || null,
-  date: news.date ?? news.updatedAt ?? news.createdAt ?? null,
+  text: news.text || null,
+  mediaUrl: news.newsUrl || null,
+  date: (news.updatedAt ?? news.createdAt) || null,
   stats: {
     likesCount: news.likesCount ?? 0,
     viewsCount: news.viewsCount ?? 0,

@@ -45,13 +45,6 @@ export function useDialogs({ searchQuery = '' }) {
       });
     },
     deps: scrollDeps,
-    options: {
-      autoFetch: Boolean(currentUserId),
-    },
-    initialData: {
-      items: [],
-      hasMore: false,
-    },
   });
 
   /** Все ID собеседников (уникальные). */

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   addPostApi,
   deletePostApi,
@@ -8,7 +9,6 @@ import {
 import {
   useInfiniteScroll,
   useNormalizedData,
-  useNotify,
   useOptimisticMutation,
 } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
@@ -23,13 +23,17 @@ import { apiFetchItems } from '../../../shared/lib';
  * @param {string} params.sortKey - ключ сортировки
  * @returns {Object} - объект с данными о постах пользователя
  */
-export const useUserPosts = ({
+export const usePosts = ({
   profileUserId,
   currentUserId,
   isOwnProfile,
   sortKey,
 }) => {
-  const notify = useNotify();
+  /** Зависимости для бесконечного скролла */
+  const scrollDeps = useMemo(
+    () => [profileUserId, sortKey, currentUserId],
+    [profileUserId, sortKey, currentUserId]
+  );
 
   /** Получение постов с бесконечным скроллом. */
   const {
@@ -51,8 +55,7 @@ export const useUserPosts = ({
         signal,
       });
     },
-    deps: [profileUserId, sortKey],
-    onError: () => notify.error('load'),
+    deps: scrollDeps,
   });
 
   /** Оптимистичные мутации */
@@ -66,8 +69,6 @@ export const useUserPosts = ({
     addFn: addPostApi,
     editFn: updatePostApi,
     deleteFn: deletePostApi,
-    onSuccess: (action) => notify.success(action),
-    onError: (action) => notify.error(action),
   });
 
   /** Нормализация постов. */
