@@ -70,22 +70,20 @@ const userService = {
       delete userData.updatedAt;
     }
 
-    return {
-      user: {
-        ...userData,
-        friendshipStatus: friendship?.status ?? null,
-        friendshipDirection: friendship
-          ? friendship.userId === currentUserId
-            ? 'outgoing'
-            : 'incoming'
-          : null,
-        friendshipId: friendship?.id ?? null,
-        canSeeFullProfile,
-        isBlocked:
-          friendship?.status === 'blocked' &&
-          friendshipDirection === 'outgoing',
-      },
+    /** Обогащаем пользователя данными о дружбе */
+    const enrichedUser = {
+      ...userData,
+      friendshipId: friendship?.id,
+      friendshipStatus: friendship?.status,
+      friendshipDirection: friendship
+        ? friendship.userId === currentUserId
+          ? 'outgoing'
+          : 'incoming'
+        : undefined,
+      canSeeFullProfile,
     };
+
+    return { user: enrichedUser };
   },
 
   /**
@@ -119,6 +117,20 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateUser(currentUserId, updateData) {
+    const user = await User.findByPk(currentUserId, {
+      attributes: {
+        exclude: ['passwordHash'],
+      },
+    });
+    if (!user) {
+      throw createError(
+        'Пользователь не найден или нет прав на обновление',
+        404,
+        'USER_NOT_FOUND_OR_FORBIDDEN'
+      );
+    }
+
+    /** Обновляем только разрешенные поля */
     const dbUpdates = Object.fromEntries(
       USER_PROFILE_FIELDS.filter((field) =>
         Object.hasOwn(updateData, field)
@@ -126,19 +138,37 @@ const userService = {
     );
 
     if (Object.keys(dbUpdates).length === 0) {
-      throw createError('Нет данных для обновления', 400, 'NO_UPDATE_DATA');
+      throw createError(
+        'Нет данных для обновления',
+        400,
+        'NO_FIELDS_TO_UPDATE'
+      );
     }
 
-    let affectedCount = 0;
-    let updatedUser = null;
+    // Получаем старый и новый аватар.
+    const oldAvatarUrl = user.avatarUrl;
+    const newAvatarUrl = dbUpdates.avatarUrl;
+
+    let updatedUser;
 
     try {
-      [affectedCount, updatedUser] = await User.update(dbUpdates, {
-        where: { id: currentUserId },
-        returning: true,
-        plain: true,
-      });
+      updatedUser = await user.update(dbUpdates);
     } catch (error) {
+      try {
+        const filePath = fromPublicUrl(newAvatarUrl);
+
+        if (filePath) {
+          await fs.unlink(filePath);
+        }
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.warn(
+            `Не удалось удалить новый аватар ${newAvatarUrl}:`,
+            error.message
+          );
+        }
+      }
+
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw createError(
           'Email или nickname уже используется',
@@ -150,63 +180,14 @@ const userService = {
       throw error;
     }
 
-    if (affectedCount === 0) {
-      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
-    }
-
-    const userData = updatedUser.toJSON();
-    delete userData.passwordHash;
-    return { user: userData };
-  },
-
-  /**
-   * Загрузка аватара пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} file - Файл аватара
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async uploadAvatar(currentUserId, file) {
-    if (!file) {
-      throw createError('Файл не предоставлен', 400, 'NO_FILE_PROVIDED');
-    }
-
-    const user = await User.findByPk(currentUserId);
-    if (!user) {
-      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
-    }
-
-    const oldAvatarUrl = user.avatarUrl;
-    const newAvatarPath = file.path;
-    const newAvatarUrl = toPublicUrl(newAvatarPath);
-
-    const [affectedCount] = await User.update(
-      { avatarUrl: newAvatarUrl },
-      {
-        where: { id: currentUserId },
-      }
-    );
-
-    // Если обновление в БД не удалось, удаляем новый аватар
-    if (affectedCount === 0) {
+    // Если аватар действительно изменился — старый файл больше не нужен.
+    if (oldAvatarUrl && oldAvatarUrl !== updatedUser.avatarUrl) {
       try {
-        await fs.unlink(newAvatarPath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить новый аватар ${newAvatarPath}:`,
-            error.message
-          );
+        const filePath = fromPublicUrl(oldAvatarUrl);
+
+        if (filePath) {
+          await fs.unlink(filePath);
         }
-      }
-
-      throw createError('Не удалось обновить аватар', 500, 'UPDATE_FAILED');
-    }
-
-    // Если старый аватар существует, удаляем его
-    if (oldAvatarUrl) {
-      const filePath = fromPublicUrl(oldAvatarUrl);
-      try {
-        await fs.unlink(filePath);
       } catch (error) {
         if (error.code !== 'ENOENT') {
           console.warn(
@@ -216,7 +197,11 @@ const userService = {
         }
       }
     }
-    return { avatarUrl: newAvatarUrl };
+
+    const userData = updatedUser.toJSON();
+    delete userData.passwordHash;
+
+    return { user: userData };
   },
 
   /**
@@ -323,12 +308,12 @@ const userService = {
     return { message: 'Пользователь успешно удален', userId: currentUserId };
   },
 
-   /**
+  /**
    * Удаление загруженного аватара пользователя
    * @param {string} avatarUrl - URL аватара файла
    * @returns {Promise<Object>} - Объект с результатом
    */
-   async deleteUploadedAvatar({ avatarUrl }) {
+  async deleteUploadedAvatar({ avatarUrl }) {
     if (!avatarUrl) return;
 
     const filePath = fromPublicUrl(avatarUrl);

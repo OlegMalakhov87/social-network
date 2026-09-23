@@ -16,6 +16,7 @@ import styles from './Select.module.css';
  * @param {string} [props.className=''] - дополнительный CSS класс для select
  * @param {string} [props.id] - id для связи label и select
  * @param {string} [props.helperText] - подсказка под полем
+ * @param {string} [props.error] - ошибка
  */
 
 export const Select = ({
@@ -29,6 +30,7 @@ export const Select = ({
   className = '',
   id,
   helperText,
+  error,
 }) => {
   const selectId =
     id ??
@@ -61,10 +63,16 @@ export const Select = ({
           </option>
         ))}
       </select>
-      {helperText && (
-        <Text variant="caption" className={styles.helper}>
-          {helperText}
+      {error ? (
+        <Text variant="caption" className={styles.errorText}>
+          {error}
         </Text>
+      ) : (
+        helperText && (
+          <Text variant="caption" className={styles.helper}>
+            {helperText}
+          </Text>
+        )
       )}
     </div>
   );

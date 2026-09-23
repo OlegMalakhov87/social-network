@@ -4,5 +4,8 @@ export { getMessageActions } from './lib/getMessageActions'; // формиров
 export { normalizeDialogs } from './lib/normalizeDialog';
 export { normalizeMessages } from './lib/normalizeMessage'; // нормализация сообщения
 
+export * from './model/dialogsSchema'; // схема диалога
+export * from './model/messageSchema'; // схема сообщения
+
 export { Dialog } from './ui/Dialog'; // карточка для отображения диалога
 export { Message } from './ui/Message'; // карточка для отображения сообщения

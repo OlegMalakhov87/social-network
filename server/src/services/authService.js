@@ -19,6 +19,23 @@ const generateToken = (userId) => {
  */
 const authService = {
   /**
+   * Получение информации о пользователе
+   * @param {number} userId - ID пользователя
+   * @returns {Promise<Object>} - Объект с пользователем
+   */
+  async getMe(userId) {
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['passwordHash'] },
+    });
+
+    if (!user) {
+      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
+    }
+
+    return { user: user.toJSON() };
+  },
+
+  /**
    * Регистрация пользователя
    * @param {Object} userData - Данные пользователя
    * @returns {Promise<Object>} - Объект с пользователем и токеном
@@ -90,23 +107,6 @@ const authService = {
     delete userResponse.passwordHash;
 
     return { user: userResponse, token };
-  },
-
-  /**
-   * Получение информации о пользователе
-   * @param {number} userId - ID пользователя
-   * @returns {Promise<Object>} - Объект с пользователем
-   */
-  async getMe(userId) {
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ['passwordHash'] },
-    });
-
-    if (!user) {
-      throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
-    }
-
-    return { user: user.toJSON() };
   },
 };
 

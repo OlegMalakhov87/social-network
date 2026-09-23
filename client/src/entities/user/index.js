@@ -1,6 +1,7 @@
 export * from './api/userApi'; // API для пользователей
 
 export { getProfileFields } from './model/profileFields'; // Функция для отображения полей с данными пользователя на странице профиля
+export * from './model/userSchema'; // Схема пользователя
 
 export { getPhotosTabProps } from './lib/getPhotosTabProps'; // Функция для получения пропсов для вкладки "Фото"
 export { getPostsTabProps } from './lib/getPostsTabProps'; // Функция для получения пропсов для вкладки "Посты"

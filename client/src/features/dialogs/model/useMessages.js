@@ -21,10 +21,10 @@ import { apiFetchItems } from '../../../shared/lib';
  * отметку прочтения и обновление отдельных полей сообщений.
  *
  * @param {Object} params - параметры запроса
- * @param {number} [params.userId=null] - ID собеседника
+ * @param {number} [params.partnerId=null] - ID собеседника
  * @returns { Object } - объект с данными о сообщениях
  */
-export function useMessages({ userId = null }) {
+export function useMessages({ partnerId = null }) {
   const currentUser = useSelector(selectUser);
   const token = useSelector(selectToken);
   const currentUserId = currentUser?.id;
@@ -34,8 +34,8 @@ export function useMessages({ userId = null }) {
 
   /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
-    () => [currentUserId, userId],
-    [currentUserId, userId]
+    () => [currentUserId, partnerId],
+    [currentUserId, partnerId]
   );
 
   /** Получение сообщений с бесконечным скроллом. */
@@ -50,11 +50,11 @@ export function useMessages({ userId = null }) {
     refetch,
   } = useInfiniteScroll({
     fetchFn: ({ page, limit, signal }) => {
-      if (!currentUserId || !userId) {
+      if (!currentUserId || !partnerId) {
         return { items: [], hasMore: false };
       }
       return apiFetchItems(fetchMessagesApi, {
-        params: { userId, page, limit },
+        params: { partnerId, page, limit },
         signal,
       });
     },
@@ -63,7 +63,7 @@ export function useMessages({ userId = null }) {
 
   /** WebSocket: получение новых сообщений в реальном времени. */
   useEffect(() => {
-    if (!currentUserId || !token || !userId) return;
+    if (!currentUserId || !token || !partnerId) return;
 
     let ws;
     let reconnectTimeout;
@@ -88,8 +88,9 @@ export function useMessages({ userId = null }) {
           if (data.type === 'newMessage') {
             const msg = data.data;
             if (
-              (msg.senderId === userId && msg.receiverId === currentUserId) ||
-              (msg.receiverId === userId && msg.senderId === currentUserId)
+              (msg.senderId === partnerId &&
+                msg.receiverId === currentUserId) ||
+              (msg.receiverId === partnerId && msg.senderId === currentUserId)
             ) {
               setMessagesItems((prev) => [...prev, msg]);
             }
@@ -139,7 +140,7 @@ export function useMessages({ userId = null }) {
       clearTimeout(reconnectTimeout);
       ws?.close();
     };
-  }, [currentUserId, userId, setMessagesItems, token]);
+  }, [currentUserId, partnerId, setMessagesItems, token]);
 
   /**
    * Оптимистичное добавление сообщения.
@@ -186,7 +187,7 @@ export function useMessages({ userId = null }) {
     const unreadIds = messagesItems
       .filter(
         (m) =>
-          m.senderId === userId &&
+          m.senderId === partnerId &&
           m.receiverId === currentUserId &&
           !m.isRead &&
           !readIdsRef.current.has(m.id)
@@ -207,7 +208,7 @@ export function useMessages({ userId = null }) {
       unreadIds.forEach((id) => readIdsRef.current.delete(id));
       console.error('Ошибка отметки прочтения:', err);
     }
-  }, [messagesItems, setMessagesItems, userId, currentUserId]);
+  }, [messagesItems, setMessagesItems, partnerId, currentUserId]);
 
   /**
    * Обновление отдельных полей сообщения (например, после редактирования).

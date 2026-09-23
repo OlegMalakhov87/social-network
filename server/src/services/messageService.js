@@ -3,32 +3,37 @@ const { Op, QueryTypes } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { sequelize } = require('../../db/models');
 
-/**
- * Сервис для работы с сообщениями
- * @module messageService
- */
 const messageService = {
   /**
-   * Получить список диалогов (ОПТИМИЗИРОВАННЫЙ RAW-ЗАПРОС)
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} { dialogs }
+   * Получить список диалогов
+   * @param {Object} params
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.page - номер страницы
+   * @param {number} params.limit - количество диалогов на странице
+   * @param {string} params.q - поисковый запрос
+   * @returns {Promise<Object>} { dialogs, pagination }
    */
-  async getDialogs(currentUserId) {
-    // Этот запрос находит ПОСЛЕДНЕЕ сообщение для каждого уникального собеседника
-    // и сразу джойнит данные пользователя. Работает за миллисекунды даже при миллионах сообщений.
+  async getDialogs({ currentUserId, page = 1, limit = 30, q = '' }) {
+    const offset = (page - 1) * limit;
+    const search = `%${q}%`;
+
+    /**
+     * Получение списка диалогов
+     */
     const dialogs = await sequelize.query(
       `
       SELECT 
-        m.id, m."senderId", m."receiverId", m.content, m."isRead", m."createdAt", m."updatedAt",
+        m.id, m."senderId", m."receiverId", m.content, m."isRead", m."isEdited",
+        m."deletedBySender", m."deletedByReceiver", m."createdAt", m."updatedAt",
         u.id as "interlocutor.id", 
         u.name as "interlocutor.name", 
-        u.nickname as "interlocutor.nickname", 
-        u.avatarUrl as "interlocutor.avatarUrl"
+        u."avatarUrl" as "interlocutor.avatarUrl"
       FROM (
         SELECT DISTINCT ON (
           CASE WHEN "senderId" = :currentUserId THEN "receiverId" ELSE "senderId" END
         )
-        id, "senderId", "receiverId", content, "isRead", "createdAt", "updatedAt"
+          id, "senderId", "receiverId", content, "isRead", "isEdited",
+          "deletedBySender", "deletedByReceiver", "createdAt", "updatedAt"
         FROM "Messages"
         WHERE ("senderId" = :currentUserId AND "deletedBySender" = false)
            OR ("receiverId" = :currentUserId AND "deletedByReceiver" = false)
@@ -37,15 +42,46 @@ const messageService = {
           "createdAt" DESC
       ) as m
       JOIN "Users" u ON u.id = CASE WHEN m."senderId" = :currentUserId THEN m."receiverId" ELSE m."senderId" END
+      WHERE (:q = '' OR u.name ILIKE :search OR u.nickname ILIKE :search)
       ORDER BY m."createdAt" DESC
-    `,
+      LIMIT :limit OFFSET :offset
+      `,
       {
-        replacements: { currentUserId },
+        replacements: { currentUserId, q, search, limit, offset },
         type: QueryTypes.SELECT,
       }
     );
 
-    // Отдельный быстрый запрос для подсчета непрочитанных (только для входящих)
+    /**
+     * Подсчет общего количества диалогов
+     */
+    const [{ count }] = await sequelize.query(
+      `
+      SELECT COUNT(*) FROM (
+        SELECT DISTINCT ON (
+          CASE WHEN "senderId" = :currentUserId THEN "receiverId" ELSE "senderId" END
+        )
+          id,
+          CASE WHEN "senderId" = :currentUserId THEN "receiverId" ELSE "senderId" END as "otherId"
+        FROM "Messages"
+        WHERE ("senderId" = :currentUserId AND "deletedBySender" = false)
+           OR ("receiverId" = :currentUserId AND "deletedByReceiver" = false)
+        ORDER BY 
+          CASE WHEN "senderId" = :currentUserId THEN "receiverId" ELSE "senderId" END,
+          "createdAt" DESC
+      ) as d
+      JOIN "Users" u ON u.id = d."otherId"
+      WHERE (:q = '' OR u.name ILIKE :search OR u.nickname ILIKE :search)
+      `,
+      {
+        replacements: { currentUserId, q, search },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    /**
+     * Подсчет непрочитанных сообщений (группировка по отправителю)
+     */
     const unreadCounts = await Message.findAll({
       attributes: [
         'senderId',
@@ -61,17 +97,20 @@ const messageService = {
     });
 
     const unreadMap = new Map(
-      unreadCounts.map((u) => [u.senderId, parseInt(u.count)])
+      unreadCounts.map((u) => [u.senderId, parseInt(u.count, 10)])
     );
 
-    // Форматируем результат
+    /**
+     * Форматирование результата
+     */
     const formattedDialogs = dialogs.map((d) => {
       const isOwn = d.senderId === currentUserId;
+      const interlocutorId = isOwn ? d.receiverId : d.senderId;
+
       return {
-        interlocutor: {
+        user: {
           id: d['interlocutor.id'],
           name: d['interlocutor.name'],
-          nickname: d['interlocutor.nickname'],
           avatarUrl: d['interlocutor.avatarUrl'],
         },
         lastMessage: {
@@ -81,11 +120,21 @@ const messageService = {
           isRead: d.isRead,
           isOwn,
         },
-        unreadCount: isOwn ? 0 : unreadMap.get(d.senderId) || 0,
+        unreadCount: isOwn ? 0 : unreadMap.get(interlocutorId) || 0,
       };
     });
 
-    return { dialogs: formattedDialogs };
+    const totalDialogs = parseInt(count, 10);
+
+    return {
+      dialogs: formattedDialogs,
+      pagination: {
+        totalDialogs,
+        totalPages: Math.ceil(totalDialogs / limit),
+        currentPage: page,
+        hasMore: page * limit < totalDialogs,
+      },
+    };
   },
 
   /**
@@ -98,7 +147,7 @@ const messageService = {
    * @param {number} params.limit - количество сообщений на странице
    * @returns {Promise<Object>} { messages, pagination }
    */
-  async getConversation({ currentUserId, partnerId, page = 1, limit = 50 }) {
+  async getConversation({ currentUserId, partnerId, page = 1, limit = 30 }) {
     const { count, rows: messages } = await Message.findAndCountAll({
       where: {
         [Op.and]: [

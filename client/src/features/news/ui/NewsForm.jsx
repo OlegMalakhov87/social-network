@@ -224,7 +224,6 @@ export const NewsForm = ({
           options={CATEGORY_OPTIONS}
           required={true}
           disabled={form.isSubmitting || isUploading || isChangingType}
-          helperText={form.errors.category}
         />
 
         {/* Динамическое поле для медиафайла */}

@@ -31,7 +31,7 @@ export const useOnline = (userIds) => {
     const updateStatuses = async () => {
       try {
         const data = await fetchUsersOnlineStatus(uniqueIds);
-        const map = new Map(data.users.map((u) => [u.userId, u.online]));
+        const map = new Map(data?.users?.map((u) => [u.userId, u.online]));
         setStatusMap(map);
       } catch (err) {
         setStatusMap(new Map());

@@ -164,7 +164,7 @@ export const ProfilePage = () => {
   }, []);
 
   /**  Состояние загрузки всей страницы */
-  if (isLoadingProfile || (userIdParam && !targetUser)) {
+  if (isLoadingProfile || (userIdParam && !targetUser && !userError)) {
     return <PageLoader message="Загружаем профиль..." />;
   }
 

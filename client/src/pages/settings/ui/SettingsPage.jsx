@@ -36,7 +36,9 @@ export const SettingsPage = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
-        return <EditProfileForm currentUser={currentUser} />;
+        return (
+          <EditProfileForm currentUser={currentUser} />
+        );
       case 'account':
         return <ChangePasswordForm />;
       case 'appearance':

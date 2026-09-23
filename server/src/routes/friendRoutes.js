@@ -26,20 +26,12 @@ friendRoutes.patch(
 // Заблокировать пользователя
 friendRoutes.patch('/block', authMiddleware, friendController.blockUser);
 
-// Отклонить/отменить заявку
+// Удалить из друзей, разблокировать, отменить заявку на дружбу
 friendRoutes.delete(
   '/:friendshipId/reject',
   validateIdParam('friendshipId'),
   authMiddleware,
   friendController.rejectRequest
-);
-
-// Удалить из друзей (любое направление)
-friendRoutes.delete(
-  '/:friendshipId/delete',
-  validateIdParam('friendshipId'),
-  authMiddleware,
-  friendController.deleteFriendship
 );
 
 module.exports = friendRoutes;

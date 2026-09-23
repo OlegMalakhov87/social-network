@@ -21,10 +21,12 @@ export const LoginForm = () => {
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
 
+  /** Очистка ошибки при загрузке */
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
 
+  /** Форма для входа в аккаунт */
   const form = useForm({
     initialValues: { email: null, password: null },
     rules: {

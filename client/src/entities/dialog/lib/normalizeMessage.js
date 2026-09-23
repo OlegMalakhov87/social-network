@@ -1,5 +1,3 @@
-import { parseSharedEntity } from '../../../shared/utils';
-
 /**
  * Нормализация списка сообщений.
  *
@@ -21,11 +19,11 @@ export const normalizeMessages = (raw) => {
     createDate: raw.createdAt,
     updateDate: raw.updatedAt,
 
-    author: raw.author,
+    sender: raw.sender,
+    receiver: raw.receiver,
 
+    likes: raw.likes,
     likesCount: raw.likesCount ?? 0,
     isLiked: raw.isLiked ?? false,
-
-    sharedEntity: parseSharedEntity(raw.content),
   };
 };

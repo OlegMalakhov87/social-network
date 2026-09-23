@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все публичные видео с возможностью фильтрации по категории и поиску.
@@ -40,37 +39,40 @@ export const fetchVideosApi = async ({
  */
 export const addVideoApi = async (formData) => {
   const response = await api.post('/videos/add', formData);
-  return unwrapApiEntity(response.data);
+  return response.data?.video;
 };
 
 /**
  * Загрузить медиа файл для видео.
  * @param {FormData} formData - формат данных медиа файла
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { videoUrl }
  */
-export const uploadVideoApi = async (formData) => {
-  const response = await api.post('/videos/upload-video', formData);
-  return unwrapApiEntity(response.data);
+export const uploadVideoApi = async (formData, config) => {
+  const response = await api.post('/videos/upload-video', formData, config);
+  return response.data;
 };
 
 /**
  * Загрузить медиа файл для обложки видео.
  * @param {FormData} formData - формат данных медиа файла
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { thumbnailUrl }
  */
-export const uploadVideoThumbnailApi = async (formData) => {
-  const response = await api.post('/videos/upload-thumbnail', formData);
-  return unwrapApiEntity(response.data);
+export const uploadVideoThumbnailApi = async (formData, config) => {
+  const response = await api.post('/videos/upload-thumbnail', formData, config);
+  return response.data;
 };
 
 /**
  * Загрузить медиа файл для превью видео.
  * @param {FormData} formData - формат данных медиа файла
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { previewUrl }
  */
-export const uploadVideoPreviewApi = async (formData) => {
-  const response = await api.post('/videos/upload-preview', formData);
-  return unwrapApiEntity(response.data);
+export const uploadVideoPreviewApi = async (formData, config) => {
+  const response = await api.post('/videos/upload-preview', formData, config);
+  return response.data;
 };
 
 /**
@@ -81,7 +83,7 @@ export const uploadVideoPreviewApi = async (formData) => {
  */
 export const updateVideoApi = async (videoId, updates) => {
   const response = await api.put(`/videos/${videoId}/update`, updates);
-  return unwrapApiEntity(response.data);
+  return response.data?.video;
 };
 
 /**
@@ -91,7 +93,7 @@ export const updateVideoApi = async (videoId, updates) => {
  */
 export const updateVideosPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/videos/update-privacy`, { isPublic });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -101,7 +103,7 @@ export const updateVideosPrivacyApi = async (isPublic) => {
  */
 export const incrementVideoViewsCountApi = async (videoId) => {
   const response = await api.patch(`/videos/${videoId}/views`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -111,7 +113,7 @@ export const incrementVideoViewsCountApi = async (videoId) => {
  */
 export const deleteVideoApi = async (videoId) => {
   const response = await api.delete(`/videos/${videoId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -121,7 +123,7 @@ export const deleteVideoApi = async (videoId) => {
  */
 export const deleteUploadedVideoApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-video', { data });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -133,7 +135,7 @@ export const deleteUploadedPreviewApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-preview', {
     data,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -145,5 +147,5 @@ export const deleteUploadedThumbnailApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-thumb', {
     data,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

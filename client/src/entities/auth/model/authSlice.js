@@ -9,7 +9,6 @@ import {
   removeToken,
   saveToken,
   updateUser,
-  uploadAvatar,
 } from '..';
 import { apiErrorMessageFromPayload } from '../../../shared/lib';
 
@@ -169,22 +168,6 @@ const authSlice = createSlice({
         state.error = apiErrorMessageFromPayload(
           action.payload,
           'Ошибка обновления пароля'
-        );
-      })
-
-      /** Загрузка аватара пользователя.*/
-      .addCase(uploadAvatar.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(uploadAvatar.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user.avatarUrl = action.payload.avatarUrl;
-      })
-      .addCase(uploadAvatar.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = apiErrorMessageFromPayload(
-          action.payload,
-          'Ошибка загрузки аватара'
         );
       });
   },

@@ -12,6 +12,7 @@ import {
   Badge,
   BaseCard,
   ConfirmDialog,
+  ContentState,
   EntityContent,
   EntityHeader,
   EntityInfoList,
@@ -85,12 +86,16 @@ export const Profile = ({
     setShowBlockDialog(false);
   };
 
-  if (!targetUser?.id) {
-    return null;
-  }
-
   return (
-    <>
+    <ContentState
+      error={!targetUser?.id ? error : null}
+      isEmpty={!targetUser?.id}
+      loadingMessage="Загружаем профиль..."
+      emptyIcon="👤"
+      emptyTitle="Ошибка профиля"
+      emptyDescription="Не удалось загрузить профиль пользователя"
+      onRetry={refetchUser}
+    >
       <BaseCard
         header={
           <EntityHeader>
@@ -134,6 +139,6 @@ export const Profile = ({
         cancelText="Отмена"
         confirmVariant="danger"
       />
-    </>
+    </ContentState>
   );
 };

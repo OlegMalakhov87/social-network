@@ -140,6 +140,7 @@ const postController = {
 
       if (req.file.mimetype.startsWith('video/')) {
         const postMetadata = await mediaService.getMetadata(postUrl);
+        
         const previewPath = await videoPreviewService.generatePreview(
           postUrl,
           postMetadata.duration

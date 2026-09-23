@@ -1,5 +1,5 @@
+import { CommentSchema, CommentsListSchema } from '..';
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить комментарии для конкретной сущности.
@@ -25,7 +25,9 @@ export const fetchCommentsApi = async ({
     signal,
   });
 
-  return response.data;
+  const comments = CommentsListSchema.parse(response.data?.comments);
+  const pagination = response.data?.pagination;
+  return { comments, pagination };
 };
 
 /**
@@ -35,7 +37,7 @@ export const fetchCommentsApi = async ({
  */
 export const fetchCommentById = async (commentId) => {
   const response = await api.get(`/comments/${commentId}/shared`);
-  return unwrapApiEntity(response.data);
+  return CommentSchema.parse(response.data?.comment);
 };
 
 /**
@@ -45,7 +47,7 @@ export const fetchCommentById = async (commentId) => {
  */
 export const addCommentApi = async (data) => {
   const response = await api.post(`/comments/add`, data);
-  return unwrapApiEntity(response.data);
+  return CommentSchema.parse(response.data?.comment);
 };
 
 /**
@@ -56,7 +58,7 @@ export const addCommentApi = async (data) => {
  */
 export const updateCommentApi = async (commentId, updates) => {
   const response = await api.patch(`/comments/${commentId}/update`, updates);
-  return unwrapApiEntity(response.data);
+  return CommentSchema.parse(response.data?.comment);
 };
 
 /**
@@ -66,5 +68,5 @@ export const updateCommentApi = async (commentId, updates) => {
  */
 export const deleteCommentApi = async (commentId) => {
   const response = await api.delete(`/comments/${commentId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

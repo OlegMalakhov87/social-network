@@ -234,11 +234,36 @@ const postService = {
 
     dbUpdates.isEdited = true;
 
-    const [, updatedPost] = await Post.update(dbUpdates, {
+    const dbUpdatesNewMedia = [
+      updateData.postUrl,
+      updateData.previewUrl,
+      updateData.thumbnailUrl,
+    ];
+
+    const [affectedCount, updatedPost] = await Post.update(dbUpdates, {
       where: { id: postId },
       returning: true,
       plain: true,
     });
+
+    // Удаление новых медиа файлов если они не были обновлены
+    if (affectedCount === 0) {
+      for (const url of dbUpdatesNewMedia) {
+        if (!url) continue;
+
+        try {
+          await fs.unlink(fromPublicUrl(url));
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.warn(
+              `Не удалось удалить новые медиа поста ${url}:`,
+              error.message
+            );
+          }
+        }
+      }
+      throw createError('Не удалось обновить пост', 500, 'UPDATE_FAILED');
+    }
 
     const oldMedia = [post.postUrl, post.previewUrl, post.thumbnailUrl];
 

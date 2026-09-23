@@ -12,7 +12,7 @@ import style from './SettingsPage.module.css';
 export const SettingsNav = ({ items, activeTab, onChange }) => {
   return (
     <>
-      <nav className={style.sidebarNavDesktop} ariaLabel="Разделы настроек">
+      <nav className={style.sidebarNavDesktop} aria-label="Разделы настроек">
         {items.map((item) => (
           <Button
             key={item.id}

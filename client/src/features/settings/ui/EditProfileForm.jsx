@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { PROFILE_SETTINGS_CONFIG, SettingsSection } from '..';
-import { updateUser, uploadAvatar } from '../../../entities/auth';
+import { updateUser } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
 import {
   date,
@@ -85,8 +85,10 @@ export const EditProfileForm = ({ currentUser }) => {
     onSubmit: async (values) => {
       try {
         await dispatch(updateUser(values)).unwrap();
-        notify.success('Профиль успешно обновлён');
+        commit();
+        reset();
         form.reset();
+        notify.success('Профиль успешно обновлён');
         navigate('/profile');
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка обновления профиля'));
@@ -96,46 +98,56 @@ export const EditProfileForm = ({ currentUser }) => {
   });
 
   /** Хук для загрузки фото */
-  const { preview, isUploading, error, handleFileChange } = useFileUpload(
-    AVATAR_UPLOAD_CONFIG,
-    {
-      uploadFn: async (data) => {
-        try {
-          const result = await dispatch(uploadAvatar(data)).unwrap();
-          form.setValue('avatarUrl', result.avatarUrl);
-        } catch (error) {
-          notify.error(getApiErrorDisplay(error, 'Ошибка загрузки аватара'));
-        }
-      },
+  const {
+    preview,
+    isUploading,
+    error,
+    handleFileChange,
+    cleanupUploadedFile,
+    reset,
+    commit,
+  } = useFileUpload(AVATAR_UPLOAD_CONFIG, {
+    onSuccess: (data) => {
+      form.setValue('avatarUrl', data.avatarUrl);
+    },
+  });
+
+  /** Очистка загруженного файла при отмене */
+  const handleCancel = async () => {
+    try {
+      await cleanupUploadedFile();
+    } finally {
+      reset();
+      form.reset();
     }
-  );
+  };
 
   return (
     <SettingsSection title="Профиль">
-      <EntityHeader
-        leftSlot={
-          <EntityMeta
-            avatar={
-              <Avatar src={preview || currentUser?.avatarUrl} size="xl" />
-            }
-            title={form.values.name}
-            subtitle={form.values.email}
-          />
-        }
-        rightSlot={
-          <FileInput
-            accept={AVATAR_UPLOAD_CONFIG.accept}
-            buttonText="Изменить фото"
-            isUploading={isUploading}
-            error={error}
-            onChange={handleFileChange}
-            disabled={form.isSubmitting || isUploading}
-          />
-        }
-        className={style.profileHeader}
-      />
-
       <form onSubmit={form.submit} className={style.form}>
+        <EntityHeader
+          leftSlot={
+            <EntityMeta
+              avatar={
+                <Avatar src={preview || currentUser?.avatarUrl} size="xl" />
+              }
+              title={form.values.name}
+              subtitle={form.values.email}
+            />
+          }
+          rightSlot={
+            <FileInput
+              accept={AVATAR_UPLOAD_CONFIG.accept}
+              buttonText="Изменить фото"
+              isUploading={isUploading}
+              error={error}
+              onChange={handleFileChange}
+              disabled={form.isSubmitting || isUploading}
+            />
+          }
+          className={style.profileHeader}
+        />
+
         <div className={style.fieldsGrid}>
           {PROFILE_SETTINGS_CONFIG.map((field) => (
             <div
@@ -163,7 +175,7 @@ export const EditProfileForm = ({ currentUser }) => {
           <Button
             type="button"
             variant="secondary"
-            onClick={form.reset}
+            onClick={handleCancel}
             disabled={form.isSubmitting || isUploading}
           >
             Отменить

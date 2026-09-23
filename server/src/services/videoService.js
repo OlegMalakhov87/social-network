@@ -143,6 +143,8 @@ const videoService = {
       previewUrl: videoData.previewUrl,
       category: videoData.category,
       isPublic: videoData.isPublic,
+      duration: videoData.duration,
+      size: videoData.size,
 
       uploadedBy: currentUserId,
       year: new Date().getFullYear(),

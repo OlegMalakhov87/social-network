@@ -109,6 +109,10 @@ export const Post = ({
                 currentItem={currentPost}
                 isPlaying={isPlaying}
                 className={styles.media}
+                clickable={post.type === 'video' ? true : false}
+                fallback={
+                  post.type === 'video' ? '/thumbnail.jpg' : '/image.jpg'
+                }
               />
             )}
             <Text
@@ -119,11 +123,7 @@ export const Post = ({
               {post.text}
             </Text>
             {post.text && post.text.length > 75 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleToggleExpand}
-              >
+              <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>
             )}

@@ -5,4 +5,6 @@ export * from './config/postTypes'; // Конфигурация типов по�
 export { getPostActions } from './lib/getPostActions'; // Функция для получения действий для поста
 export { normalizePosts } from './lib/normalizePosts'; // Функция для нормализации поста
 
+export * from './model/postSchema'; // Схема поста
+
 export { Post } from './ui/Post'; // Компонент для отображения карточки поста

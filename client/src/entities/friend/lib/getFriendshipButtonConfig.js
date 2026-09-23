@@ -6,16 +6,12 @@
  * @param {Function} [params.onFollow] - функция для отправки заявки в друзья
  * @param {Function} [params.onUnfollow] - функция для удаления заявки в друзья
  * @param {Function} [params.onAccept] - функция для принятия заявки в друзья
- * @param {Function} [params.onUnlock] - функция для разблокировки пользователя
- * @param {Function} [params.onBlock] - функция для блокировки пользователя
  */
 export const getFriendshipButtonConfig = ({
   user,
   onFollow,
   onUnfollow,
   onAccept,
-  onUnlock,
-  onBlock,
 }) => {
   if (!user?.id) return null;
 
@@ -30,9 +26,9 @@ export const getFriendshipButtonConfig = ({
   if (user.friendshipStatus === 'accepted') {
     config = {
       text: 'В друзьях',
-      hoverText: 'Заблокировать',
+      hoverText: 'Удалить из друзей',
       variant: 'secondary',
-      action: () => onBlock?.(user.id),
+      action: () => onUnfollow?.(user.friendshipId, user.id),
       disabled: false,
     };
   } else if (user.friendshipStatus === 'pending') {
@@ -59,7 +55,7 @@ export const getFriendshipButtonConfig = ({
         text: 'Заблокирован',
         hoverText: 'Разблокировать',
         variant: 'ghost',
-        action: () => onUnlock?.(user.friendshipId, user.id),
+        action: () => onUnfollow?.(user.friendshipId, user.id),
         disabled: false,
       };
     } else {

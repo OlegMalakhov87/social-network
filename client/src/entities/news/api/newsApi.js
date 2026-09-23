@@ -1,6 +1,5 @@
+import { NewsListSchema, NewsSchema } from '..';
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
-
 /**
  * Получить все новости с возможностью фильтрации по категории и поиску.
  * @param {Object} params - параметры запроса
@@ -10,7 +9,7 @@ import { unwrapApiEntity } from '../../../shared/lib';
  * @param {string} params.filter - фильтр по категории
  * @param {string} [params.q] - поисковый запрос
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} - { news, pagination }
+ * @returns {Promise<{news: NewsListSchema, pagination}} {news, pagination}
  */
 
 export const fetchNewsApi = async ({
@@ -31,48 +30,52 @@ export const fetchNewsApi = async ({
     },
     signal,
   });
-  return response.data;
+  return {
+    news: NewsListSchema.parse(response.data?.news),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
  * Поделиться новостью (для кнопки поделиться).
  * @param {number} newsId
- * @returns {Promise<Object>} { news }
+ * @returns {Promise<{news: NewsSchema}} news
  */
 export const fetchNewsById = async (newsId) => {
   const response = await api.get(`/news/${newsId}/shared`);
-  return unwrapApiEntity(response.data);
+  return NewsSchema.parse(response.data?.news);
 };
 
 /**
  * Добавить новость.
  * @param {Object} data - поля новости
- * @returns {Promise<Object>} { news }
+ * @returns {Promise<{news: NewsSchema}} news
  */
 export const addNewsApi = async (formData) => {
   const response = await api.post('/news/add', formData);
-  return unwrapApiEntity(response.data);
+  return NewsSchema.parse(response.data?.news);
 };
 
 /**
  * Загрузить медиа файл для новости.
  * @param {FormData} formData - формат данных медиа файла
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { newsUrl }
  */
-export const uploadNewsMediaApi = async (formData) => {
-  const response = await api.post('/news/upload-media', formData);
-  return unwrapApiEntity(response.data);
+export const uploadNewsMediaApi = async (formData, config) => {
+  const response = await api.post('/news/upload-media', formData, config);
+  return response.data;
 };
 
 /**
  * Обновить новость.
  * @param {number} newsId - ID новости
  * @param {Object} updates - поля новости
- * @returns {Promise<Object>} {news }
+ * @returns {Promise<{news: NewsSchema}} news
  */
 export const updateNewsApi = async (newsId, updates) => {
   const response = await api.put(`/news/${newsId}/update`, updates);
-  return unwrapApiEntity(response.data);
+  return NewsSchema.parse(response.data?.news);
 };
 
 /**
@@ -82,7 +85,7 @@ export const updateNewsApi = async (newsId, updates) => {
  */
 export const updateNewsViewsCountApi = async (newsId) => {
   const response = await api.patch(`/news/${newsId}/views`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -92,7 +95,7 @@ export const updateNewsViewsCountApi = async (newsId) => {
  */
 export const deleteNewsApi = async (newsId) => {
   const response = await api.delete(`/news/${newsId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -102,5 +105,5 @@ export const deleteNewsApi = async (newsId) => {
  */
 export const deleteUploadedNewsApi = async (data) => {
   const response = await api.delete('/news/delete-uploaded-media', { data });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить все публичные треки с возможностью фильтрации по жанру и поиску.
@@ -40,17 +39,18 @@ export const fetchTracksApi = async ({
  */
 export const addTrackApi = async (formData) => {
   const response = await api.post('/music/add', formData);
-  return unwrapApiEntity(response.data);
+  return response.data?.track;
 };
 
 /**
  * Загрузить медиа файл для трека.
  * @param {FormData} formData - формат данных медиа файла
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { audioUrl }
  */
-export const uploadTrackAudioApi = async (formData) => {
-  const response = await api.post('/music/upload-audio', formData);
-  return unwrapApiEntity(response.data);
+export const uploadTrackAudioApi = async (formData, config) => {
+  const response = await api.post('/music/upload-audio', formData, config);
+  return response.data;
 };
 
 /**
@@ -58,9 +58,9 @@ export const uploadTrackAudioApi = async (formData) => {
  * @param {FormData} formData - формат данных медиа файла
  * @returns {Promise<{Object}>} { coverUrl }
  */
-export const uploadTrackCoverApi = async (formData) => {
-  const response = await api.post('/music/upload-cover', formData);
-  return unwrapApiEntity(response.data);
+export const uploadTrackCoverApi = async (formData, config) => {
+  const response = await api.post('/music/upload-cover', formData, config);
+  return response.data;
 };
 
 /**
@@ -71,7 +71,7 @@ export const uploadTrackCoverApi = async (formData) => {
  */
 export const updateTrackApi = async (trackId, updates) => {
   const response = await api.put(`/music/${trackId}/update`, updates);
-  return unwrapApiEntity(response.data);
+  return response.data?.track;
 };
 
 /**
@@ -81,7 +81,7 @@ export const updateTrackApi = async (trackId, updates) => {
  */
 export const updateTracksPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/music/update-privacy`, { isPublic });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -91,7 +91,7 @@ export const updateTracksPrivacyApi = async (isPublic) => {
  */
 export const incrementTrackPlaysCount = async (trackId) => {
   const response = await api.patch(`/music/${trackId}/plays`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -101,7 +101,7 @@ export const incrementTrackPlaysCount = async (trackId) => {
  */
 export const deleteTrackApi = async (trackId) => {
   const response = await api.delete(`/music/${trackId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -111,7 +111,7 @@ export const deleteTrackApi = async (trackId) => {
  */
 export const deleteUploadedAudioApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-audio', { data });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -121,5 +121,5 @@ export const deleteUploadedAudioApi = async (data) => {
  */
 export const deleteUploadedCoverApi = async (data) => {
   const response = await api.delete('/music/delete-uploaded-cover', { data });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

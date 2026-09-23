@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const userController = {
   /**
@@ -60,7 +61,6 @@ const userController = {
    * Загрузка аватара пользователя
    */
   uploadAvatar: async (req, res, next) => {
-    const currentUserId = parseInt(req.user?.id);
     try {
       if (!req.file) {
         return res
@@ -68,8 +68,9 @@ const userController = {
           .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
       }
 
-      const result = await userService.uploadAvatar(currentUserId, req.file);
-      res.status(200).json(result);
+      const avatarUrl = req.file.path;
+
+      res.status(200).json({ avatarUrl: toPublicUrl(avatarUrl) });
     } catch (error) {
       next(error);
     }

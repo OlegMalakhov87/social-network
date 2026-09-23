@@ -42,6 +42,20 @@
   cursor: not-allowed;
 }
 
+.error {
+  border-color: var(--color-danger);
+}
+
+.error:focus-within {
+  border-color: var(--color-danger);
+  box-shadow: var(--shadow-danger);
+}
+
+.errorText {
+  font-size: var(--font-sm);
+  color: var(--color-danger);
+}
+
 .helper {
   font-size: var(--font-sm);
   color: var(--text-secondary);

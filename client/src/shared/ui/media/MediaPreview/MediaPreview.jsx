@@ -37,7 +37,7 @@ export const MediaPreview = ({
   preview,
   alt,
   onClick,
-  clickable = item.type === 'video',
+  clickable = false,
   fallback = '/image.jpg',
   className = '',
   disabled = false,
@@ -88,7 +88,6 @@ export const MediaPreview = ({
       <Image
         src={src || fallback}
         alt={alt}
-        fallback={fallback}
         className={classNames(
           styles.image,
           previewLoaded && styles.imageHidden
@@ -97,7 +96,7 @@ export const MediaPreview = ({
 
       {shouldLoadPreview && !previewError && (
         <video
-          src={preview}
+          src={preview || '/preview.mp4'}
           autoPlay
           muted
           loop

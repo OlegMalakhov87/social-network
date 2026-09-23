@@ -1,6 +1,5 @@
+import { DialogsListSchema, MessageSchema, MessagesListSchema } from '..';
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
-
 /**
  * Получить список диалогов
  * @param {Object} params
@@ -8,7 +7,7 @@ import { unwrapApiEntity } from '../../../shared/lib';
  * @param {string} [params.q] - поисковый запрос
  * @param {number} params.limit - количество элементов на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { dialogs, pagination }
+ * @returns {Promise<{dialogs: DialogsListSchema, pagination}} {dialogs, pagination}
  */
 export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
   const response = await api.get(`/messages/dialogs`, {
@@ -19,7 +18,11 @@ export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
     },
     signal,
   });
-  return response.data;
+
+  return {
+    dialogs: DialogsListSchema.parse(response.data?.dialogs),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -29,7 +32,7 @@ export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
  * @param {number} params.page - номер страницы
  * @param {number} params.limit - количество элементов на странице
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { messages, pagination }
+ * @returns {Promise<{messages: MessagesListSchema, pagination}} {messages, pagination}
  */
 export const fetchMessagesApi = async ({ partnerId, page, limit, signal }) => {
   const response = await api.get(`/messages/conversation/${partnerId}`, {
@@ -39,44 +42,47 @@ export const fetchMessagesApi = async ({ partnerId, page, limit, signal }) => {
     },
     signal,
   });
-  return response.data;
+  return {
+    messages: MessagesListSchema.parse(response.data?.messages),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
  * Получить сообщение по ID (для кнопки "Поделиться")
  * @param {number} messageId - ID сообщения
- * @returns {Promise<Object>} { message }
+ * @returns {Promise<{message: MessageSchema}} {message}
  */
 export const fetchMessageById = async (messageId) => {
   const response = await api.get(`/messages/${messageId}/shared`);
-  return unwrapApiEntity(response.data);
+  return MessageSchema.parse(response.data?.message);
 };
 
 /**
  * Отправить сообщение собеседнику
  * @param {number} receiverId - ID собеседника
  * @param {string} content - контент сообщения
- * @returns {Promise<Object>} { message }
+ * @returns {Promise<{message: MessageSchema}} {message}
  */
 export const sendMessageApi = async (receiverId, content) => {
   const response = await api.post(`/messages/send`, {
     receiverId,
     content,
   });
-  return unwrapApiEntity(response.data);
+  return MessageSchema.parse(response.data?.message);
 };
 
 /**
  * Обновить сообщение
  * @param {number} messageId - ID сообщения
  * @param {string} content - новый контент сообщения
- * @returns {Promise<Object>} { message }
+ * @returns {Promise<{message: MessageSchema}} {message}
  */
 export const updateMessageApi = async (messageId, content) => {
   const response = await api.patch(`/messages/${messageId}/edit`, {
     content,
   });
-  return unwrapApiEntity(response.data);
+  return MessageSchema.parse(response.data?.message);
 };
 
 /**
@@ -86,7 +92,7 @@ export const updateMessageApi = async (messageId, content) => {
  */
 export const markMessagesAsRead = async (messageIds) => {
   const response = await api.patch(`/messages/read`, { messageIds });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -96,7 +102,7 @@ export const markMessagesAsRead = async (messageIds) => {
  */
 export const hideMessageApi = async (messageId) => {
   const response = await api.patch(`/messages/${messageId}/hide`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -106,5 +112,5 @@ export const hideMessageApi = async (messageId) => {
  */
 export const clearChatApi = async (receiverId) => {
   const response = await api.patch(`/messages/clear/${receiverId}`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

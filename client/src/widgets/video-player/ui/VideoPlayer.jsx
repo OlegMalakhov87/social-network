@@ -36,10 +36,6 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
     playStartedRef.current = true;
     onPlayStart?.(video);
   }, [video, onPlayStart]);
-  console.log(video);
-  console.log(video?.videoUrl);
-  console.log(video?.previewUrl);
-  console.log(video?.thumbnailUrl);
 
   const videoUrl = video?.videoUrl || video?.postUrl || video?.newsUrl;
 
@@ -67,7 +63,7 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
       <div className={style.player}>
         <video
           ref={videoRef}
-          src={videoUrl}
+          src={videoUrl || '/video.mp4'}
           controls
           autoPlay
           onPlay={handleVideoPlay}

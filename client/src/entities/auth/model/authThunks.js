@@ -5,7 +5,6 @@ import {
   changePasswordApi,
   deleteCurrentUser,
   updateCurrentUser,
-  uploadAvatarApi,
 } from '../../user';
 import { getToken } from '../lib/authStorage';
 
@@ -45,7 +44,7 @@ export const checkAuth = createAsyncThunk(
     }
     try {
       const data = await getCurrentUser();
-      return data;
+      return { user: data?.user, token };
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));
     }
@@ -84,19 +83,6 @@ export const changePassword = createAsyncThunk(
   async (credentials, thunkAPI) => {
     try {
       const data = await changePasswordApi(credentials);
-      return data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(parseApiError(error));
-    }
-  }
-);
-
-/** Загрузка аватара пользователя */
-export const uploadAvatar = createAsyncThunk(
-  'auth/uploadAvatar',
-  async (file, thunkAPI) => {
-    try {
-      const data = await uploadAvatarApi(file);
       return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));

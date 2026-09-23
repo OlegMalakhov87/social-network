@@ -1,7 +1,6 @@
 export * from './api/friendsApi'; // API - функции
 
 export * from './lib/getEmptyState'; // Функция для получения заголовка и описания для пустой страницы друзей
-
 export { getFriendDetails } from './lib/getFriendDetails'; // Функция для получения информации о друге
 export {
   FRIENDSHIP_BADGE_VARIANT,

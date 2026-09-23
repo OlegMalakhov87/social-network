@@ -58,7 +58,7 @@ export const DialogsPage = () => {
     addOptimistic,
     removeOptimistic,
     toggleLike,
-  } = useMessages({ userId: selectedUser?.id ?? null });
+  } = useMessages({ partnerId: selectedUser?.id ?? null });
 
   /** Действия над диалогами и сообщениями. */
   const {

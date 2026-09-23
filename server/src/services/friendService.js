@@ -87,7 +87,12 @@ const friendService = {
       if (myFriendIds.length === 0) {
         return {
           users: [],
-          pagination: { total: 0, page, pages: 0 },
+          pagination: {
+            totalUsers: 0,
+            totalPages: 0,
+            currentPage: page,
+            hasMore: false,
+          },
         };
       }
 
@@ -118,7 +123,12 @@ const friendService = {
       if (friendsOfFriendsIds.size === 0) {
         return {
           users: [],
-          pagination: { total: 0, page, pages: 0 },
+          pagination: {
+            totalUsers: 0,
+            totalPages: 0,
+            currentPage: page,
+            hasMore: false,
+          },
         };
       }
 
@@ -146,7 +156,12 @@ const friendService = {
     if (users.length === 0) {
       return {
         users: [],
-        pagination: { total: 0, page, pages: 0 },
+        pagination: {
+          totalUsers: 0,
+          totalPages: 0,
+          currentPage: page,
+          hasMore: false,
+        },
       };
     }
 
@@ -194,9 +209,10 @@ const friendService = {
     return {
       users: enrichedUsers,
       pagination: {
-        total: count,
-        page,
-        pages: Math.ceil(count / limit),
+        totalUsers: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        hasMore: page * limit < count,
       },
     };
   },
@@ -289,7 +305,7 @@ const friendService = {
   },
 
   /**
-   * Отклонить/отменить заявку в друзья
+   * Удалить из друзей, разблокировать, отменить заявку на дружбу
    * @param {Object} params - параметры запроса
    * @param {number} params.currentUserId - ID текущего пользователя
    * @param {number} params.friendshipId - ID заявки
@@ -298,42 +314,10 @@ const friendService = {
   async rejectRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
     if (!friendship)
-      throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
-
-    // Отклонить/отменить заявку может только получатель или отправитель
-    if (
-      friendship.friendId !== currentUserId &&
-      friendship.userId !== currentUserId
-    ) {
-      throw createError('Вы не можете удалить эту заявку', 403, 'FORBIDDEN');
-    }
+      throw createError('Запись не найдена', 404, 'REQUEST_NOT_FOUND');
 
     await friendship.destroy();
-    return { message: `Заявка успешно удалена: ${friendshipId}` };
-  },
-
-  /**
-   * Удалить дружбу (любое направление)
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.friendshipId - ID дружбы
-   * @returns {Promise<Object>} { message, friendshipId }
-   */
-  async deleteFriendship({ currentUserId, friendshipId }) {
-    const friendship = await Friend.findByPk(friendshipId);
-    if (!friendship)
-      throw createError('Запись не найдена', 404, 'RELATIONSHIP_NOT_FOUND');
-
-    // Удалить может любой участник
-    if (
-      friendship.userId !== currentUserId &&
-      friendship.friendId !== currentUserId
-    ) {
-      throw createError('Вы не можете удалить эту связь', 403, 'FORBIDDEN');
-    }
-
-    await friendship.destroy();
-    return { message: `Связь успешно удалена: ${friendshipId}` };
+    return { message: `Запись успешно удалена: ${friendshipId}` };
   },
 
   /**
@@ -348,17 +332,17 @@ const friendService = {
       throw createError('Нельзя заблокировать себя', 400, 'SELF_BLOCK');
     }
 
-    // Создаем запись где userId = заблокированный, friendId = блокирующий
+    // Создаем запись где userI  - блокирующий, friendId - блокируемый
     const [friendship, created] = await Friend.findOrCreate({
       where: {
         [Op.or]: [
           { userId: currentUserId, friendId },
-          { userId: friendId, friendId: currentUserId },
+          { userId: currentUserId, friendId: friendId },
         ],
       },
       defaults: {
-        userId: friendId,
-        friendId: currentUserId,
+        userId: currentUserId,
+        friendId: friendId,
         status: 'blocked',
       },
     });
@@ -366,14 +350,16 @@ const friendService = {
     // Если запись уже существовала, обновляем её
     if (!created) {
       await friendship.update({
-        userId: friendId,
-        friendId: currentUserId,
+        userId: currentUserId,
+        friendId: friendId,
         status: 'blocked',
       });
     }
 
     return {
-      message: `Пользователь успешно заблокирован: ${friendship.id}`,
+      friendshipId: friendship.id,
+      friendshipStatus: 'blocked',
+      friendshipDirection: 'outgoing',
     };
   },
 };

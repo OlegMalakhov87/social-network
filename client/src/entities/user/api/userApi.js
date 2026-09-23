@@ -1,49 +1,50 @@
+import { UserSchema } from '..';
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить данные о пользователе и статусе дружбы.
  *
  * @param {number} targetUserId - ID пользователя
  * @param {AbortSignal} signal - сигнал отмены запроса
- * @returns {Promise<Object>} { user }
+ * @returns {Promise<UserSchema>} user
  */
 export const fetchUserProfileApi = async (targetUserId, signal) => {
   const response = await api.get(
     `/profile/${targetUserId}/with-friendship-status`,
     { signal }
   );
-  return unwrapApiEntity(response.data);
+  return UserSchema.parse(response.data?.user);
 };
 
 /**
  * Получить статус пользователей в сети.
  * @param {Array} userIds - массив ID пользователей
- * @returns {Promise<Array>} - массив статусов пользователей { userId, isOnline }
+ * @returns {Promise<Array>} - массив статусов пользователей [{userId,online:boolean}]
  */
 export const fetchUsersOnlineStatus = async (userIds) => {
   const response = await api.post(`/profile/online-status`, { userIds });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
  * Загрузить аватар.
  * @param {FormData} formData - формат данных аватара
+ * @param {Object} config - конфигурация запроса
  * @returns {Promise<{Object}>} { avatarUrl }
  */
-export const uploadAvatarApi = async (formData) => {
-  const response = await api.post('/profile/upload-avatar', formData);
-  return unwrapApiEntity(response.data);
+export const uploadAvatarApi = async (formData, config) => {
+  const response = await api.post('/profile/upload-avatar', formData, config);
+  return response.data;
 };
 
 /**
  * Обновить профиль.
  * @param {Object} userData - новые данные текущего пользователя
- * @returns {Promise<{Object}>} { user }
+ * @returns {Promise<UserSchema>} user
  */
 export const updateCurrentUser = async (userData) => {
   const response = await api.put('/profile/update', userData);
-  return unwrapApiEntity(response.data);
+  return { user: UserSchema.parse(response.data?.user) }; // (Thunk API)
 };
 
 /**
@@ -53,7 +54,7 @@ export const updateCurrentUser = async (userData) => {
  */
 export const updateUserPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/profile/update-privacy`, { isPublic });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -63,7 +64,7 @@ export const updateUserPrivacyApi = async (isPublic) => {
  */
 export const changePasswordApi = async (credentials) => {
   const response = await api.patch('/profile/change-password', credentials);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -72,7 +73,7 @@ export const changePasswordApi = async (credentials) => {
  */
 export const deleteCurrentUser = async () => {
   const response = await api.delete('/profile/delete');
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -84,5 +85,5 @@ export const deleteUploadedAvatarApi = async (data) => {
   const response = await api.delete('/profile/delete-uploaded-avatar', {
     data,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить треки из библиотеки текущего пользователя.
@@ -58,7 +57,7 @@ export const fetchUserMusicLibrary = async ({
  */
 export const addTrackToLibrary = async (trackId) => {
   const response = await api.post(`/usermusiclibrary/${trackId}/add`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -71,7 +70,7 @@ export const updateFavoriteTrack = async (libraryId, { isFavorite }) => {
   const response = await api.patch(`/usermusiclibrary/${libraryId}/favorite`, {
     isFavorite,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -81,7 +80,7 @@ export const updateFavoriteTrack = async (libraryId, { isFavorite }) => {
  */
 export const incrementPlaysCount = async (libraryId) => {
   const response = await api.patch(`/usermusiclibrary/${libraryId}/plays`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -91,5 +90,5 @@ export const incrementPlaysCount = async (libraryId) => {
  */
 export const deleteTrackFromLibrary = async (libraryId) => {
   const response = await api.delete(`/usermusiclibrary/${libraryId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

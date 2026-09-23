@@ -1,5 +1,5 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
+import { UsersListSchema } from '../../user';
 
 /**
  * Получить список всех пользователей со статусом связи.
@@ -9,7 +9,7 @@ import { unwrapApiEntity } from '../../../shared/lib';
  * @param {string} params.filter - фильтр
  * @param {string} [params.q] - поисковый запрос
  * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { users, pagination }
+ * @returns {Promise<{users: UsersListSchema, pagination}} {users, pagination}
  */
 export const fetchFriendsApi = async ({
   page,
@@ -28,7 +28,10 @@ export const fetchFriendsApi = async ({
     signal,
   });
 
-  return response.data;
+  return {
+    users: UsersListSchema.parse(response.data?.users),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -40,7 +43,7 @@ export const sendFriendRequest = async (friendId) => {
   const response = await api.post(`/friends/requests`, {
     friendId,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -50,7 +53,7 @@ export const sendFriendRequest = async (friendId) => {
  */
 export const acceptFriendRequest = async (friendshipId) => {
   const response = await api.patch(`/friends/${friendshipId}/accept`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -60,25 +63,15 @@ export const acceptFriendRequest = async (friendshipId) => {
  */
 export const blockUser = async (friendId) => {
   const response = await api.patch(`/friends/block`, { friendId });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
- * Отклонить/отменить заявку (удалить запись).
+ * Удалить из друзей, разблокировать, отменить заявку на дружбу
  * @param {number} friendshipId - ID заявки
  * @returns {Promise<Object>} { message}
  */
 export const rejectFriendRequest = async (friendshipId) => {
   const response = await api.delete(`/friends/${friendshipId}/reject`);
-  return unwrapApiEntity(response.data);
-};
-
-/**
- * Удалить из друзей (любое направление).
- * @param {number} friendshipId - ID заявки
- * @returns {Promise<Object>} { message }
- */
-export const deleteFriend = async (friendshipId) => {
-  const response = await api.delete(`/friends/${friendshipId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };

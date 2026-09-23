@@ -9,12 +9,12 @@ const messageController = {
     try {
       const currentUserId = req.user?.id;
       const { page, limit, q } = req.query;
-      const result = await messageService.getDialogs(
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        q
-      );
+      const result = await messageService.getDialogs({
+        currentUserId: parseInt(currentUserId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        q: q || '',
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

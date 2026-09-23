@@ -77,7 +77,7 @@ export const Video = ({
   /** Обработчик подтверждения удаления видео. */
   const handleConfirmDelete = async () => {
     try {
-      await deleteVideo?.(video?.id);
+      await deleteVideo?.(video.id);
       setShowDeleteDialog(false);
     } catch (error) {
       notify.error(getApiErrorDisplay(error, 'Ошибка удаления видео'));
@@ -127,6 +127,7 @@ export const Video = ({
               onClick={onPlay}
               disabled={disabledButton}
               clickable={true}
+              fallback={'/thumbnail.jpg'}
             />
             <VideoMeta video={video} mode={mode} />
           </EntityContent>

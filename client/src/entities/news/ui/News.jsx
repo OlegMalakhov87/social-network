@@ -111,6 +111,8 @@ export const News = ({
               currentItem={currentNews}
               isPlaying={isPlaying}
               className={styles.media}
+              clickable={news.type === 'video' ? true : false}
+              fallback={news.type === 'video' ? '/thumbnail.jpg' : '/image.jpg'}
             />
           )
         }

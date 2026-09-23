@@ -97,7 +97,6 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
         const parsedError = parseApiError(err, 'Ошибка запроса');
         setError(parsedError);
         onErrorRef.current?.(parsedError);
-        throw err;
       } finally {
         if (controller.signal.aborted || !isMountedRef.current) {
           return;

@@ -53,28 +53,12 @@ const friendController = {
   },
 
   /**
-   * Отклонить/отменить заявку в друзья
+   * Удалить из друзей, разблокировать, отменить заявку на дружбу
    */
   rejectRequest: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
       const result = await friendService.rejectRequest({
-        currentUserId: parseInt(req.user?.id),
-        friendshipId: parseInt(friendshipId),
-      });
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Удалить дружбу (любое направление)
-   */
-  deleteFriendship: async (req, res, next) => {
-    try {
-      const { friendshipId } = req.params;
-      const result = await friendService.deleteFriendship({
         currentUserId: parseInt(req.user?.id),
         friendshipId: parseInt(friendshipId),
       });

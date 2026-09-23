@@ -1,5 +1,4 @@
 import { api } from '../../../shared/api';
-import { unwrapApiEntity } from '../../../shared/lib';
 
 /**
  * Получить видео из библиотеки текущего пользователя.
@@ -58,7 +57,7 @@ export const fetchUserVideoLibrary = async ({
  */
 export const addVideoToLibrary = async (videoId) => {
   const response = await api.post(`/uservideolibrary/${videoId}/add`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -71,7 +70,7 @@ export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
   const response = await api.patch(`/uservideolibrary/${libraryId}/favorite`, {
     isFavorite,
   });
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -81,7 +80,7 @@ export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
  */
 export const incrementViewsCount = async (libraryId) => {
   const response = await api.patch(`/uservideolibrary/${libraryId}/views`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
 
 /**
@@ -91,5 +90,5 @@ export const incrementViewsCount = async (libraryId) => {
  */
 export const deleteVideoFromLibrary = async (libraryId) => {
   const response = await api.delete(`/uservideolibrary/${libraryId}/delete`);
-  return unwrapApiEntity(response.data);
+  return response.data;
 };
