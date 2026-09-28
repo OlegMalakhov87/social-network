@@ -8,12 +8,12 @@ const userVideoLibraryController = {
     try {
       const { page, limit, sortKey } = req.query;
       const currentUserId = req.user?.id;
-      const result = await userVideoLibraryService.getMyVideoLibrary(
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
+      const result = await userVideoLibraryService.getMyVideoLibrary({
+        currentUserId: parseInt(currentUserId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -28,13 +28,13 @@ const userVideoLibraryController = {
       const { userId } = req.params;
       const { page, limit, sortKey } = req.query;
       const currentUserId = req.user?.id;
-      const result = await userVideoLibraryService.getUserVideosLibrary(
-        parseInt(userId),
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
+      const result = await userVideoLibraryService.getUserVideosLibrary({
+        profileUserId: parseInt(userId),
+        currentUserId: parseInt(currentUserId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

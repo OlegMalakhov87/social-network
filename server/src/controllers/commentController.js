@@ -10,14 +10,14 @@ const commentController = {
       const { page, limit, sortKey } = req.query;
       const currentUserId = req.user?.id;
 
-      const result = await commentService.getCommentsByTarget(
+      const result = await commentService.getCommentsByTarget({
         targetType,
-        parseInt(targetId),
-        parseInt(page),
-        parseInt(limit),
-        parseInt(currentUserId),
-        sortKey
-      );
+        targetId: parseInt(targetId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        currentUserId: parseInt(currentUserId),
+        sortKey: sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

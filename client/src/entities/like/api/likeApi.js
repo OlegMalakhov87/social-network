@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { LikeSchema } from '../model/likeSchema';
 
 /**
  * Поставить лайк сущности.
@@ -8,7 +9,10 @@ import { api } from '../../../shared/api';
  */
 export const addLikeApi = async (targetType, targetId) => {
   const response = await api.post(`/likes/${targetType}/${targetId}/add`);
-  return response.data;
+  return {
+    like: LikeSchema.parse(response.data?.like),
+    likesCount: response.data?.likesCount,
+  };
 };
 
 /**

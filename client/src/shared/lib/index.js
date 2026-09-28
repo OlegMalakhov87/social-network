@@ -6,5 +6,6 @@ export { extractPaginatedItems } from './extractPaginatedItems'; // Функци
 export * from './fieldValidators'; // Валидаторы для строковых полей
 export * from './fileValidators'; // Валидаторы для файлов
 export * from './mediaValidators'; // Валидаторы для медиа-контента
+export * from './theme'; // Работа с темой приложения
 export { sortItems } from './sortItems'; // Функция для сортировки данных
 export { unwrapApiEntity } from './unwrapApiEntity'; // Разворачивает вложенную сущность из ответа API

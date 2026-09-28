@@ -9,6 +9,7 @@ const {
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
+const temporaryMediaService = require('./temporaryMediaService');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -27,6 +28,7 @@ const MUSIC_FIELDS = [
   'audioUrl',
   'coverUrl',
   'category',
+  'duration',
   'isPublic',
 ];
 
@@ -66,6 +68,7 @@ const musicService = {
       ];
     }
 
+    // Получаем треки с автором, лайками и комментариями
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
       { model: Like, as: 'likes', attributes: ['id', 'userId'] },
@@ -96,6 +99,7 @@ const musicService = {
       });
     }
 
+    // Получаем треки с автором, лайками и комментариями
     const { count, rows: tracks } = await Music.findAndCountAll({
       where,
       include: includes,
@@ -105,6 +109,7 @@ const musicService = {
       distinct: true,
     });
 
+    // Форматируем треки
     const formattedTracks = tracks.map((track) => {
       const trackData = track.toJSON();
       const libraryEntry = trackData.libraryItems?.[0];
@@ -138,32 +143,65 @@ const musicService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async createMusic(currentUserId, musicData) {
+    // Определяем новые медиа файлы
+    const media = [
+      {
+        url: musicData.audioUrl,
+        fieldName: 'audioUrl',
+      },
+      {
+        url: musicData.coverUrl,
+        fieldName: 'coverUrl',
+      },
+    ];
+
+    // Проверяем владение новыми медиа файлами
+    await temporaryMediaService.assertOwnershipMany(currentUserId, media);
+
+    // Формируем данные для создания трека
     const dbData = {
       title: musicData.title,
       artist: musicData.artist,
       album: musicData.album,
+      duration: musicData.duration,
       description: musicData.description,
       audioUrl: musicData.audioUrl,
       coverUrl: musicData.coverUrl,
       category: musicData.category,
       isPublic: musicData.isPublic,
-
       uploadedBy: currentUserId,
       year: new Date().getFullYear(),
       playsCount: 0,
     };
 
+    // Создаем трек в базе данных
     const track = await Music.create(dbData);
 
+    // Фиксируем новые медиа файлы
+    try {
+      await temporaryMediaService.commitMany(currentUserId, media);
+    } catch (error) {
+      console.warn(
+        `Не удалось зафиксировать временные медиа трека ${track.id}:`,
+        error.message
+      );
+    }
+
     // Автоматически добавляем в библиотеку создателя
-    await UserMusicLibrary.create({
+    const libraryItem = await UserMusicLibrary.create({
       userId: currentUserId,
       trackId: track.id,
       isFavorite: true,
       playsCount: 0,
     });
 
-    return { track: track.toJSON() };
+    return {
+      track: {
+        ...track.toJSON(),
+        isInLibrary: true,
+        libraryId: libraryItem.id,
+      },
+    };
   },
 
   /**
@@ -173,18 +211,20 @@ const musicService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateMusicPrivacy(currentUserId, { isPublic }) {
+    // Обновляем приватность треков
     const [affectedCount] = await Music.update(
       { isPublic },
       { where: { uploadedBy: currentUserId } }
     );
 
+    // Проверяем, найдены ли треки
     if (affectedCount === 0) {
       throw createError('Треки не найдены', 404, 'TRACKS_NOT_FOUND');
     }
 
+    // Возвращаем результат
     return {
-      message: 'Приватность треков успешно обновлена',
-      tracks: affectedCount,
+      message: `Приватность треков успешно обновлена: ${affectedCount}`,
     };
   },
 
@@ -196,11 +236,15 @@ const musicService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateMusic(trackId, currentUserId, updates) {
+    // Получаем трек
     const track = await Music.findByPk(trackId);
+
+    // Проверяем, найден ли трек
     if (!track) {
       throw createError('Трек не найден', 404, 'TRACK_NOT_FOUND');
     }
 
+    // Проверяем, является ли текущий пользователь автором трека
     if (track.uploadedBy !== currentUserId) {
       throw createError(
         'Вы не можете редактировать этот трек',
@@ -216,36 +260,70 @@ const musicService = {
       )
     );
 
-    const [, updatedRows] = await Music.update(dbUpdates, {
-      where: { id: trackId },
-      returning: true,
-      plain: true,
+    // Проверяем, есть ли данные для обновления
+    if (Object.keys(dbUpdates).length === 0) {
+      throw createError(
+        'Нет данных для обновления',
+        400,
+        'NO_FIELDS_TO_UPDATE'
+      );
+    }
+
+    // Сравниваем новые и старые URL и получаем тольконовые URL
+    const newTemporaryMedia = [
+      {
+        url: dbUpdates.audioUrl,
+        fieldName: 'audioUrl',
+      },
+      {
+        url: dbUpdates.coverUrl,
+        fieldName: 'coverUrl',
+      },
+    ].filter(({ url, fieldName }) => {
+      return url && url !== track[fieldName];
     });
 
-    const oldMedia = [track.audioUrl, track.coverUrl];
+    // Проверяем владение новыми медиа файлами
+    await temporaryMediaService.assertOwnershipMany(
+      currentUserId,
+      newTemporaryMedia
+    );
 
-    const newMedia = [updatedRows.audioUrl, updatedRows.coverUrl];
+    // Обновляем трек в базе данных
+    let updatedTrack;
 
-    for (const oldUrl of oldMedia) {
-      if (!oldUrl || newMedia.includes(oldUrl)) {
-        continue;
-      }
-
-      const filePath = fromPublicUrl(oldUrl);
-
+    try {
+      updatedTrack = await track.update(dbUpdates);
+    } catch (error) {
+      // Если обновление трека не удалось, то удаляем новые медиа файлы
       try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
+        await temporaryMediaService.removeMany(
+          currentUserId,
+          newTemporaryMedia
+        );
+      } catch (cleanupError) {
+        if (cleanupError.code !== 'ENOENT') {
           console.warn(
-            `Не удалось удалить старое медиа трека ${oldUrl}:`,
-            error.message
+            `Не удалось удалить временные файлы для трека ${track.id}:`,
+            cleanupError.message
           );
         }
       }
+      throw createError('Не удалось обновить трек', 500, 'UPDATE_FAILED');
     }
 
-    return { track: updatedRows.toJSON() };
+    // Фиксируем новые медиа файлы
+    try {
+      await temporaryMediaService.commitMany(currentUserId, newTemporaryMedia);
+    } catch (error) {
+      console.warn(
+        `Не удалось зафиксировать временные медиа трека ${track.id}:`,
+        error.message
+      );
+    }
+
+    // Возвращаем результат
+    return { track: updatedTrack.toJSON() };
   },
 
   /**
@@ -254,15 +332,13 @@ const musicService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async incrementPlaysCount(trackId) {
+    // Инкрементируем счетчик проигрываний
     await Music.increment('playsCount', {
       by: 1,
       where: { id: trackId },
     });
-    const updated = await Music.findByPk(trackId, {
-      attributes: ['playsCount'],
-    });
 
-    return { success: true, playsCount: updated.playsCount };
+    return { success: true };
   },
 
   /**
@@ -272,9 +348,12 @@ const musicService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async deleteMusic(trackId, currentUserId) {
+    // Получаем трек
     const track = await Music.findOne({
       where: { id: trackId, uploadedBy: currentUserId },
     });
+
+    // Проверяем, найден ли трек
     if (!track) {
       throw createError(
         'Трек не найден или нет прав на удаление',
@@ -283,70 +362,10 @@ const musicService = {
       );
     }
 
-    const oldMedia = [track.audioUrl, track.coverUrl];
-
+    // Удаляем трек (медиа файлы автоматически удалит cleanup() из mediaCleanupService по расписанию)
     await track.destroy();
 
-    // Логика очистки старого медиа файла
-    for (const url of oldMedia) {
-      if (!url) continue;
-
-      const filePath = fromPublicUrl(url);
-
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить старое медиа трека ${url}:`,
-            error.message
-          );
-        }
-      }
-    }
-
     return { message: 'Трек успешно удален', trackId };
-  },
-
-  /**
-   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять трек
-   * @param {string} audioUrl - URL аудио файла
-   * @param {string} coverUrl - URL обложки файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedMedia({ audioUrl, coverUrl }) {
-    const urls = [audioUrl, coverUrl];
-
-    for (const url of urls) {
-      if (!url) continue;
-
-      const filePath = fromPublicUrl(url);
-
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') throw error;
-      }
-    }
-    return { message: 'Загруженные медиа файлы успешно удалены' };
-  },
-
-  /**
-   * Удаление загруженных медиа cover
-   * @param {string} coverUrl - URL обложки файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedCover({ coverUrl }) {
-    if (!coverUrl) return;
-
-    const filePath = fromPublicUrl(coverUrl);
-
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    return { message: 'Загруженные медиа обложек успешно удалены' };
   },
 };
 

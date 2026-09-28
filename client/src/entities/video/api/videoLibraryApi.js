@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { VideosListSchema } from '../model/videoSchema';
 
 /**
  * Получить видео из библиотеки текущего пользователя.
@@ -19,7 +20,10 @@ export const fetchMyVideoLibrary = async ({
     params: { page, limit, sortKey },
     signal,
   });
-  return response.data;
+  return {
+    videos: VideosListSchema.parse(response.data?.videos),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -47,7 +51,10 @@ export const fetchUserVideoLibrary = async ({
     },
     signal,
   });
-  return response.data;
+  return {
+    videos: VideosListSchema.parse(response.data?.videos),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**

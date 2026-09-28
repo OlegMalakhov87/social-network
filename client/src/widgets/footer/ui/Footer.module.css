@@ -1,21 +1,21 @@
 .footer {
   background-color: var(--surface-nav);
   color: var(--text-on-nav);
-  padding: var(--space-12) 0 var(--space-6);
+  padding: var(--space-10) 0 var(--space-5);
   margin-top: auto;
 }
 
 .container {
   max-width: var(--container-width);
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-5);
 }
 
 .content {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1.5fr;
-  gap: var(--space-10);
-  margin-bottom: var(--space-12);
+  gap: var(--space-8);
+  margin-bottom: var(--space-10);
 }
 
 .bottom {

@@ -1,3 +1,4 @@
+import { TrackSchema, TracksListSchema } from '..';
 import { api } from '../../../shared/api';
 
 /**
@@ -29,7 +30,10 @@ export const fetchTracksApi = async ({
     },
     signal,
   });
-  return response.data;
+  return {
+    tracks: TracksListSchema.parse(response.data?.tracks),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -39,7 +43,7 @@ export const fetchTracksApi = async ({
  */
 export const addTrackApi = async (formData) => {
   const response = await api.post('/music/add', formData);
-  return response.data?.track;
+  return TrackSchema.parse(response.data?.track);
 };
 
 /**
@@ -71,7 +75,7 @@ export const uploadTrackCoverApi = async (formData, config) => {
  */
 export const updateTrackApi = async (trackId, updates) => {
   const response = await api.put(`/music/${trackId}/update`, updates);
-  return response.data?.track;
+  return TrackSchema.parse(response.data?.track);
 };
 
 /**

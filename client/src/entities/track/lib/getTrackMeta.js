@@ -10,7 +10,7 @@ export const getTrackMeta = (track, mode) => {
   return {
     details: [
       { label: 'Исполнитель', value: track.artist },
-      { label: 'Альбом', value: track.album },
+      { label: 'Альбом', value: track.album || 'Не указан' },
       { label: 'Год', value: track.year },
     ],
 

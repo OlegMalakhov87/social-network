@@ -35,6 +35,6 @@ export const normalizeVideos = (raw) => {
     isLiked: raw.isLiked ?? false,
 
     commentsCount: raw.commentsCount ?? 0,
-    comments: raw.comments || [],
+    comments: raw.comments ?? [],
   };
 };

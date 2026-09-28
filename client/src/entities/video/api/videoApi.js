@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { VideoSchema, VideosListSchema } from '../model/videoSchema';
 
 /**
  * Получить все публичные видео с возможностью фильтрации по категории и поиску.
@@ -29,7 +30,10 @@ export const fetchVideosApi = async ({
     },
     signal,
   });
-  return response.data;
+  return {
+    videos: VideosListSchema.parse(response.data?.videos),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -39,7 +43,7 @@ export const fetchVideosApi = async ({
  */
 export const addVideoApi = async (formData) => {
   const response = await api.post('/videos/add', formData);
-  return response.data?.video;
+  return VideoSchema.parse(response.data?.video);
 };
 
 /**
@@ -83,7 +87,7 @@ export const uploadVideoPreviewApi = async (formData, config) => {
  */
 export const updateVideoApi = async (videoId, updates) => {
   const response = await api.put(`/videos/${videoId}/update`, updates);
-  return response.data?.video;
+  return VideoSchema.parse(response.data?.video);
 };
 
 /**

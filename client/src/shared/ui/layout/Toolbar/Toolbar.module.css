@@ -3,6 +3,7 @@
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
+  min-width: 0;
   gap:var(--space-3);
   padding-bottom:var(--space-3);
   border-bottom:1px solid var(--border-primary);
@@ -17,6 +18,8 @@
   display:flex;
   align-items:center;
   gap:var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 @media (max-width:768px){
@@ -26,8 +29,29 @@
     align-items:stretch;
   }
 
-  .right{
-    justify-content:flex-end;
+  .left {
+    width: 100%;
+    overflow: hidden;
   }
 
+  .right{
+    justify-content:flex-end;
+    width: 100%;
+  }
+
+  .right > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .right > *:first-child {
+    flex: 1;
+  }
+
+}
+
+@media (max-width: 576px) {
+  .right {
+    gap: var(--space-1);
+  }
 }

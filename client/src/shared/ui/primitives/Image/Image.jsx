@@ -21,7 +21,7 @@ export const Image = ({
   };
   return (
     <img
-      src={src}
+      src={src || fallback}
       onError={handleError}
       alt={alt}
       className={className}

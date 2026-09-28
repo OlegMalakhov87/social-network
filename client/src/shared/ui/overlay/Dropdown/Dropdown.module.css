@@ -60,6 +60,7 @@
   top: calc(100% + var(--space-2));
   right: 0;
   min-width: 180px;
+  max-width: min(280px, calc(100vw - var(--space-6)));
   background: var(--surface-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
@@ -68,6 +69,23 @@
   padding: var(--space-2) 0;
   z-index: var(--z-dropdown);
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .dropdown {
+    width: 100%;
+  }
+
+  .triggerButton {
+    width: 100%;
+  }
+
+  .menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 .menuItem {

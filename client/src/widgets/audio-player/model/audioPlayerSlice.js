@@ -1,19 +1,35 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+/**
+ * Начальное состояние аудиоплеера.
+ * @type {Object}
+ */
 const initialState = {
-  currentTrack: null,
-  queue: [],
-  currentIndex: -1,
-  repeat: 'off', // 'off' | 'one' | 'all'
-  shuffle: false,
-  isPlaying: false,
-  currentTime: 0,
-  duration: 0,
-  volume: 0.5,
-  isMuted: false,
-  progress: 0,
-  isLoading: false,
-  error: null,
+  currentTrack: null, // Текущий трек
+  queue: [], // Очередь треков
+  currentIndex: -1, // Индекс текущего трека в очереди
+  repeat: 'off', // 'off' | 'one' | 'all' - повтор одного трека, всех треков или ничего
+  shuffle: false, // Перемешивание очереди
+  isPlaying: false, // Воспроизведение
+  currentTime: 0, // Текущее время воспроизведения
+  duration: 0, // Длительность текущего трека
+  volume: 0.5, // Громкость
+  isMuted: false, // Мут звука (включен/выключен)
+  progress: 0, // Прогресс воспроизведения (в процентах)
+  isLoading: false, // Загрузка (вкл/выкл)
+  error: null, // Ошибка (текст ошибки или null)
+};
+
+/**
+ * Сброс состояния воспроизведения.
+ * @param {Object} state - текущее состояние
+ */
+const resetPlaybackState = (state) => {
+  state.isPlaying = false;
+  state.currentTime = 0;
+  state.duration = 0;
+  state.progress = 0;
+  state.isLoading = false;
 };
 
 /**
@@ -25,14 +41,24 @@ const audioPlayerSlice = createSlice({
   name: 'audioPlayer',
   initialState,
   reducers: {
+    /**
+     * Установка очереди треков.
+     * @param {Object} state - текущее состояние
+     * @param {Object} action - действие
+     */
     setQueue: (state, action) => {
       const { queue, currentIndex } = action.payload;
       state.queue = queue;
       state.currentIndex = currentIndex ?? (queue.length ? 0 : -1);
       state.currentTrack =
         state.currentIndex !== -1 ? state.queue[state.currentIndex] : null;
+      resetPlaybackState(state);
       state.error = null;
     },
+    /**
+     * Переключение на следующий трек.
+     * @param {Object} state - текущее состояние
+     */
     nextTrack: (state) => {
       if (!state.queue.length) return;
       let nextIndex = state.currentIndex + 1;
@@ -50,13 +76,21 @@ const audioPlayerSlice = createSlice({
       if (nextIndex === -1) {
         state.currentTrack = null;
         state.currentIndex = -1;
-        state.isPlaying = false;
+        resetPlaybackState(state);
         return;
       }
       state.currentIndex = nextIndex;
       state.currentTrack = state.queue[nextIndex];
+      state.currentTime = 0;
+      state.duration = 0;
+      state.progress = 0;
       state.error = null;
     },
+
+    /**
+     * Переключение на предыдущий трек.
+     * @param {Object} state - текущее состояние
+     */
     prevTrack: (state) => {
       if (!state.queue.length) return;
       let prevIndex = state.currentIndex - 1;
@@ -66,23 +100,46 @@ const audioPlayerSlice = createSlice({
       }
       state.currentIndex = prevIndex;
       state.currentTrack = state.queue[prevIndex];
+      state.currentTime = 0;
+      state.duration = 0;
+      state.progress = 0;
       state.error = null;
     },
+
+    /**
+     * Установка режима повтора.
+     * @param {Object} state - текущее состояние
+     * @param {Object} action - действие
+     */
     setRepeat: (state, action) => {
       state.repeat = action.payload;
     },
+
+    /**
+     * Переключение режима перемешивания.
+     * @param {Object} state - текущее состояние
+     */
     toggleShuffle: (state) => {
       state.shuffle = !state.shuffle;
     },
+
+    /**
+     * Очистка плеера.
+     * @param {Object} state - текущее состояние
+     */
     clearPlayer: (state) => {
       state.currentTrack = null;
       state.queue = [];
       state.currentIndex = -1;
-      state.isPlaying = false;
-      state.isLoading = false;
+      resetPlaybackState(state);
       state.error = null;
     },
-    // Синхронизация с DOM-событиями
+
+    /**
+     * Синхронизация с DOM-событиями.
+     * @param {Object} state - текущее состояние
+     * @param {Object} action - действие
+     */
     updatePlayerState: (state, action) => {
       const {
         isPlaying,
@@ -106,6 +163,10 @@ const audioPlayerSlice = createSlice({
   },
 });
 
+/**
+ * Экшены слайса аудиоплеера.
+ * @type {Object}
+ */
 export const {
   setQueue,
   nextTrack,

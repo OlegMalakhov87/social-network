@@ -19,3 +19,9 @@
     gap: var(--space-3);
   }
 }
+
+@media (max-width: 576px) {
+  .contentArea {
+    min-width: 0;
+  }
+}

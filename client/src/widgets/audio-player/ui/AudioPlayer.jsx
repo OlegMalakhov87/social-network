@@ -1,4 +1,4 @@
-import { Image } from '../../../shared/ui';
+import { IconButton, Image } from '../../../shared/ui';
 import style from './AudioPlayer.module.css';
 
 /**
@@ -50,19 +50,26 @@ export const AudioPlayer = ({
   repeat,
   shuffle,
 }) => {
-  const handleProgressClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    onSeekPercent(Math.max(0, Math.min(1, percent)));
+  /** Обработчик действий (нажатий кнопок) */
+  const handleAction = (handler) => (e) => {
+    e?.stopPropagation();
+    handler?.();
   };
 
-  const handleProgressKeyDown = (e) => {
-    if (e.key === 'ArrowLeft') onSeekPercent(Math.max(0, progress - 0.05));
-    else if (e.key === 'ArrowRight')
-      onSeekPercent(Math.min(1, progress + 0.05));
+  /** Обработчик изменения прогресса воспроизведения */
+  const handleProgressChange = (e) => {
+    e?.stopPropagation();
+    const nextPercent = Number(e.target.value) / 100;
+    onSeekPercent?.(Math.max(0, Math.min(1, nextPercent)));
   };
 
-  if (!currentTrack?.fileUrl) return null;
+  /** Обработчик изменения громкости */
+  const handleVolumeChange = (e) => {
+    e?.stopPropagation();
+    onVolumeChange?.(parseFloat(e.target.value));
+  };
+
+  if (!currentTrack?.audioUrl) return null;
 
   return (
     <div className={style.playerBar}>
@@ -70,12 +77,11 @@ export const AudioPlayer = ({
 
       <div className={style.playerInfo}>
         <Image
-          src={currentTrack.cover}
+          src={currentTrack.coverUrl}
           alt={currentTrack.title}
           width={50}
           height={50}
           className={style.playerCover}
-          fallbackSrc="/image.jpg"
         />
         <div className={style.trackDetails}>
           <div className={style.playerTrack}>{currentTrack.title}</div>
@@ -86,128 +92,110 @@ export const AudioPlayer = ({
 
       <div className={style.playerControls}>
         <div className={style.controlButtons}>
-          <button
-            onClick={(e) => {
-              e?.stopPropagation();
-              onPrev?.();
-            }}
-            aria-label="Предыдущий трек"
-          >
-            ⏮️
-          </button>
-          <button
-            onClick={(e) => {
-              e?.stopPropagation();
-              onTogglePlay?.();
-            }}
-            aria-label={isPlaying ? 'Пауза' : 'Воспроизвести'}
-          >
-            {isPlaying ? '⏸️' : '▶️'}
-          </button>
-          <button
-            onClick={(e) => {
-              e?.stopPropagation();
-              onNext?.();
-            }}
-            aria-label="Следующий трек"
-          >
-            ⏭️
-          </button>
+          <IconButton
+            icon="⏮️"
+            variant="ghost"
+            size="md"
+            onClick={handleAction(onPrev)}
+            ariaLabel="Предыдущий трек"
+          />
+          <IconButton
+            icon={isPlaying ? '⏸️' : '▶️'}
+            variant="primary"
+            size="md"
+            onClick={handleAction(onTogglePlay)}
+            ariaLabel={isPlaying ? 'Пауза' : 'Воспроизвести'}
+            className={style.playButton}
+          />
+          <IconButton
+            icon="⏭️"
+            variant="ghost"
+            size="md"
+            onClick={handleAction(onNext)}
+            ariaLabel="Следующий трек"
+          />
         </div>
 
         <div className={style.progressContainer}>
           <span className={style.timeCurrent}>{formatTime(currentTime)}</span>
-          <div
-            className={style.progressBar}
-            onClick={handleProgressClick}
-            onKeyDown={handleProgressKeyDown}
-            role="slider"
-            aria-valuenow={Math.round(progress * 100)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            tabIndex={0}
-          >
-            <div
-              className={style.progress}
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={0.5}
+            value={Math.round(progress * 100)}
+            onChange={handleProgressChange}
+            className={style.progressSlider}
+            aria-label="Прогресс воспроизведения"
+          />
           <span className={style.timeTotal}>{formatTime(duration)}</span>
         </div>
       </div>
 
       <div className={style.playerVolume}>
-        <button
-          onClick={(e) => {
-            e?.stopPropagation();
-            onToggleMute?.();
-          }}
-          aria-label={isMuted ? 'Включить звук' : 'Выключить звук'}
-        >
-          {isMuted || volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
-        </button>
+        <IconButton
+          icon={isMuted || volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
+          variant="ghost"
+          size="sm"
+          onClick={handleAction(onToggleMute)}
+          ariaLabel={isMuted ? 'Включить звук' : 'Выключить звук'}
+        />
         <input
           type="range"
           min="0"
           max="1"
           step="0.01"
           value={volume}
-          onChange={(e) => {
-            e?.stopPropagation();
-            onVolumeChange?.(parseFloat(e.target.value));
-          }}
+          onChange={handleVolumeChange}
           className={style.volumeSlider}
+          aria-label="Громкость"
         />
-        <button
-          onClick={(e) => {
-            e?.stopPropagation();
-            onClose?.();
-          }}
-          aria-label="Закрыть плеер"
-        >
-          ✕
-        </button>
+        <IconButton
+          icon="✕"
+          variant="ghost"
+          size="sm"
+          onClick={handleAction(onClose)}
+          ariaLabel="Закрыть плеер"
+        />
       </div>
 
       <div className={style.extraControls}>
-        <button
+        <IconButton
+          icon="🔁"
+          variant="ghost"
+          size="sm"
           className={`${style.extraButton} ${repeat === 'one' ? style.active : ''}`}
-          onClick={(e) => {
-            e?.stopPropagation();
-            onSetRepeat?.(repeat === 'one' ? 'off' : 'one');
-          }}
-          aria-label={
+          onClick={handleAction(() =>
+            onSetRepeat?.(repeat === 'one' ? 'off' : 'one')
+          )}
+          ariaLabel={
             repeat === 'one' ? 'Отключить повтор одного' : 'Повторять один трек'
           }
-        >
-          🔁
-        </button>
+        />
 
-        <button
+        <IconButton
+          icon="🔂"
+          variant="ghost"
+          size="sm"
           className={`${style.extraButton} ${repeat === 'all' ? style.active : ''}`}
-          onClick={(e) => {
-            e?.stopPropagation();
-            onSetRepeat?.(repeat === 'all' ? 'off' : 'all');
-          }}
-          aria-label={
+          onClick={handleAction(() =>
+            onSetRepeat?.(repeat === 'all' ? 'off' : 'all')
+          )}
+          ariaLabel={
             repeat === 'all' ? 'Отключить повтор всех' : 'Повторять все треки'
           }
-        >
-          🔂
-        </button>
+        />
 
-        <button
+        <IconButton
+          icon="🔀"
+          variant="ghost"
+          size="sm"
           className={`${style.extraButton} ${shuffle ? style.active : ''}`}
-          onClick={(e) => {
-            e?.stopPropagation();
-            onToggleShuffle?.();
-          }}
-          aria-label={
+          onClick={handleAction(onToggleShuffle)}
+          ariaLabel={
             shuffle ? 'Отключить перемешивание' : 'Включить перемешивание'
           }
-        >
-          🔀
-        </button>
+        />
       </div>
     </div>
   );

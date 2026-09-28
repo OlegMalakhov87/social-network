@@ -1,5 +1,6 @@
 const musicService = require('../services/musicService');
 const mediaService = require('../services/mediaService');
+const temporaryMediaService = require('../services/temporaryMediaService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const musicController = {
@@ -35,6 +36,71 @@ const musicController = {
         req.body
       );
       res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка аудио файла для трека
+   */
+  uploadAudio: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
+      }
+
+      const audioPath = req.file.path;
+      const currentUserId = parseInt(req.user?.id);
+
+      const audioMetadata = await mediaService.getMetadata(audioPath);
+
+      const audioUrl = toPublicUrl(audioPath);
+
+      await temporaryMediaService.registerMany([
+        {
+          userId: currentUserId,
+          url: audioUrl,
+          mediaType: 'audio',
+          fieldName: 'audioUrl',
+        },
+      ]);
+
+      res.status(200).json({
+        audioUrl,
+        duration: audioMetadata.duration,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка обложки для трека
+   */
+  uploadCover: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
+      }
+
+      const currentUserId = parseInt(req.user?.id);
+      const coverUrl = toPublicUrl(req.file.path);
+
+      await temporaryMediaService.registerMany([
+        {
+          userId: currentUserId,
+          url: coverUrl,
+          mediaType: 'image',
+          fieldName: 'coverUrl',
+        },
+      ]);
+
+      res.status(200).json({ coverUrl });
     } catch (error) {
       next(error);
     }
@@ -109,8 +175,23 @@ const musicController = {
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      await musicService.deleteUploadedMedia(req.body);
-      res.status(200).json({ success: true });
+      const currentUserId = parseInt(req.user?.id);
+      const media = [
+        {
+          url: req.body?.audioUrl,
+          fieldName: 'audioUrl',
+        },
+        {
+          url: req.body?.coverUrl,
+          fieldName: 'coverUrl',
+        },
+      ];
+      // Удаляем временные медиа файлы
+      const result = await temporaryMediaService.removeMany(
+        currentUserId,
+        media
+      );
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -121,49 +202,14 @@ const musicController = {
    */
   deleteUploadedCover: async (req, res, next) => {
     try {
-      await musicService.deleteUploadedCover(req.body);
-      res.status(200).json({ success: true });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка аудио файла для трека
-   */
-  uploadAudio: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
-      }
-
-      const audioPath = req.file.path;
-
-      const audioMetadata = await mediaService.getMetadata(audioPath);
-
-      res.status(200).json({
-        audioUrl: toPublicUrl(audioPath),
-        duration: audioMetadata.duration,
-        size: audioMetadata.size,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка обложки для трека
-   */
-  uploadCover: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
-      }
-      res.status(200).json({ coverUrl: toPublicUrl(req.file.path) });
+      const currentUserId = parseInt(req.user?.id);
+      const result = await temporaryMediaService.removeMany(currentUserId, [
+        {
+          url: req.body?.coverUrl,
+          fieldName: 'coverUrl',
+        },
+      ]);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

@@ -8,33 +8,33 @@ const userMusicLibraryController = {
     try {
       const { page, limit, sortKey } = req.query;
       const currentUserId = req.user?.id;
-      const result = await userMusicLibraryService.getMyMusicLibrary(
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
+      const result = await userMusicLibraryService.getMyMusicLibrary({
+        currentUserId: parseInt(currentUserId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortKey: sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
     }
   },
 
-   /**
+  /**
    * Получить библиотеку выбранного пользователя
    */
-   getUserMusicLibrary: async (req, res, next) => {
+  getUserMusicLibrary: async (req, res, next) => {
     try {
       const { userId } = req.params;
       const currentUserId = req.user?.id;
       const { page, limit, sortKey } = req.query;
-      const result = await userMusicLibraryService.getUserMusicLibrary(
-        parseInt(userId),
-        parseInt(currentUserId),
-        parseInt(page),
-        parseInt(limit),
-        sortKey
-      );
+      const result = await userMusicLibraryService.getUserMusicLibrary({
+        profileUserId: parseInt(userId),
+        currentUserId: parseInt(currentUserId),
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortKey,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

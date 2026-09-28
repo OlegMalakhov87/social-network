@@ -63,3 +63,22 @@
 .link:hover {
   color: var(--color-primary-hover);
 }
+
+@media (max-width: 576px) {
+  .h1 {
+    font-size: var(--font-3xl);
+  }
+
+  .h2 {
+    font-size: var(--font-2xl);
+  }
+
+  .h3 {
+    font-size: var(--font-lg);
+  }
+
+  .body1 {
+    font-size: var(--font-sm);
+    line-height: 1.6;
+  }
+}

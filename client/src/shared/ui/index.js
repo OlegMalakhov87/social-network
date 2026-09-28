@@ -58,5 +58,6 @@ export { ButtonGroup } from './primitives/ButtonGroup/ButtonGroup'; // комп�
 export { Chip } from './primitives/Chip/Chip'; // компонент для отображения метки-фильтра
 export { IconButton } from './primitives/IconButton/IconButton'; // компонент для отображения иконки
 export { Image } from './primitives/Image/Image'; // компонент для отображения изображения
+export { RichText } from './primitives/RichText/RichText'; // компонент для рендера форматированного текста
 export { StatusBadge } from './primitives/StatusBadge/StatusBadge'; // компонент для отображения статуса
 export { Text } from './primitives/Text/Text'; // компонент для отображения текста

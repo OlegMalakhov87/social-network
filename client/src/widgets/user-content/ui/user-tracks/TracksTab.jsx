@@ -87,24 +87,18 @@ export const TracksTab = ({
     if (typeof onTrackStart !== 'function') return;
 
     onTrackStart((track) => {
+      if (!track?.id) return;
+
       const currentTrackInList = tracksRef.current.find(
         (item) => item.id === track?.id
       );
       const profileLibraryId =
         currentTrackInList?.profileLibraryId || track.profileLibraryId;
 
-      const playsCount = currentTrackInList?.playsCount ?? track?.playsCount;
-      const newPlaysCount = (playsCount ?? 0) + 1;
-
       if (profileLibraryId) {
-        updatePlaysCount?.(
-          track?.id,
-          profileLibraryId,
-          currentTrackInList?.isFavorite ?? track?.isFavorite,
-          newPlaysCount
-        );
+        updatePlaysCount?.(track.id, profileLibraryId);
       } else {
-        updateGlobalPlaysCount?.(track?.id);
+        updateGlobalPlaysCount?.(track.id);
       }
     });
 

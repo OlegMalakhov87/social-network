@@ -8,11 +8,11 @@ const likeController = {
     try {
       const { targetType, targetId } = req.params;
       const currentUserId = req.user?.id;
-      const result = await likeService.addLike(
-        parseInt(currentUserId),
+      const result = await likeService.addLike({
+        currentUserId: parseInt(currentUserId),
         targetType,
-        parseInt(targetId)
-      );
+        targetId: parseInt(targetId),
+      });
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -26,11 +26,11 @@ const likeController = {
     try {
       const { targetType, targetId } = req.params;
       const currentUserId = req.user?.id;
-      const result = await likeService.deleteLike(
-        parseInt(currentUserId),
+      const result = await likeService.deleteLike({
+        currentUserId: parseInt(currentUserId),
         targetType,
-        parseInt(targetId)
-      );
+        targetId: parseInt(targetId),
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

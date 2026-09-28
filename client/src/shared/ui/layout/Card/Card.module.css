@@ -12,10 +12,16 @@
 }
 
 .padding {
-  padding: var(--space-5);
+  padding: var(--space-4);
 }
 
 .hover:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 576px) {
+  .padding {
+    padding: var(--space-3);
+  }
 }

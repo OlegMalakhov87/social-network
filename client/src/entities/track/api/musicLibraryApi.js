@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { TracksListSchema } from '../model/trackSchema';
 
 /**
  * Получить треки из библиотеки текущего пользователя.
@@ -19,7 +20,10 @@ export const fetchMyMusicLibrary = async ({
     params: { page, limit, sortKey },
     signal,
   });
-  return response.data;
+  return {
+    tracks: TracksListSchema.parse(response.data?.tracks),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**
@@ -47,7 +51,10 @@ export const fetchUserMusicLibrary = async ({
     },
     signal,
   });
-  return response.data;
+  return {
+    tracks: TracksListSchema.parse(response.data?.tracks),
+    pagination: response.data?.pagination,
+  };
 };
 
 /**

@@ -24,7 +24,7 @@ export const normalizeTracks = (raw) => {
     playsCount: raw.playsCount ?? 0,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    
+
     uploader: raw.uploader,
 
     isInLibrary: raw.isInLibrary ?? false,
@@ -37,6 +37,6 @@ export const normalizeTracks = (raw) => {
     isLiked: raw.isLiked ?? false,
 
     commentsCount: raw.commentsCount ?? 0,
-    comments: raw.comments || [],
+    comments: raw.comments ?? [],
   };
 };

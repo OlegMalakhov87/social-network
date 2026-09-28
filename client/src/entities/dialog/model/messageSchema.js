@@ -25,8 +25,8 @@ export const MessageSchema = z.object({
   }).optional(),
 
   likes: z.array(LikeSchema.pick({ id: true, userId: true })).optional(),
-  likesCount: z.number().default(0),
-  isLiked: z.boolean().default(false),
+  likesCount: z.number().optional(),
+  isLiked: z.boolean().optional(),
 });
 
 /**

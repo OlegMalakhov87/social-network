@@ -1,6 +1,7 @@
 export * from './api/musicApi'; // API для треков
 export * from './api/musicLibraryApi'; // API для библиотеки треков
 
+export * from './model/trackSchema'; // Схема трека
 export * from './model/tracksTabs'; // Мапа для выбора вкладки треков
 
 export { getTrackActions } from './lib/getTrackActions'; // Функция для получения действий для трека

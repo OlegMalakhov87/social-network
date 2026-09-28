@@ -1,6 +1,7 @@
 const newsService = require('../services/newsService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
+const temporaryMediaService = require('../services/temporaryMediaService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const newsController = {
@@ -60,6 +61,92 @@ const newsController = {
   },
 
   /**
+   * Загрузка медиа файла
+   */
+  uploadMedia: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
+      }
+
+      const currentUserId = parseInt(req.user?.id);
+      const mediaPath = req.file.path;
+
+      let newsUrl = null;
+      let previewUrl = null;
+      let thumbnailUrl = null;
+
+      // Генерируем медиа файлы для видео и сохраняем в temporaryMediaService
+      if (req.file.mimetype.startsWith('video/')) {
+        // Получаем метаданные видео
+        const newsMetadata = await mediaService.getMetadata(mediaPath);
+
+        // Генерируем превью видео
+        const previewPath = await videoPreviewService.generatePreview(
+          mediaPath,
+          newsMetadata.duration
+        );
+
+        // Генерируем обложку видео
+        const thumbnailPath = await videoPreviewService.generateThumbnail(
+          mediaPath,
+          newsMetadata.duration
+        );
+
+        newsUrl = toPublicUrl(mediaPath);
+        previewUrl = toPublicUrl(previewPath);
+        thumbnailUrl = toPublicUrl(thumbnailPath);
+
+        // Сохраняем медиа файлы в temporaryMediaService
+        await temporaryMediaService.registerMany([
+          {
+            userId: currentUserId,
+            url: newsUrl,
+            mediaType: 'video',
+            fieldName: 'newsUrl',
+          },
+          {
+            userId: currentUserId,
+            url: previewUrl,
+            mediaType: 'video',
+            fieldName: 'previewUrl',
+          },
+          {
+            userId: currentUserId,
+            url: thumbnailUrl,
+            mediaType: 'image',
+            fieldName: 'thumbnailUrl',
+          },
+        ]);
+      }
+
+      // Сохраняем медиа файлы в temporaryMediaService
+      if (req.file.mimetype.startsWith('image/')) {
+        newsUrl = toPublicUrl(mediaPath);
+        
+        await temporaryMediaService.registerMany([
+          {
+            userId: currentUserId,
+            url: newsUrl,
+            mediaType: 'image',
+            fieldName: 'newsUrl',
+          },
+        ]);
+      }
+
+      return res.status(200).json({
+        newsUrl,
+        previewUrl,
+        thumbnailUrl,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Обновление новости
    */
   updateNews: async (req, res, next) => {
@@ -108,53 +195,30 @@ const newsController = {
   },
 
   /**
-   * Удаление (очистка мусора) загруженных медиа файлов
+   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять новость
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      await newsService.deleteUploadedMedia(req.body);
-      res.status(200).json({ success: true });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка медиа файла
-   */
-  uploadMedia: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
-      }
-      const newsUrl = req.file.path;
-
-      let previewUrl = null;
-      let thumbnailUrl = null;
-
-      if (req.file.mimetype.startsWith('video/')) {
-        const newsMetadata = await mediaService.getMetadata(newsUrl);
-        const previewPath = await videoPreviewService.generatePreview(
-          newsUrl,
-          newsMetadata.duration
-        );
-
-        const thumbnailPath = await videoPreviewService.generateThumbnail(
-          newsUrl,
-          newsMetadata.duration
-        );
-
-        previewUrl = toPublicUrl(previewPath);
-        thumbnailUrl = toPublicUrl(thumbnailPath);
-      }
-
-      return res.status(200).json({
-        newsUrl: toPublicUrl(newsUrl),
-        previewUrl,
-        thumbnailUrl,
-      });
+      const currentUserId = parseInt(req.user?.id);
+      const media = [
+        {
+          url: req.body?.newsUrl,
+          fieldName: 'newsUrl',
+        },
+        {
+          url: req.body?.previewUrl,
+          fieldName: 'previewUrl',
+        },
+        {
+          url: req.body?.thumbnailUrl,
+          fieldName: 'thumbnailUrl',
+        },
+      ];
+      const result = await temporaryMediaService.removeMany(
+        currentUserId,
+        media
+      );
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

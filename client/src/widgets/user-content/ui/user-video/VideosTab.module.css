@@ -13,3 +13,9 @@
   height: 1px;
   pointer-events: none;
 }
+
+@media (max-width: 576px) {
+  .videosList {
+    gap: var(--space-3);
+  }
+}

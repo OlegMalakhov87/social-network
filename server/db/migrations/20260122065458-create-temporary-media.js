@@ -1,7 +1,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Comments', {
+    await queryInterface.createTable('TemporaryMedias', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -11,32 +11,29 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'Users', key: 'id' },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-      },
-      targetType: {
-        type: Sequelize.ENUM('Post', 'Music', 'Video', 'News'),
-        allowNull: false,
         references: {
-          model: 'Posts',
+          model: 'Users',
           key: 'id',
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      targetId: {
-        type: Sequelize.INTEGER,
+      url: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      mediaType: {
+        type: Sequelize.ENUM('image', 'video', 'audio'),
         allowNull: false,
       },
-      text: {
-        type: Sequelize.TEXT,
+      fieldName: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
-      isEdited: {
-        type: Sequelize.BOOLEAN,
+      expiresAt: {
+        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: false,
       },
       createdAt: {
         allowNull: false,
@@ -49,18 +46,15 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW'),
       },
     });
-    await queryInterface.addIndex('Comments', [
-      'targetType',
-      'targetId',
-      'createdAt',
-    ]);
-    await queryInterface.addIndex('Comments', ['userId']);
+
+    await queryInterface.addIndex('TemporaryMedias', ['userId']);
+    await queryInterface.addIndex('TemporaryMedias', ['expiresAt']);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Comments');
+    await queryInterface.dropTable('TemporaryMedias');
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_Comments_targetType";'
+      'DROP TYPE IF EXISTS "enum_TemporaryMedias_mediaType";'
     );
   },
 };

@@ -1,6 +1,7 @@
 export * from './api/videoApi'; // API‑функции видео
 export * from './api/videoLibraryApi'; // API‑функции библиотеки видео
 
+export * from './model/videoSchema'; // Схемы видео
 export * from './model/videosTabs'; // Мапа для выбора вкладки видео
 
 export { getVideoActions } from './lib/getVideoActions'; // Функция для получения действий для видео

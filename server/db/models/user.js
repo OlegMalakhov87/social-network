@@ -1,4 +1,5 @@
 const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
@@ -14,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
 
       // Новости пользователя
       User.hasMany(models.News, { foreignKey: 'uploadedBy', as: 'news' });
+
+      // Временные медиа файлы пользователя
+      User.hasMany(models.TemporaryMedia, {
+        foreignKey: 'userId',
+        as: 'temporaryMedia',
+      });
 
       // Отправленные сообщения
       User.hasMany(models.Message, {

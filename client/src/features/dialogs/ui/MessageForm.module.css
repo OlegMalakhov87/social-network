@@ -10,3 +10,11 @@
   flex: 1;
   border-radius: var(--radius-full);
 }
+
+@media (max-width: 576px) {
+  .messageFormWrapper {
+    gap: var(--space-2);
+    padding: var(--space-3);
+    align-items: center;
+  }
+}

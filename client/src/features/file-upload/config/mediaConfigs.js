@@ -31,7 +31,6 @@ import {
   maxFileSize,
 } from '../../../shared/lib/fileValidators';
 import {
-  aspectRatio,
   maxDuration,
   minImageResolution,
 } from '../../../shared/lib/mediaValidators';
@@ -147,7 +146,7 @@ export const NEWS_VIDEO_UPLOAD_CONFIG = {
 };
 
 /**
- * Конфигурация загрузки превью (обложки) видео.
+ * Конфигурация загрузки обложки видео.
  */
 export const VIDEO_THUMBNAIL_CONFIG = {
   accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
@@ -159,7 +158,6 @@ export const VIDEO_THUMBNAIL_CONFIG = {
     ),
     fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
-    aspectRatio(16 / 9, 0.1, 'Обложка должна быть в формате 16:9'),
   ]),
   uploadFn: uploadVideoThumbnailApi,
   deleteFn: deleteUploadedThumbnailApi,
@@ -217,7 +215,6 @@ export const ALBUM_COVER_CONFIG = {
     ),
     fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
     minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
-    aspectRatio(16 / 9, 0.1, 'Обложка должна быть в формате 16:9'),
   ]),
   uploadFn: uploadTrackCoverApi,
   deleteFn: deleteUploadedCoverApi,

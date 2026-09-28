@@ -26,12 +26,12 @@ const userVideoLibraryService = {
    * @param {string} sortKey - Ключ сортировки
    * @returns {Promise<Object>}
    */
-  async getMyVideoLibrary(
+  async getMyVideoLibrary({
     currentUserId,
     page = 1,
     limit = 30,
-    sortKey = 'dateDesc'
-  ) {
+    sortKey = 'dateDesc',
+  } = {}) {
     // Ищем все записи в библиотеке
     const { count, rows: libraryEntries } =
       await UserVideoLibrary.findAndCountAll({
@@ -118,14 +118,16 @@ const userVideoLibraryService = {
    * @param {string} sortKey - Ключ сортировки
    * @returns {Promise<Object>} - Объект с результатом
    */
-  async getUserVideosLibrary(
+  async getUserVideosLibrary({
     profileUserId,
     currentUserId,
     page = 1,
     limit = 30,
-    sortKey = 'dateDesc'
-  ) {
+    sortKey = 'dateDesc',
+  } = {}) {
+    // Инициализируем переменную для хранения информации о дружбе
     let isFriend = false;
+    // Проверяем, являются ли пользователи друзьями
     if (currentUserId && currentUserId !== profileUserId) {
       const friendship = await Friend.findOne({
         where: {
@@ -143,16 +145,19 @@ const userVideoLibraryService = {
           ],
         },
       });
+      // Устанавливаем информацию о дружбе
       isFriend = !!friendship;
     }
 
     // Формируем условие приватности для видео
     const videoWhere = {};
+    // Если текущий пользователь не просматривает свой профиль, то добавляем условие приватности
     if (currentUserId !== profileUserId) {
       videoWhere[Op.or] = [{ isPublic: true }];
       if (isFriend) videoWhere[Op.or].push({ isPublic: false });
     }
 
+    // Получаем библиотеку видео
     const { count, rows: libraryEntries } =
       await UserVideoLibrary.findAndCountAll({
         where: { userId: profileUserId },
@@ -202,19 +207,22 @@ const userVideoLibraryService = {
         distinct: true,
       });
 
-    // Создаем Map для быстрого поиска видео в библиотеке текущего пользователя
+    // Создаем Map для быстрого поиска видео в библиотеке текущего пользователя для оптимизации запросов
     let currentUserLibraryMap = new Map();
     if (
       currentUserId &&
       currentUserId !== profileUserId &&
       libraryEntries.length > 0
     ) {
+      // Получаем ID видео из библиотеки просматриваемого профиля
       const videoIds = libraryEntries.map((entry) => entry.videoId);
+      // Получаем записи в библиотеке текущего пользователя для видео из библиотеки просматриваемого профиля
       const myEntries = await UserVideoLibrary.findAll({
         where: { userId: currentUserId, videoId: { [Op.in]: videoIds } },
         attributes: ['videoId', 'id'],
         raw: true,
       });
+      // Создаем Map для быстрого поиска видео в библиотеке текущего пользователя
       currentUserLibraryMap = new Map(myEntries.map((e) => [e.videoId, e.id]));
     }
 
@@ -246,12 +254,6 @@ const userVideoLibraryService = {
         totalPages: Math.ceil(count / limit),
         currentPage: page,
         hasMore: page * limit < count,
-      },
-      meta: {
-        profileUserId: profileUserId,
-        currentUserId: currentUserId || null,
-        isOwnProfile: currentUserId === profileUserId,
-        isFriend,
       },
     };
   },
@@ -323,11 +325,9 @@ const userVideoLibraryService = {
    * @returns {Promise<Object>}
    */
   async updateFavoriteVideo(currentUserId, libraryId, isFavorite) {
-    const dbUpdates = {};
-    dbUpdates.isFavorite = isFavorite;
     // Обновляем запись в библиотеке
     const [affectedCount, updatedRows] = await UserVideoLibrary.update(
-      dbUpdates,
+      { isFavorite },
       {
         where: { id: libraryId, userId: currentUserId },
         returning: true,
@@ -365,9 +365,11 @@ const userVideoLibraryService = {
       );
     }
 
+    // Получаем текущую дату и время
     const now = new Date().toISOString();
 
-    const result = await sequelize.transaction(async (transaction) => {
+    // Атомарно увеличиваем счётчик просмотров видео в библиотеке и глобальный счётчик просмотров видео
+    const updatedItem = await sequelize.transaction(async (transaction) => {
       // Увеличиваем счётчик в библиотеке и обновляем последний просмотр
       await UserVideoLibrary.update(
         {
@@ -380,28 +382,25 @@ const userVideoLibraryService = {
         }
       );
 
-      // Попутно увеличиваем глобальный счётчик просмотров видео
+      // Увеличиваем глобальный счётчик просмотров видео
       await Video.increment('viewsCount', {
         by: 1,
         where: { id: libraryItem.videoId },
         transaction,
       });
 
-      // Получаем обновлённые значения
-      const updatedItem = await UserVideoLibrary.findOne({
-        where: { id: libraryId },
+      // Возвращаем обновлённую запись в библиотеке
+      return UserVideoLibrary.findByPk(libraryId, {
         attributes: ['viewsCount', 'lastWatchedAt'],
         transaction,
       });
-
-      return {
-        libraryId,
-        viewsCount: updatedItem.viewsCount,
-        lastWatchedAt: updatedItem.lastWatchedAt,
-      };
     });
 
-    return result;
+    return {
+      libraryId,
+      viewsCount: updatedItem.viewsCount,
+      lastWatchedAt: updatedItem.lastWatchedAt,
+    };
   },
 
   /**

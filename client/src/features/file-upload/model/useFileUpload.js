@@ -128,8 +128,12 @@ export const useFileUpload = (config, options = {}) => {
         setIsUploading(true);
       }
 
+      let objectUrl = null;
+      
       // Создаём локальное preview.
-      const objectUrl = URL.createObjectURL(file);
+      if (config?.fieldName !== 'audioUrl') {
+        objectUrl = URL.createObjectURL(file);
+      }
 
       // Обновляем локальное состояние.
       if (isMountedRef.current) {

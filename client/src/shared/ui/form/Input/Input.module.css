@@ -101,3 +101,19 @@ textarea.input {
 .disabled .input {
   cursor: not-allowed;
 }
+
+@media (max-width: 576px) {
+  .input {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-sm);
+  }
+
+  .icon {
+    padding-left: var(--space-1);
+  }
+
+  .toggle {
+    padding: 0 var(--space-3);
+    font-size: var(--font-xs);
+  }
+}

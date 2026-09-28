@@ -5,7 +5,7 @@
 
 .layout {
   display: flex;
-  min-height: 600px;
+  min-height: 520px;
 }
 
 .sidebar {
@@ -31,7 +31,7 @@
 
 .content {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--space-5);
   background: var(--surface-page);
   overflow-y: auto;
   min-width: 0;
@@ -56,5 +56,11 @@
   }
   .content {
     padding: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: var(--space-3);
   }
 }

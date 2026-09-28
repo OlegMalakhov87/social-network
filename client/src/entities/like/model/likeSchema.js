@@ -1,5 +1,5 @@
 import { z } from 'zod';
-
+import { UserSchema } from '../../user';
 /**
  * Схема лайка
  */
@@ -10,6 +10,12 @@ export const LikeSchema = z.object({
   targetId: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),
+
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    avatarUrl: true,
+  }),
 });
 
 /**

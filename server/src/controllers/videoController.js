@@ -1,6 +1,7 @@
 const videoService = require('../services/videoService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
+const temporaryMediaService = require('../services/temporaryMediaService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const videoController = {
@@ -36,6 +37,130 @@ const videoController = {
         req.body
       );
       res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка видео файла
+   */
+  uploadVideo: async (req, res, next) => {
+    try {
+      if (!req.file)
+        return res
+          .status(400)
+          .json({ error: 'Видеофайл не предоставлен', code: 'NO_FILE' });
+
+      const videoPath = req.file.path;
+      const currentUserId = parseInt(req.user?.id);
+
+      const videoMetadata = await mediaService.getMetadata(videoPath);
+
+      const previewPath = await videoPreviewService.generatePreview(
+        videoPath,
+        videoMetadata.duration
+      );
+
+      const thumbnailPath = await videoPreviewService.generateThumbnail(
+        videoPath,
+        videoMetadata.duration
+      );
+
+      const videoUrl = toPublicUrl(videoPath);
+      const previewUrl = toPublicUrl(previewPath);
+      const thumbnailUrl = toPublicUrl(thumbnailPath);
+
+      const media = [
+        {
+          userId: currentUserId,
+          url: videoUrl,
+          mediaType: 'video',
+          fieldName: 'videoUrl',
+        },
+        {
+          userId: currentUserId,
+          url: previewUrl,
+          mediaType: 'video',
+          fieldName: 'previewUrl',
+        },
+        {
+          userId: currentUserId,
+          url: thumbnailUrl,
+          mediaType: 'image',
+          fieldName: 'thumbnailUrl',
+        },
+      ];
+
+      await temporaryMediaService.registerMany(media);
+
+      res.status(200).json({
+        videoUrl,
+        previewUrl,
+        thumbnailUrl,
+        duration: videoMetadata.duration,
+        size: videoMetadata.size,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка обложки видео
+   */
+  uploadThumbnail: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: 'Файл превью не предоставлен',
+          code: 'NO_FILE',
+        });
+      }
+
+      const currentUserId = parseInt(req.user?.id);
+      const thumbnailUrl = toPublicUrl(req.file.path);
+
+      await temporaryMediaService.registerMany([
+        {
+          userId: currentUserId,
+          url: thumbnailUrl,
+          mediaType: 'image',
+          fieldName: 'thumbnailUrl',
+        },
+      ]);
+
+      res.status(200).json({ thumbnailUrl });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Загрузка превью видео
+   */
+  uploadPreview: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: 'Файл превью не предоставлен',
+          code: 'NO_FILE',
+        });
+      }
+
+      const currentUserId = parseInt(req.user?.id);
+      const previewUrl = toPublicUrl(req.file.path);
+
+      await temporaryMediaService.registerMany([
+        {
+          userId: currentUserId,
+          url: previewUrl,
+          mediaType: 'video',
+          fieldName: 'previewUrl',
+        },
+      ]);
+
+      res.status(200).json({ previewUrl });
     } catch (error) {
       next(error);
     }
@@ -110,8 +235,27 @@ const videoController = {
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      await videoService.deleteUploadedMedia(req.body);
-      res.status(200).json({ success: true });
+      const currentUserId = parseInt(req.user?.id);
+      const media = [
+        {
+          url: req.body?.videoUrl,
+          fieldName: 'videoUrl',
+        },
+        {
+          url: req.body?.previewUrl,
+          fieldName: 'previewUrl',
+        },
+        {
+          url: req.body?.thumbnailUrl,
+          fieldName: 'thumbnailUrl',
+        },
+      ];
+      // Удаляем временные медиа файлы
+      const result = await temporaryMediaService.removeMany(
+        currentUserId,
+        media
+      );
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -122,8 +266,14 @@ const videoController = {
    */
   deleteUploadedPreview: async (req, res, next) => {
     try {
-      await videoService.deleteUploadedPreview(req.body);
-      res.status(200).json({ success: true });
+      const currentUserId = parseInt(req.user?.id);
+      const result = await temporaryMediaService.removeMany(currentUserId, [
+        {
+          url: req.body?.previewUrl,
+          fieldName: 'previewUrl',
+        },
+      ]);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -134,74 +284,14 @@ const videoController = {
    */
   deleteUploadedThumbnail: async (req, res, next) => {
     try {
-      await videoService.deleteUploadedThumbnail(req.body);
-      res.status(200).json({ success: true });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка видео файла
-   */
-  uploadVideo: async (req, res, next) => {
-    try {
-      if (!req.file)
-        return res
-          .status(400)
-          .json({ error: 'Видеофайл не предоставлен', code: 'NO_FILE' });
-
-      const videoPath = req.file.path;
-
-      const videoMetadata = await mediaService.getMetadata(videoPath);
-
-      const previewPath = await videoPreviewService.generatePreview(
-        videoPath,
-        videoMetadata.duration
-      );
-
-      const thumbnailPath = await videoPreviewService.generateThumbnail(
-        videoPath,
-        videoMetadata.duration
-      );
-
-      res.status(200).json({
-        videoUrl: toPublicUrl(videoPath),
-        previewUrl: toPublicUrl(previewPath),
-        thumbnailUrl: toPublicUrl(thumbnailPath),
-        duration: videoMetadata.duration,
-        size: videoMetadata.size,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка обложки видео
-   */
-  uploadThumbnail: async (req, res, next) => {
-    try {
-      if (!req.file)
-        return res
-          .status(400)
-          .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ thumbnailUrl: toPublicUrl(req.file.path) });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка превью видео
-   */
-  uploadPreview: async (req, res, next) => {
-    try {
-      if (!req.file)
-        return res
-          .status(400)
-          .json({ error: 'Файл превью не предоставлен', code: 'NO_FILE' });
-      res.status(200).json({ previewUrl: toPublicUrl(req.file.path) });
+      const currentUserId = parseInt(req.user?.id);
+      const result = await temporaryMediaService.removeMany(currentUserId, [
+        {
+          url: req.body?.thumbnailUrl,
+          fieldName: 'thumbnailUrl',
+        },
+      ]);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

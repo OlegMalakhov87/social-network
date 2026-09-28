@@ -13,3 +13,9 @@
   height: 1px;
   pointer-events: none;
 }
+
+@media (max-width: 576px) {
+  .newsList {
+    gap: var(--space-3);
+  }
+}

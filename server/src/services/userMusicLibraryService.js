@@ -20,18 +20,19 @@ const SORT_MAP = {
 const userMusicLibraryService = {
   /**
    * Получить мою библиотеку треков
-   * @param {number} currentUserId - ID пользователя
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество треков на странице
-   * @param {string} sortKey - Ключ сортировки
+   * @param {Object} params - Параметры запроса
+   * @param {number} params.currentUserId - ID пользователя
+   * @param {number} params.page - Номер страницы
+   * @param {number} params.limit - Количество треков на странице
+   * @param {string} params.sortKey - Ключ сортировки
    * @returns {Promise<Object>}
    */
-  async getMyMusicLibrary(
+  async getMyMusicLibrary({
     currentUserId,
     page = 1,
     limit = 30,
-    sortKey = 'dateDesc'
-  ) {
+    sortKey = 'dateDesc',
+  } = {}) {
     // Ищем все записи в библиотеке
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
@@ -82,6 +83,7 @@ const userMusicLibraryService = {
     // Форматируем ответ, объединяя данные библиотеки и трека и добавляя количество комментариев и лайков
     const tracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
+
       return {
         ...trackData,
         isInLibrary: true,
@@ -108,21 +110,24 @@ const userMusicLibraryService = {
 
   /**
    * Получить библиотеку треков конкретного пользователя
-   * @param {number} profileUserId - ID пользователя, библиотеку которого запрашивают
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество треков на странице
-   * @param {string} sortKey - Ключ сортировки
+   * @param {Object} params - Параметры запроса
+   * @param {number} params.profileUserId - ID пользователя, библиотеку которого запрашивают
+   * @param {number} params.currentUserId - ID текущего пользователя
+   * @param {number} params.page - Номер страницы
+   * @param {number} params.limit - Количество треков на странице
+   * @param {string} params.sortKey - Ключ сортировки
    * @returns {Promise<Object>}
    */
-  async getUserMusicLibrary(
+  async getUserMusicLibrary({
     profileUserId,
     currentUserId,
     page = 1,
     limit = 30,
-    sortKey = 'dateDesc'
-  ) {
+    sortKey = 'dateDesc',
+  } = {}) {
+    // Инициализируем переменную для хранения информации о дружбе
     let isFriend = false;
+    // Проверяем, являются ли пользователи друзьями
     if (currentUserId && currentUserId !== profileUserId) {
       const friendship = await Friend.findOne({
         where: {
@@ -140,16 +145,19 @@ const userMusicLibraryService = {
           ],
         },
       });
+      // Устанавливаем информацию о дружбе
       isFriend = !!friendship;
     }
 
     // Формируем условие приватности для треков
     const trackWhere = {};
+    // Если текущий пользователь не просматривает свой профиль, то добавляем условие приватности
     if (currentUserId !== profileUserId) {
       trackWhere[Op.or] = [{ isPublic: true }];
       if (isFriend) trackWhere[Op.or].push({ isPublic: false });
     }
 
+    // Получаем библиотеку треков
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
         where: { userId: profileUserId },
@@ -198,25 +206,26 @@ const userMusicLibraryService = {
         distinct: true,
       });
 
-    // Создаем Map для быстрого поиска треков в библиотеке текущего пользователя
+    // Создаем Map для быстрого поиска треков в библиотеке текущего пользователя для оптимизации запросов
     let currentUserLibraryMap = new Map();
     if (
       currentUserId &&
       currentUserId !== profileUserId &&
       libraryEntries.length > 0
     ) {
+      // Получаем ID треков из библиотеки просматриваемого профиля
       const trackIds = libraryEntries.map((entry) => entry.trackId);
+      // Получаем записи в библиотеке текущего пользователя для треков из библиотеки просматриваемого профиля
       const myEntries = await UserMusicLibrary.findAll({
         where: { userId: currentUserId, trackId: { [Op.in]: trackIds } },
         attributes: ['trackId', 'id'],
         raw: true,
       });
-      myEntries.forEach((entry) => {
-        currentUserLibraryMap.set(entry.trackId, entry.id);
-      });
+      // Создаем Map для быстрого поиска треков в библиотеке текущего пользователя
+      currentUserLibraryMap = new Map(myEntries.map((e) => [e.trackId, e.id]));
     }
 
-    // Форматируем ответ
+    // Форматируем ответ, объединяя данные библиотеки и трека и добавляя количество комментариев и лайков
     const formattedTracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
       const myLibraryId = currentUserLibraryMap.get(entry.trackId);
@@ -243,12 +252,6 @@ const userMusicLibraryService = {
         totalPages: Math.ceil(count / limit),
         currentPage: page,
         hasMore: page * limit < count,
-      },
-      meta: {
-        profileUserId: profileUserId,
-        currentUserId: currentUserId || null,
-        isOwnProfile: currentUserId === profileUserId,
-        isFriend,
       },
     };
   },
@@ -341,6 +344,7 @@ const userMusicLibraryService = {
     // Находим запись в библиотеке
     const libraryItem = await UserMusicLibrary.findByPk(libraryId);
 
+    // Если запись не найдена, выбрасываем ошибку
     if (!libraryItem) {
       throw createError(
         'Запись в библиотеке не найдена',
@@ -348,27 +352,26 @@ const userMusicLibraryService = {
         'LIBRARY_ITEM_NOT_FOUND'
       );
     }
-
-    const result = await sequelize.transaction(async (transaction) => {
-      // Увеличиваем счетчик в библиотеке
+    // Атомарно увеличиваем счётчик прослушиваний трека в библиотеке и глобальный счётчик прослушиваний трека
+    const updatedItem = await sequelize.transaction(async (transaction) => {
+      // Увеличиваем счётчик в библиотеке
       await UserMusicLibrary.update(
         { playsCount: sequelize.literal('"playsCount" + 1') },
         { where: { id: libraryId }, transaction }
       );
-    });
 
-    // Попутно увеличиваем глобальный счетчик прослушиваний трека
-    await Music.increment('playsCount', {
-      by: 1,
-      where: { id: libraryItem.trackId },
-      transaction,
-    });
+      // Увеличиваем глобальный счётчик
+      await Music.increment('playsCount', {
+        by: 1,
+        where: { id: libraryItem.trackId },
+        transaction,
+      });
 
-    // Получаем обновленные значения
-    const updatedItem = await UserMusicLibrary.findOne({
-      where: { id: libraryId },
-      attributes: ['playsCount'],
-      transaction,
+      // Возвращаем обновлённую запись
+      return UserMusicLibrary.findByPk(libraryId, {
+        attributes: ['playsCount'],
+        transaction,
+      });
     });
 
     return { libraryId, playsCount: updatedItem.playsCount };

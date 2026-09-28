@@ -7,6 +7,7 @@ import {
   useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../../../entities/auth';
 import {
   clearPlayer,
   nextTrack,
@@ -29,7 +30,13 @@ const AudioPlayerContext = createContext(null);
  * @returns {Object} методы и текущее состояние плеера
  * @throws {Error} если используется вне AudioPlayerProvider
  */
-export const useAudioPlayer = () => useContext(AudioPlayerContext);
+export const useAudioPlayer = () => {
+  const context = useContext(AudioPlayerContext);
+  if (!context) {
+    throw new Error('useAudioPlayer must be used within AudioPlayerProvider');
+  }
+  return context;
+};
 
 /**
  * Провайдер аудиоплеера. Создаёт скрытый аудио-элемент, синхронизирует
@@ -46,6 +53,7 @@ export const AudioPlayerProvider = ({ children }) => {
   const repeatRef = useRef('off');
   const currentTrackRef = useRef(null);
   const mediaControlsRef = useRef(null);
+  const wasAuthenticatedRef = useRef(false);
 
   const {
     currentTrack,
@@ -57,15 +65,22 @@ export const AudioPlayerProvider = ({ children }) => {
     volume,
     isMuted,
   } = useSelector((state) => state.audioPlayer);
+  /** Проверка авторизации */
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
+  /** Режим повтора */
   repeatRef.current = repeat;
+
+  /** Текущий трек */
   currentTrackRef.current = currentTrack;
 
+  /** Обработчик изменения состояния плеера */
   const stateChangeHandler = useCallback(
     (state) => dispatch(updatePlayerState(state)),
     [dispatch]
   );
 
+  /** Контролы медиа элемента */
   const mediaControls = useMediaControls({
     mediaRef: audioRef,
     stateVolume: volume,
@@ -106,48 +121,82 @@ export const AudioPlayerProvider = ({ children }) => {
     isMediaReady,
   } = mediaControls;
 
+  /** Воспроизведение трека */
   useEffect(() => {
-    if (!isMediaReady || !currentTrack?.fileUrl) return;
+    if (!isMediaReady || !currentTrack?.audioUrl) return;
     if (prevTrackId.current === currentTrack.id) return;
 
     prevTrackId.current = currentTrack.id;
     trackStartedRef.current = false;
-    dispatch(updatePlayerState({ error: null }));
-    if (!setSource(currentTrack.fileUrl)) return;
+    dispatch(
+      updatePlayerState({
+        error: null,
+        currentTime: 0,
+        duration: 0,
+        progress: 0,
+        isLoading: true,
+      })
+    );
+
+    if (!setSource(currentTrack.audioUrl)) return;
+
     playOnMedia();
   }, [currentTrack, isMediaReady, dispatch, setSource, playOnMedia]);
 
+  /** Очистка плеера */
   useEffect(() => {
     if (currentTrack) return;
     clearSource();
     trackStartedRef.current = false;
     prevTrackId.current = null;
-  }, [currentTrack, clearSource]);
+    dispatch(updatePlayerState({ currentTime: 0, duration: 0, progress: 0 }));
+  }, [currentTrack, clearSource, dispatch]);
 
+  // При выходе из аккаунта гарантированно останавливаем и закрываем плеер.
+  useEffect(() => {
+    if (wasAuthenticatedRef.current && !isAuthenticated) {
+      clearSource();
+      dispatch(clearPlayer());
+      onTrackStartCallbackRef.current = null;
+      trackStartedRef.current = false;
+      prevTrackId.current = null;
+    }
+
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, clearSource, dispatch]);
+
+  /** Воспроизведение трека */
   const playTrack = useCallback(
     (track, trackList) => {
-      if (!track?.fileUrl) return;
+      if (!track?.audioUrl) return;
+
       const list =
         Array.isArray(trackList) && trackList.length ? trackList : [track];
+
       const idx = list.findIndex((t) => t.id === track.id);
+
       dispatch(setQueue({ queue: list, currentIndex: idx >= 0 ? idx : 0 }));
     },
     [dispatch]
   );
 
+  /** Воспроизведение трека */
   const play = useCallback(() => {
-    if (!currentTrack?.fileUrl) return;
+    if (!currentTrack?.audioUrl) return;
     mediaPlay();
   }, [currentTrack, mediaPlay]);
 
+  /** Пауза воспроизведения */
   const pause = useCallback(() => {
     mediaPause();
   }, [mediaPause]);
 
+  /** Установка колбэка при начале воспроизведения */
   const setOnTrackStart = useCallback((fn) => {
     onTrackStartCallbackRef.current = fn;
   }, []);
 
+  /** Значение контекста */
   const value = useMemo(
     () => ({
       pause,

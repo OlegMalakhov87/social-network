@@ -3,6 +3,7 @@
   border: 1px solid var(--border-primary);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
+  max-width: 100%;
   color: var(--text-secondary);
   cursor: pointer;
   transition:
@@ -11,6 +12,8 @@
     border-color var(--transition-fast),
     transform var(--transition-fast);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .filterButton:hover {
@@ -40,4 +43,11 @@
 
 .active:hover {
   border-color: var(--border-focus);
+}
+
+@media (max-width: 576px) {
+  .filterButton {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-xs);
+  }
 }

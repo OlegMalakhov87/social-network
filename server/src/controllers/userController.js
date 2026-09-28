@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const temporaryMediaService = require('../services/temporaryMediaService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 
 const userController = {
@@ -32,6 +33,36 @@ const userController = {
   },
 
   /**
+   * Загрузка аватара пользователя
+   */
+  uploadAvatar: async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
+      }
+
+      const currentUserId = parseInt(req.user?.id);
+      const avatarUrl = toPublicUrl(req.file.path);
+
+      // Регистрируем временный медиафай
+      await temporaryMediaService.registerMany([
+        {
+          userId: currentUserId,
+          url: avatarUrl,
+          mediaType: 'image',
+          fieldName: 'avatarUrl',
+        },
+      ]);
+
+      res.status(200).json({ avatarUrl });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Обновление пользователя
    */
   updateUser: async (req, res, next) => {
@@ -52,25 +83,6 @@ const userController = {
       const currentUserId = parseInt(req.user?.id);
       const result = await userService.updatePrivacy(currentUserId, req.body);
       res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Загрузка аватара пользователя
-   */
-  uploadAvatar: async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
-      }
-
-      const avatarUrl = req.file.path;
-
-      res.status(200).json({ avatarUrl: toPublicUrl(avatarUrl) });
     } catch (error) {
       next(error);
     }
@@ -112,8 +124,14 @@ const userController = {
    */
   deleteUploadedAvatar: async (req, res, next) => {
     try {
-      await userService.deleteUploadedAvatar(req.body);
-      res.status(200).json({ success: true });
+      const currentUserId = parseInt(req.user?.id);
+      const result = await temporaryMediaService.removeMany(currentUserId, [
+        {
+          url: req.body?.avatarUrl,
+          fieldName: 'avatarUrl',
+        },
+      ]);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

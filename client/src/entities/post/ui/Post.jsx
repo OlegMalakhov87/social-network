@@ -11,6 +11,7 @@ import {
   EntityHeader,
   EntityMeta,
   MediaPreview,
+  RichText,
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
@@ -116,12 +117,23 @@ export const Post = ({
               />
             )}
             <Text
+              variant="body1"
               linkify={true}
-              variant="h4"
-              className={classNames(styles.text, expanded && styles.expanded)}
+              className={classNames(
+                styles.textPreview,
+                expanded && styles.hiddenPreview
+              )}
             >
               {post.text}
             </Text>
+            {expanded && (
+              <RichText
+                text={post.text}
+                variant="body1"
+                linkify={true}
+                className={styles.textExpanded}
+              />
+            )}
             {post.text && post.text.length > 75 && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}

@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const mediaCleanupService = require('../src/services/mediaCleanupService');
+const temporaryMediaService = require('../src/services/temporaryMediaService');
 
 /**
  * Запускает периодическую очистку orphan-медиафайлов.
@@ -18,6 +19,9 @@ const startMediaCleanupJob = () => {
     }
     isRunning = true;
     try {
+      await temporaryMediaService.cleanupExpired();
+      console.log(`Очистка временных записей завершена`);
+
       await mediaCleanupService.cleanup();
       console.log('Очистка медиа завершена');
     } catch (error) {

@@ -19,9 +19,9 @@
   max-width: var(--container-width);
   min-height: 100vh;
   margin: 0 auto;
-  gap: 2px;
+  gap: var(--space-1);
   align-items: start;
-  grid-template-columns: 200px 1fr 250px;
+  grid-template-columns: 190px 1fr 230px;
   grid-template-rows: auto auto auto;
   grid-template-areas:
     'h h h'
@@ -57,6 +57,7 @@
   grid-area: m;
   background-color: var(--surface-page);
   padding: var(--space-2);
+  min-width: 0;
 }
 
 .info {
@@ -64,6 +65,7 @@
   background-color: var(--surface-secondary);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: var(--space-2);
+  min-width: 0;
 }
 
 .footer {
@@ -80,7 +82,7 @@
       ======================================================= */
 @media screen and (max-width: 1024px) {
   .app_wrapper {
-    grid-template-columns: 180px 1fr 220px;
+    grid-template-columns: 168px 1fr 208px;
   }
 }
 
@@ -104,7 +106,7 @@
   }
 
   .main {
-    padding: var(--space-4);
+    padding: var(--space-3);
   }
 }
 
@@ -119,11 +121,11 @@
   }
 
   .main {
-    padding: var(--space-3);
+    padding: var(--space-2);
   }
 
   .info {
-    padding: var(--space-3);
+    padding: var(--space-2);
   }
 
   .footer {

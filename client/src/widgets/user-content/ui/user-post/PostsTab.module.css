@@ -13,3 +13,9 @@
   height: 1px;
   pointer-events: none;
 }
+
+@media (max-width: 576px) {
+  .postsList {
+    gap: var(--space-3);
+  }
+}

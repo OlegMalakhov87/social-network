@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { getVideoStats } from '../../../entities/video';
-import { EntityStats, IconButton, Modal, Text } from '../../../shared/ui';
+import { EntityStats, IconButton, Modal, RichText } from '../../../shared/ui';
 import { useAudioPlayer } from '../../audio-player';
 import style from './VideoPlayer.module.css';
 
@@ -14,31 +14,41 @@ import style from './VideoPlayer.module.css';
  */
 export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
   const { pause, play, isPlaying } = useAudioPlayer();
-  const wasAudioPlaying = useRef(false);
+  const shouldResumeAudioRef = useRef(isPlaying);
   const playStartedRef = useRef(false);
   const videoRef = useRef(null);
 
+  /** Пауза трека при открытии видео + возобновление только при закрытии модалки. */
   useEffect(() => {
-    wasAudioPlaying.current = isPlaying;
-    if (isPlaying) pause?.();
+    const shouldResumeAudio = shouldResumeAudioRef.current;
+
+    if (shouldResumeAudio) {
+      pause?.();
+    }
 
     return () => {
-      if (wasAudioPlaying.current) play?.();
+      if (shouldResumeAudio) {
+        play?.();
+      }
     };
-  }, [pause, play, isPlaying]);
+  }, [pause, play]);
 
+  /** Обработчик начала воспроизведения видео */
   useEffect(() => {
     playStartedRef.current = false;
   }, [video?.id]);
 
+  /** Обработчик воспроизведения видео */
   const handleVideoPlay = useCallback(() => {
     if (playStartedRef.current || !video?.id) return;
     playStartedRef.current = true;
     onPlayStart?.(video);
   }, [video, onPlayStart]);
 
+  /** URL видео */
   const videoUrl = video?.videoUrl || video?.postUrl || video?.newsUrl;
 
+  /** Если видео не найдено, отображается модальное окно с сообщением о недоступности видео */
   if (!videoUrl) {
     return (
       <Modal isOpen={true} onClose={onClose} title="Видео недоступно">
@@ -59,7 +69,13 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
   const statsItems = getVideoStats(video);
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={video.title} size="lg">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={video.title}
+      size="lg"
+      contentClassName={style.modalContent}
+    >
       <div className={style.player}>
         <video
           ref={videoRef}
@@ -71,10 +87,15 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
         />
       </div>
 
-      <section>
+      <section className={style.meta}>
         <EntityStats items={statsItems} />
 
-        <Text>{video.description || 'Описание отсутствует'}</Text>
+        <RichText
+          text={video.description}
+          variant="body1"
+          className={style.description}
+          emptyText="Описание отсутствует"
+        />
       </section>
     </Modal>
   );

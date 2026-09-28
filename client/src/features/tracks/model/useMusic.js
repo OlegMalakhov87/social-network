@@ -37,11 +37,13 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
 
+  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [filter, searchQuery, sortKey, currentUserId],
     [filter, searchQuery, sortKey, currentUserId]
   );
 
+  /** Получение общей ленты треков с бесконечным скроллом */
   const {
     items: tracksItems,
     setItems: setTracksItems,
@@ -109,9 +111,7 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
   });
 
   /** Оптимистическое управление счётчиком комментариев треков */
-  const updateCommentsCount = useOptimisticCommentCount({
-    setItems: setTracksItems,
-  });
+  const updateCommentsCount = useOptimisticCommentCount(setTracksItems);
 
   /** Нормализация треков */
   const normalizeTracksFn = useCallback(

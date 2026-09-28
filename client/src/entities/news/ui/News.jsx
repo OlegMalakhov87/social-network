@@ -11,6 +11,7 @@ import {
   EntityHeader,
   EntityMeta,
   MediaPreview,
+  RichText,
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
@@ -119,12 +120,23 @@ export const News = ({
         content={
           <EntityContent>
             <Text
-              linkify={true}
               variant="body1"
-              className={classNames(styles.text, expanded && styles.expanded)}
+              linkify={true}
+              className={classNames(
+                styles.textPreview,
+                expanded && styles.hiddenPreview
+              )}
             >
               {news.text}
             </Text>
+            {expanded && (
+              <RichText
+                text={news.text}
+                variant="body1"
+                linkify={true}
+                className={styles.textExpanded}
+              />
+            )}
 
             {news.text && news.text.length > 75 && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>

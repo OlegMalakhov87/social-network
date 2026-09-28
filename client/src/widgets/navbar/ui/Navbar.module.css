@@ -1,8 +1,8 @@
 .navbar {
   height: 100%;
-  background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
-  border-radius: 8px 0 0 8px;
-  padding: 24px 0;
+  background: var(--surface-nav);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: var(--space-5) 0;
   overflow-y: auto;
 }
 
@@ -12,7 +12,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .navItem {
@@ -22,27 +22,27 @@
 .navLink {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: #e2e8f0;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-on-nav);
   text-decoration: none;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   transition: all 0.2s ease;
   border-left: 4px solid transparent;
   white-space: nowrap;
 }
 
 .navLink:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-left-color: #667eea;
+  background: var(--surface-nav-hover);
+  color: var(--text-on-nav);
+  border-left-color: var(--color-primary);
 }
 
 .navLink.active {
-  background: rgba(102, 126, 234, 0.15);
-  color: white;
-  border-left-color: #667eea;
+  background: var(--surface-nav-active);
+  color: var(--text-on-nav);
+  border-left-color: var(--color-primary);
 }
 
 .navIcon {
@@ -58,8 +58,8 @@
 /* Адаптивность для планшета */
 @media screen and (max-width: 1024px) {
   .navLink {
-    padding: 10px 16px;
-    gap: 8px;
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
     font-size: 14px;
   }
 
@@ -72,8 +72,8 @@
 /* Адаптивность для мобильных (когда навбар сверху) */
 @media screen and (max-width: 768px) {
   .navbar {
-    border-radius: 8px;
-    padding: 12px 0;
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) 0;
   }
 
   .navList {
@@ -88,21 +88,21 @@
   }
 
   .navLink {
-    padding: 8px 16px;
+    padding: var(--space-2) var(--space-4);
     border-left: none;
     border-bottom: 3px solid transparent;
-    border-radius: 8px;
-    gap: 6px;
+    border-radius: var(--radius-sm);
+    gap: var(--space-2);
   }
 
   .navLink:hover {
     border-left-color: transparent;
-    border-bottom-color: #667eea;
+    border-bottom-color: var(--color-primary);
   }
 
   .navLink.active {
     border-left-color: transparent;
-    border-bottom-color: #667eea;
+    border-bottom-color: var(--color-primary);
   }
 
   .navIcon {
@@ -155,7 +155,7 @@
 /* Скрываем текст, показываем только иконки при наведении (опционально) */
 .navLink:hover .navLabel,
 .navLink.active .navLabel {
-  color: white;
+  color: var(--text-on-nav);
 }
 
 /* Кастомный скролл для навбара */
@@ -169,7 +169,7 @@
 
 .navbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .navbar::-webkit-scrollbar-thumb:hover {

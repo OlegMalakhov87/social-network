@@ -18,8 +18,8 @@ export const CommentSchema = z.object({
   author: UserSchema.pick({ id: true, name: true, avatarUrl: true }).optional(),
 
   likes: z.array(LikeSchema.pick({ id: true, userId: true })).optional(),
-  likesCount: z.number().default(0),
-  isLiked: z.boolean().default(false),
+  likesCount: z.number().optional(),
+  isLiked: z.boolean().optional(),
 });
 
 /**

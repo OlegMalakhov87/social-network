@@ -5,17 +5,23 @@
     document.documentElement.setAttribute('data-theme', 'light')
    ======================================================= */
 
-html[data-theme='light'] {
+:root[data-theme='light'],
+html[data-theme='light'],
+body[data-theme='light'] {
   --surface-page: #f5f7fa;
   --surface-card: #ffffff;
   --surface-card-hover: #f9fafb;
   --surface-secondary: #f3f4f6;
-  --surface-nav: #2d3748;
+  --surface-nav: #eef2ff;
 
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
   --text-disabled: #c4c7cc;
+  --text-on-nav: #1f2937;
+  --text-on-nav-muted: #4b5563;
+  --surface-nav-hover: rgba(31, 41, 55, 0.08);
+  --surface-nav-active: rgba(102, 126, 234, 0.2);
 
   --border-primary: #d1d5db;
   --border-secondary: #e5e7eb;
@@ -32,7 +38,9 @@ html[data-theme='light'] {
     document.documentElement.setAttribute('data-theme', 'dark')
    ======================================================= */
 
-html[data-theme='dark'] {
+:root[data-theme='dark'],
+html[data-theme='dark'],
+body[data-theme='dark'] {
   --surface-page: #18181b;
   --surface-card: #27272a;
   --surface-card-hover: #323238;
@@ -43,6 +51,10 @@ html[data-theme='dark'] {
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   --text-disabled: #52525b;
+  --text-on-nav: #e2e8f0;
+  --text-on-nav-muted: #a0aec0;
+  --surface-nav-hover: rgba(255, 255, 255, 0.1);
+  --surface-nav-active: rgba(102, 126, 234, 0.15);
 
   --border-primary: #3f3f46;
   --border-secondary: #52525b;

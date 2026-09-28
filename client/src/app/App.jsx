@@ -27,6 +27,12 @@ import { Sidebar } from '../widgets/sidebar';
 import { LoginForm, RegisterForm } from '../features/auth';
 
 // Shared
+import {
+  applyThemePreference,
+  DARK_MEDIA_QUERY,
+  getStoredThemePreference,
+  SYSTEM_THEME,
+} from '../shared/lib';
 import { PageLoader, ToastProvider } from '../shared/ui';
 
 // Redux
@@ -106,17 +112,32 @@ const App = () => {
   const isAuthReady = useSelector(selectIsAuthReady);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia(DARK_MEDIA_QUERY);
 
-    const appliedTheme =
-      savedTheme === 'system'
-        ? mediaQuery.matches
-          ? 'dark'
-          : 'light'
-        : savedTheme;
+    const applyStoredTheme = () => {
+      applyThemePreference(getStoredThemePreference(), mediaQuery);
+    };
 
-    document.documentElement.setAttribute('data-theme', appliedTheme);
+    const handleSystemThemeChange = () => {
+      if (getStoredThemePreference() === SYSTEM_THEME) {
+        applyStoredTheme();
+      }
+    };
+
+    const handleStorageChange = (event) => {
+      if (event.key === 'theme') {
+        applyStoredTheme();
+      }
+    };
+
+    applyStoredTheme();
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   useEffect(() => {

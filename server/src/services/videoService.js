@@ -9,6 +9,7 @@ const {
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
+const temporaryMediaService = require('./temporaryMediaService');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -26,6 +27,8 @@ const VIDEO_FIELDS = [
   'thumbnailUrl',
   'previewUrl',
   'category',
+  'duration',
+  'size',
   'isPublic',
 ];
 
@@ -63,6 +66,7 @@ const videoService = {
       ];
     }
 
+    // Получаем видео с автором, лайками и комментариями
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
       { model: Like, as: 'likes', attributes: ['id', 'userId'] },
@@ -93,6 +97,7 @@ const videoService = {
       });
     }
 
+    // Получаем видео с автором, лайками и комментариями
     const { count, rows: videos } = await Video.findAndCountAll({
       where,
       include: includes,
@@ -102,6 +107,7 @@ const videoService = {
       distinct: true,
     });
 
+    // Форматируем видео
     const formattedVideos = videos.map((video) => {
       const videoData = video.toJSON();
       const libraryEntry = videoData.libraryItems?.[0];
@@ -135,6 +141,26 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async createVideo(currentUserId, videoData) {
+    // Определяем новые медиа файлы
+    const media = [
+      {
+        url: videoData.videoUrl,
+        fieldName: 'videoUrl',
+      },
+      {
+        url: videoData.previewUrl,
+        fieldName: 'previewUrl',
+      },
+      {
+        url: videoData.thumbnailUrl,
+        fieldName: 'thumbnailUrl',
+      },
+    ];
+
+    // Проверяем владение новыми медиа файлами
+    await temporaryMediaService.assertOwnershipMany(currentUserId, media);
+
+    // Формируем данные для создания видео
     const dbData = {
       title: videoData.title,
       description: videoData.description,
@@ -145,16 +171,26 @@ const videoService = {
       isPublic: videoData.isPublic,
       duration: videoData.duration,
       size: videoData.size,
-
       uploadedBy: currentUserId,
       year: new Date().getFullYear(),
       viewsCount: 0,
     };
 
+    // Создаем видео в базе данных
     const video = await Video.create(dbData);
 
+    // Фиксируем новые медиа файлы
+    try {
+      await temporaryMediaService.commitMany(currentUserId, media);
+    } catch (error) {
+      console.warn(
+        `Не удалось зафиксировать временные медиа видео ${video.id}:`,
+        error.message
+      );
+    }
+
     // Автоматически добавляем в библиотеку создателя
-    await UserVideoLibrary.create({
+    const libraryItem = await UserVideoLibrary.create({
       userId: currentUserId,
       videoId: video.id,
       isFavorite: true,
@@ -162,7 +198,13 @@ const videoService = {
       lastWatchedAt: null,
     });
 
-    return { video: video.toJSON() };
+    return {
+      video: {
+        ...video.toJSON(),
+        isInLibrary: true,
+        libraryId: libraryItem.id,
+      },
+    };
   },
 
   /**
@@ -172,15 +214,18 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateVideoPrivacy(currentUserId, { isPublic }) {
+    // Обновляем приватность видео
     const [affectedCount] = await Video.update(
       { isPublic },
       { where: { uploadedBy: currentUserId } }
     );
 
+    // Проверяем, найдены ли видео
     if (affectedCount === 0) {
       throw createError('Видео не найдены', 404, 'VIDEOS_NOT_FOUND');
     }
 
+    // Возвращаем результат
     return {
       message: `Приватность видео успешно обновлена: ${affectedCount}`,
     };
@@ -194,9 +239,13 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateVideo(videoId, currentUserId, updateData) {
+    // Получаем видео
     const video = await Video.findByPk(videoId);
+
+    // Проверяем, найдено ли видео
     if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
 
+    // Проверяем, является ли текущий пользователь автором видео
     if (video.uploadedBy !== currentUserId)
       throw createError(
         'Вы не можете редактировать это видео',
@@ -211,41 +260,72 @@ const videoService = {
       )
     );
 
-    const [, updatedRows] = await Video.update(dbUpdates, {
-      where: { id: videoId },
-      returning: true,
-      plain: true,
+    // Проверяем, есть ли данные для обновления
+    if (Object.keys(dbUpdates).length === 0) {
+      throw createError(
+        'Нет данных для обновления',
+        400,
+        'NO_FIELDS_TO_UPDATE'
+      );
+    }
+
+    // Сравниваем новые и старые URL и получаем тольконовые URL
+    const newTemporaryMedia = [
+      {
+        url: dbUpdates.videoUrl,
+        fieldName: 'videoUrl',
+      },
+      {
+        url: dbUpdates.previewUrl,
+        fieldName: 'previewUrl',
+      },
+      {
+        url: dbUpdates.thumbnailUrl,
+        fieldName: 'thumbnailUrl',
+      },
+    ].filter(({ url, fieldName }) => {
+      return url && url !== video[fieldName];
     });
 
-    const oldMedia = [video.videoUrl, video.thumbnailUrl, video.previewUrl];
+    // Проверяем владение новыми медиа файлами
+    await temporaryMediaService.assertOwnershipMany(
+      currentUserId,
+      newTemporaryMedia
+    );
 
-    const newMedia = [
-      updatedRows.videoUrl,
-      updatedRows.thumbnailUrl,
-      updatedRows.previewUrl,
-    ];
+    // Обновляем видео в базе данных
+    let updatedVideo;
 
-    // Логика очистки старого видео файла
-    for (const oldUrl of oldMedia) {
-      if (!oldUrl || newMedia.includes(oldUrl)) {
-        continue;
-      }
-
-      const filePath = fromPublicUrl(oldUrl);
-
+    try {
+      updatedVideo = await video.update(dbUpdates);
+    } catch (error) {
+      // Если обновление видео не удалось, то удаляем новые медиа файлы
       try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
+        await temporaryMediaService.removeMany(
+          currentUserId,
+          newTemporaryMedia
+        );
+      } catch (cleanupError) {
+        if (cleanupError.code !== 'ENOENT') {
           console.warn(
-            `Не удалось удалить старое медиа видео ${oldUrl}:`,
-            error.message
+            `Не удалось удалить временные файлы для видео ${video.id}:`,
+            cleanupError.message
           );
         }
       }
+      throw createError('Не удалось обновить видео', 500, 'UPDATE_FAILED');
     }
 
-    return { video: updatedRows.toJSON() };
+    // Фиксируем новые медиа файлы
+    try {
+      await temporaryMediaService.commitMany(currentUserId, newTemporaryMedia);
+    } catch (error) {
+      console.warn(
+        `Не удалось зафиксировать временные медиа видео ${video.id}:`,
+        error.message
+      );
+    }
+    return { video: updatedVideo.toJSON() };
   },
 
   /**
@@ -254,6 +334,7 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async incrementViewsCount(videoId) {
+    // Инкрементируем счетчик просмотров видео
     await Video.increment('viewsCount', {
       by: 1,
       where: { id: videoId },
@@ -269,10 +350,12 @@ const videoService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async deleteVideo(videoId, currentUserId) {
+    // Получаем видео
     const video = await Video.findOne({
       where: { id: videoId, uploadedBy: currentUserId },
     });
 
+    // Проверяем, найдено ли видео
     if (!video) {
       throw createError(
         'Видео не найдено или нет прав на удаление',
@@ -281,88 +364,10 @@ const videoService = {
       );
     }
 
-    const oldMedia = [video.videoUrl, video.thumbnailUrl, video.previewUrl];
-
+    // Удаляем видео (медиа файлы автоматически удалит cleanup() из mediaCleanupService по рассписанию)
     await video.destroy();
 
-    // Логика очистки старого медиа файла
-    for (const url of oldMedia) {
-      if (!url) continue;
-
-      const filePath = fromPublicUrl(url);
-
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить старое медиа видео ${url}:`,
-            error.message
-          );
-        }
-      }
-    }
-    return { message: `Видео успешно удалено: ${videoId}` };
-  },
-
-  /**
-   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять видео
-   * @param {string} videoUrl - URL видео файла
-   * @param {string} previewUrl - URL превью файла
-   * @param {string} thumbnailUrl - URL обложки файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedMedia({ videoUrl, previewUrl, thumbnailUrl }) {
-    const urls = [videoUrl, previewUrl, thumbnailUrl];
-
-    for (const url of urls) {
-      if (!url) continue;
-
-      const filePath = fromPublicUrl(url);
-
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') throw error;
-      }
-    }
-    return { message: 'Загруженные медиа файлы успешно удалены' };
-  },
-
-  /**
-   * Удаление загруженных медиа превью
-   * @param {string} previewUrl - URL превью файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedPreview({ previewUrl }) {
-    if (!previewUrl) return;
-
-    const filePath = fromPublicUrl(previewUrl);
-
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    return { message: 'Загруженные медиа превью успешно удалены' };
-  },
-
-  /**
-   * Удаление загруженных медиа thumbnail
-   * @param {string} thumbnailUrl - URL обложки файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedThumbnail({ thumbnailUrl }) {
-    if (!thumbnailUrl) return;
-
-    const filePath = fromPublicUrl(thumbnailUrl);
-
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    return { message: 'Загруженные медиа thumbnail успешно удалены' };
+    return { message: 'Видео успешно удалено', videoId };
   },
 };
 

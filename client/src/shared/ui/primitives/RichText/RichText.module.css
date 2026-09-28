@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.paragraph {
+  margin: 0;
+  white-space: pre-wrap;
+  text-wrap: pretty;
+  word-break: break-word;
+}
+
+@media (max-width: 576px) {
+  .root {
+    gap: var(--space-2);
+  }
+}

@@ -31,6 +31,8 @@ export const Modal = ({
   closeOnOverlay = true,
   closeOnEscape = true,
   footer,
+  className = '',
+  contentClassName = '',
 }) => {
   const modalRef = useRef(null);
 
@@ -48,7 +50,7 @@ export const Modal = ({
     >
       <div
         ref={modalRef}
-        className={classNames(styles.modal, styles[size])}
+        className={classNames(styles.modal, styles[size], className)}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
@@ -68,7 +70,9 @@ export const Modal = ({
           </header>
         )}
 
-        <div className={styles.content}>{children}</div>
+        <div className={classNames(styles.content, contentClassName)}>
+          {children}
+        </div>
 
         {footer && <footer className={styles.footer}>{footer}</footer>}
       </div>

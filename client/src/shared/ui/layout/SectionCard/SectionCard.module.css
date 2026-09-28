@@ -1,7 +1,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -46,7 +46,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -64,10 +64,6 @@
 }
 
 @media (max-width: 576px) {
-  .section {
-    gap: var(--space-4);
-  }
-
   .header {
     gap: var(--space-3);
   }
@@ -77,7 +73,7 @@
   }
 
   .actions {
-    justify-content: stretch;
+    justify-content: flex-start;
   }
 
   .actions > * {

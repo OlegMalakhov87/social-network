@@ -1,8 +1,10 @@
 .wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-2);
+  min-width: 0;
 }
 
 .fullWidth {
@@ -15,13 +17,20 @@
 }
 
 .select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  padding: var(--space-1);
+  min-height: var(--space-10);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
   background: var(--surface-secondary);
   color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
   transition:
+    background-color var(--transition-fast),
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
@@ -42,11 +51,65 @@
   cursor: not-allowed;
 }
 
+.open {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.valueText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  margin-left: var(--space-2);
+}
+
+.menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + var(--space-1));
+  z-index: var(--z-dropdown);
+  background: var(--surface-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.option {
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.option:hover {
+  background: var(--surface-card-hover);
+}
+
+.optionSelected {
+  background: var(--surface-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
 .error {
   border-color: var(--color-danger);
 }
 
-.error:focus-within {
+.error:focus-visible {
   border-color: var(--color-danger);
   box-shadow: var(--shadow-danger);
 }
@@ -60,4 +123,21 @@
   font-size: var(--font-sm);
   color: var(--text-secondary);
   line-height: 1.5;
+}
+
+@media (max-width: 576px) {
+  .select {
+    min-height: var(--space-9);
+    padding: var(--space-2);
+    font-size: var(--font-sm);
+  }
+
+  .menu {
+    max-height: 180px;
+  }
+
+  .option {
+    padding: var(--space-2);
+    font-size: var(--font-xs);
+  }
 }

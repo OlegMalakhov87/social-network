@@ -142,7 +142,7 @@ export const DialogsPage = () => {
   return (
     <ErrorBoundary>
       <PageLayout title="Сообщения">
-        <div className={style.dialogsContainer}>
+        <div className={style.page}>
           {/* Панель диалогов */}
           <SectionCard
             className={classNames(

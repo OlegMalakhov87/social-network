@@ -62,6 +62,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       title: initialData?.title ?? null,
       artist: initialData?.artist ?? null,
       album: initialData?.album ?? null,
+      duration: initialData?.duration ?? null,
       year: initialData?.year ?? new Date().getFullYear(),
       audioUrl: initialData?.audioUrl ?? null,
       coverUrl: initialData?.coverUrl ?? null,
@@ -156,7 +157,8 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
 
         <FileInput
           accept={TRACK_UPLOAD_CONFIG.accept}
-          label="Аудиофайл *"
+          label="Аудиофайл"
+          required={true}
           buttonText="Выбрать аудиофайл"
           preview={trackUpload.preview}
           isUploading={trackUpload.isUploading}

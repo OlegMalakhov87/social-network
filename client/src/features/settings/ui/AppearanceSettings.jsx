@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SettingsSection, THEME_OPTIONS } from '..';
+import { applyThemePreference, getStoredThemePreference } from '../../../shared/lib';
 import { Alert, SegmentedControl } from '../../../shared/ui';
 import style from './SettingsForm.module.css';
 
@@ -7,35 +8,10 @@ import style from './SettingsForm.module.css';
  * Компонент формы настроек внешнего вида.
  */
 export const AppearanceSettings = () => {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'system';
-  });
+  const [theme, setTheme] = useState(() => getStoredThemePreference());
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const applyTheme = () => {
-      let appliedTheme = theme;
-      if (theme === 'system') {
-        appliedTheme = mediaQuery.matches ? 'dark' : 'light';
-      }
-      document.documentElement.setAttribute('data-theme', appliedTheme);
-      localStorage.setItem('theme', theme);
-    };
-
-    applyTheme();
-
-    const handleChange = () => {
-      if (theme === 'system') {
-        applyTheme();
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
+    applyThemePreference(theme);
   }, [theme]);
 
   return (

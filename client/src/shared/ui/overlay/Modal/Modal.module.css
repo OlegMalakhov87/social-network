@@ -13,6 +13,7 @@
 
 .modal {
   width: 100%;
+  min-width: 0;
   background: var(--surface-card);
   color: var(--text-primary);
   border-radius: var(--radius-xl);
@@ -56,6 +57,7 @@
   padding: var(--space-5);
   overflow-y: auto;
   max-height: 75vh;
+  min-width: 0;
 }
 
 .footer {

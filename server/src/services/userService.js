@@ -3,10 +3,11 @@ const fs = require('fs').promises;
 const { Op } = require('sequelize');
 const { User, Friend } = require('../../db/models');
 const { clients } = require('../websocket');
+const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
-const { toPublicUrl } = require('../utils/toPublicUrl');
 
+/** Поля профиля пользователя, которые можно обновлять. */
 const USER_PROFILE_FIELDS = [
   'name',
   'avatarUrl',
@@ -28,9 +29,11 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async getUserProfileWithFriendshipStatus({ currentUserId, targetUserId }) {
+    // Проверяем, является ли текущий пользователь владельцем профиля
     const isOwner = currentUserId === targetUserId;
 
     let friendship = null;
+    // Если текущий пользователь не является владельцем профиля, то получаем статус дружбы
     if (!isOwner) {
       friendship = await Friend.findOne({
         where: {
@@ -42,12 +45,15 @@ const userService = {
       });
     }
 
+    // Проверяем, является ли текущий пользователь другом
     const isFriend = friendship?.status === 'accepted';
 
+    // Получаем пользователя
     const user = await User.findByPk(targetUserId, {
       attributes: { exclude: ['passwordHash'] },
     });
 
+    // Проверяем, найден ли пользователь
     if (!user) {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
     }
@@ -70,7 +76,7 @@ const userService = {
       delete userData.updatedAt;
     }
 
-    /** Обогащаем пользователя данными о дружбе */
+    // Обогащаем пользователя данными о дружбе
     const enrichedUser = {
       ...userData,
       friendshipId: friendship?.id,
@@ -92,16 +98,19 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async checkOnlineBulk(userIds) {
+    // Проверяем, является ли userIds массивом
     if (!Array.isArray(userIds)) {
       throw createError('Ожидался массив userIds', 400, 'INVALID_PAYLOAD');
     }
 
+    // Нормализуем userIds
     const normalizedIds = [
       ...new Set(
         userIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)
       ),
     ];
 
+    // Возвращаем пользователей с информацией о онлайн статусе
     return {
       users: normalizedIds.map((id) => ({
         userId: id,
@@ -117,11 +126,14 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updateUser(currentUserId, updateData) {
+    // Получаем пользователя
     const user = await User.findByPk(currentUserId, {
       attributes: {
         exclude: ['passwordHash'],
       },
     });
+
+    // Проверяем, найден ли пользователь
     if (!user) {
       throw createError(
         'Пользователь не найден или нет прав на обновление',
@@ -130,13 +142,14 @@ const userService = {
       );
     }
 
-    /** Обновляем только разрешенные поля */
+    // Обновляем только разрешенные поля
     const dbUpdates = Object.fromEntries(
       USER_PROFILE_FIELDS.filter((field) =>
         Object.hasOwn(updateData, field)
       ).map((field) => [field, updateData[field]])
     );
 
+    // Проверяем, есть ли данные для обновления
     if (Object.keys(dbUpdates).length === 0) {
       throw createError(
         'Нет данных для обновления',
@@ -145,30 +158,48 @@ const userService = {
       );
     }
 
-    // Получаем старый и новый аватар.
+    // Получаем старый и новый аватар
     const oldAvatarUrl = user.avatarUrl;
     const newAvatarUrl = dbUpdates.avatarUrl;
 
     let updatedUser;
 
+    // Если есть новый аватар и он отличается от старого, то проверяем владение новым аватаром
+    if (newAvatarUrl && newAvatarUrl !== oldAvatarUrl) {
+      await temporaryMediaService.assertOwnershipMany(currentUserId, [
+        {
+          url: newAvatarUrl,
+          fieldName: 'avatarUrl',
+        },
+      ]);
+    }
+
+    // Обновляем пользователя
     try {
       updatedUser = await user.update(dbUpdates);
     } catch (error) {
+      // Если обновление пользователя не удалось, то удаляем новый аватар
       try {
-        const filePath = fromPublicUrl(newAvatarUrl);
-
-        if (filePath) {
-          await fs.unlink(filePath);
+        if (newAvatarUrl && newAvatarUrl !== oldAvatarUrl) {
+          await temporaryMediaService.removeMany(currentUserId, [
+            currentUserId,
+            {
+              url: newAvatarUrl,
+              fieldName: 'avatarUrl',
+            },
+          ]);
         }
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
+      } catch (cleanupError) {
+        // Если удаление новых медиа файлов не удалось, то логируем ошибку
+        if (cleanupError.code !== 'ENOENT') {
           console.warn(
             `Не удалось удалить новый аватар ${newAvatarUrl}:`,
-            error.message
+            cleanupError.message
           );
         }
       }
 
+      // Если обновление пользователя не удалось, из-за уникальности email или nickname, то выбрасываем ошибку
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw createError(
           'Email или nickname уже используется',
@@ -177,27 +208,32 @@ const userService = {
         );
       }
 
-      throw error;
+      // Если обновление пользователя не удалось, из-за других ошибок, то выбрасываем ошибку
+      throw createError(
+        'Не удалось обновить пользователя',
+        500,
+        'UPDATE_FAILED'
+      );
     }
 
-    // Если аватар действительно изменился — старый файл больше не нужен.
-    if (oldAvatarUrl && oldAvatarUrl !== updatedUser.avatarUrl) {
+    // Если есть новый аватар и он отличается от старого, то фиксируем новый аватар
+    if (newAvatarUrl && newAvatarUrl !== oldAvatarUrl) {
       try {
-        const filePath = fromPublicUrl(oldAvatarUrl);
-
-        if (filePath) {
-          await fs.unlink(filePath);
-        }
+        await temporaryMediaService.commitMany(currentUserId, [
+          {
+            url: newAvatarUrl,
+            fieldName: 'avatarUrl',
+          },
+        ]);
       } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить старый аватар ${oldAvatarUrl}:`,
-            error.message
-          );
-        }
+        console.warn(
+          `Не удалось зафиксировать новый аватар ${newAvatarUrl}:`,
+          error.message
+        );
       }
     }
 
+    // Получаем данные пользователя
     const userData = updatedUser.toJSON();
     delete userData.passwordHash;
 
@@ -211,6 +247,7 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async updatePrivacy(currentUserId, { isPublic }) {
+    // Обновляем приватность пользователя
     const [affectedCount, updatedUser] = await User.update(
       { isPublic },
       {
@@ -220,7 +257,7 @@ const userService = {
       }
     );
 
-    // Если обновление в БД не удалось, выбрасываем ошибку
+    // Если обновление приватности пользователя не удалось, выбрасываем ошибку
     if (affectedCount === 0) {
       throw createError(
         'Не удалось обновить приватность',
@@ -229,6 +266,7 @@ const userService = {
       );
     }
 
+    // Возвращаем результат
     return {
       message: 'Приватность пользователя успешно обновлена',
       isPublic: updatedUser.isPublic,
@@ -243,6 +281,7 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async changePassword(currentUserId, currentPassword, newPassword) {
+    // Проверяем, есть ли текущий и новый пароль
     if (!currentPassword || !newPassword) {
       throw createError(
         'Текущий и новый пароль обязательны',
@@ -251,11 +290,15 @@ const userService = {
       );
     }
 
+    // Получаем пользователя
     const user = await User.findByPk(currentUserId);
+
+    // Проверяем, найден ли пользователь
     if (!user) {
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
     }
 
+    // Проверяем, совпадает ли текущий пароль с паролем пользователя
     const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isMatch) {
       throw createError(
@@ -265,11 +308,14 @@ const userService = {
       );
     }
 
+    // Генерируем соль для нового пароля
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
+    // Обновляем пароль пользователя
     await user.update({ passwordHash });
 
+    // Возвращаем результат
     return { message: 'Пароль успешно обновлен' };
   },
 
@@ -279,8 +325,10 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async deleteUser(currentUserId) {
+    // Получаем пользователя
     const user = await User.findByPk(currentUserId);
 
+    // Проверяем, найден ли пользователь
     if (!user) {
       throw createError(
         'Пользователь не найден или нет прав на удаление',
@@ -289,41 +337,11 @@ const userService = {
       );
     }
 
-    const avatarUrl = user.avatarUrl;
-
+    // Удаляем пользователя
     await user.destroy();
 
-    // Логика очистки аватара пользователя
-    if (avatarUrl) {
-      const filePath = fromPublicUrl(avatarUrl);
-
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(`Не удалось удалить аватар ${filePath}:`, error.message);
-        }
-      }
-    }
+    // Возвращаем результат
     return { message: 'Пользователь успешно удален', userId: currentUserId };
-  },
-
-  /**
-   * Удаление загруженного аватара пользователя
-   * @param {string} avatarUrl - URL аватара файла
-   * @returns {Promise<Object>} - Объект с результатом
-   */
-  async deleteUploadedAvatar({ avatarUrl }) {
-    if (!avatarUrl) return;
-
-    const filePath = fromPublicUrl(avatarUrl);
-
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    return { message: 'Загруженный аватар успешно удален' };
   },
 };
 

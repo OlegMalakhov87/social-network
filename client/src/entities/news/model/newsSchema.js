@@ -12,10 +12,10 @@ export const NewsSchema = z.object({
   text: z.string(),
   category: z.string(),
   type: z.enum(['text', 'image', 'video']),
-  source: z.string().nullable(),
-  newsUrl: z.string().nullable(),
-  previewUrl: z.string().nullable(),
-  thumbnailUrl: z.string().nullable(),
+  source: z.string().nullish(),
+  newsUrl: z.string().nullish(),
+  previewUrl: z.string().nullish(),
+  thumbnailUrl: z.string().nullish(),
   viewsCount: z.number().default(0),
   isEdited: z.boolean().default(false),
   createdAt: z.string(),
@@ -29,9 +29,9 @@ export const NewsSchema = z.object({
 
   likes: z.array(LikeSchema.pick({ id: true, userId: true })).optional(),
   comments: CommentsListSchema.optional(),
-  likesCount: z.number().default(0),
-  isLiked: z.boolean().default(false),
-  commentsCount: z.number().default(0),
+  likesCount: z.number().optional(),
+  isLiked: z.boolean().optional(),
+  commentsCount: z.number().optional(),
 });
 
 /**

@@ -49,6 +49,8 @@
   /* Text on dark nav (остаётся светлым в обеих темах) */
   --text-on-nav: #e2e8f0;
   --text-on-nav-muted: #a0aec0;
+  --surface-nav-hover: rgba(255, 255, 255, 0.1);
+  --surface-nav-active: rgba(102, 126, 234, 0.15);
 
   /* =======================================================
       BORDER TOKENS

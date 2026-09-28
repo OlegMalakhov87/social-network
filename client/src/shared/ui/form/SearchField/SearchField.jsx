@@ -7,12 +7,15 @@ import { Input } from '../..';
  * @returns {JSX.Element}
  */
 export const SearchField = (props) => {
+  const { fullWidth = true, ...restProps } = props;
+
   return (
     <Input
-      {...props}
+      {...restProps}
       type="search"
       leftIcon="🔍"
-      placeholder={props.placeholder ?? 'Поиск...'}
+      fullWidth={fullWidth}
+      placeholder={restProps.placeholder ?? 'Поиск...'}
     />
   );
 };
