@@ -1,0 +1,131 @@
+.widget {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-info) 100%
+  );
+  color: var(--color-white);
+  border: none;
+}
+
+.title {
+  color: var(--color-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  word-break: normal;
+}
+
+.contentList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.conditionLine {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-bottom: var(--space-1);
+}
+
+.iconTemp {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.temp {
+  color: var(--color-white);
+  margin: 0;
+  white-space: nowrap;
+  word-break: normal;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.metaLine {
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.label {
+  color: var(--color-white);
+  opacity: 0.9;
+  font-size: var(--font-xs);
+  text-align: left;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.widgetError {
+  border-color: var(--border-primary);
+  background: var(--surface-card);
+}
+
+.error {
+  color: var(--text-secondary);
+  text-align: left;
+  width: 100%;
+}
+
+.errorContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.retry {
+  align-self: flex-start;
+}
+
+.sunTimes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: var(--space-1);
+}
+
+.sunText {
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.widget .errorLocation {
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: var(--space-1);
+}
+
+.widgetError .errorLocation {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 576px) {
+  .temp {
+    font-size: var(--font-xl);
+  }
+
+  .metaLine,
+  .sunText,
+  .label,
+  .errorLocation {
+    font-size: var(--font-xs);
+  }
+}

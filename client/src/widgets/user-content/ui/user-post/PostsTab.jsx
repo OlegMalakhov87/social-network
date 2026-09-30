@@ -8,7 +8,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import { EntityWithComments } from '../../../entity-comments';
+import { EntityWithComments } from '../../../comment';
 import styles from './PostsTab.module.css';
 
 /**
@@ -58,8 +58,8 @@ export const PostsTab = ({
 }) => {
   const navigate = useNavigate();
 
-   /** Хук для работы с расшаренными сущностями в sessionStorage.*/
-   const { shareEntity } = useShareEntity({
+  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedPost,
     onSuccess: () => navigate('/messages'),
   });

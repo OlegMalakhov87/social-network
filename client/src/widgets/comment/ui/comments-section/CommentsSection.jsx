@@ -1,8 +1,11 @@
 import { useRef } from 'react';
-import { CommentsList } from '..';
-import { CommentForm, useFetchComments } from '../../../features/comments';
-import { SORT_OPTIONS } from '../../../shared/config';
-import { useFilterControls, useScrollNavigation } from '../../../shared/hooks';
+import { CommentsList } from '../../';
+import { CommentForm, useFetchComments } from '../../../../features/comments';
+import { SORT_OPTIONS } from '../../../../shared/config';
+import {
+  useFilterControls,
+  useScrollNavigation,
+} from '../../../../shared/hooks';
 import {
   Dropdown,
   EntityHeader,
@@ -10,7 +13,7 @@ import {
   ScrollNavigationButton,
   SectionCard,
   Text,
-} from '../../../shared/ui';
+} from '../../../../shared/ui';
 import styles from './CommentsSection.module.css';
 
 /**

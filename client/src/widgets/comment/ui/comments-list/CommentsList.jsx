@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { Comment } from '../../../entities/comment';
-import { normalizeSharedComment } from '../../../entities/shared-entity';
-import { useShareEntity } from '../../../features/shared-entities';
-import { useInfiniteScrollTrigger } from '../../../shared/hooks';
+import { Comment } from '../../../../entities/comment';
+import { normalizeSharedComment } from '../../../../entities/shared-entity';
+import { useShareEntity } from '../../../../features/shared-entities';
+import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
   ContentRefetchOverlay,
   ContentState,
   InfiniteScrollFooter,
-} from '../../../shared/ui';
+} from '../../../../shared/ui';
 import styles from './CommentsList.module.css';
 
 /**

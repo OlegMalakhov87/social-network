@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchUsersOnlineStatus } from '../../../entities/user';
 
+/** Интервал обновления статусов пользователей в миллисекундах. */
+const USERS_ONLINE_REFRESH_INTERVAL_MS = 60 * 1000; // 60 секунд
+
 /**
  * Хук для отслеживания онлайн-статусов пользователей.
  *
@@ -39,12 +42,17 @@ export const useOnline = (userIds) => {
     };
 
     updateStatuses(); /** Первый запрос. */
+
+    /** Установка интервала обновления статусов пользователей. Обновление каждые 60 сек.*/
     intervalRef.current = setInterval(
       updateStatuses,
-      30000
-    ); /** Обновление каждые 30 сек. */
+      USERS_ONLINE_REFRESH_INTERVAL_MS
+    ); 
 
-    return () => clearInterval(intervalRef.current); /** Очистка интервала. */
+    /** Очистка интервала обновления статусов пользователей. Очистка интервала. */
+    return () => {
+      clearInterval(intervalRef.current);
+    };
   }, [normalizedIds]);
 
   return statusMap; /** Карта userId → online. */

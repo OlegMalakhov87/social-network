@@ -98,11 +98,10 @@ export const useAbortableRequest = ({ fetcher, deps = [], options = {} }) => {
         setError(parsedError);
         onErrorRef.current?.(parsedError);
       } finally {
-        if (controller.signal.aborted || !isMountedRef.current) {
-          return;
+        if (!controller.signal.aborted && isMountedRef.current) {
+          setIsLoading(false);
+          onFinallyRef.current?.();
         }
-        setIsLoading(false);
-        onFinallyRef.current?.();
       }
     },
     [abort]

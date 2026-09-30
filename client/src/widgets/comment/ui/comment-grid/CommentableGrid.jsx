@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
-import { useCommentsPanelInteraction } from '../../../shared/hooks';
-import { CommentsSection } from '../../comments-list';
+import { CommentsSection } from '../..';
+import { useCommentsPanelInteraction } from '../../../../shared/hooks';
 import styles from './CommentableGrid.module.css';
 
 /**

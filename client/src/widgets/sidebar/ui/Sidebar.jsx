@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { SIDEBAR_CONFIG } from '..';
 import { classNames } from '../../../shared/utils';
+
+import { selectUser } from '../../../entities/auth';
+import { WeatherWidget } from '../weather';
 
 import {
   BaseCard,
@@ -22,10 +26,14 @@ const IconAvatar = ({ icon }) => <div className={style.listIcon}>{icon}</div>;
  * @returns {React.ReactNode}
  */
 export const Sidebar = () => {
+  const currentUser = useSelector(selectUser);
   const [isVisible, setIsVisible] = useState(true);
+
+  const address = currentUser?.address || 'Москва';
+
   if (!isVisible) return null;
 
-  const { premium, ad, weather, popular, events } = SIDEBAR_CONFIG;
+  const { premium, ad, popular, events } = SIDEBAR_CONFIG;
 
   return (
     <aside className={style.sidebar}>
@@ -105,17 +113,7 @@ export const Sidebar = () => {
       />
 
       {/* 4. Погода */}
-      <BaseCard className={classNames(style.card, style.gradientBlue)}>
-        <div className={style.weatherContent}>
-          <div>
-            <Text variant="h1" className={style.weatherTemp}>
-              {weather.temp}
-            </Text>
-            <Text variant="body2">{weather.city}</Text>
-          </div>
-          <span className={style.weatherIcon}>{weather.icon}</span>
-        </div>
-      </BaseCard>
+      <WeatherWidget address={address} />
 
       {/* 5. События */}
       <BaseCard

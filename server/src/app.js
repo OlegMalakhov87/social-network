@@ -16,6 +16,7 @@ const userVideoLibraryRoutes = require('./routes/userVideoLibraryRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const likeRoutes = require('./routes/likeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const widgetRoutes = require('./routes/widgetRoutes');
 
 const errorMiddleware = require('./middleware/error/errorMiddleware');
 
@@ -43,6 +44,7 @@ app.use('/api/uservideolibrary', userVideoLibraryRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/widgets', widgetRoutes);
 
 app.use(errorMiddleware);
 

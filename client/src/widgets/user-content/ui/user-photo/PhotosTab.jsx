@@ -8,7 +8,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import { CommentableGrid } from '../../../comment-grid';
+import { CommentableGrid } from '../../../comment';
 import styles from './PhotosTab.module.css';
 
 /**
@@ -87,7 +87,7 @@ export const PhotosTab = ({
             commentTarget={commentTarget}
             onToggleComments={toggleComments}
             onCloseComments={onCloseComments}
-            currentUser={currentUser} 
+            currentUser={currentUser}
             onCommentChange={onCommentChange}
             renderItem={({ item, onToggleComments }) => (
               <Photo

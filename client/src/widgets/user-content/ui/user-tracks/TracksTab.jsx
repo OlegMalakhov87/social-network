@@ -6,7 +6,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
-import { CommentableGrid } from '../../../comment-grid';
+import { CommentableGrid } from '../../../comment';
 import styles from './TracksTab.module.css';
 
 /**

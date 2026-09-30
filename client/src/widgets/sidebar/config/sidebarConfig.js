@@ -1,3 +1,4 @@
+// Этот файл содержит конфигурацию для боковой панели приложения
 export const SIDEBAR_CONFIG = {
   premium: {
     variant: 'gradient-primary',
@@ -12,18 +13,20 @@ export const SIDEBAR_CONFIG = {
     linkText: 'Перейти в магазин →',
     linkUrl: '#',
   },
-  weather: {
-    variant: 'gradient-blue',
-    temp: '+18°',
-    city: 'Москва',
-    icon: '☀️',
-  },
   popular: {
     title: '🔥 Популярное сейчас',
     items: [
-      { icon: '🎵', title: 'Bohemian Rhapsody', sub: 'Queen • 2.3M прослушиваний' },
+      {
+        icon: '🎵',
+        title: 'Bohemian Rhapsody',
+        sub: 'Queen • 2.3M прослушиваний',
+      },
       { icon: '🎬', title: 'Интерстеллар', sub: '4.8 ★ • 125K просмотров' },
-      { icon: '📰', title: 'SpaceX запуск Starship', sub: 'Новости • 1 час назад' },
+      {
+        icon: '📰',
+        title: 'SpaceX запуск Starship',
+        sub: 'Новости • 1 час назад',
+      },
     ],
   },
   events: {

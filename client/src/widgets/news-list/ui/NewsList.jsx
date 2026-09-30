@@ -9,7 +9,7 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../shared/ui';
-import { EntityWithComments } from '../../entity-comments';
+import { EntityWithComments } from '../../comment';
 import styles from './NewsList.module.css';
 
 /** Список новостей
