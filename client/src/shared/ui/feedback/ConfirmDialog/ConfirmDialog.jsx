@@ -37,6 +37,7 @@ export const ConfirmDialog = ({
       onClose={onClose}
       size="sm"
       title={title}
+      mobileFullscreen={false}
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={loading}>

@@ -21,6 +21,7 @@ import styles from './Modal.module.css';
  * @param {boolean} [props.closeOnOverlay=true] - закрывать ли модальное окно при клике вне окна
  * @param {boolean} [props.closeOnEscape=true] - закрывать ли модальное окно при нажатии Escape
  * @param {React.ReactNode} [props.footer] - нижний колонтитул модального окна
+ * @param {boolean} [props.mobileFullscreen=true] - полноэкранный режим на мобильных
  */
 export const Modal = ({
   isOpen = true,
@@ -31,6 +32,7 @@ export const Modal = ({
   closeOnOverlay = true,
   closeOnEscape = true,
   footer,
+  mobileFullscreen = true,
   className = '',
   contentClassName = '',
 }) => {
@@ -44,13 +46,21 @@ export const Modal = ({
 
   return createPortal(
     <div
-      className={styles.overlay}
+      className={classNames(
+        styles.overlay,
+        !mobileFullscreen && styles.overlayCenteredMobile
+      )}
       data-modal-overlay
       onClick={closeOnOverlay ? onClose : undefined}
     >
       <div
         ref={modalRef}
-        className={classNames(styles.modal, styles[size], className)}
+        className={classNames(
+          styles.modal,
+          styles[size],
+          !mobileFullscreen && styles.modalCenteredMobile,
+          className
+        )}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}

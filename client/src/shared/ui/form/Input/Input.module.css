@@ -33,6 +33,7 @@
 
 .input {
   flex: 1;
+  min-width: 0;
   padding: var(--space-3) var(--space-4);
   background: transparent;
   color: var(--text-primary);
@@ -57,10 +58,18 @@ textarea.input {
   color: var(--text-secondary);
 }
 
+/* Скрываем системный "крестик" у input[type="search"] в WebKit-браузерах. */
+.input[type='search']::-webkit-search-cancel-button,
+.input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   padding-left: var(--space-2);
   color: var(--text-secondary);
 }

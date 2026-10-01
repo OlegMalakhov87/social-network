@@ -5,14 +5,41 @@
 .scrollContainer {
   max-height: 70vh;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-bottom: var(--space-12);
 }
 
 .commentComposer {
   position: sticky;
-  top: 0;
+  top: var(--space-1);
   z-index: 2;
   padding: var(--space-3);
   background: var(--surface-card);
   border-bottom: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  margin-bottom: var(--space-2);
+}
+
+.scrollNavDock {
+  right: var(--space-2);
+  bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 768px) {
+  .scrollContainer {
+    max-height: 65vh;
+    padding-bottom: var(--space-10);
+  }
+
+  .commentComposer {
+    padding: var(--space-2);
+    top: 0;
+    margin-bottom: var(--space-1);
+  }
+
+  .scrollNavDock {
+    right: var(--space-1);
+    bottom: calc(var(--space-1) + env(safe-area-inset-bottom));
+  }
 }

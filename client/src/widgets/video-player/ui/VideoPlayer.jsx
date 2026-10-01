@@ -79,7 +79,7 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
       <div className={style.player}>
         <video
           ref={videoRef}
-          src={videoUrl || '/video.mp4'}
+          src={videoUrl}
           controls
           autoPlay
           onPlay={handleVideoPlay}

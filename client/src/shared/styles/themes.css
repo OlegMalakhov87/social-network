@@ -22,6 +22,15 @@ body[data-theme='light'] {
   --text-on-nav-muted: #4b5563;
   --surface-nav-hover: rgba(31, 41, 55, 0.08);
   --surface-nav-active: rgba(102, 126, 234, 0.2);
+  --surface-floating: transparent;
+  --surface-floating-highlight: rgba(255, 255, 255, 0.5);
+  --surface-floating-hover: rgba(31, 41, 55, 0.09);
+  --surface-floating-active: rgba(102, 126, 234, 0.2);
+  --surface-floating-chip: rgba(31, 41, 55, 0.08);
+  --surface-floating-link-hover-bg: rgba(31, 41, 55, 0.06);
+  --surface-floating-link-active-bg: rgba(102, 126, 234, 0.2);
+  --surface-floating-card: rgba(255, 255, 255, 0.82);
+  --surface-floating-card-hover: rgba(255, 255, 255, 0.9);
 
   --border-primary: #d1d5db;
   --border-secondary: #e5e7eb;
@@ -31,6 +40,13 @@ body[data-theme='light'] {
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.18);
   --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.24);
+  --shadow-floating: 0 12px 26px rgba(31, 41, 55, 0.12);
+  --shadow-floating-hover: 0 18px 36px rgba(31, 41, 55, 0.17);
+  --shadow-floating-link: 0 8px 16px rgba(31, 41, 55, 0.14);
+  --shadow-floating-link-hover: 0 20px 36px rgba(31, 41, 55, 0.26);
+  --shadow-floating-link-active: 0 12px 24px rgba(31, 41, 55, 0.2);
+  --shadow-floating-card: 0 14px 28px rgba(31, 41, 55, 0.14);
+  --shadow-floating-card-hover: 0 20px 40px rgba(31, 41, 55, 0.2);
 }
 
 /* =======================================================
@@ -55,6 +71,15 @@ body[data-theme='dark'] {
   --text-on-nav-muted: #a0aec0;
   --surface-nav-hover: rgba(255, 255, 255, 0.1);
   --surface-nav-active: rgba(102, 126, 234, 0.15);
+  --surface-floating: transparent;
+  --surface-floating-highlight: rgba(255, 255, 255, 0.2);
+  --surface-floating-hover: rgba(255, 255, 255, 0.1);
+  --surface-floating-active: rgba(102, 126, 234, 0.24);
+  --surface-floating-chip: rgba(255, 255, 255, 0.12);
+  --surface-floating-link-hover-bg: transparent;
+  --surface-floating-link-active-bg: rgba(102, 126, 234, 0.16);
+  --surface-floating-card: rgba(39, 39, 42, 0.82);
+  --surface-floating-card-hover: rgba(39, 39, 42, 0.9);
 
   --border-primary: #3f3f46;
   --border-secondary: #52525b;
@@ -65,4 +90,11 @@ body[data-theme='dark'] {
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --shadow-floating: 0 14px 30px rgba(0, 0, 0, 0.33);
+  --shadow-floating-hover: 0 20px 42px rgba(0, 0, 0, 0.44);
+  --shadow-floating-link: 0 10px 18px rgba(0, 0, 0, 0.34);
+  --shadow-floating-link-hover: 0 24px 44px rgba(0, 0, 0, 0.56);
+  --shadow-floating-link-active: 0 12px 22px rgba(0, 0, 0, 0.36);
+  --shadow-floating-card: 0 14px 30px rgba(0, 0, 0, 0.32);
+  --shadow-floating-card-hover: 0 20px 42px rgba(0, 0, 0, 0.44);
 }

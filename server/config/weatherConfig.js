@@ -1,5 +1,8 @@
-/** Время жизни кэша — 10 минут. */
-const CACHE_TTL = 10 * 60;
+/** Время жизни кэша погоды — 1 час. */
+const CACHE_TTL_1_HOUR = 60 * 60;
+
+/** Время жизни кэша названия города — 24 часа. */
+const CACHE_TTL_24_HOURS = 24 * 60 * 60;
 
 /** Маппинг WMO-кодов в эмодзи и описание. */
 const WEATHER_CODES = {
@@ -34,6 +37,7 @@ const WEATHER_CODES = {
 };
 
 module.exports = {
-  CACHE_TTL,
+  CACHE_TTL_1_HOUR,
+  CACHE_TTL_24_HOURS,
   WEATHER_CODES,
 };

@@ -115,14 +115,17 @@ const mediaCleanupService = {
    * которые старше 24 часов.
    */
   async cleanup() {
+    console.log('[MediaCleanup] Starting cleanup...');
     console.log('[MediaCleanup] MEDIA_ROOT:', MEDIA_CLEANUP_CONFIG.root);
-    console.log('[MediaCleanup] process.cwd():', process.cwd());
 
     const usedFiles = await this.collectUsedFiles();
     const files = await this.getAllFiles();
 
-    console.log('[MediaCleanup] usedFiles:', usedFiles.size);
-    console.log('[MediaCleanup] files:', files.length);
+    console.log(
+      '[MediaCleanup] Database references collected:',
+      usedFiles.size
+    );
+    console.log('[MediaCleanup] Physical files scanned:', files.length);
 
     if (files.length > 0 && usedFiles.size === 0) {
       throw new Error(
@@ -134,13 +137,11 @@ const mediaCleanupService = {
 
     let deletedCount = 0;
     let skippedCount = 0;
+    let youngCount = 0;
+    let orphanCount = 0;
 
     for (const filePath of files) {
       const absolutePath = path.resolve(filePath);
-      console.log({
-        file: absolutePath,
-        used: usedFiles.has(absolutePath),
-      });
 
       // Дополнительная защита от удаления файлов за пределами uploads.
       if (!this.isInsideMediaRoot(absolutePath)) {
@@ -153,6 +154,8 @@ const mediaCleanupService = {
         skippedCount++;
         continue;
       }
+
+      orphanCount++;
 
       let stat;
 
@@ -170,15 +173,12 @@ const mediaCleanupService = {
 
       // Файл ещё слишком молодой.
       if (age < ONE_DAY) {
-        skippedCount++;
+        youngCount++;
         continue;
       }
 
-      console.log('[MediaCleanup] К удалению:', absolutePath);
-
       try {
         await fs.unlink(absolutePath);
-        console.log('[MediaCleanup] Удалён:', absolutePath);
         deletedCount++;
       } catch (error) {
         if (error.code === 'ENOENT') {
@@ -188,11 +188,18 @@ const mediaCleanupService = {
       }
     }
 
+    console.log('[MediaCleanup] Orphan files found:', orphanCount);
+    console.log('[MediaCleanup] Orphan files deleted:', deletedCount);
+    console.log('[MediaCleanup] Skipped (younger than 24h):', youngCount);
+    console.log('[MediaCleanup] Cleanup completed successfully.');
+
     return {
       scanned: files.length,
       used: usedFiles.size,
+      orphan: orphanCount,
       deleted: deletedCount,
       skipped: skippedCount,
+      young: youngCount,
     };
   },
 };

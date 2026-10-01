@@ -7,7 +7,7 @@ const {
 
 const widgetController = {
   /**
-   * Получить погоду по координатам или адресу.
+   * Получить погоду по координатам из браузера.
    */
   getWeather: async (req, res, next) => {
     try {

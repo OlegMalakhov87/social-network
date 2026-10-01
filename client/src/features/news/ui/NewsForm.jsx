@@ -223,6 +223,7 @@ export const NewsForm = ({
           {...form.register('category')}
           options={CATEGORY_OPTIONS}
           required={true}
+          menuPlacement="up"
           disabled={form.isSubmitting || isUploading || isChangingType}
         />
 

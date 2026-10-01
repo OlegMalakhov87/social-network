@@ -2,19 +2,24 @@ import { useEffect } from 'react';
 import { useAbortableRequest } from '../../../../shared/hooks';
 import { fetchWeatherApi } from '../api/weatherApi';
 
-/** Интервал обновления погоды в миллисекундах. */
-const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 минут
+  /** Интервал обновления погоды в миллисекундах. */
+  const WEATHER_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 
 /**
- * Хук для получения погоды по адресу.
+ * Хук для получения погоды по координатам пользователя из браузера.
  *
  * @param {Object} params - параметры запроса
- * @returns {Object} - { weather, isLoading, error, refetch }
+ * @param {number} params.lat - широта
+ * @param {number} params.lon - долгота
+ * @returns {Object} - { weather, isLoadingWeather, errorWeather, refetchWeather }
  */
 export const useWeather = (params) => {
   const { lat, lon } = params;
+
+  /** Проверяем, что координаты валидны. */
   const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
 
+  /** Запрос данных о погоде. */
   const {
     data: weather,
     isLoading,
@@ -31,7 +36,7 @@ export const useWeather = (params) => {
         signal
       );
     },
-    deps: [lat, lon],
+    deps: [hasCoords, lat, lon],
     options: {
       autoFetch: hasCoords,
       initialData: null,

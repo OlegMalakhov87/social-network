@@ -113,6 +113,7 @@ export const CommentsSection = ({
           isPastMiddle={isPastMiddle}
           scrollToTop={scrollToTop}
           scrollToBottom={scrollToBottom}
+          className={styles.scrollNavDock}
         />
       </div>
     </SectionCard>

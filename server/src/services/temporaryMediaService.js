@@ -165,7 +165,10 @@ const temporaryMediaService = {
         },
       },
     });
-
+    console.log(
+      '[TemporaryMediaService] Expired temporary media files deleted:',
+      deletedCount
+    );
     return deletedCount;
   },
 };

@@ -18,14 +18,22 @@ const startMediaCleanupJob = () => {
       return;
     }
     isRunning = true;
+
     try {
+      console.log('='.repeat(50));
+      console.log('Система очистки медиа файлов запущена');
+      console.log(` Время запуска: ${new Date().toLocaleString()}`);
+
       await temporaryMediaService.cleanupExpired();
-      console.log(`Очистка временных записей завершена`);
+      console.log(`Система очистки временных записей завершена`);
+      console.log(` Время завершения: ${new Date().toLocaleString()}`);
 
       await mediaCleanupService.cleanup();
-      console.log('Очистка медиа завершена');
+      console.log('Система очистки медиа файлов завершена');
+      console.log(` Время завершения: ${new Date().toLocaleString()}`);
+      console.log('='.repeat(50));
     } catch (error) {
-      console.error('Ошибка очистки медиа:', error);
+      console.error('Система очистки медиа файлов завершена с ошибкой:', error);
     } finally {
       isRunning = false;
     }

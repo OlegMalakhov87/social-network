@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/** Ошибки геолокации. */
+/** Мапа с константами ошибок геолокации. */
 const GEOLOCATION_ERRORS = {
   PERMISSION_DENIED: {
     code: 'PERMISSION_DENIED',
@@ -26,7 +26,7 @@ const GEOLOCATION_ERRORS = {
   },
 };
 
-/** Получение ошибки геолокации. */
+/** Вспомогательная функция для получения ошибки геолокации. */
 const getGeolocationError = (error) => {
   switch (error?.code) {
     case 1:
@@ -43,25 +43,24 @@ const getGeolocationError = (error) => {
   }
 };
 
-/** Опции геолокации. */
+/** Константа с опциями геолокации. */
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: false,
   timeout: 10000,
   maximumAge: 10 * 60 * 1000,
 };
 
-/** Хук для получения геолокации. */
+/** Хук для получения координат пользователя из браузера. */
 export const useGeolocation = () => {
   const [coords, setCoords] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
 
-  /** Идентификатор запроса. */
+  /** Счётчик запросов. */
   const requestIdRef = useRef(0);
 
   /** Запрос геолокации. */
   const requestLocation = useCallback(() => {
-
     const requestId = ++requestIdRef.current;
 
     /** Проверка доступности геолокации. */
@@ -114,7 +113,6 @@ export const useGeolocation = () => {
   return {
     coords,
     isLoadingLocation: status === 'loading',
-    isLocationReady: status === 'success',
     errorLocation: error,
     requestLocation,
   };

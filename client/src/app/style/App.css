@@ -21,7 +21,7 @@
   margin: 0 auto;
   gap: var(--space-1);
   align-items: start;
-  grid-template-columns: 190px 1fr 230px;
+  grid-template-columns: var(--layout-nav-width) 1fr var(--layout-info-width);
   grid-template-rows: auto auto auto;
   grid-template-areas:
     'h h h'
@@ -47,10 +47,17 @@
 
 .navbar {
   grid-area: n;
-  background-color: var(--surface-nav);
+  background: var(--surface-floating);
   color: var(--text-on-nav);
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  border: none;
+  box-shadow: none;
   padding: var(--space-2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
 }
 
 .main {
@@ -62,10 +69,24 @@
 
 .info {
   grid-area: i;
-  background-color: var(--surface-secondary);
+  background: var(--surface-floating);
+  color: var(--text-on-nav);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border: none;
+  box-shadow: none;
   padding: var(--space-2);
   min-width: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.navbar:hover,
+.info:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .footer {
@@ -82,7 +103,8 @@
       ======================================================= */
 @media screen and (max-width: 1024px) {
   .app_wrapper {
-    grid-template-columns: 168px 1fr 208px;
+    grid-template-columns:
+      var(--layout-nav-width-compact) 1fr var(--layout-info-width-compact);
   }
 }
 
@@ -97,7 +119,7 @@
       'i'
       'f';
     gap: var(--space-2);
-    padding: var(--space-2);
+    padding-block: var(--space-2);
   }
 
   .navbar,
@@ -113,11 +135,11 @@
 @media screen and (max-width: 480px) {
   .app_wrapper {
     gap: var(--space-1);
-    padding: var(--space-1);
+    padding-block: var(--space-1);
   }
 
   .header {
-    height: 50px;
+    min-height: var(--space-18);
   }
 
   .main {

@@ -48,7 +48,7 @@ export const Sidebar = () => {
 
       {/* 1. Премиум */}
       <BaseCard
-        className={classNames(style.card, style.gradientPrimary)}
+        className={classNames(style.sidebarCard, style.card, style.gradientPrimary)}
         header={
           <Text variant="h3" className={style.promoTitle}>
             {premium.title}
@@ -68,6 +68,7 @@ export const Sidebar = () => {
 
       {/* 2. Реклама */}
       <BaseCard
+        className={style.sidebarCard}
         header={<Text variant="h4">{ad.title}</Text>}
         cover={
           <MediaPreview
@@ -96,6 +97,7 @@ export const Sidebar = () => {
 
       {/* 3. Популярное */}
       <BaseCard
+        className={style.sidebarCard}
         header={<Text variant="h4">{popular.title}</Text>}
         content={
           <EntityContent className={style.list}>
@@ -117,6 +119,7 @@ export const Sidebar = () => {
 
       {/* 5. События */}
       <BaseCard
+        className={style.sidebarCard}
         header={<Text variant="h4">{events.title}</Text>}
         content={
           <EntityContent className={style.list}>

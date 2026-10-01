@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useEscapeKey, useOutsideClick } from './';
 
 /**
@@ -17,6 +17,8 @@ export const useCommentsPanelInteraction = ({
   panelRef,
   getReturnElement,
 }) => {
+  const modalOverlaySelector = useMemo(() => ['[data-modal-overlay]'], []);
+
   const handleClose = useCallback(() => {
     onClose?.();
 
@@ -30,7 +32,11 @@ export const useCommentsPanelInteraction = ({
 
   useEscapeKey(handleClose, isOpen, true);
 
-  useOutsideClick(panelRef, handleClose, isOpen);
+  useOutsideClick(panelRef, handleClose, isOpen, {
+    // Когда открыт ConfirmDialog внутри панели, клики по modal overlay
+    // не должны схлопывать всю панель комментариев.
+    ignoreSelectors: modalOverlaySelector,
+  });
 
   useEffect(() => {
     if (!isOpen) return;

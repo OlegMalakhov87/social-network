@@ -211,6 +211,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           required={true}
           {...form.register('category')}
           options={CATEGORY_OPTIONS}
+          menuPlacement="up"
           disabled={form.isSubmitting || isUploading}
           helperText={form.errors.category}
         />

@@ -19,6 +19,7 @@ import styles from './Select.module.css';
  * @param {string} [props.id] - id для связи label и select
  * @param {string} [props.helperText] - подсказка под полем
  * @param {string} [props.error] - ошибка
+ * @param {'down'|'up'} [props.menuPlacement='down'] - направление раскрытия меню
  */
 
 export const Select = ({
@@ -33,6 +34,7 @@ export const Select = ({
   id,
   helperText,
   error,
+  menuPlacement = 'down',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -92,7 +94,14 @@ export const Select = ({
       </button>
 
       {isOpen && (
-        <ul className={styles.menu} role="listbox" aria-labelledby={selectId}>
+        <ul
+          className={classNames(
+            styles.menu,
+            menuPlacement === 'up' && styles.menuUp
+          )}
+          role="listbox"
+          aria-labelledby={selectId}
+        >
           {options.map((option) => {
             const optionKey = String(option.value);
             const isSelected = optionKey === normalizedValue;

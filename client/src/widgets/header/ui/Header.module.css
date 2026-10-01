@@ -1,8 +1,15 @@
 .header {
-  height: 100%;
-  padding: 0 var(--space-6);
+  padding: var(--space-3) var(--space-6);
   background: var(--surface-nav);
   color: var(--text-on-nav);
+}
+
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
 }
 
 .logoLink {
@@ -11,8 +18,8 @@
 }
 
 .logoImage {
-  width: 40px;
-  height: 40px;
+  width: var(--space-10);
+  height: var(--space-10);
   border-radius: var(--radius-md);
   transition: transform var(--transition-fast);
 }
@@ -22,9 +29,12 @@
 }
 
 .searchContainer {
-  flex: 1;
-  max-width: 400px;
+  width: 100%;
   min-width: 0;
+}
+
+.searchAction {
+  color: var(--color-primary);
 }
 
 .navLink {
@@ -46,23 +56,16 @@
 
 @media screen and (max-width: 768px) {
   .header {
-    padding: 0 var(--space-4);
-  }
-  .searchContainer {
-    max-width: 250px;
+    padding: var(--space-3) var(--space-4);
   }
 }
 
 @media screen and (max-width: 576px) {
   .header {
-    height: auto;
     padding: var(--space-3);
-    flex-wrap: wrap;
-    gap: var(--space-3);
   }
-  .searchContainer {
-    order: 3;
-    max-width: 100%;
-    width: 100%;
+
+  .leftContent {
+    gap: var(--space-2);
   }
 }

@@ -52,6 +52,30 @@
   --surface-nav-hover: rgba(255, 255, 255, 0.1);
   --surface-nav-active: rgba(102, 126, 234, 0.15);
 
+  /* Floating UI tokens (навигация/сайдбар) */
+  --surface-floating: transparent;
+  --surface-floating-highlight: rgba(255, 255, 255, 0.2);
+  --surface-floating-hover: rgba(255, 255, 255, 0.1);
+  --surface-floating-active: rgba(102, 126, 234, 0.18);
+  --surface-floating-chip: rgba(255, 255, 255, 0.12);
+  --surface-floating-link-hover-bg: transparent;
+  --surface-floating-link-active-bg: rgba(102, 126, 234, 0.2);
+  --surface-floating-card: rgba(255, 255, 255, 0.08);
+  --surface-floating-card-hover: rgba(255, 255, 255, 0.12);
+  --text-on-brand-muted: rgba(255, 255, 255, 0.9);
+  --shadow-floating: 0 16px 32px rgba(15, 23, 42, 0.2);
+  --shadow-floating-hover: 0 22px 46px rgba(15, 23, 42, 0.28);
+  --shadow-floating-link: 0 10px 20px rgba(15, 23, 42, 0.2);
+  --shadow-floating-link-hover: 0 16px 30px rgba(15, 23, 42, 0.3);
+  --shadow-floating-link-active: 0 12px 24px rgba(15, 23, 42, 0.24);
+  --shadow-floating-card: 0 12px 26px rgba(15, 23, 42, 0.16);
+  --shadow-floating-card-hover: 0 18px 34px rgba(15, 23, 42, 0.24);
+  --border-width-thin: 1px;
+  --blur-sm: 6px;
+  --lift-xs: 2px;
+  --lift-sm: 3px;
+  --lift-md: 4px;
+
   /* =======================================================
       BORDER TOKENS
       Меняются в themes.css при смене темы
@@ -125,7 +149,9 @@
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --font-xs: 12px;
+  --font-caption: 13px;
   --font-sm: 14px;
+  --font-base: 15px;
   --font-md: 16px;
   --font-lg: 18px;
   --font-xl: 20px;
@@ -160,6 +186,10 @@
    ======================================================= */
 
   --container-width: 1200px;
+  --layout-nav-width: 190px;
+  --layout-info-width: 230px;
+  --layout-nav-width-compact: 168px;
+  --layout-info-width-compact: 208px;
   --header-height: 60px;
   --sidebar-width: 220px;
   --info-width: 260px;

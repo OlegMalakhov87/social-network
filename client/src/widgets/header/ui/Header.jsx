@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logout, selectHasUser } from '../../../entities/auth';
-import { Button, EntityHeader, Image, SearchField } from '../../../shared/ui';
+import {
+  Button,
+  EntityHeader,
+  IconButton,
+  Image,
+  SearchField,
+} from '../../../shared/ui';
 import { classNames } from '../../../shared/utils';
 import style from './Header.module.css';
 
@@ -33,7 +39,17 @@ export const Header = ({ onSearchChange }) => {
     if (e.key === 'Enter' && searchValue.trim()) {
       e.preventDefault();
       navigate('/friends');
+      setSearchValue('');
     }
+  };
+
+  /**
+   * Обработчик кнопки поиска.
+   */
+  const handleSearchAction = () => {
+    if (!searchValue.trim()) return;
+    navigate('/friends');
+    setSearchValue('');
   };
 
   /**
@@ -48,22 +64,44 @@ export const Header = ({ onSearchChange }) => {
     <header className={style.header}>
       <EntityHeader
         leftSlot={
-          <NavLink
-            to="/profile"
-            aria-label="На главную"
-            className={style.logoLink}
-          >
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              fallback="/logo.png"
-              className={style.logoImage}
-            />
-          </NavLink>
+          <div className={style.leftContent}>
+            <NavLink
+              to="/profile"
+              aria-label="На главную"
+              className={style.logoLink}
+            >
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                fallback="/logo.png"
+                className={style.logoImage}
+              />
+            </NavLink>
+
+            <div className={style.searchContainer}>
+              <SearchField
+                value={searchValue}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchSubmit}
+                placeholder="Поиск пользователей..."
+                aria-label="Поиск пользователей"
+                rightIcon={
+                  <IconButton
+                    icon="➤"
+                    size="md"
+                    variant="ghost"
+                    onClick={handleSearchAction}
+                    ariaLabel="Найти пользователей"
+                    className={style.searchAction}
+                  />
+                }
+              />
+            </div>
+          </div>
         }
         rightSlot={
           isAuthenticated ? (
-            <Button variant="secondary" size="sm" onClick={handleLogout}>
+            <Button variant="primary" size="md" onClick={handleLogout}>
               Выйти
             </Button>
           ) : (
@@ -77,17 +115,7 @@ export const Header = ({ onSearchChange }) => {
             </NavLink>
           )
         }
-      >
-        <div className={style.searchContainer}>
-          <SearchField
-            value={searchValue}
-            onChange={handleSearchChange}
-            onKeyDown={handleSearchSubmit}
-            placeholder="Поиск пользователей..."
-            aria-label="Поиск пользователей"
-          />
-        </div>
-      </EntityHeader>
+      />
     </header>
   );
 };

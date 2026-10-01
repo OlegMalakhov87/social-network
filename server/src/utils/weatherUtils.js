@@ -1,16 +1,3 @@
-/** Нормализует город из строки адреса. */
-const normalizeCity = (address) => {
-  if (!address) return null;
-
-  return address.split(',')[0].trim().toLowerCase();
-};
-
-/** Получает город в пользовательском виде из строки адреса. */
-const getCityLabel = (address) => {
-  if (!address) return null;
-
-  return address.split(',')[0].trim() || null;
-};
 
 /** Проверяет, является ли широта валидной. */
 const isValidLatitude = (lat) =>
@@ -41,8 +28,6 @@ const getWeatherDisplay = (code, isDayValue, weatherCodes) => {
 };
 
 module.exports = {
-  normalizeCity,
-  getCityLabel,
   isValidLatitude,
   isValidLongitude,
   getWeatherDisplay,

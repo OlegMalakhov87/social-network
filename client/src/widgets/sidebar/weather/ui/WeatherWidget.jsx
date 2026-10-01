@@ -3,6 +3,7 @@ import { getApiErrorDisplay } from '../../../../shared/lib';
 import {
   BaseCard,
   Button,
+  IconButton,
   Skeleton,
   SkeletonText,
   Text,
@@ -39,7 +40,7 @@ export const WeatherWidget = () => {
   };
 
   /** Если данные загружаются, отображаем загрузочный скелетон. */
-  if (isLoadingWeather && !weather) {
+  if (isLoadingLocation || (isLoadingWeather && !weather)) {
     return (
       <BaseCard
         className={styles.widget}
@@ -106,9 +107,9 @@ export const WeatherWidget = () => {
         <div className={styles.contentList}>
           <div className={styles.conditionLine}>
             <div className={styles.iconTemp}>
-              <span className={styles.icon}>{weather?.icon}</span>
+              <span className={styles.icon}>{weather?.icon || ''}</span>
               <Text variant="h2" className={styles.temp}>
-                {weather?.temp
+                {typeof weather?.temp === 'number' && weather?.temp !== null
                   ? weather.temp > 0
                     ? `+${weather.temp}°`
                     : `${weather.temp}°`
@@ -142,13 +143,23 @@ export const WeatherWidget = () => {
               ))}
           </div>
 
-          {errorLocation && (
-            <Text variant="caption" className={styles.errorLocation}>
-              {getApiErrorDisplay(
-                errorLocation,
-                'Не удалось получить геолокацию. Проверьте настройки вашего браузера.'
-              )}
-            </Text>
+          {errorLocation && !isLoadingLocation && (
+            <div className={styles.errorLocationContainer}>
+              <Text variant="caption" className={styles.errorLocation}>
+                {getApiErrorDisplay(
+                  errorLocation,
+                  'Не удалось получить геолокацию. Проверьте настройки вашего браузера.'
+                )}
+              </Text>
+              <IconButton
+                icon="↻"
+                variant="ghost"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoadingLocation || isLoadingWeather}
+                ariaLabel="Повторить получение геолокации и обновить погоду"
+              />
+            </div>
           )}
         </div>
       }
