@@ -32,7 +32,6 @@
     background-color var(--transition-fast),
     transform var(--transition-normal),
     box-shadow var(--transition-normal);
-  border-radius: var(--radius-md);
   white-space: nowrap;
   will-change: transform, box-shadow;
   box-shadow: var(--shadow-floating-link);
@@ -61,7 +60,6 @@
   flex: 1;
 }
 
-/* Адаптивность для планшета */
 @media screen and (max-width: 1024px) {
   .navLink {
     padding: var(--space-2) var(--space-3);
@@ -75,7 +73,6 @@
   }
 }
 
-/* Адаптивность для мобильных (когда навбар сверху) */
 @media screen and (max-width: 768px) {
   .navbar {
     border-radius: var(--radius-sm);
@@ -118,7 +115,6 @@
   }
 }
 
-/* Для очень маленьких экранов */
 @media screen and (max-width: 480px) {
   .navLink {
     padding: var(--space-2) var(--space-3);
@@ -134,7 +130,6 @@
   }
 }
 
-/* Компактный режим для боковой панели (когда мало места) */
 @media screen and (max-width: 576px) and (min-width: 769px) {
   .navLabel {
     display: none;
@@ -155,13 +150,11 @@
   }
 }
 
-/* Скрываем текст, показываем только иконки при наведении (опционально) */
 .navLink:hover .navLabel,
 .navLink.active .navLabel {
   color: var(--text-on-nav);
 }
 
-/* Кастомный скролл для навбара */
 .navbar::-webkit-scrollbar {
   width: var(--space-1);
 }

@@ -4,7 +4,7 @@
   height: 100%;
   background: var(--surface-card);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition:
     transform var(--transition-fast),

@@ -1,7 +1,9 @@
+const { Music } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('Music', [
+  up: async () => {
+    const music = [
       {
         uploadedBy: 1,
         title: 'Radioactive',
@@ -134,7 +136,7 @@ module.exports = {
         artist: 'Led Zeppelin',
         album: 'Led Zeppelin IV',
         year: 1971,
-        duration: 654,
+        duration: 482,
         audioUrl: null,
         coverUrl: null,
         category: 'rock',
@@ -170,7 +172,8 @@ module.exports = {
         isPublic: true,
         playsCount: 95,
       },
-    ]);
+    ];
+    await Music.bulkCreate(music, { validate: true });
   },
 
   down: async (queryInterface, Sequelize) => {

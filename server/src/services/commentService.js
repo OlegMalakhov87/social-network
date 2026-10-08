@@ -145,7 +145,7 @@ const commentService = {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
 
-    // Получаем сущность 
+    // Получаем сущность
     const targetEntity = await target.model.findByPk(targetId, {
       attributes: ['id'],
     });
@@ -232,7 +232,7 @@ const commentService = {
   async deleteComment(commentId, currentUserId) {
     // Получаем комментарий по ID
     const comment = await Comment.findByPk(commentId);
-    
+
     // Если комментарий не найден, выбрасываем ошибку
     if (!comment) {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
@@ -246,8 +246,14 @@ const commentService = {
         'FORBIDDEN'
       );
     }
+    // Удаляем лайки к комментарию
+    await Like.destroy({
+      where: { targetType: 'Comment', targetId: commentId },
+    });
 
+    // Удаляем комментарий
     await comment.destroy();
+
     return { message: 'Комментарий успешно удален', commentId };
   },
 };

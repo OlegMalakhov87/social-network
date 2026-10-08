@@ -1,7 +1,9 @@
+const { News } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('News', [
+  up: async () => {
+    const news = [
       {
         uploadedBy: 13,
         title: 'Новый фреймворк React 19 выходит в этом году',
@@ -14,6 +16,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 10,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 12,
@@ -27,6 +34,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 15,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 11,
@@ -40,6 +52,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 20,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 4,
@@ -53,6 +70,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 25,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 5,
@@ -66,6 +88,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 30,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 6,
@@ -79,6 +106,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 35,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 7,
@@ -92,6 +124,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 40,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 8,
@@ -105,6 +142,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 45,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 9,
@@ -118,6 +160,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 50,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 10,
@@ -131,6 +178,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 15,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 14,
@@ -144,6 +196,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 20,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 2,
@@ -157,6 +214,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 25,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 3,
@@ -170,6 +232,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 30,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 15,
@@ -183,6 +250,11 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 35,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
       {
         uploadedBy: 16,
@@ -196,8 +268,17 @@ module.exports = {
         thumbnailUrl: null,
         viewsCount: 35,
         isEdited: false,
+        archivedAt: null,
+        origin: 'manual',
+        externalUrl: null,
+        externalId: null,
+        publishedAt: new Date(),
       },
-    ]);
+    ];
+
+    await News.bulkCreate(news, {
+      validate: true,
+    });
   },
 
   down: async (queryInterface, Sequelize) => {

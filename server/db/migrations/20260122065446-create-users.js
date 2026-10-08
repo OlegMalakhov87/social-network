@@ -42,7 +42,6 @@ module.exports = {
         type: Sequelize.STRING(25),
         allowNull: true,
         unique: true,
-       
       },
       avatarUrl: {
         type: Sequelize.STRING(500),
@@ -52,6 +51,11 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: true,
+      },
+      isSystem: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       gender: {
         type: Sequelize.ENUM('male', 'female'),
@@ -84,6 +88,5 @@ module.exports = {
     await queryInterface.sequelize.query(
       'DROP TYPE IF EXISTS "enum_Users_gender";'
     );
-    
   },
 };

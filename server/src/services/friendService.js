@@ -22,10 +22,11 @@ const friendService = {
     q = '',
   } = {}) {
     // Формируем условие для поиска пользователей
-    const where = { id: { [Op.ne]: currentUserId } };
+    const where = { id: { [Op.ne]: currentUserId }, isSystem: false };
 
     if (q && q.trim().length >= 2) {
       const searchTerm = `%${q.trim()}%`;
+      
       where[Op.or] = [
         { name: { [Op.iLike]: searchTerm } },
         { nickname: { [Op.iLike]: searchTerm } },

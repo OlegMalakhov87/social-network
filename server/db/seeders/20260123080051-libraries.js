@@ -1,8 +1,10 @@
+const { UserMusicLibrary, UserVideoLibrary } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async () => {
     // Музыкальные библиотеки
-    await queryInterface.bulkInsert('UserMusicLibraries', [
+    const userMusicLibraries = [
       {
         userId: 1,
         trackId: 1,
@@ -147,10 +149,11 @@ module.exports = {
         isFavorite: false,
         playsCount: 40,
       },
-    ]);
+    ];
+    await UserMusicLibrary.bulkCreate(userMusicLibraries, { validate: true });
 
     // Видео библиотеки
-    await queryInterface.bulkInsert('UserVideoLibraries', [
+    const userVideoLibraries = [
       {
         userId: 1,
         videoId: 1,
@@ -368,7 +371,8 @@ module.exports = {
         lastWatchedAt: null,
         viewsCount: 35,
       },
-    ]);
+    ];
+    await UserVideoLibrary.bulkCreate(userVideoLibraries, { validate: true });
   },
 
   down: async (queryInterface, Sequelize) => {

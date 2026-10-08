@@ -160,6 +160,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: true,
       },
+      isSystem: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       gender: {
         type: DataTypes.ENUM('male', 'female'),
         allowNull: false,

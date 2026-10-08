@@ -3,7 +3,10 @@ const app = require('./app');
 const { redis } = require('./lib/redis');
 require('dotenv').config();
 const { setupWebSocket } = require('./websocket');
-const startMediaCleanupJob = require('../jobs/mediaCleanupJob');
+const {
+  startMaintenanceAndCleanupJob,
+} = require('../jobs/maintenanceCleanupJob');
+const { startNewsAutomationCron } = require('../jobs/newsAutomationCron');
 
 // Cоздание сервера
 const server = http.createServer(app);
@@ -22,8 +25,11 @@ redis
     console.error('[Redis] Не удалось подключиться:', err.message)
   );
 
-// Запуск задачи очистки медиафайлов
-startMediaCleanupJob();
+// Запуск обслуживания и очистки данных
+startMaintenanceAndCleanupJob();
+
+// Запуск cron-задачи автоматизации новостей
+startNewsAutomationCron();
 
 // Запуск сервера
 server.listen(PORT, '0.0.0.0', () => {

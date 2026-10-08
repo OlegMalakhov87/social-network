@@ -1,7 +1,9 @@
+const { Video } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('Videos', [
+  up: async () => {
+    const videos = [
       {
         uploadedBy: 1,
         title: 'React за 100 секунд',
@@ -186,7 +188,8 @@ module.exports = {
         isPublic: false,
         viewsCount: 140,
       },
-    ]);
+    ];
+    await Video.bulkCreate(videos, { validate: true });
   },
 
   down: async (queryInterface, Sequelize) => {

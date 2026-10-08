@@ -83,7 +83,7 @@
 
 .listItemMeta {
   padding: var(--space-2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   transition:
     background-color var(--transition-fast),
     transform var(--transition-fast);
@@ -97,7 +97,7 @@
 .listItemMeta .listIcon {
   width: var(--space-8);
   height: var(--space-8);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-primary);
   color: var(--color-white);
   display: flex;

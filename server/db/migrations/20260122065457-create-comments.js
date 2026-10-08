@@ -18,12 +18,6 @@ module.exports = {
       targetType: {
         type: Sequelize.ENUM('Post', 'Music', 'Video', 'News'),
         allowNull: false,
-        references: {
-          model: 'Posts',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
       },
       targetId: {
         type: Sequelize.INTEGER,

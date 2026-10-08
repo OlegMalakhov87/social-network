@@ -4,6 +4,9 @@ const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
+const {
+  deleteEntityWithRelations,
+} = require('../utils/deleteEntityWithRelations');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -365,22 +368,29 @@ const postService = {
    */
   async deletePost(postId, currentUserId) {
     // Получаем пост
-    const post = await Post.findByPk(postId);
+    const post = await Post.findOne({
+      where: { id: postId, userId: currentUserId },
+    });
 
     // Проверяем, найден ли пост
     if (!post) {
-      throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
+      throw createError(
+        'Пост не найден или нет прав на удаление',
+        404,
+        'POST_NOT_FOUND_OR_FORBIDDEN'
+      );
     }
+    // Удаляем пост и все связанные данные
+    const result = await deleteEntityWithRelations({
+      entity: post,
+      targetType: 'Post',
+    });
 
-    // Проверяем, является ли текущий пользователь автором поста
-    if (post.userId !== currentUserId) {
-      throw createError('Вы не можете удалить этот пост', 403, 'FORBIDDEN');
-    }
-
-    // Удаляем пост (медиа файлы автоматически удалит cleanup() из mediaCleanupService по рассписанию)
-    await post.destroy();
-
-    return { message: 'Пост успешно удален', postId };
+    return {
+      message: 'Пост успешно удален',
+      postId,
+      deleted: result.deleted,
+    };
   },
 };
 

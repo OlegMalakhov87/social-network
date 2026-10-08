@@ -4,6 +4,9 @@ const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
+const {
+  deleteEntityWithRelations,
+} = require('../utils/deleteEntityWithRelations');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -12,6 +15,9 @@ const SORT_MAP = {
   viewsDesc: [['viewsCount', 'DESC']],
   viewsAsc: [['viewsCount', 'ASC']],
 };
+
+// Срок хранения новостей в архиве
+const NEWS_RETENTION_DAYS = 30;
 
 // Поля новости, которые можно обновлять
 const NEWS_FIELDS = [
@@ -47,14 +53,24 @@ const newsService = {
   } = {}) {
     const where = {};
 
+    // Проверяем, есть ли поисковый запрос
+    const hasSearch = Boolean(q && q.trim().length >= 2);
+
+    // Обычная лента показывает только актуальные новости.
+    // При поиске архивные новости тоже доступны.
+    if (!hasSearch) {
+      where.archivedAt = null;
+    }
+
     //  Фильтр по категории
     if (category && category !== 'all') {
       where.category = category;
     }
 
     // Поиск по ключевому слову
-    if (q && q.trim().length >= 2) {
+    if (hasSearch) {
       const searchTerm = `%${q.trim()}%`;
+
       where[Op.or] = [
         { title: { [Op.iLike]: searchTerm } },
         { text: { [Op.iLike]: searchTerm } },
@@ -185,21 +201,26 @@ const newsService = {
 
     // Определяем данные для создания новости в базе данных
     const dbData = {
+      uploadedBy: currentUserId,
       title: newsData.title,
       text: newsData.text,
       category: newsData.category,
       type: newsData.type,
-      source: newsData.source,
       newsUrl: newsData.newsUrl,
       previewUrl: newsData.previewUrl,
       thumbnailUrl: newsData.thumbnailUrl,
-      uploadedBy: currentUserId,
-      viewsCount: 0,
+      source: newsData.source,
+      origin: 'manual',
+      externalUrl: null,
+      externalId: null,
+      publishedAt: new Date(),
       isEdited: false,
+      archivedAt: null,
+      viewsCount: 0,
     };
 
     // Создаем новость в базе данных
-    const news = await News.create(dbData);
+    const news = await News.create(dbData, { validate: true });
 
     // Фиксируем новые медиа файлы
     try {
@@ -312,7 +333,7 @@ const newsService = {
     let updatedNews;
 
     try {
-      updatedNews = await news.update(dbUpdates);
+      updatedNews = await news.update(dbUpdates, { validate: true });
     } catch (error) {
       // Если обновление новости не удалось, то удаляем новые медиа файлы
       try {
@@ -382,11 +403,47 @@ const newsService = {
         'NEWS_NOT_FOUND_OR_FORBIDDEN'
       );
     }
+    // Удаляем новость и все связанные данные
+    const result = await deleteEntityWithRelations({
+      entity: news,
+      targetType: 'News',
+    });
 
-    // Удаляем новость (медиа файлы автоматически удалит cleanup() из mediaCleanupService по рассписанию)
-    await news.destroy();
+    return {
+      message: 'Новость успешно удалена',
+      newsId,
+      deleted: result.deleted,
+    };
+  },
 
-    return { message: 'Новость успешно удалена', newsId };
+  /**
+   * Архивировать новости старше 30 дней
+   * @returns {Promise<number>} Количество архивированных новостей
+   */
+  async archiveOldNews() {
+    const cutoffDate = new Date(
+      Date.now() - NEWS_RETENTION_DAYS * 24 * 60 * 60 * 1000
+    );
+
+    const [archivedCount] = await News.update(
+      {
+        archivedAt: new Date(),
+      },
+      {
+        where: {
+          archivedAt: null,
+          createdAt: {
+            [Op.lte]: cutoffDate,
+          },
+        },
+      }
+    );
+
+    console.log(
+      `[NewsArchive] Archived news: ${archivedCount}; cutoff: ${cutoffDate.toISOString()}`
+    );
+
+    return archivedCount;
   },
 };
 

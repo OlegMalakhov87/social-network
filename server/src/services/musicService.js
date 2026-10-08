@@ -10,6 +10,9 @@ const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
+const {
+  deleteEntityWithRelations,
+} = require('../utils/deleteEntityWithRelations');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -362,10 +365,17 @@ const musicService = {
       );
     }
 
-    // Удаляем трек (медиа файлы автоматически удалит cleanup() из mediaCleanupService по расписанию)
-    await track.destroy();
+    // Удаляем трек и все связанные данные
+    const result = await deleteEntityWithRelations({
+      entity: track,
+      targetType: 'Music',
+    });
 
-    return { message: 'Трек успешно удален', trackId };
+    return {
+      message: 'Трек успешно удалён',
+      trackId,
+      deleted: result.deleted,
+    };
   },
 };
 

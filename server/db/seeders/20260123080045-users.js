@@ -1,7 +1,11 @@
+const { User } = require('../models');
+const { createPasswordHash } = require('../../src/services/authService');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('Users', [
+  up: async () => {
+    const passwordHash = await createPasswordHash('654321');
+    const users = [
       {
         nickname: 'alex_92',
         name: 'Алексей Иванов',
@@ -13,8 +17,9 @@ module.exports = {
         phone: '+7 (916) 123-45-67',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'maria_joy',
@@ -27,8 +32,9 @@ module.exports = {
         phone: '+7 (916) 765-43-21',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'tech_guru',
@@ -41,8 +47,9 @@ module.exports = {
         phone: '+7 (916) 555-77-88',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'ivan_petrov',
@@ -55,8 +62,9 @@ module.exports = {
         phone: '+7 (953) 678-88-32',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'veronika_sid',
@@ -69,8 +77,9 @@ module.exports = {
         phone: '+7 (911) 234-56-78',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
 
       {
@@ -84,8 +93,9 @@ module.exports = {
         phone: '+7 (913) 456-78-90',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'ekaterina_kuz',
@@ -98,8 +108,9 @@ module.exports = {
         phone: '+7 (912) 345-67-89',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'jovinco',
@@ -112,8 +123,9 @@ module.exports = {
         phone: '+7 (915) 654-88-42',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'dmitriy_smir',
@@ -126,8 +138,9 @@ module.exports = {
         phone: '+7 (987) 654-32-10',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'anna_mac',
@@ -140,8 +153,9 @@ module.exports = {
         phone: '+7 (916) 455-76-98',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'sofia_f',
@@ -154,8 +168,9 @@ module.exports = {
         phone: '+7 (915) 985-32-21',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'artem_v',
@@ -168,8 +183,9 @@ module.exports = {
         phone: '+7 (919) 567-89-01',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'elena_n',
@@ -182,8 +198,9 @@ module.exports = {
         phone: '+7 (910) 234-56-78',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'igor_k',
@@ -196,8 +213,9 @@ module.exports = {
         phone: '+7 (917) 890-12-34',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'vera_m',
@@ -210,8 +228,9 @@ module.exports = {
         phone: '+7 (918) 789-01-23',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'alexandra_b',
@@ -224,8 +243,9 @@ module.exports = {
         phone: '+7 (914) 567-89-01',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'mikhail_y',
@@ -238,8 +258,9 @@ module.exports = {
         phone: '+7 (913) 556-78-90',
         avatarUrl: null,
         isPublic: false,
+        isSystem: false,
         gender: 'male',
-        passwordHash: 123,
+        passwordHash,
       },
       {
         nickname: 'anastasia_s',
@@ -252,10 +273,30 @@ module.exports = {
         phone: '+7 (912) 375-67-89',
         avatarUrl: null,
         isPublic: true,
+        isSystem: false,
         gender: 'female',
-        passwordHash: 123,
+        passwordHash,
       },
-    ]);
+      {
+        nickname: 'news_bot',
+        name: 'News Bot',
+        birthDate: null,
+        email: 'news-bot@system.local',
+        address: null,
+        job: 'Автоматическая публикация новостей',
+        status: 'Автоматизированная новостная лента',
+        phone: null,
+        avatarUrl: null,
+        isPublic: false,
+        isSystem: true,
+        gender: 'male',
+        passwordHash,
+      },
+    ];
+
+    await User.bulkCreate(users, {
+      validate: true,
+    });
   },
 
   down: async (queryInterface, Sequelize) => {

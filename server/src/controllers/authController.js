@@ -12,7 +12,7 @@ const authController = {
       next(error);
     }
   },
-  
+
   /**
    * Регистрация пользователя
    */

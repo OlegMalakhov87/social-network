@@ -10,6 +10,9 @@ const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
+const {
+  deleteEntityWithRelations,
+} = require('../utils/deleteEntityWithRelations');
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
@@ -364,10 +367,17 @@ const videoService = {
       );
     }
 
-    // Удаляем видео (медиа файлы автоматически удалит cleanup() из mediaCleanupService по рассписанию)
-    await video.destroy();
+    // Удаляем видео и все связанные данные
+    const result = await deleteEntityWithRelations({
+      entity: video,
+      targetType: 'Video',
+    });
 
-    return { message: 'Видео успешно удалено', videoId };
+    return {
+      message: 'Видео успешно удалено',
+      videoId,
+      deleted: result.deleted,
+    };
   },
 };
 

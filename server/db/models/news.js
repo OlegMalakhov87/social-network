@@ -109,6 +109,30 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
+      archivedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      origin: {
+        type: DataTypes.ENUM('manual', 'automated'),
+        allowNull: false,
+        defaultValue: 'manual',
+      },
+
+      externalUrl: {
+        type: DataTypes.STRING(1000),
+        allowNull: true,
+      },
+
+      externalId: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+      },
+
+      publishedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       viewsCount: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -130,6 +154,10 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['category'] },
         { fields: ['viewsCount'] },
         { fields: ['type'] },
+        { fields: ['archivedAt', 'createdAt'] },
+        { fields: ['origin'] },
+        { fields: ['externalUrl'] },
+        { fields: ['source', 'externalId'] },
       ],
     }
   );

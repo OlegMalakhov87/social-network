@@ -1,7 +1,9 @@
+const { Message } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('Messages', [
+  up: async () => {
+    const messages = [
       {
         senderId: 1,
         receiverId: 2,
@@ -50,7 +52,7 @@ module.exports = {
       {
         senderId: 8,
         receiverId: 5,
-        content: 'Привет! Все хорошо, спасибо! Как у тебя?',
+        content: 'Привет! Все хорошо, как у тебя?',
         isRead: true,
         isEdited: false,
         deletedBySender: false,
@@ -68,8 +70,7 @@ module.exports = {
       {
         senderId: 8,
         receiverId: 5,
-        content:
-          'Поздравляю. У меня тоже все хорошо. Сейчас заканчиваю свой проект',
+        content: 'Поздравляю. Нравится работа?',
         isRead: false,
         isEdited: false,
         deletedBySender: false,
@@ -103,7 +104,8 @@ module.exports = {
         deletedBySender: false,
         deletedByReceiver: false,
       },
-    ]);
+    ];
+    await Message.bulkCreate(messages, { validate: true });
   },
 
   down: async (queryInterface, Sequelize) => {

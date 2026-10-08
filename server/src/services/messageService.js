@@ -324,7 +324,7 @@ const messageService = {
    * Отметить сообщения как прочитанные
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number[]} messageIds - массив ID сообщений
-   * @returns {Promise<Object>} { success: boolean, updated: number }
+   * @returns {Promise<Object>} { message }
    */
   async markAsRead(currentUserId, messageIds) {
     if (!Array.isArray(messageIds) || messageIds.length === 0) {
@@ -355,7 +355,7 @@ const messageService = {
    * Скрыть сообщение (для текущего пользователя)
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number} messageId - ID сообщения
-   * @returns {Promise<Object>} { success: boolean, messageId }
+   * @returns {Promise<Object>} { message }
    */
   async hideMessage(currentUserId, messageId) {
     const msg = await Message.findByPk(messageId);
@@ -373,30 +373,83 @@ const messageService = {
    * Очистить чат (Скрыть всю переписку для текущего пользователя)
    * @param {number} currentUserId - ID текущего пользователя
    * @param {number} partnerId - ID собеседника
-   * @returns {Promise<Object>} { success: boolean, message: string }
+   * @returns {Promise<Object>} { message }
    */
   async clearChat(currentUserId, partnerId) {
-    await Message.update(
-      { deletedBySender: true },
-      {
+    await sequelize.transaction(async (transaction) => {
+      await Message.update(
+        { deletedBySender: true },
+        {
+          where: {
+            senderId: currentUserId,
+            receiverId: partnerId,
+            deletedBySender: false,
+          },
+          transaction,
+        }
+      );
+
+      await Message.update(
+        { deletedByReceiver: true },
+        {
+          where: {
+            senderId: partnerId,
+            receiverId: currentUserId,
+            deletedByReceiver: false,
+          },
+          transaction,
+        }
+      );
+    });
+
+    return { message: 'Чат успешно очищен' };
+  },
+
+  /**
+   * Очищает удаленные сообщения
+   * @returns {Promise<number>} - Количество удаленных сообщений
+   */
+  async cleanupDeletedMessages() {
+    return sequelize.transaction(async (transaction) => {
+      // Найти все сообщения, которые нужно удалить
+      const messagesToDelete = await Message.findAll({
         where: {
-          senderId: currentUserId,
-          receiverId: partnerId,
-          deletedBySender: false,
+          deletedBySender: true,
+          deletedByReceiver: true,
         },
+        attributes: ['id'],
+        transaction,
+      });
+
+      // Если нечего удалять — выходим
+      if (messagesToDelete.length === 0) {
+        return 0;
       }
-    );
-    await Message.update(
-      { deletedByReceiver: true },
-      {
+
+      const messageIds = messagesToDelete.map((msg) => msg.id);
+
+      // Удалить лайки для этих сообщений
+      const likesDeleted = await Like.destroy({
         where: {
-          senderId: partnerId,
-          receiverId: currentUserId,
-          deletedByReceiver: false,
+          targetType: 'Message',
+          targetId: { [Op.in]: messageIds },
         },
-      }
-    );
-    return { message: `Чат успешно очищен` };
+        transaction,
+      });
+
+      // Удалить сами сообщения
+      const deletedCount = await Message.destroy({
+        where: {
+          id: { [Op.in]: messageIds },
+        },
+        transaction,
+      });
+
+      console.log('[MessageCleanup] Deleted likes:', likesDeleted);
+      console.log('[MessageCleanup] Deleted messages:', deletedCount);
+
+      return deletedCount;
+    });
   },
 };
 

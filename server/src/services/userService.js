@@ -29,6 +29,9 @@ const userService = {
    * @returns {Promise<Object>} - Объект с результатом
    */
   async getUserProfileWithFriendshipStatus({ currentUserId, targetUserId }) {
+    // Формируем условие для поиска пользователя
+    const where = { isSystem: false };
+
     // Проверяем, является ли текущий пользователь владельцем профиля
     const isOwner = currentUserId === targetUserId;
 
@@ -71,6 +74,7 @@ const userService = {
       delete userData.status;
       delete userData.birthDate;
       delete userData.isPublic;
+      delete userData.isSystem;
       delete userData.gender;
       delete userData.createdAt;
       delete userData.updatedAt;

@@ -15,6 +15,16 @@ const generateToken = (userId) => {
 };
 
 /**
+ * Создание хеша пароля
+ * @param {string} password - Пароль
+ * @returns {Promise<string>} - Хеш пароля
+ */
+const createPasswordHash = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
+
+/**
  * Сервис для работы с авторизацией
  */
 const authService = {
@@ -50,8 +60,7 @@ const authService = {
     }
 
     // Хешируем пароль
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const passwordHash = await createPasswordHash(password);
 
     // Создаем пользователя
     const user = await User.create({
@@ -89,6 +98,11 @@ const authService = {
       );
     }
 
+    // Проверяем, не является ли пользователь системным
+    if (user.isSystem) {
+      throw createError('Доступ запрещен', 403, 'ACCESS_FORBIDDEN');
+    }
+
     // Проверяем, совпадает ли пароль
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
@@ -110,4 +124,4 @@ const authService = {
   },
 };
 
-module.exports = { authService };
+module.exports = { authService, createPasswordHash };

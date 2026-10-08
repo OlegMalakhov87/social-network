@@ -1,7 +1,9 @@
+const { Post } = require('../models');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('Posts', [
+  up: async () => {
+    const posts = [
       {
         userId: 1,
         text: 'Сегодня завершил большой проект! Очень доволен результатом.',
@@ -37,7 +39,7 @@ module.exports = {
       },
       {
         userId: 4,
-        text: 'Можете меня поздравить, это было нечто. Я выучил JavaScript за 10 минут.',
+        text: 'Вышел новый релиз React 19. Посмотрите видео обновлений.',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -48,7 +50,7 @@ module.exports = {
       },
       {
         userId: 5,
-        text: 'Основные материалы для изучения JavaScript: https://doka.guide',
+        text: 'Основные материалы для изучения JavaScript: https://doka.guide/js',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -103,7 +105,7 @@ module.exports = {
       },
       {
         userId: 10,
-        text: 'Поздравьте меня с днем рождения! Сегодня отличная погода.',
+        text: 'Поздравляю всех с началом осени! Путешествуйте и отдыхайте!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -192,7 +194,7 @@ module.exports = {
       },
       {
         userId: 18,
-        text: 'Когда же это уже все закончится?',
+        text: 'Когда же это уже все закончится? Неужели этот сезон так продлится вечно?',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -203,7 +205,7 @@ module.exports = {
       },
       {
         userId: 1,
-        text: 'Какой сегодня чудесный день! Выходные!',
+        text: 'Какой сегодня чудесный день! Выходные! Отдыхайте и заряжайтесь энергией!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -214,7 +216,7 @@ module.exports = {
       },
       {
         userId: 2,
-        text: 'Какой сериал посоветуете посмотреть?',
+        text: 'Какой сериал посоветуете посмотреть? Я хочу посмотреть что-то новое и интересное.',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -225,7 +227,7 @@ module.exports = {
       },
       {
         userId: 3,
-        text: 'Поздравляю всех с началом лета! Оно будет прекрасным.',
+        text: 'Поздравляю всех с началом нового учебного года! Удачи всем!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -236,7 +238,7 @@ module.exports = {
       },
       {
         userId: 4,
-        text: 'Поздравляю Вас с прошедшими майскими праздниками! Всем добра и мира!',
+        text: 'Поздравляю Вас с прошедшими осенними праздниками! Всем добра и мира!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -247,7 +249,7 @@ module.exports = {
       },
       {
         userId: 5,
-        text: 'Скоро отпуск! Ура! Уже взяли билеты в Сочи! Красная Поляна ждет нас.',
+        text: 'Скоро отпуск! Ура! Уже взяли билеты в Сочи! Красная Поляна ждет нас!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -258,7 +260,7 @@ module.exports = {
       },
       {
         userId: 6,
-        text: 'Пора бы уже и мне найти работу. Ребята как у Вас сейчас дела с работой?',
+        text: 'Пора бы уже и мне найти работу. Ребята как у Вас сейчас дела с работой? У меня нет никаких предложений.',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -269,7 +271,7 @@ module.exports = {
       },
       {
         userId: 7,
-        text: 'Сегодня освоен React Router. Завтра начну изучать Redux и так выучу React.',
+        text: 'Сегодня освоен React Router. Завтра начну изучать Redux и так выучу React. Это будет очень полезно для моей карьеры.',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -280,7 +282,7 @@ module.exports = {
       },
       {
         userId: 8,
-        text: 'Скоро мое первое путешествие в Японию!',
+        text: 'Скоро мое первое путешествие в Японию! Я очень рад! Буду много фотографировать и делиться с вами!',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -291,7 +293,7 @@ module.exports = {
       },
       {
         userId: 9,
-        text: 'Учимся программировать. Подписываемся на мой канал в YouTube и Telegram!',
+        text: 'Учимся программировать. Подписываемся на мой канал в YouTube и Telegram! Я буду делиться с вами своими достижениями и опытом.',
         postUrl: null,
         previewUrl: null,
         thumbnailUrl: null,
@@ -300,7 +302,11 @@ module.exports = {
         pinned: false,
         isEdited: false,
       },
-    ]);
+    ];
+
+    await Post.bulkCreate(posts, {
+      validate: true,
+    });
   },
 
   down: async (queryInterface, Sequelize) => {
