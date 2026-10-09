@@ -423,6 +423,7 @@ const messageService = {
 
       // Если нечего удалять — выходим
       if (messagesToDelete.length === 0) {
+        console.log('[MessageService] Нет сообщений для удаления');
         return 0;
       }
 
@@ -445,8 +446,8 @@ const messageService = {
         transaction,
       });
 
-      console.log('[MessageCleanup] Deleted likes:', likesDeleted);
-      console.log('[MessageCleanup] Deleted messages:', deletedCount);
+      console.log('[MessageService] Удалено лайков:', likesDeleted);
+      console.log('[MessageService] Удалено сообщений:', deletedCount);
 
       return deletedCount;
     });

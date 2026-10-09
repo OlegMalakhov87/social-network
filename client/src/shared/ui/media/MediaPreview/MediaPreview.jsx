@@ -24,6 +24,7 @@ const PREVIEW_DELAY = 1000;
  * @param {Object} [props.currentItem] - объект с данными о текущем медиа
  * @param {boolean} [props.isPlaying] - если true, то превью воспроизводится
  * @param {Function} [props.onClick] - функция, вызываемая при клике
+ * @param {string} [props.type] - тип медиа (image, video)
  * @param {boolean} [props.clickable] - если true, то превью является кликабельным
  * @param {string} [props.fallback] - URL изображения-заглушки
  * @param {string} [props.className] - класс для обертки
@@ -37,8 +38,9 @@ export const MediaPreview = ({
   preview,
   alt,
   onClick,
+  type = 'image',
   clickable = false,
-  fallback = '/image.jpg',
+  fallback = '/no-image-1200x900.png',
   className = '',
   disabled = false,
 }) => {
@@ -49,8 +51,15 @@ export const MediaPreview = ({
 
   const playing = currentItem?.id === item.id && isPlaying;
 
+  const isVideo = type === 'video';
+
+  /**
+   * Загружает превью видео только после того,
+   * как пользователь непрерывно удерживает курсор
+   * над медиа в течение PREVIEW_DELAY.
+   */
   useEffect(() => {
-    if (!isHovered || !preview || disabled || playing) {
+    if (!isHovered || !isVideo || disabled || playing) {
       setShouldLoadPreview(false);
       setPreviewLoaded(false);
       return undefined;
@@ -63,14 +72,32 @@ export const MediaPreview = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isHovered, preview, disabled, playing]);
+  }, [isHovered, isVideo, disabled, playing]);
 
+  /** Показывает fallback превью, если превью недоступно или есть ошибка. */
+  const showPreviewFallback =
+    isVideo && shouldLoadPreview && (!preview || previewError);
+
+  /** Показывает видео превью, если превью доступно и нет ошибки. */
+  const showVideoPreview =
+    isVideo && shouldLoadPreview && Boolean(preview) && !previewError;
+
+  /** Скрывает миниатюру, если загружено превью или отображается fallback. */
+  const hideThumbnail = isVideo && (previewLoaded || showPreviewFallback);
+
+  /** Сбрасывает состояние ошибки и загрузки превью, если пользователь убрал курсор с медиа. */
   useEffect(() => {
     if (!isHovered) {
       setPreviewError(false);
       setPreviewLoaded(false);
     }
   }, [isHovered]);
+
+  /** Сбрасывает состояние ошибки и загрузки превью, если изменился URL превью. */
+  useEffect(() => {
+    setPreviewError(false);
+    setPreviewLoaded(false);
+  }, [preview]);
 
   return (
     <div
@@ -86,17 +113,19 @@ export const MediaPreview = ({
       tabIndex={clickable ? 0 : undefined}
     >
       <Image
-        src={src || fallback}
+        src={src}
         alt={alt}
+        fallback={fallback}
         className={classNames(
           styles.image,
-          previewLoaded && styles.imageHidden
+          hideThumbnail && styles.imageHidden
         )}
       />
 
-      {shouldLoadPreview && !previewError && (
+      {showVideoPreview && (
         <video
-          src={preview || '/preview.mp4'}
+          key={preview}
+          src={preview}
           autoPlay
           muted
           loop
@@ -107,7 +136,18 @@ export const MediaPreview = ({
             previewLoaded && styles.previewVisible
           )}
           onLoadedData={() => setPreviewLoaded(true)}
-          onError={() => setPreviewError(true)}
+          onError={() => {
+            setPreviewLoaded(false);
+            setPreviewError(true);
+          }}
+        />
+      )}
+
+      {showPreviewFallback && (
+        <Image
+          src={'/no-preview-1280x720.png'}
+          alt="Превью видео недоступно"
+          className={classNames(styles.preview, styles.previewVisible)}
         />
       )}
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getPostActions } from '..';
-import { useNotify } from '../../../shared/hooks';
+import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   BaseCard,
@@ -47,9 +47,13 @@ export const Post = ({
   isPlaying,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
+
   const notify = useNotify();
+
+  const { ref, expanded, isOverflowing, toggle } = useExpandableText({
+    lineClamp: 2,
+  });
 
   if (!post?.id) return null;
 
@@ -69,7 +73,7 @@ export const Post = ({
     if (!expanded && !hasViewed) {
       setHasViewed(true);
     }
-    setExpanded((prev) => !prev);
+    toggle();
   };
 
   /** Обработчик подтверждения удаления поста. */
@@ -100,7 +104,7 @@ export const Post = ({
         }
         content={
           <EntityContent>
-            {post.postUrl && (
+            {post.type !== 'text' && (
               <MediaPreview
                 item={post}
                 src={post.type === 'video' ? post.thumbnailUrl : post.postUrl}
@@ -111,21 +115,27 @@ export const Post = ({
                 isPlaying={isPlaying}
                 className={styles.media}
                 clickable={post.type === 'video' ? true : false}
+                type={post.type === 'video' ? 'video' : 'image'}
                 fallback={
-                  post.type === 'video' ? '/thumbnail.jpg' : '/image.jpg'
+                  post.type === 'video'
+                    ? '/no-thumbnail-1280x720.png'
+                    : '/no-image-1200x900.png'
                 }
               />
             )}
-            <Text
-              variant="body1"
-              linkify={true}
-              className={classNames(
-                styles.textPreview,
-                expanded && styles.hiddenPreview
-              )}
-            >
-              {post.text}
-            </Text>
+            {!expanded && (
+              <Text
+                ref={ref}
+                variant="body1"
+                linkify={true}
+                className={classNames(
+                  styles.textPreview,
+                  expanded && styles.hiddenPreview
+                )}
+              >
+                {post.text}
+              </Text>
+            )}
             {expanded && (
               <RichText
                 text={post.text}
@@ -134,7 +144,7 @@ export const Post = ({
                 className={styles.textExpanded}
               />
             )}
-            {post.text && post.text.length > 75 && (
+            {isOverflowing && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>

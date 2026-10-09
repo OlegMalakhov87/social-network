@@ -80,6 +80,9 @@ const newsService = {
     // Получаем новости с авторами, лайками и комментариями
     const { count, rows: news } = await News.findAndCountAll({
       where,
+      attributes: {
+        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+      },
       include: [
         {
           model: User,
@@ -143,6 +146,9 @@ const newsService = {
   async getNewsById(newsId, currentUserId) {
     // Получаем новость с автором, лайками и комментариями
     const news = await News.findByPk(newsId, {
+      attributes: {
+        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+      },
       include: [
         {
           model: User,
@@ -234,6 +240,9 @@ const newsService = {
 
     // Получаем созданную новость с автором одним запросом
     const newsWithAuthor = await News.findByPk(news.id, {
+      attributes: {
+        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+      },
       include: [
         {
           model: User,
@@ -257,7 +266,11 @@ const newsService = {
    */
   async updateNews(newsId, currentUserId, updateData) {
     // Получаем новость с автором
-    const news = await News.findByPk(newsId);
+    const news = await News.findByPk(newsId, {
+      attributes: {
+        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+      },
+    });
 
     // Проверяем, что новость найдена
     if (!news) {
@@ -440,7 +453,10 @@ const newsService = {
     );
 
     console.log(
-      `[NewsArchive] Archived news: ${archivedCount}; cutoff: ${cutoffDate.toISOString()}`
+      '[NewsService] Архивированно новостей:',
+      archivedCount,
+      'Дата архивации:',
+      cutoffDate.toISOString()
     );
 
     return archivedCount;

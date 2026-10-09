@@ -18,6 +18,7 @@ export const NewsSchema = z.object({
   thumbnailUrl: z.string().nullish(),
   viewsCount: z.number().default(0),
   isEdited: z.boolean().default(false),
+  publishedAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 

@@ -35,7 +35,7 @@ const authService = {
    */
   async getMe(userId) {
     const user = await User.findByPk(userId, {
-      attributes: { exclude: ['passwordHash'] },
+      attributes: { exclude: ['passwordHash', 'isSystem'] },
     });
 
     if (!user) {
@@ -76,6 +76,7 @@ const authService = {
     // Возвращаем безопасный объект (без passwordHash)
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
+    delete userResponse.isSystem;
 
     return { user: userResponse, token };
   },
@@ -119,6 +120,7 @@ const authService = {
     // Возвращаем безопасный объект (без passwordHash)
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
+    delete userResponse.isSystem;
 
     return { user: userResponse, token };
   },

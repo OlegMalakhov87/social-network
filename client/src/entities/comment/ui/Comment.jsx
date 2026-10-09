@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCommentActions } from '..';
-import { useNotify } from '../../../shared/hooks';
+import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
 import {
   Avatar,
@@ -13,6 +13,7 @@ import {
   EntityContent,
   EntityHeader,
   EntityMeta,
+  RichText,
   Text,
   TextArea,
 } from '../../../shared/ui';
@@ -44,11 +45,16 @@ export const Comment = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment?.text || '');
-  const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const navigate = useNavigate();
+
   const notify = useNotify();
+
+  const { ref, expanded, isOverflowing, toggle } = useExpandableText({
+    lineClamp: 3,
+  });
 
   if (!comment?.id || !author) return null;
 
@@ -93,7 +99,7 @@ export const Comment = ({
     if (!expanded && !hasViewed) {
       setHasViewed(true);
     }
-    setExpanded((prev) => !prev);
+    toggle();
   };
 
   /** Обработчик подтверждения удаления комментария. */
@@ -149,30 +155,36 @@ export const Comment = ({
                   rows={3}
                 />
                 <ButtonGroup>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleCancel}
-                  >
+                  <Button variant="secondary" size="sm" onClick={handleCancel}>
                     Отмена
                   </Button>
-                  <Button size="sm" onClick={handleSave} >
+                  <Button size="sm" onClick={handleSave}>
                     Сохранить
                   </Button>
                 </ButtonGroup>
               </>
             ) : (
               <>
-                <Text
-                  linkify={true}
-                  className={classNames(
-                    styles.text,
-                    expanded && styles.expanded
-                  )}
-                >
-                  {comment.text}
-                </Text>
-                {comment.text && comment.text.length > 80 && (
+                {!expanded && (
+                  <Text
+                    ref={ref}
+                    linkify={true}
+                    className={classNames(
+                      styles.textPreview,
+                      expanded && styles.hiddenPreview
+                    )}
+                  >
+                    {comment.text}
+                  </Text>
+                )}
+                {expanded && (
+                  <RichText
+                    text={comment.text}
+                    linkify={true}
+                    className={styles.textExpanded}
+                  />
+                )}
+                {isOverflowing && (
                   <Button
                     variant="ghost"
                     size="sm"

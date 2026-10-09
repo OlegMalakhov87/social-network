@@ -12,6 +12,8 @@ import styles from './RichText.module.css';
  * @param {string} [props.className=''] - класс контейнера
  * @param {string} [props.paragraphClassName=''] - класс абзацев
  * @param {string} [props.emptyText=''] - текст-заглушка, если `text` пустой
+ * @param {React.Ref} [props.ref=null] - ref для контейнера
+ * @returns {React.ReactNode} - компонент RichText
  */
 export const RichText = ({
   text,
@@ -20,6 +22,7 @@ export const RichText = ({
   className = '',
   paragraphClassName = '',
   emptyText = '',
+  ref,
 }) => {
   const normalizedText = String(text ?? '')
     .replace(/\r\n/g, '\n')
@@ -29,7 +32,10 @@ export const RichText = ({
     if (!emptyText) return null;
 
     return (
-      <Text variant={variant} className={classNames(styles.paragraph, paragraphClassName)}>
+      <Text
+        variant={variant}
+        className={classNames(styles.paragraph, paragraphClassName)}
+      >
         {emptyText}
       </Text>
     );
@@ -41,7 +47,7 @@ export const RichText = ({
     .filter(Boolean);
 
   return (
-    <div className={classNames(styles.root, className)}>
+    <div className={classNames(styles.root, className)} ref={ref}>
       {paragraphs.map((paragraph, index) => (
         <Text
           key={`${index}-${paragraph.slice(0, 24)}`}

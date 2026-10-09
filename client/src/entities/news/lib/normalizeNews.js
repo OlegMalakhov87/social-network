@@ -17,6 +17,7 @@ export const normalizeNews = (raw) => {
     thumbnailUrl: raw.thumbnailUrl,
     viewsCount: raw.viewsCount ?? 0,
     isEdited: raw.isEdited ?? false,
+    publishedAt: raw.publishedAt,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
 

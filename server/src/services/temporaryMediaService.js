@@ -166,7 +166,7 @@ const temporaryMediaService = {
       },
     });
     console.log(
-      '[TemporaryMediaService] Expired temporary media files deleted:',
+      '[TemporaryMediaService] Удалены временные медиафайлы с истекшим сроком хранения:',
       deletedCount
     );
     return deletedCount;

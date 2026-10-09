@@ -82,6 +82,7 @@ export const AudioPlayer = ({
           width={50}
           height={50}
           className={style.playerCover}
+          fallbacK={'/no-cover-150x150.png'}
         />
         <div className={style.trackDetails}>
           <div className={style.playerTrack}>{currentTrack.title}</div>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { getNewsActions } from '..';
-import { useNotify } from '../../../shared/hooks';
+import { CATEGORIES, getNewsActions } from '..';
+import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
 import {
+  Badge,
   BaseCard,
   Button,
   ConfirmDialog,
@@ -48,10 +49,14 @@ export const News = ({
   currentNews,
   isPlaying,
 }) => {
-  const [expanded, setExpanded] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const notify = useNotify();
+
+  const { ref, expanded, isOverflowing, toggle } = useExpandableText({
+    lineClamp: 2,
+  });
 
   if (!news?.id) return null;
 
@@ -72,7 +77,7 @@ export const News = ({
       onReadMore?.(news.id);
       setHasViewed(true);
     }
-    setExpanded((prev) => !prev);
+    toggle();
   };
 
   /** Обработчик подтверждения удаления новости. */
@@ -92,43 +97,59 @@ export const News = ({
           <EntityHeader>
             <EntityMeta
               title={news.title}
-              badge={news.category}
+              badge={
+                <Badge size="sm" variant="primary">
+                  {
+                    CATEGORIES.find((category) => category.id === news.category)
+                      ?.label
+                  }
+                </Badge>
+              }
               subtitle={
                 news.isEdited
                   ? `изм. ${formatDate(news.updatedAt)}`
-                  : formatDate(news.createdAt)
+                  : formatDate(news.publishedAt || news.createdAt)
               }
             />
           </EntityHeader>
         }
         cover={
-          news.newsUrl && (
+          news.type !== 'text' && (
             <MediaPreview
               item={news}
               src={news.type === 'video' ? news.thumbnailUrl : news.newsUrl}
               preview={news.type === 'video' ? news.previewUrl : null}
               alt={news.type === 'image' ? 'Фото' : 'Видео'}
+              type={news.type === 'video' ? 'video' : 'image'}
               onClick={onPlay}
               currentItem={currentNews}
               isPlaying={isPlaying}
               className={styles.media}
               clickable={news.type === 'video' ? true : false}
-              fallback={news.type === 'video' ? '/thumbnail.jpg' : '/image.jpg'}
+              fallback={
+                news.type === 'video'
+                  ? '/no-thumbnail-1280x720.png'
+                  : '/no-image-1200x900.png'
+              }
             />
           )
         }
         content={
           <EntityContent>
-            <Text
-              variant="body1"
-              linkify={true}
-              className={classNames(
-                styles.textPreview,
-                expanded && styles.hiddenPreview
-              )}
-            >
-              {news.text}
-            </Text>
+            {!expanded && (
+              <Text
+                ref={ref}
+                variant="body1"
+                linkify={true}
+                className={classNames(
+                  styles.textPreview,
+                  expanded && styles.hiddenPreview
+                )}
+              >
+                {news.text}
+              </Text>
+            )}
+
             {expanded && (
               <RichText
                 text={news.text}
@@ -138,7 +159,7 @@ export const News = ({
               />
             )}
 
-            {news.text && news.text.length > 75 && (
+            {isOverflowing && (
               <Button variant="ghost" size="sm" onClick={handleToggleExpand}>
                 {expanded ? 'Свернуть' : 'Читать далее'}
               </Button>

@@ -76,13 +76,13 @@ export const Photo = ({
         }
         content={
           <EntityContent>
-            {photo.postUrl && (
-              <MediaPreview
-                src={photo.postUrl}
-                alt="Фото"
-                className={styles.media}
-              />
-            )}
+            <MediaPreview
+              src={photo.postUrl}
+              fallback={'/no-image-1200x900.png'}
+              alt="Фото"
+              className={styles.media}
+              type="image"
+            />
           </EntityContent>
         }
         actions={<EntityActions actions={actions} />}

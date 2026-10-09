@@ -1,25 +1,31 @@
 {
-  "short_name": "SocialNet",
-  "name": "SocialNet — Социальная сеть",
+  "short_name": "SocialNetwork",
+  "name": "SocialNetwork — Социальная сеть",
   "icons": [
     {
-      "src": "sit1.png",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "socialnet-64.png",
+      "sizes": "64x64",
       "type": "image/x-icon"
     },
     {
-      "src": "sit2.png",
+      "src": "socialnet-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "sit3.png",
+      "src": "socialnet-512.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "socialnet-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#4a6fa5",
-  "background_color": "#ffffff"
+  "theme_color": "#667eea",
+  "background_color": "#f5f7fa"
 }

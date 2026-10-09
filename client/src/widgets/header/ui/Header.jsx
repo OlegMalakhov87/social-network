@@ -71,9 +71,9 @@ export const Header = ({ onSearchChange }) => {
               className={style.logoLink}
             >
               <Image
-                src="/logo.png"
+                src="/socialnet-logo.png"
                 alt="Logo"
-                fallback="/logo.png"
+                fallback="/socialnet-logo.png"
                 className={style.logoImage}
               />
             </NavLink>

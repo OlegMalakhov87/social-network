@@ -12,10 +12,12 @@
   text-decoration: underline;
 }
 
-.text {
-  font-size: var(--font-sm);
+.textPreview {
+  font-size: var(--font-md);
   line-height: 1.5;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  width: 100%;
+  word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -23,9 +25,11 @@
   overflow: hidden;
 }
 
-.text.expanded {
-  -webkit-line-clamp: unset;
-  line-clamp: none;
-  display: block;
-  white-space: normal;
+.hiddenPreview {
+  display: none;
+}
+
+.textExpanded {
+  color: var(--text-secondary);
+  line-height: 1.55;
 }

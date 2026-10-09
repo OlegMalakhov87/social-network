@@ -40,10 +40,35 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
 
   /** Обработчик воспроизведения видео */
   const handleVideoPlay = useCallback(() => {
+    if (videoRef.current?.dataset.fallback === 'true') return;
     if (playStartedRef.current || !video?.id) return;
     playStartedRef.current = true;
     onPlayStart?.(video);
   }, [video, onPlayStart]);
+
+  /** Обработчик ошибки видео */
+  const handleVideoError = useCallback(() => {
+    const player = videoRef.current;
+
+    if (!player) return;
+
+    // Если резервное видео тоже недоступно, повторно не переключаем.
+    if (player.dataset.fallback === 'true') {
+      console.error('[VideoPlayer] Резервное видео недоступно');
+      return;
+    }
+
+    console.warn('[VideoPlayer] Основное видео недоступно');
+
+    player.dataset.fallback = 'true';
+    player.src = '/socialnet-video-unavailable-5s.mp4';
+    player.load();
+
+    // Повторное воспроизведение может быть заблокировано браузером.
+    player.play().catch(() => {
+      console.warn('[VideoPlayer] Не удалось автоматически запустить fallback');
+    });
+  }, []);
 
   /** URL видео */
   const videoUrl = video?.videoUrl || video?.postUrl || video?.newsUrl;
@@ -51,7 +76,12 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
   /** Если видео не найдено, отображается модальное окно с сообщением о недоступности видео */
   if (!videoUrl) {
     return (
-      <Modal isOpen={true} onClose={onClose} title="Видео недоступно">
+      <Modal
+        isOpen={true}
+        onClose={onClose}
+        title="Видео недоступно"
+        mobileFullscreen={false}
+      >
         <div className={style.empty}>
           <p>Видео недоступно</p>
           <IconButton
@@ -74,15 +104,18 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
       onClose={onClose}
       title={video.title}
       size="lg"
+      mobileFullscreen={false}
       contentClassName={style.modalContent}
     >
       <div className={style.player}>
         <video
+          key={`${video?.id}-${videoUrl}`}
           ref={videoRef}
           src={videoUrl}
           controls
           autoPlay
           onPlay={handleVideoPlay}
+          onError={handleVideoError}
           aria-label={video.title}
         />
       </div>

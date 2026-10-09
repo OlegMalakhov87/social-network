@@ -44,20 +44,24 @@ const startMaintenanceAndCleanupJob = () => {
       const results = [];
 
       results.push(
-        await runTask('Временные медиа', () =>
+        await runTask('Очистка временных медиа', () =>
           temporaryMediaService.cleanupExpired()
         )
       );
       results.push(
-        await runTask('Удалённые сообщения', () =>
+        await runTask('Очистка удаленных сообщений', () =>
           messageService.cleanupDeletedMessages()
         )
       );
       results.push(
-        await runTask('Архивация новостей', () => newsService.archiveOldNews())
+        await runTask('Архивация устаревших новостей', () =>
+          newsService.archiveOldNews()
+        )
       );
       results.push(
-        await runTask('Медиа-файлы', () => mediaCleanupService.cleanup())
+        await runTask('Очистка медиа-файлов', () =>
+          mediaCleanupService.cleanup()
+        )
       );
 
       const succeeded = results.filter((r) => r.success).length;

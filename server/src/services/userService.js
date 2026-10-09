@@ -53,7 +53,7 @@ const userService = {
 
     // Получаем пользователя
     const user = await User.findByPk(targetUserId, {
-      attributes: { exclude: ['passwordHash'] },
+      attributes: { exclude: ['passwordHash', 'isSystem'] },
     });
 
     // Проверяем, найден ли пользователь
@@ -74,7 +74,6 @@ const userService = {
       delete userData.status;
       delete userData.birthDate;
       delete userData.isPublic;
-      delete userData.isSystem;
       delete userData.gender;
       delete userData.createdAt;
       delete userData.updatedAt;
@@ -133,7 +132,7 @@ const userService = {
     // Получаем пользователя
     const user = await User.findByPk(currentUserId, {
       attributes: {
-        exclude: ['passwordHash'],
+        exclude: ['passwordHash', 'isSystem'],
       },
     });
 
@@ -240,6 +239,7 @@ const userService = {
     // Получаем данные пользователя
     const userData = updatedUser.toJSON();
     delete userData.passwordHash;
+    delete userData.isSystem;
 
     return { user: userData };
   },
