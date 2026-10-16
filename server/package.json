@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "test": "node --test --test-isolation=none",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "db": "yarn sequelize db:drop && yarn sequelize db:create && yarn sequelize db:migrate && yarn sequelize db:seed:all ",

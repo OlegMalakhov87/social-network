@@ -17,11 +17,14 @@ const fromPublicUrl = (url) => {
     throw createError('Некорректный тип URL', 400, 'INVALID_URL_TYPE');
   }
 
-  if (!url.startsWith(MEDIA_URL_PREFIX)) {
+  // Старые записи могли хранить путь без начального слеша.
+  const normalizedUrl = url.startsWith('/') ? url : '/' + url;
+
+  if (!normalizedUrl.startsWith(MEDIA_URL_PREFIX)) {
     throw createError('Некорректный путь URL', 400, 'INVALID_MEDIA_PATH');
   }
 
-  const relativePath = url.slice(MEDIA_URL_PREFIX.length);
+  const relativePath = normalizedUrl.slice(MEDIA_URL_PREFIX.length);
 
   if (
     !relativePath ||
@@ -50,7 +53,7 @@ const fromPublicUrl = (url) => {
   if (
     !relative ||
     relative === '..' ||
-    relative.startsWith(`..${path.sep}`) ||
+    relative.startsWith('..' + path.sep) ||
     path.isAbsolute(relative)
   ) {
     throw createError(
