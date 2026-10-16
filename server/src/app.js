@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express();
-const path = require('path');
+const path = require('node:path');
 const morgan = require('morgan');
 const cors = require('cors');
 
+const { MEDIA_ROOT } = require('../config/mediaUploadConfig');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes');
@@ -30,7 +31,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use(
+  '/uploads',
+  express.static(MEDIA_ROOT, {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+  })
+);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', userRoutes);

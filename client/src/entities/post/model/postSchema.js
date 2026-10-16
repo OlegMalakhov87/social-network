@@ -27,9 +27,10 @@ export const PostSchema = z.object({
   }).optional(),
 
   likes: z.array(LikeSchema.pick({ id: true, userId: true })).optional(),
-  comments: CommentsListSchema.optional(),
   likesCount: z.number().optional(),
   isLiked: z.boolean().optional(),
+
+  comments: CommentsListSchema.optional(),
   commentsCount: z.number().optional(),
 });
 

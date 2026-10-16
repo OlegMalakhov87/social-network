@@ -13,7 +13,6 @@ export const normalizeVideos = (raw) => {
     description: raw.description,
     duration: raw.duration,
     size: raw.size,
-    year: raw.year,
     videoUrl: raw.videoUrl,
     previewUrl: raw.previewUrl,
     thumbnailUrl: raw.thumbnailUrl,

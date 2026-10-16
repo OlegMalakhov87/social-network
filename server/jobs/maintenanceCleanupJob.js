@@ -4,9 +4,6 @@ const temporaryMediaService = require('../src/services/temporaryMediaService');
 const messageService = require('../src/services/messageService');
 const newsService = require('../src/services/newsService');
 
-/** Флаг для предотвращения одновременного запуска нескольких очисток - false */
-let isRunning = false;
-
 /** Обёртка с изоляцией ошибок
  * @param {string} name - Название задачи
  * @param {function} task - Функция задачи
@@ -26,8 +23,21 @@ const runTask = async (name, task) => {
   }
 };
 
+/** Флаг для предотвращения одновременного запуска нескольких очисток - false */
+let isRunning = false;
+
+/**
+ * Запуск очистки временных файлов, удаленных сообщений,
+ * архивации устаревших новостей, а также медиафайлов из директорий:
+ *  - MEDIA_ROOT
+ *  - STAGING_ROOT
+ *  - PUBLISH_STAGING_ROOT
+ *
+ * Очистка происходит в 18:30 ежедневно.
+ *
+ */
 const startMaintenanceAndCleanupJob = () => {
-  cron.schedule('00 18 * * *', async () => {
+  cron.schedule('30 18 * * *', async () => {
     if (isRunning) {
       console.warn('[Maintenance] Предыдущая очистка ещё выполняется');
       return;
@@ -56,6 +66,11 @@ const startMaintenanceAndCleanupJob = () => {
       results.push(
         await runTask('Архивация устаревших новостей', () =>
           newsService.archiveOldNews()
+        )
+      );
+      results.push(
+        await runTask('Очистка staging-файлов', () =>
+          mediaCleanupService.cleanupStaging()
         )
       );
       results.push(

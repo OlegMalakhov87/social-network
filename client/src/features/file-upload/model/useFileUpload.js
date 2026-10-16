@@ -21,6 +21,7 @@ import { parseApiError } from '../../../shared/lib';
  * @param {Function} [options.onSuccess] - callback после успешной загрузки
  * @param {Function} [options.onError] - callback ошибки
  */
+
 export const useFileUpload = (config, options = {}) => {
   const { onSuccess, onError } = options;
 
@@ -29,230 +30,325 @@ export const useFileUpload = (config, options = {}) => {
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
-  const uploadedFileRef = useRef(null);
-  const isCommittedRef = useRef(false);
-  const isMountedRef = useRef(true);
+  const abortControllerRef = useRef(null);
+
+  // URL -> fieldName
+  const temporaryMediaRef = useRef(new Map());
+
+  // URL -> Promise<boolean>
+  const deletionPromisesRef = useRef(new Map());
+
+  const previewUrlRef = useRef(null);
+  const isMountedRef = useRef(false);
+  const requestIdRef = useRef(0);
+  const uploadingRef = useRef(false);
+
+  const configRef = useRef(config);
+  const callbacksRef = useRef({ onSuccess, onError });
+
+  configRef.current = config;
+  callbacksRef.current = { onSuccess, onError };
 
   /**
-   * Сбрасывает только локальное состояние,
-   * не удаляя файл на сервере.
+   * Получает записи временных медиафайлов из данных ответа сервера.
+   * @param {Object} data - данные ответа сервера
+   * @param {Object} currentConfig - текущая конфигурация загрузки
+   * @returns {Array} - массив записей временных медиафайлов
    */
-  const reset = useCallback(() => {
-    if (preview) {
-      URL.revokeObjectURL(preview);
-    }
+  const getMediaEntries = useCallback((data, currentConfig) => {
+    const fields = currentConfig.mediaFields ?? [currentConfig.fieldName];
 
-    setPreview(null);
-    setError(null);
-    setProgress(0);
-    setIsUploading(false);
-  }, [preview]);
-
-  /**
-   * Удаляет временно загруженный файл с сервера.
-   */
-  const cleanupUploadedFile = useCallback(async () => {
-    const uploadedFile = uploadedFileRef.current;
-
-    if (!uploadedFile || !config?.deleteFn) {
-      return true;
-    }
-
-    // Если файл уже был успешно committed, то cleanup не должен его удалять.
-    if (isCommittedRef.current) {
-      return true;
-    }
-
-    try {
-      await config.deleteFn(uploadedFile);
-      uploadedFileRef.current = null;
-      return true;
-    } catch (err) {
-      setError(parseApiError(err, 'Ошибка удаления файла'));
-
-      return false;
-    }
-  }, [config]);
-
-  /**
-   * Фиксирует загруженный файл.
-   *
-   * После commit файл считается принадлежащим сущности,
-   * поэтому cleanupUploadedFile() больше не должен его удалять.
-   */
-  const commit = useCallback(() => {
-    uploadedFileRef.current = null;
-    isCommittedRef.current = true;
+    return fields
+      .filter(
+        (fieldName) =>
+          typeof data?.[fieldName] === 'string' && data[fieldName].length > 0
+      )
+      .map((fieldName) => ({
+        fieldName,
+        url: data[fieldName],
+      }));
   }, []);
 
   /**
-   * Обработчик выбора файла.
+   * Удаляет URL-адрес предпросмотра файла.
+   */
+  const revokePreview = useCallback(() => {
+    if (!previewUrlRef.current) return;
+
+    URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
+  }, []);
+
+  /**
+   * Удаляет одну временную запись.
+   * @param {string} url - URL записи
+   * @param {string} fieldName - имя поля записи
+   * @param {Function} deleteFn - функция удаления записи
+   * @returns {Promise<boolean>} - результат удаления
+   */
+  const deleteMedia = useCallback(async (url, fieldName, deleteFn) => {
+    const existing = deletionPromisesRef.current.get(url);
+
+    if (existing) return existing;
+
+    if (!deleteFn) return false;
+
+    const promise = (async () => {
+      try {
+        await deleteFn({ [fieldName]: url });
+
+        // Не удаляем запись, если по этому URL уже
+        // зарегистрировано другое значение.
+        if (temporaryMediaRef.current.get(url) === fieldName) {
+          temporaryMediaRef.current.delete(url);
+        }
+
+        return true;
+      } catch (err) {
+        console.error('[FileUpload] Ошибка удаления:', err);
+        return false;
+      } finally {
+        deletionPromisesRef.current.delete(url);
+      }
+    })();
+
+    deletionPromisesRef.current.set(url, promise);
+
+    return promise;
+  }, []);
+
+  /**
+   * Удаляет все временные записи данного экземпляра хука.
+   * @returns {Promise<boolean>} - результат удаления
+   */
+  const cleanupUploadedFile = useCallback(async () => {
+    const entries = [...temporaryMediaRef.current.entries()];
+
+    if (entries.length === 0) return true;
+
+    const deleteFn = configRef.current.deleteFn;
+
+    const results = await Promise.all(
+      entries.map(([url, fieldName]) => deleteMedia(url, fieldName, deleteFn))
+    );
+
+    return results.every(Boolean);
+  }, [deleteMedia]);
+
+  /**
+   * Вызывается ТОЛЬКО после успешного сохранения сущности.
+   * @param {Array} usedUrls - массив URL загруженных файлов
+   * @returns {Promise<boolean>} - результат фиксации
+   */
+  const finalize = useCallback(
+    async (usedUrls = []) => {
+      const used = new Set(usedUrls.filter(Boolean));
+      const entries = [...temporaryMediaRef.current.entries()];
+
+      // Эти URL уже закреплены сервером в сущности.
+      for (const [url] of entries) {
+        if (used.has(url)) {
+          temporaryMediaRef.current.delete(url);
+        }
+      }
+
+      const unusedEntries = entries.filter(([url]) => !used.has(url));
+
+      if (unusedEntries.length === 0) return true;
+
+      const deleteFn = configRef.current.deleteFn;
+
+      const results = await Promise.all(
+        unusedEntries.map(([url, fieldName]) =>
+          deleteMedia(url, fieldName, deleteFn)
+        )
+      );
+
+      return results.every(Boolean);
+    },
+    [deleteMedia]
+  );
+
+  /**
+   * Сбрасывает UI, но НЕ забывает временные файлы.
+   */
+  const reset = useCallback(() => {
+    requestIdRef.current += 1;
+
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+
+    uploadingRef.current = false;
+
+    revokePreview();
+
+    if (isMountedRef.current) {
+      setPreview(null);
+      setError(null);
+      setProgress(0);
+      setIsUploading(false);
+    }
+  }, [revokePreview]);
+
+  /**
+   * Обработчик изменения файла.
+   * @param {Event} event - событие изменения файла
+   * @returns {Promise<boolean>} - результат обработки файла
    */
   const handleFileChange = useCallback(
-    async (e) => {
-      const file = e.target.files?.[0];
+    async (event) => {
+      const file = event.target.files?.[0];
 
       if (!file) return false;
 
-      // Сначала проверяем новый файл.
-      const validationError = await config?.validators?.(file);
+      const input = event.target;
 
-      if (validationError) {
-        if (isMountedRef.current) {
-          setError(validationError);
-        }
-        onError?.(validationError);
-        e.target.value = '';
+      // Ref защищает даже до следующего React-render.
+      if (uploadingRef.current) {
+        input.value = '';
         return false;
       }
 
-      // Новый файл валиден. Удаляем предыдущий временный файл.
-      const cleanedUp = await cleanupUploadedFile();
+      const controller = new AbortController();
 
-      // Если удаление предыдущего файла не удалось, то возвращаем false.
-      if (!cleanedUp) {
-        e.target.value = '';
-        return false;
-      }
+      abortControllerRef.current = controller;
 
-      // Удаляем предыдущий preview.
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-
-      // Обновляем локальное состояние.
-      if (isMountedRef.current) {
-        setPreview(null);
-        setError(null);
-        setProgress(0);
-        setIsUploading(true);
-      }
-
-      let objectUrl = null;
-      
-      // Создаём локальное preview.
-      if (config?.fieldName !== 'audioUrl') {
-        objectUrl = URL.createObjectURL(file);
-      }
-
-      // Обновляем локальное состояние.
-      if (isMountedRef.current) {
-        setPreview(objectUrl);
-      }
+      uploadingRef.current = true;
+      const requestId = ++requestIdRef.current;
+      const currentConfig = configRef.current;
 
       try {
-        // Создаём FormData.
-        const formData = new FormData();
-        formData.append(config?.fieldName, file);
+        const validationError = await currentConfig.validators?.(file);
 
-        // Если функция загрузки не определена, то удаляем preview и возвращаем false.
-        if (!config?.uploadFn) {
-          URL.revokeObjectURL(objectUrl);
-
+        if (requestId !== requestIdRef.current) {
           return false;
         }
 
-        // Загружаем файл.
-        const res = await config.uploadFn(formData, {
+        if (validationError) {
+          if (isMountedRef.current) {
+            setError(validationError);
+          }
+
+          callbacksRef.current.onError?.(validationError);
+          return false;
+        }
+
+        if (isMountedRef.current) {
+          setError(null);
+          setProgress(0);
+          setIsUploading(true);
+        }
+
+        if (!currentConfig.uploadFn) {
+          throw new Error('Функция загрузки файла не определена');
+        }
+
+        const formData = new FormData();
+        formData.append(currentConfig.fieldName, file);
+
+        const response = await currentConfig.uploadFn(formData, {
+          signal: controller.signal,
           onUploadProgress: (progressEvent) => {
-            // Если total не определен или компонент не смонтирован, то возвращаем.
-            if (!progressEvent.total || !isMountedRef.current) {
+            if (
+              requestId !== requestIdRef.current ||
+              !isMountedRef.current ||
+              !progressEvent.total
+            ) {
               return;
             }
 
-            // Обновляем прогресс.
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+            setProgress(
+              Math.round((progressEvent.loaded * 100) / progressEvent.total)
             );
-
-            setProgress(percent);
           },
           timeout: 120000,
         });
 
-        const uploadedFile = res?.data ?? res;
+        const uploadedFile = response?.data ?? response;
+        const entries = getMediaEntries(uploadedFile, currentConfig);
 
-        // Если компонент не смонтирован, то удаляем preview и возвращаем false.
-        if (!isMountedRef.current) {
-          if (!isCommittedRef.current && config?.deleteFn) {
-            try {
-              await config.deleteFn(uploadedFile);
-            } catch (cleanupError) {
-              console.error(
-                'Не удалось удалить временный файл после unmount:',
-                cleanupError
-              );
-            }
-          }
+        if (entries.length === 0) {
+          throw new Error('Сервер не вернул URL загруженного файла');
+        }
 
-          URL.revokeObjectURL(objectUrl);
+        for (const { url, fieldName } of entries) {
+          temporaryMediaRef.current.set(url, fieldName);
+        }
+
+        // Если форму закрыли во время запроса,
+        // удаляем только что загруженные временные файлы.
+        if (requestId !== requestIdRef.current || !isMountedRef.current) {
+          await Promise.all(
+            entries.map(({ url, fieldName }) =>
+              deleteMedia(url, fieldName, currentConfig.deleteFn)
+            )
+          );
 
           return false;
         }
 
-        // Если файл уже зафиксирован, то возвращаем true.
-        if (isCommittedRef.current) {
-          return true;
+        // Обновление формы должно быть синхронным.
+        callbacksRef.current.onSuccess?.(uploadedFile);
+
+        revokePreview();
+
+        if (currentConfig.fieldName !== 'audioUrl') {
+          const objectUrl = URL.createObjectURL(file);
+          previewUrlRef.current = objectUrl;
+          setPreview(objectUrl);
+        } else {
+          setPreview(null);
         }
-
-        // Фиксируем файл.
-        uploadedFileRef.current = uploadedFile;
-
-        onSuccess?.(uploadedFile);
 
         return true;
       } catch (err) {
-        URL.revokeObjectURL(objectUrl);
-        if (isMountedRef.current) {
-          setError(parseApiError(err, 'Ошибка загрузки файла'));
-          setPreview(null);
+        if (requestId === requestIdRef.current && isMountedRef.current) {
+          const message = parseApiError(err, 'Ошибка загрузки файла');
+
+          setError(message);
+          callbacksRef.current.onError?.(message);
         }
 
         return false;
       } finally {
-        if (isMountedRef.current) {
-          setIsUploading(false);
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
         }
 
-        e.target.value = '';
+        if (requestId === requestIdRef.current) {
+          uploadingRef.current = false;
+
+          if (isMountedRef.current) {
+            setIsUploading(false);
+          }
+        }
+
+        input.value = '';
       }
     },
-    [cleanupUploadedFile, config, onError, onSuccess, preview]
+    [deleteMedia, getMediaEntries, revokePreview]
   );
 
-  // Удаление временного файла при размонтировании компонента.
+  /**
+   * Монтирует компонент.
+   */
   useEffect(() => {
-    // Монтируем компонент.
     isMountedRef.current = true;
 
-    // Размонтируем компонент.
     return () => {
       isMountedRef.current = false;
+      requestIdRef.current += 1;
 
-      // Если файл не зафиксирован и функция удаления определена, то удаляем файл.
-      if (
-        uploadedFileRef.current &&
-        !isCommittedRef.current &&
-        config?.deleteFn
-      ) {
-        // Удаляем файл.
-        config.deleteFn(uploadedFileRef.current).catch((error) => {
-          console.error(
-            'Не удалось удалить временный файл при unmount:',
-            error
-          );
-        });
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
 
-        // Сбрасываем ссылку на файл.
-        uploadedFileRef.current = null;
-      }
+      revokePreview();
 
-      // Удаляем preview.
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
+      // Резервная очистка, если компонент закрыли
+      // без явного вызова cleanupUploadedFile().
+      void cleanupUploadedFile();
     };
-  }, [config, preview]);
+  }, [cleanupUploadedFile, revokePreview]);
 
   return {
     preview,
@@ -260,8 +356,8 @@ export const useFileUpload = (config, options = {}) => {
     error,
     progress,
     handleFileChange,
-    reset,
     cleanupUploadedFile,
-    commit,
+    finalize,
+    reset,
   };
 };

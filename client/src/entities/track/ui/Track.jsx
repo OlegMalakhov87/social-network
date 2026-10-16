@@ -145,7 +145,7 @@ export const Track = ({
               onClick={handlePlay}
               disabled={disabledButton}
               clickable={true}
-              fallback={'/no-cover-500x500.png'}
+              fallback={'/no-cover-640x360.png'}
               type="image"
             />
             <TrackMeta track={track} mode={mode} />

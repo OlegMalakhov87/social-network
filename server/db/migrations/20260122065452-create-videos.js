@@ -25,27 +25,23 @@ module.exports = {
       },
       duration: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       size: {
         type: Sequelize.BIGINT,
-        allowNull: true,
-      },
-      year: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       videoUrl: {
         type: Sequelize.STRING(500),
-        allowNull: true,
+        allowNull: false,
       },
       thumbnailUrl: {
         type: Sequelize.STRING(500),
-        allowNull: true,
+        allowNull: false,
       },
       previewUrl: {
         type: Sequelize.STRING(500),
-        allowNull: true,
+        allowNull: false,
       },
       category: {
         type: Sequelize.STRING(50),

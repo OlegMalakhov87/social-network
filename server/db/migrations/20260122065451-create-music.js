@@ -31,9 +31,9 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      year: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
+      size: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
       },
       duration: {
         type: Sequelize.INTEGER,
@@ -41,7 +41,7 @@ module.exports = {
       },
       audioUrl: {
         type: Sequelize.STRING(500),
-        allowNull: true,
+        allowNull: false,
       },
       coverUrl: {
         type: Sequelize.STRING(500),

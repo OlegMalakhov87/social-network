@@ -1,7 +1,12 @@
 const { Router } = require('express');
 const postController = require('../controllers/postController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
-const { validatePost } = require('../middleware/validation/postValidation');
+const {
+  validateCreatePost,
+} = require('../middleware/validation/validateCreatePost');
+const {
+  validateUpdatePost,
+} = require('../middleware/validation/validateUpdatePost');
 const {
   validatePrivacyUpdate,
 } = require('../middleware/validation/validatePrivacyUpdate');
@@ -10,6 +15,9 @@ const {
   upload,
   handleUploadError,
 } = require('../middleware/upload/uploadMiddleware');
+const {
+  validateUploadedMedia,
+} = require('../middleware/validation/validateUploadedMedia');
 
 const postRoutes = Router();
 
@@ -33,7 +41,7 @@ postRoutes.get(
 postRoutes.post(
   '/add',
   authMiddleware,
-  validatePost,
+  validateCreatePost,
   postController.createPost
 );
 
@@ -43,6 +51,7 @@ postRoutes.post(
   authMiddleware,
   upload.single('postUrl'),
   handleUploadError,
+  validateUploadedMedia,
   postController.uploadMedia
 );
 
@@ -51,7 +60,7 @@ postRoutes.put(
   '/:postId/update',
   validateIdParam('postId'),
   authMiddleware,
-  validatePost,
+  validateUpdatePost,
   postController.updatePost
 );
 

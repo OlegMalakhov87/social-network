@@ -1,10 +1,15 @@
 const ffmpeg = require('fluent-ffmpeg');
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const { randomUUID } = require('node:crypto');
+const { STAGING_ROOT } = require('../../config/mediaUploadConfig');
+const mediaStorageService = require('./mediaStorageService');
+const { createError } = require('../utils/createError');
 
 /**
- * Сервис генерации короткого превью видео формата MP4 (для воспроизведения короткого ролика при наведении курсора на карточку видео), и обложки видео формата JPG (для отображения обложки видео в списке видео).
- *
+ * Сервис генерации короткого превью видео формата MP4
+ * (для воспроизведения короткого ролика при наведении курсора на карточку видео),
+ * и обложки видео формата JPG (для отображения обложки видео в списке видео).
  */
 const videoPreviewService = {
   /**
@@ -16,70 +21,81 @@ const videoPreviewService = {
    */
   async generatePreview(videoPath, duration) {
     if (!videoPath) {
-      throw new Error('Путь к видео не указан');
+      throw createError('Путь к видео не указан', 400, 'VIDEO_PATH_REQUIRED');
     }
 
-    // Преобразуем путь к абсолютному.
+    /** Преобразуем путь к абсолютному. */
     const absoluteVideoPath = path.resolve(videoPath);
 
-    // Проверяем существование исходного видео.
+    /** Проверяем существование исходного видео. */
     try {
       await fs.access(absoluteVideoPath);
     } catch {
-      throw new Error(`Исходное видео не найдено: ${absoluteVideoPath}`);
+      throw createError(
+        `Исходное видео не найдено: ${absoluteVideoPath}`,
+        404,
+        'VIDEO_NOT_FOUND'
+      );
     }
 
-    // Директория, в которой будут храниться превью.
-    const previewDir = path.join(
-      path.dirname(absoluteVideoPath),
-      '..',
-      'previews'
-    );
+    /** Директория, в которой будут храниться временные превью. */
+    const previewDir = path.join(STAGING_ROOT, 'generated');
 
-    // Создаём директорию, если её ещё нет.
-    await fs.mkdir(previewDir, { recursive: true });
+    await fs.mkdir(previewDir, {
+      recursive: true,
+      mode: 0o700,
+    });
 
-    // Имя исходного файла без расширения.
-    const fileName = path.basename(
-      absoluteVideoPath,
-      path.extname(absoluteVideoPath)
-    );
+    const previewPath = path.join(previewDir, `${randomUUID()}.mp4`);
 
-    // Путь к будущему превью.
-    const previewFileName = `${fileName}-preview.mp4`;
-    const previewPath = path.join(previewDir, previewFileName);
-
-    // Максимальная длительность превью — 5 секунд.
+    /** Максимальная длительность превью — 5 секунд. */
     const previewDuration = Math.min(5, duration);
 
-    // Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд.
+    /** Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд. */
     const startTime = Math.max(
       0,
       Math.min(duration * 0.25, duration - previewDuration)
     );
 
-    return new Promise((resolve, reject) => {
-      ffmpeg(absoluteVideoPath)
-        .setStartTime(startTime) // Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд.
-        .duration(previewDuration) // Максимальная длительность превью — 5 секунд.
-        .videoCodec('libx264') // Выходной формат.
-        .outputOptions([
-          '-preset veryfast', // Настройка качества/размера файла.
-          '-crf 28', // Качество видео.
-          '-movflags +faststart', // Настройка качества/размера файла.
-          '-pix_fmt yuv420p', // Формат видео.
-        ])
-        .noAudio() // Без звука.
-        .format('mp4') // Формат MP4.
-        .output(previewPath) // Куда сохраняем результат.
-        .on('end', () => {
-          resolve(previewPath); // Успешное завершение.
-        })
-        .on('error', (error) => {
-          reject(new Error(`Ошибка генерации превью видео: ${error.message}`)); // Ошибка FFmpeg.
-        })
-        .run(); // Запускаем FFmpeg.
-    });
+    try {
+      await new Promise((resolve, reject) => {
+        ffmpeg(absoluteVideoPath)
+          .setStartTime(startTime)
+          .duration(previewDuration)
+          .videoCodec('libx264')
+          .outputOptions([
+            '-preset veryfast',
+            '-crf 28',
+            '-movflags +faststart',
+            '-pix_fmt yuv420p',
+          ])
+          .noAudio()
+          .format('mp4')
+          .output(previewPath)
+          .on('end', resolve)
+          .on('error', reject)
+          .run();
+      });
+
+      return await mediaStorageService.publishGeneratedFile(
+        previewPath,
+        'preview'
+      );
+    } catch (error) {
+      await fs.unlink(previewPath).catch((cleanupError) => {
+        if (cleanupError.code !== 'ENOENT') {
+          console.error('[VideoPreview] Ошибка очистки превью:', cleanupError);
+        }
+      });
+
+      console.error('[VideoPreview] Ошибка генерации превью:', error);
+
+      throw createError(
+        'Ошибка генерации или публикации превью видео',
+        500,
+        'VIDEO_PREVIEW_GENERATION_ERROR'
+      );
+    }
   },
 
   /**
@@ -91,7 +107,7 @@ const videoPreviewService = {
    */
   async generateThumbnail(videoPath, duration) {
     if (!videoPath) {
-      throw new Error('Путь к видео не указан');
+      throw createError('Путь к видео не указан', 400, 'VIDEO_PATH_REQUIRED');
     }
 
     const absoluteVideoPath = path.resolve(videoPath);
@@ -99,39 +115,56 @@ const videoPreviewService = {
     try {
       await fs.access(absoluteVideoPath);
     } catch {
-      throw new Error(`Исходное видео не найдено: ${absoluteVideoPath}`);
+      throw createError(
+        `Исходное видео не найдено: ${absoluteVideoPath}`,
+        404,
+        'VIDEO_NOT_FOUND'
+      );
     }
 
-    const thumbnailDir = path.join(
-      path.dirname(absoluteVideoPath),
-      '..',
-      'thumbnails'
-    );
-    await fs.mkdir(thumbnailDir, { recursive: true });
+    const thumbnailDir = path.join(STAGING_ROOT, 'generated');
 
-    const fileName = path.basename(
-      absoluteVideoPath,
-      path.extname(absoluteVideoPath)
-    );
+    await fs.mkdir(thumbnailDir, {
+      recursive: true,
+      mode: 0o700,
+    });
 
-    const thumbnailFileName = `${fileName}-thumbnail.jpg`;
-    const thumbnailPath = path.join(thumbnailDir, thumbnailFileName);
+    const thumbnailPath = path.join(thumbnailDir, `${randomUUID()}.jpg`);
 
     const startTime = duration > 5 ? 5 : 0;
 
-    return new Promise((resolve, reject) => {
-      ffmpeg(absoluteVideoPath)
-        .setStartTime(startTime) // Начинаем с 5 секунд или с начала видео, если длительность видео меньше 5 секунд.
-        .frames(1) // Извлекаем 1 кадр5
-        .size('640x360') // Размер обложки.
-        .format('image2') // Формат обложки.
-        .output(thumbnailPath) // Куда сохраняем результат.
-        .on('end', () => resolve(thumbnailPath)) // Успешное завершение.
-        .on('error', (error) =>
-          reject(new Error(`Ошибка генерации обложки видео: ${error.message}`))
-        ) // Ошибка FFmpeg.
-        .run(); // Запускаем FFmpeg.
-    });
+    try {
+      await new Promise((resolve, reject) => {
+        ffmpeg(absoluteVideoPath)
+          .setStartTime(startTime)
+          .frames(1)
+          .size('640x360')
+          .format('image2')
+          .output(thumbnailPath)
+          .on('end', resolve)
+          .on('error', reject)
+          .run();
+      });
+
+      return await mediaStorageService.publishGeneratedFile(
+        thumbnailPath,
+        'thumbnail'
+      );
+    } catch (error) {
+      await fs.unlink(thumbnailPath).catch((cleanupError) => {
+        if (cleanupError.code !== 'ENOENT') {
+          console.error('[VideoPreview] Ошибка очистки обложки:', cleanupError);
+        }
+      });
+
+      console.error('[VideoPreview] Ошибка генерации обложки:', error);
+
+      throw createError(
+        'Ошибка генерации или публикации обложки видео',
+        500,
+        'VIDEO_THUMBNAIL_GENERATION_ERROR'
+      );
+    }
   },
 };
 

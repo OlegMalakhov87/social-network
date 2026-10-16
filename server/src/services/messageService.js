@@ -3,6 +3,9 @@ const { Op, QueryTypes } = require('sequelize');
 const { createError } = require('../utils/createError');
 const { sequelize } = require('../../db/models');
 
+/**
+ * Сервис для работы с сообщениями.
+ */
 const messageService = {
   /**
    * Получить список диалогов
@@ -17,9 +20,6 @@ const messageService = {
     const offset = (page - 1) * limit;
     const search = `%${q}%`;
 
-    /**
-     * Получение списка диалогов
-     */
     const dialogs = await sequelize.query(
       `
       SELECT 
@@ -52,9 +52,6 @@ const messageService = {
       }
     );
 
-    /**
-     * Подсчет общего количества диалогов
-     */
     const [{ count }] = await sequelize.query(
       `
       SELECT COUNT(*) FROM (
@@ -79,9 +76,6 @@ const messageService = {
       }
     );
 
-    /**
-     * Подсчет непрочитанных сообщений (группировка по отправителю)
-     */
     const unreadCounts = await Message.findAll({
       attributes: [
         'senderId',
@@ -100,9 +94,6 @@ const messageService = {
       unreadCounts.map((u) => [u.senderId, parseInt(u.count, 10)])
     );
 
-    /**
-     * Форматирование результата
-     */
     const formattedDialogs = dialogs.map((d) => {
       const isOwn = d.senderId === currentUserId;
       const interlocutorId = isOwn ? d.receiverId : d.senderId;
@@ -411,7 +402,6 @@ const messageService = {
    */
   async cleanupDeletedMessages() {
     return sequelize.transaction(async (transaction) => {
-      // Найти все сообщения, которые нужно удалить
       const messagesToDelete = await Message.findAll({
         where: {
           deletedBySender: true,
@@ -421,7 +411,6 @@ const messageService = {
         transaction,
       });
 
-      // Если нечего удалять — выходим
       if (messagesToDelete.length === 0) {
         console.log('[MessageService] Нет сообщений для удаления');
         return 0;
@@ -429,7 +418,6 @@ const messageService = {
 
       const messageIds = messagesToDelete.map((msg) => msg.id);
 
-      // Удалить лайки для этих сообщений
       const likesDeleted = await Like.destroy({
         where: {
           targetType: 'Message',
@@ -438,7 +426,6 @@ const messageService = {
         transaction,
       });
 
-      // Удалить сами сообщения
       const deletedCount = await Message.destroy({
         where: {
           id: { [Op.in]: messageIds },

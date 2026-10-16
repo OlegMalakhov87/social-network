@@ -53,16 +53,13 @@ const authService = {
   async register(userData) {
     const { name, email, password, gender } = userData;
 
-    // Проверяем, нет ли уже такого email в базе данных
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       throw createError('Email уже используется', 409, 'USER_EXISTS');
     }
 
-    // Хешируем пароль
     const passwordHash = await createPasswordHash(password);
 
-    // Создаем пользователя
     const user = await User.create({
       name,
       email,
@@ -70,10 +67,8 @@ const authService = {
       gender,
     });
 
-    // Генерируем токен
     const token = generateToken(user.id);
 
-    // Возвращаем безопасный объект (без passwordHash)
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
     delete userResponse.isSystem;
@@ -89,7 +84,6 @@ const authService = {
   async login(credentials) {
     const { email, password } = credentials;
 
-    // Проверяем, есть ли пользователь с таким email в базе данных
     const user = await User.findOne({ where: { email } });
     if (!user) {
       throw createError(
@@ -99,12 +93,10 @@ const authService = {
       );
     }
 
-    // Проверяем, не является ли пользователь системным
     if (user.isSystem) {
       throw createError('Доступ запрещен', 403, 'ACCESS_FORBIDDEN');
     }
 
-    // Проверяем, совпадает ли пароль
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw createError(
@@ -114,10 +106,8 @@ const authService = {
       );
     }
 
-    // Генерируем токен
     const token = generateToken(user.id);
 
-    // Возвращаем безопасный объект (без passwordHash)
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
     delete userResponse.isSystem;

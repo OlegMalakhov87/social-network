@@ -127,7 +127,7 @@ export const Video = ({
               onClick={onPlay}
               disabled={disabledButton}
               clickable={true}
-              fallback={'/no-thumbnail-1280x720.png'}
+              fallback={'/no-thumbnail-1200x720.png'}
               type="video"
             />
             <VideoMeta video={video} mode={mode} />

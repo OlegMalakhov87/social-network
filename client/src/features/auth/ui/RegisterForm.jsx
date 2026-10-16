@@ -148,7 +148,9 @@ export const RegisterForm = () => {
                 disabled={form.isSubmitting || isSubmitting}
                 loading={form.isSubmitting || isSubmitting}
               >
-                Зарегистрироваться
+                {form.isSubmitting || isSubmitting
+                  ? 'Загрузка...'
+                  : 'Зарегистрироваться'}
               </Button>
 
               <Text variant="body2" className={style.footerText}>

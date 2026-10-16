@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { TRACK_CONFIG } from '..';
 import { CATEGORY_OPTIONS } from '../../../entities/track';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -32,19 +33,12 @@ import {
 export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
+  const isCancellingRef = useRef(false);
 
   /** Обработчик отправки формы */
   const handleSubmit = async (values) => {
     try {
       await onSubmit?.(values, isEdit, initialData?.id);
-      trackUpload.commit();
-      coverUpload.commit();
-      trackUpload.reset();
-      coverUpload.reset();
-      notify.success(
-        isEdit ? 'Трек успешно обновлен' : 'Трек успешно добавлен'
-      );
-      onClose?.();
     } catch (error) {
       notify.error(
         getApiErrorDisplay(
@@ -54,6 +48,25 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       );
       throw error;
     }
+
+    // С этого момента сохранение на сервере уже успешно.
+    const usedUrls = [values.audioUrl, values.coverUrl];
+
+    const results = await Promise.all([
+      trackUpload.finalize(usedUrls),
+      coverUpload.finalize(usedUrls),
+    ]);
+
+    if (!results.every(Boolean)) {
+      console.warn('[TrackForm] Не все неиспользуемые временные файлы очищены');
+    }
+
+    trackUpload.reset();
+    coverUpload.reset();
+
+    notify.success(isEdit ? 'Трек успешно обновлен' : 'Трек успешно добавлен');
+
+    onClose?.();
   };
 
   /** Форма для создания/редактирования трека с валидацией*/
@@ -63,7 +76,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       artist: initialData?.artist ?? null,
       album: initialData?.album ?? null,
       duration: initialData?.duration ?? null,
-      year: initialData?.year ?? new Date().getFullYear(),
+      size: initialData?.size ?? null,
       audioUrl: initialData?.audioUrl ?? null,
       coverUrl: initialData?.coverUrl ?? null,
       category: initialData?.category ?? null,
@@ -88,7 +101,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       category: [required('Выберите жанр')],
       description: [
         minLength(1, 'Минимально 1 символ'),
-        maxLength(2000, 'Максимум 2000 символов'),
+        maxLength(1000, 'Максимум 1000 символов'),
       ],
       audioUrl: [
         required('Загрузите аудиофайл'),
@@ -108,6 +121,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSuccess: (data) => {
       form.setValue('audioUrl', data.audioUrl);
       form.setValue('duration', data.duration);
+      form.setValue('size', data.size);
     },
   });
 
@@ -121,16 +135,28 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Обработчик закрытия формы */
   const handleCancel = async () => {
+    if (isCancellingRef.current || form.isSubmitting) return;
+
+    isCancellingRef.current = true;
+
     try {
-      await Promise.all([
+      // Сначала инвалидируем запросы и очищаем UI.
+      // Это защищает от применения ответа загрузки
+      // после начала закрытия формы.
+      trackUpload.reset();
+      coverUpload.reset();
+   
+      const results = await Promise.all([
         trackUpload.cleanupUploadedFile(),
         coverUpload.cleanupUploadedFile(),
       ]);
+
+      if (!results.every(Boolean)) {
+        console.warn('[TrackForm] Не все неиспользуемые временные файлы очищены');
+      }
     } finally {
-      trackUpload.reset();
-      coverUpload.reset();
       form.reset();
-      onClose();
+      onClose?.();
     }
   };
 
@@ -220,7 +246,11 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
             loading={form.isSubmitting || isUploading}
             disabled={form.isSubmitting || isUploading}
           >
-            {isEdit ? 'Сохранить' : 'Добавить'}
+            {form.isSubmitting || isUploading
+              ? 'Загрузка...'
+              : isEdit
+                ? 'Сохранить'
+                : 'Добавить'}
           </Button>
         </ButtonGroup>
       </form>

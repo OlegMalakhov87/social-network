@@ -2,6 +2,9 @@ const { Friend, User } = require('../../db/models');
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 
+/**
+ * Сервис для работы с дружбой.
+ */
 const friendService = {
   /**
    * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя.
@@ -21,12 +24,11 @@ const friendService = {
     category = 'all',
     q = '',
   } = {}) {
-    // Формируем условие для поиска пользователей
     const where = { id: { [Op.ne]: currentUserId }, isSystem: false };
 
     if (q && q.trim().length >= 2) {
       const searchTerm = `%${q.trim()}%`;
-      
+
       where[Op.or] = [
         { name: { [Op.iLike]: searchTerm } },
         { nickname: { [Op.iLike]: searchTerm } },
@@ -36,7 +38,6 @@ const friendService = {
     // --- Фильтрация по категориям через подзапросы ---
 
     if (category === 'friends') {
-      // Получаем список друзей
       const friendIds = await Friend.findAll({
         where: {
           [Op.or]: [
@@ -47,15 +48,12 @@ const friendService = {
         attributes: ['userId', 'friendId'],
       });
 
-      // Получаем список ID друзей
       const ids = friendIds.map((rel) =>
         rel.userId === currentUserId ? rel.friendId : rel.userId
       );
 
-      // Добавляем ID друзей в условие
       where.id = { [Op.in]: ids };
     } else if (category === 'subscribers') {
-      // Получаем список ID подписчиков
       const subscriberIds = await Friend.findAll({
         where: {
           friendId: currentUserId,
@@ -64,10 +62,8 @@ const friendService = {
         attributes: ['userId'],
       });
 
-      // Добавляем ID подписчиков в условие
       where.id = { [Op.in]: subscriberIds.map((rel) => rel.userId) };
     } else if (category === 'subscriptions') {
-      // Получаем список ID подписок
       const subscriptionIds = await Friend.findAll({
         where: {
           userId: currentUserId,
@@ -76,10 +72,8 @@ const friendService = {
         attributes: ['friendId'],
       });
 
-      // Добавляем ID подписок в условие
       where.id = { [Op.in]: subscriptionIds.map((rel) => rel.friendId) };
     } else if (category === 'friendsOfFriends') {
-      // Получаем список моих друзей
       const myFriends = await Friend.findAll({
         where: {
           [Op.or]: [
@@ -90,12 +84,10 @@ const friendService = {
         attributes: ['userId', 'friendId'],
       });
 
-      // Получаем список ID моих друзей
       const myFriendIds = myFriends.map((rel) =>
         rel.userId === currentUserId ? rel.friendId : rel.userId
       );
 
-      // Если у меня нет друзей, возвращаем пустой список
       if (myFriendIds.length === 0) {
         return {
           users: [],
@@ -108,7 +100,6 @@ const friendService = {
         };
       }
 
-      // Получаем связи моих друзей (кто дружит с моими друзьями)
       const friendsOfFriendsRelations = await Friend.findAll({
         where: {
           status: 'accepted',
@@ -120,10 +111,8 @@ const friendService = {
         attributes: ['userId', 'friendId'],
       });
 
-      // Получаем список ID друзей друзей
       const friendsOfFriendsIds = new Set();
 
-      // Добавляем ID друзей друзей в условие
       friendsOfFriendsRelations.forEach((rel) => {
         const otherId = myFriendIds.includes(rel.userId)
           ? rel.friendId
@@ -134,7 +123,6 @@ const friendService = {
         }
       });
 
-      // Если у меня нет друзей друзей, возвращаем пустой список
       if (friendsOfFriendsIds.size === 0) {
         return {
           users: [],
@@ -147,11 +135,9 @@ const friendService = {
         };
       }
 
-      // Добавляем ID друзей друзей в условие
       where.id = { [Op.in]: [...friendsOfFriendsIds] };
     }
 
-    // Получить пользователей только для текущей страницы
     const { count, rows: users } = await User.findAndCountAll({
       where,
       attributes: [
@@ -169,7 +155,6 @@ const friendService = {
       order: [['createdAt', 'DESC']],
     });
 
-    // Если пользователей нет, возвращаем пустой список
     if (users.length === 0) {
       return {
         users: [],
@@ -182,7 +167,6 @@ const friendService = {
       };
     }
 
-    // Получаем список ID пользователей
     const userIds = users.map((u) => u.id);
     const relations = await Friend.findAll({
       where: {
@@ -194,13 +178,11 @@ const friendService = {
       attributes: ['id', 'userId', 'friendId', 'status'],
     });
 
-    // Строим карту для быстрого доступа к связям
     const friendshipMap = new Map();
     relations.forEach((rel) => {
       const otherId = rel.userId === currentUserId ? rel.friendId : rel.userId;
       const direction = rel.userId === currentUserId ? 'outgoing' : 'incoming';
 
-      // Приоритет статусу 'accepted', если вдруг есть дубликаты
       const existing = friendshipMap.get(otherId);
       if (!existing || rel.status === 'accepted') {
         friendshipMap.set(otherId, {
@@ -211,7 +193,6 @@ const friendService = {
       }
     });
 
-    // Обогащаем пользователей данными о дружбе и статусе дружбы
     const enrichedUsers = users.map((user) => {
       const info = friendshipMap.get(user.id) || {};
       return {
@@ -223,7 +204,6 @@ const friendService = {
       };
     });
 
-    // Возвращаем пользователей с данными о статусе дружбы
     return {
       users: enrichedUsers,
       pagination: {
@@ -243,7 +223,6 @@ const friendService = {
    * @returns {Promise<Object>} { friendshipId, status, direction }
    */
   async sendRequest({ currentUserId, friendId }) {
-    // Если пользователь пытается добавить себя в друзья, выбрасываем ошибку
     if (currentUserId === friendId) {
       throw createError(
         'Нельзя добавить себя в друзья',
@@ -252,12 +231,10 @@ const friendService = {
       );
     }
 
-    // Получаем пользователя, которому отправляем заявку
     const friend = await User.findByPk(friendId, { attributes: ['id'] });
     if (!friend)
       throw createError('Пользователь не найден', 404, 'USER_NOT_FOUND');
 
-    // Проверяем, существует ли уже связь между пользователями
     const existing = await Friend.findOne({
       where: {
         [Op.or]: [
@@ -267,7 +244,6 @@ const friendService = {
       },
     });
 
-    // Если связь уже существует, выбрасываем ошибку
     if (existing) {
       const messages = {
         pending:
@@ -284,14 +260,12 @@ const friendService = {
       );
     }
 
-    // Создаем заявку в друзья
     const friendship = await Friend.create({
       userId: currentUserId,
       friendId,
       status: 'pending',
     });
 
-    // Возвращаем заявку в друзья
     return {
       friendshipId: friendship.id,
       friendshipStatus: 'pending',
@@ -307,25 +281,19 @@ const friendService = {
    * @returns {Promise<Object>} { friendshipId, status }
    */
   async acceptRequest({ currentUserId, friendshipId }) {
-    // Получаем заявку в друзья
     const friendship = await Friend.findByPk(friendshipId);
-    // Если заявки не найдена, выбрасываем ошибку
     if (!friendship)
       throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
 
-    // Принять может только получатель (friendId)
     if (friendship.friendId !== currentUserId) {
       throw createError('Вы не можете принять эту заявку', 403, 'FORBIDDEN');
     }
 
-    // Если заявка уже принята, выбрасываем ошибку
     if (friendship.status === 'accepted') {
       throw createError('Заявка уже принята', 400, 'ALREADY_ACCEPTED');
     }
 
-    // Обновляем статус заявки в друзья
     await friendship.update({ status: 'accepted' });
-    // Возвращаем заявку в друзья
     return {
       friendshipId: friendship.id,
       friendshipStatus: 'accepted',
@@ -341,15 +309,11 @@ const friendService = {
    * @returns {Promise<Object>} { message, friendshipId }
    */
   async rejectRequest({ currentUserId, friendshipId }) {
-    // Получаем заявку в друзья
     const friendship = await Friend.findByPk(friendshipId);
-    // Если заявки не найдена, выбрасываем ошибку
     if (!friendship)
       throw createError('Запись не найдена', 404, 'REQUEST_NOT_FOUND');
 
-    // Удаляем заявку в друзья
     await friendship.destroy();
-    // Возвращаем сообщение о успешном удалении заявки
     return { message: `Запись успешно удалена: ${friendshipId}` };
   },
 
@@ -361,12 +325,10 @@ const friendService = {
    * @returns {Promise<Object>} { message, friendshipId }
    */
   async blockUser({ currentUserId, friendId }) {
-    // Если пользователь пытается заблокировать себя, выбрасываем ошибку
     if (currentUserId === friendId) {
       throw createError('Нельзя заблокировать себя', 400, 'SELF_BLOCK');
     }
 
-    // Создаем запись где userId  - блокирующий, friendId - блокируемый
     const [friendship, created] = await Friend.findOrCreate({
       where: {
         [Op.or]: [
@@ -381,7 +343,6 @@ const friendService = {
       },
     });
 
-    // Если запись уже существовала, обновляем её
     if (!created) {
       await friendship.update({
         userId: currentUserId,
@@ -390,7 +351,6 @@ const friendService = {
       });
     }
 
-    // Возвращаем запись о блокировке
     return {
       friendshipId: friendship.id,
       friendshipStatus: 'blocked',

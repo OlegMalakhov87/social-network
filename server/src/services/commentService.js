@@ -10,9 +10,7 @@ const {
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 
-/**
- * Маппинг типов сущностей на модели и типы в БД
- */
+/** Маппинг типов сущностей на модели и типы в БД */
 const TARGET_TYPES = {
   posts: {
     model: Post,
@@ -35,13 +33,17 @@ const TARGET_TYPES = {
   },
 };
 
-// Безопасный маппинг сортировки (защита от SQL-инъекций)
+/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
 const SORT_MAP = {
-  dateDesc: [['createdAt', 'DESC']],
-  dateAsc: [['createdAt', 'ASC']],
-  viewsDesc: [['likesCount', 'DESC']],
-  viewsAsc: [['likesCount', 'ASC']],
+  dateDesc: { field: 'createdAt', direction: 'DESC' },
+  dateAsc: { field: 'createdAt', direction: 'ASC' },
+  viewsDesc: { field: 'likesCount', direction: 'DESC' },
+  viewsAsc: { field: 'likesCount', direction: 'ASC' },
 };
+
+/**
+ * Сервис для работы с комментариями
+ */
 
 const commentService = {
   /**
@@ -61,12 +63,13 @@ const commentService = {
     currentUserId,
     sortKey = 'dateDesc',
   } = {}) {
-    // Динамическая проверка существования сущности
     const target = TARGET_TYPES[targetType];
     if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
-    // Получаем комментарии для конкретной сущности с автором и лайками
+
+    const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
+
     const { count, rows: comments } = await Comment.findAndCountAll({
       where: {
         targetType: target.dbType,
@@ -84,13 +87,15 @@ const commentService = {
           attributes: ['id', 'userId'],
         },
       ],
-      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      order: [
+        [sort.field, sort.direction],
+        ['id', sort.direction],
+      ],
       limit,
       offset: (page - 1) * limit,
       distinct: true,
     });
 
-    // Обогащаем комментарии данными о количестве лайков и статусе лайка текущего пользователя
     return {
       comments: comments.map((comment) => ({
         ...comment.toJSON(),
@@ -112,7 +117,6 @@ const commentService = {
    * @returns {Promise<Object>} { comment }
    */
   async getCommentById(commentId) {
-    // Получаем комментарий по ID с автором
     const comment = await Comment.findByPk(commentId, {
       include: [
         {
@@ -122,11 +126,9 @@ const commentService = {
         },
       ],
     });
-    // Если комментарий не найден, выбрасываем ошибку
     if (!comment) {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
-    // Возвращаем комментарий с автором
     return comment.toJSON();
   },
 
@@ -139,23 +141,19 @@ const commentService = {
   async createComment(currentUserId, commentData) {
     const { targetType, targetId, text } = commentData;
 
-    // Динамическая проверка существования сущности
     const target = TARGET_TYPES[targetType];
     if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
 
-    // Получаем сущность
     const targetEntity = await target.model.findByPk(targetId, {
       attributes: ['id'],
     });
 
-    // Если сущность не найдена, выбрасываем ошибку
     if (!targetEntity) {
       throw createError('Сущность не найдена', 404, 'ENTITY_NOT_FOUND');
     }
 
-    // Создаем комментарий
     const comment = await Comment.create({
       userId: currentUserId,
       targetType: target.dbType,
@@ -164,7 +162,6 @@ const commentService = {
       isEdited: false,
     });
 
-    // Получаем комментарий с автором
     const commentWithAuthor = await Comment.findByPk(comment.id, {
       include: [
         {
@@ -175,7 +172,6 @@ const commentService = {
       ],
     });
 
-    // Возвращаем комментарий с автором
     return { comment: commentWithAuthor.toJSON() };
   },
 
@@ -187,7 +183,6 @@ const commentService = {
    * @returns {Promise<Object>} { comment }
    */
   async updateComment(commentId, currentUserId, updateData) {
-    // Обновляем комментарий
     const [affectedCount] = await Comment.update(
       { text: updateData.text.trim(), isEdited: true },
       {
@@ -199,7 +194,6 @@ const commentService = {
       }
     );
 
-    // Если комментарий не найден или нет прав на редактирование, выбрасываем ошибку
     if (affectedCount === 0) {
       throw createError(
         'Комментарий не найден или нет прав на редактирование',
@@ -208,7 +202,6 @@ const commentService = {
       );
     }
 
-    // Получаем обновлённый комментарий с автором
     const updatedComment = await Comment.findByPk(commentId, {
       include: [
         {
@@ -219,7 +212,6 @@ const commentService = {
       ],
     });
 
-    // Возвращаем обновлённый комментарий с автором
     return { comment: updatedComment.toJSON() };
   },
 
@@ -230,15 +222,12 @@ const commentService = {
    * @returns {Promise<Object>} { message, commentId }
    */
   async deleteComment(commentId, currentUserId) {
-    // Получаем комментарий по ID
     const comment = await Comment.findByPk(commentId);
 
-    // Если комментарий не найден, выбрасываем ошибку
     if (!comment) {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
 
-    // Проверка прав
     if (comment.userId !== currentUserId) {
       throw createError(
         'Вы не можете удалить этот комментарий',
@@ -246,12 +235,10 @@ const commentService = {
         'FORBIDDEN'
       );
     }
-    // Удаляем лайки к комментарию
     await Like.destroy({
       where: { targetType: 'Comment', targetId: commentId },
     });
 
-    // Удаляем комментарий
     await comment.destroy();
 
     return { message: 'Комментарий успешно удален', commentId };

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getApiErrorDisplay } from '../../../lib';
 import { Button, Image, Text } from '../../../ui';
 import { classNames } from '../../../utils';
 import style from './FileInput.module.css';
@@ -122,7 +123,7 @@ export const FileInput = ({
       {/* Ошибка */}
       {error && (
         <Text variant="caption" className={style.error}>
-          {error}
+          {getApiErrorDisplay(error, 'Ошибка загрузки файла')}
         </Text>
       )}
     </div>

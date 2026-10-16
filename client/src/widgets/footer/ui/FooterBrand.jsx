@@ -13,9 +13,9 @@ export const FooterBrand = () => (
     <div className={style.logo}>
       <Link to="/profile" aria-label="На главную">
         <Image
-          src="/socialnet-logo.png"
+          src="/socialnet-1024.png"
           alt="Logo"
-          fallback="/socialnet-logo.png"
+          fallback="/socialnet-180.png"
           className={style.logoImage}
         />
       </Link>

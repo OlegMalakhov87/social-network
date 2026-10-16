@@ -49,8 +49,9 @@ export class ErrorBoundary extends Component {
    * @param {React.ErrorInfo} errorInfo
    */
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary:', error);
-    console.error(errorInfo);
+    console.error('=== ERROR ===');
+    console.error('Message:', error.message);
+    console.error('ComponentStack:', errorInfo.componentStack);
   }
 
   /**

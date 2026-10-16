@@ -118,8 +118,8 @@ export const Post = ({
                 type={post.type === 'video' ? 'video' : 'image'}
                 fallback={
                   post.type === 'video'
-                    ? '/no-thumbnail-1280x720.png'
-                    : '/no-image-1200x900.png'
+                    ? '/no-thumbnail-1200x720.png'
+                    : '/no-image-1200x720.png'
                 }
               />
             )}

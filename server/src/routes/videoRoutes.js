@@ -2,7 +2,12 @@ const { Router } = require('express');
 const videoController = require('../controllers/videoController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
-const { validateVideo } = require('../middleware/validation/videoValidation');
+const {
+  validateCreateVideo,
+} = require('../middleware/validation/validateCreateVideo');
+const {
+  validateUpdateVideo,
+} = require('../middleware/validation/validateUpdateVideo');
 const {
   validatePrivacyUpdate,
 } = require('../middleware/validation/validatePrivacyUpdate');
@@ -10,6 +15,9 @@ const {
   upload,
   handleUploadError,
 } = require('../middleware/upload/uploadMiddleware');
+const {
+  validateUploadedMedia,
+} = require('../middleware/validation/validateUploadedMedia');
 
 const videoRoutes = Router();
 
@@ -20,7 +28,7 @@ videoRoutes.get('/', authMiddleware, videoController.getVideos);
 videoRoutes.post(
   '/add',
   authMiddleware,
-  validateVideo,
+  validateCreateVideo,
   videoController.createVideo
 );
 
@@ -30,6 +38,7 @@ videoRoutes.post(
   authMiddleware,
   upload.single('videoUrl'),
   handleUploadError,
+  validateUploadedMedia,
   videoController.uploadVideo
 );
 
@@ -39,6 +48,7 @@ videoRoutes.post(
   authMiddleware,
   upload.single('thumbnailUrl'),
   handleUploadError,
+  validateUploadedMedia,
   videoController.uploadThumbnail
 );
 
@@ -48,6 +58,7 @@ videoRoutes.post(
   authMiddleware,
   upload.single('previewUrl'),
   handleUploadError,
+  validateUploadedMedia,
   videoController.uploadPreview
 );
 
@@ -56,7 +67,7 @@ videoRoutes.put(
   '/:videoId/update',
   validateIdParam('videoId'),
   authMiddleware,
-  validateVideo,
+  validateUpdateVideo,
   videoController.updateVideo
 );
 

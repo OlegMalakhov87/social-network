@@ -13,7 +13,6 @@ export const getVideoMeta = (video, mode) => {
     details: [
       { label: 'Категория', value: CATEGORY_OPTIONS.find(option => option.value === video.category)?.label },
       { label: 'Размер', value: formatSize(video.size) },
-      { label: 'Год', value: video.year },
     ],
 
     dates:

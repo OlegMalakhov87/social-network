@@ -10,13 +10,18 @@ const { Op } = require('sequelize');
 const { sequelize } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
-// Безопасный маппинг сортировки (защита от SQL-инъекций)
+/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
 const SORT_MAP = {
   dateDesc: [['createdAt', 'DESC']],
   dateAsc: [['createdAt', 'ASC']],
   viewsDesc: [['playsCount', 'DESC']],
   viewsAsc: [['playsCount', 'ASC']],
 };
+
+/**
+ * Сервис для работы с библиотекой треков пользователя.
+ */
+
 const userMusicLibraryService = {
   /**
    * Получить мою библиотеку треков
@@ -33,7 +38,6 @@ const userMusicLibraryService = {
     limit = 30,
     sortKey = 'dateDesc',
   } = {}) {
-    // Ищем все записи в библиотеке
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
         where: { userId: currentUserId },
@@ -80,7 +84,6 @@ const userMusicLibraryService = {
         distinct: true,
       });
 
-    // Форматируем ответ, объединяя данные библиотеки и трека и добавляя количество комментариев и лайков
     const tracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
 
@@ -125,9 +128,7 @@ const userMusicLibraryService = {
     limit = 30,
     sortKey = 'dateDesc',
   } = {}) {
-    // Инициализируем переменную для хранения информации о дружбе
     let isFriend = false;
-    // Проверяем, являются ли пользователи друзьями
     if (currentUserId && currentUserId !== profileUserId) {
       const friendship = await Friend.findOne({
         where: {
@@ -145,19 +146,15 @@ const userMusicLibraryService = {
           ],
         },
       });
-      // Устанавливаем информацию о дружбе
       isFriend = !!friendship;
     }
 
-    // Формируем условие приватности для треков
     const trackWhere = {};
-    // Если текущий пользователь не просматривает свой профиль, то добавляем условие приватности
     if (currentUserId !== profileUserId) {
       trackWhere[Op.or] = [{ isPublic: true }];
       if (isFriend) trackWhere[Op.or].push({ isPublic: false });
     }
 
-    // Получаем библиотеку треков
     const { count, rows: libraryEntries } =
       await UserMusicLibrary.findAndCountAll({
         where: { userId: profileUserId },
@@ -206,36 +203,29 @@ const userMusicLibraryService = {
         distinct: true,
       });
 
-    // Создаем Map для быстрого поиска треков в библиотеке текущего пользователя для оптимизации запросов
     let currentUserLibraryMap = new Map();
     if (
       currentUserId &&
       currentUserId !== profileUserId &&
       libraryEntries.length > 0
     ) {
-      // Получаем ID треков из библиотеки просматриваемого профиля
       const trackIds = libraryEntries.map((entry) => entry.trackId);
-      // Получаем записи в библиотеке текущего пользователя для треков из библиотеки просматриваемого профиля
       const myEntries = await UserMusicLibrary.findAll({
         where: { userId: currentUserId, trackId: { [Op.in]: trackIds } },
         attributes: ['trackId', 'id'],
         raw: true,
       });
-      // Создаем Map для быстрого поиска треков в библиотеке текущего пользователя
       currentUserLibraryMap = new Map(myEntries.map((e) => [e.trackId, e.id]));
     }
 
-    // Форматируем ответ, объединяя данные библиотеки и трека и добавляя количество комментариев и лайков
     const formattedTracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
       const myLibraryId = currentUserLibraryMap.get(entry.trackId);
 
       return {
         ...trackData,
-        // Данные для кнопки текущего пользователя
         isInLibrary: !!myLibraryId,
         libraryId: myLibraryId,
-        // Данные из библиотеки просматриваемого профиля
         profileLibraryId: entry.id,
         playsCount: entry.playsCount,
         commentsCount: trackData.comments?.length,
@@ -262,20 +252,17 @@ const userMusicLibraryService = {
    * @returns {Promise<Object>}
    */
   async addToMusicLibrary(currentUserId, trackId) {
-    // Проверяем, существует ли трек
     const track = await Music.findByPk(trackId, { attributes: ['id'] });
     if (!track) {
       throw createError('Трек не найден', 404, 'TRACK_NOT_FOUND');
     }
 
-    // Ищем или создаем запись в библиотеке
     try {
       const [libraryItem, created] = await UserMusicLibrary.findOrCreate({
         where: { userId: currentUserId, trackId: trackId },
         defaults: { isFavorite: false, playsCount: 0 },
       });
 
-      // Если запись не создана, выбрасываем ошибку
       if (!created) {
         throw createError(
           'Трек уже находится в библиотеке',
@@ -284,15 +271,12 @@ const userMusicLibraryService = {
         );
       }
 
-      // Ищем запись в библиотеке с треком
       const itemWithMusic = await UserMusicLibrary.findByPk(libraryItem.id, {
         include: [{ model: Music, as: 'track', attributes: ['id', 'title'] }],
       });
 
-      // Возвращаем запись в библиотеке с треком
       return { libraryItem: itemWithMusic.toJSON() };
     } catch (error) {
-      // Если ошибка связана с уникальным ограничением, выбрасываем ошибку
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw createError(
           'Трек уже находится в библиотеке',
@@ -312,7 +296,6 @@ const userMusicLibraryService = {
    * @returns {Promise<Object>}
    */
   async updateFavoriteTrack(currentUserId, libraryId, isFavorite) {
-    // Обновляем запись в библиотеке
     const [affectedCount, updatedRows] = await UserMusicLibrary.update(
       { isFavorite },
       {
@@ -322,7 +305,6 @@ const userMusicLibraryService = {
       }
     );
 
-    // Если запись не обновлена, выбрасываем ошибку
     if (affectedCount === 0) {
       throw createError(
         'Запись в библиотеке не найдена или нет прав',
@@ -331,7 +313,6 @@ const userMusicLibraryService = {
       );
     }
 
-    // Возвращаем обновленную запись в библиотеке
     return { libraryItem: updatedRows.toJSON() };
   },
 
@@ -341,10 +322,8 @@ const userMusicLibraryService = {
    * @returns {Promise<Object>}
    */
   async incrementPlaysCount(libraryId) {
-    // Находим запись в библиотеке
     const libraryItem = await UserMusicLibrary.findByPk(libraryId);
 
-    // Если запись не найдена, выбрасываем ошибку
     if (!libraryItem) {
       throw createError(
         'Запись в библиотеке не найдена',
@@ -352,22 +331,18 @@ const userMusicLibraryService = {
         'LIBRARY_ITEM_NOT_FOUND'
       );
     }
-    // Атомарно увеличиваем счётчик прослушиваний трека в библиотеке и глобальный счётчик прослушиваний трека
     const updatedItem = await sequelize.transaction(async (transaction) => {
-      // Увеличиваем счётчик в библиотеке
       await UserMusicLibrary.update(
         { playsCount: sequelize.literal('"playsCount" + 1') },
         { where: { id: libraryId }, transaction }
       );
 
-      // Увеличиваем глобальный счётчик
       await Music.increment('playsCount', {
         by: 1,
         where: { id: libraryItem.trackId },
         transaction,
       });
 
-      // Возвращаем обновлённую запись
       return UserMusicLibrary.findByPk(libraryId, {
         attributes: ['playsCount'],
         transaction,
@@ -384,12 +359,10 @@ const userMusicLibraryService = {
    * @returns {Promise<Object>}
    */
   async deleteMusicFromLibrary(currentUserId, libraryId) {
-    // Удаляем трек из библиотеки
     const deletedCount = await UserMusicLibrary.destroy({
       where: { id: libraryId, userId: currentUserId },
     });
 
-    // Если трек не удален, выбрасываем ошибку
     if (deletedCount === 0) {
       throw createError(
         'Трек в библиотеке не найден или нет прав',

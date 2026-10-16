@@ -6,7 +6,8 @@ const authController = {
    */
   getMe: async (req, res, next) => {
     try {
-      const result = await authService.getMe(parseInt(req.user?.id));
+      const currentUserId = Number(req.user?.id);
+      const result = await authService.getMe(currentUserId);
       res.json(result);
     } catch (error) {
       next(error);

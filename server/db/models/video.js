@@ -67,12 +67,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
         validate: {
-          len: [1, 2000],
+          len: [1, 1000],
         },
       },
       duration: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
         validate: {
           min: 1,
           max: 1800,
@@ -80,37 +80,32 @@ module.exports = (sequelize, DataTypes) => {
       },
       size: {
         type: DataTypes.BIGINT,
-        allowNull: true,
+        allowNull: false,
         validate: {
           min: 1024,
         },
       },
-      year: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        validate: {
-          min: 1900,
-          max: new Date().getFullYear(),
-        },
-      },
       videoUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true,
+        allowNull: false,
         validate: {
+          notEmpty: true,
           len: [1, 500],
         },
       },
       thumbnailUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true,
+        allowNull: false,
         validate: {
+          notEmpty: true,
           len: [1, 500],
         },
       },
       previewUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true,
+        allowNull: false,
         validate: {
+          notEmpty: true,
           len: [1, 500],
         },
       },

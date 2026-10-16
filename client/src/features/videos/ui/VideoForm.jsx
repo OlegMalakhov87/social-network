@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { VIDEO_CONFIG } from '..';
 import { CATEGORY_OPTIONS } from '../../../entities/video';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -33,21 +34,12 @@ import {
 export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
+  const isCancellingRef = useRef(false);
 
   /** Обработчик отправки формы */
   const handleSubmit = async (values) => {
     try {
-      await onSubmit?.(values, isEdit, initialData?.id);
-      videoUpload.commit();
-      thumbnailUpload.commit();
-      previewUpload.commit();
-      videoUpload.reset();
-      thumbnailUpload.reset();
-      previewUpload.reset();
-      notify.success(
-        isEdit ? 'Видео успешно обновлено' : 'Видео успешно добавлено'
-      );
-      onClose?.();
+      await onSubmit(values, isEdit, initialData?.id);
     } catch (error) {
       notify.error(
         getApiErrorDisplay(
@@ -55,8 +47,32 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           isEdit ? 'Ошибка обновления видео' : 'Ошибка добавления видео'
         )
       );
+
       throw error;
     }
+
+    // С этого момента сохранение на сервере уже успешно.
+    const usedUrls = [values.videoUrl, values.previewUrl, values.thumbnailUrl];
+
+    const results = await Promise.all([
+      videoUpload.finalize(usedUrls),
+      thumbnailUpload.finalize(usedUrls),
+      previewUpload.finalize(usedUrls),
+    ]);
+
+    if (!results.every(Boolean)) {
+      console.warn('[VideoForm] Не все неиспользуемые временные файлы очищены');
+    }
+
+    videoUpload.reset();
+    thumbnailUpload.reset();
+    previewUpload.reset();
+
+    notify.success(
+      isEdit ? 'Видео успешно обновлено' : 'Видео успешно добавлено'
+    );
+
+    onClose?.();
   };
 
   /** Форма для добавления/редактирования видео с валидацией */
@@ -66,7 +82,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       description: initialData?.description ?? null,
       duration: initialData?.duration ?? null,
       size: initialData?.size ?? null,
-      year: initialData?.year ?? new Date().getFullYear(),
       videoUrl: initialData?.videoUrl ?? null,
       previewUrl: initialData?.previewUrl ?? null,
       thumbnailUrl: initialData?.thumbnailUrl ?? null,
@@ -79,7 +94,10 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
         minLength(1, 'Минимально 1 символ'),
         maxLength(100, 'Максимум 100 символов'),
       ],
-      description: [maxLength(2000, 'Максимум 2000 символов')],
+      description: [
+        minLength(1, 'Минимально 1 символ'),
+        maxLength(1000, 'Максимум 1000 символов'),
+      ],
       videoUrl: [
         required('Загрузите видео'),
         minLength(1, 'Минимально 1 символ'),
@@ -106,6 +124,20 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       form.setValue('thumbnailUrl', data.thumbnailUrl);
       form.setValue('duration', data.duration);
       form.setValue('size', data.size);
+
+      // Предыдущие пользовательские обложка и превью
+      // больше не используются после замены основного видео.
+      void Promise.all([
+        thumbnailUpload.cleanupUploadedFile(),
+        previewUpload.cleanupUploadedFile(),
+      ]).then((results) => {
+        if (!results.every(Boolean)) {
+          console.warn('[VideoForm] Не удалось очистить часть старых медиа');
+        }
+      });
+
+      thumbnailUpload.reset();
+      previewUpload.reset();
     },
   });
 
@@ -131,18 +163,30 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
 
   /** Обработчик закрытия формы */
   const handleCancel = async () => {
+    if (isCancellingRef.current || form.isSubmitting) return;
+
+    isCancellingRef.current = true;
+
     try {
-      await Promise.all([
+      // Сначала инвалидируем запросы и очищаем UI.
+      // Это защищает от применения ответа загрузки
+      // после начала закрытия формы.
+      videoUpload.reset();
+      thumbnailUpload.reset();
+      previewUpload.reset();
+
+      const results = await Promise.all([
         videoUpload.cleanupUploadedFile(),
         thumbnailUpload.cleanupUploadedFile(),
         previewUpload.cleanupUploadedFile(),
       ]);
+
+      if (!results.every(Boolean)) {
+        console.warn('[VideoForm] Часть временных файлов будет очищена позже');
+      }
     } finally {
-      videoUpload.reset();
-      thumbnailUpload.reset();
-      previewUpload.reset();
       form.reset();
-      onClose();
+      onClose?.();
     }
   };
 
@@ -244,7 +288,11 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
             loading={form.isSubmitting || isUploading}
             disabled={form.isSubmitting || isUploading}
           >
-            {isEdit ? 'Сохранить' : 'Добавить'}
+            {form.isSubmitting || isUploading
+              ? 'Загрузка...'
+              : isEdit
+                ? 'Сохранить'
+                : 'Добавить'}
           </Button>
         </ButtonGroup>
       </form>

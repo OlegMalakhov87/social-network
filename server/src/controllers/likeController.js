@@ -7,11 +7,11 @@ const likeController = {
   addLike: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await likeService.addLike({
-        currentUserId: parseInt(currentUserId),
+        currentUserId,
         targetType,
-        targetId: parseInt(targetId),
+        targetId: Number(targetId),
       });
       res.status(201).json(result);
     } catch (error) {
@@ -25,11 +25,11 @@ const likeController = {
   deleteLike: async (req, res, next) => {
     try {
       const { targetType, targetId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await likeService.deleteLike({
-        currentUserId: parseInt(currentUserId),
+        currentUserId,
         targetType,
-        targetId: parseInt(targetId),
+        targetId: Number(targetId),
       });
       res.status(200).json(result);
     } catch (error) {

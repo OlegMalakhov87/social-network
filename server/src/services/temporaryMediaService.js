@@ -1,6 +1,5 @@
-const fs = require('fs').promises;
+const fs = require('node:fs/promises');
 const { Op } = require('sequelize');
-
 const { TemporaryMedia } = require('../../db/models');
 const { createError } = require('../utils/createError');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
@@ -20,51 +19,32 @@ const temporaryMediaService = {
     if (normalizedItems.length === 0) {
       return [];
     }
+
     const expiresAt = new Date(Date.now() + TEMPORARY_MEDIA_TTL);
 
-    const transaction = await TemporaryMedia.sequelize.transaction();
-
-    try {
-      const media = await TemporaryMedia.bulkCreate(
+    return TemporaryMedia.sequelize.transaction(async (transaction) => {
+      return TemporaryMedia.bulkCreate(
         normalizedItems.map((item) => ({
           ...item,
           expiresAt,
         })),
         { transaction }
       );
-
-      await transaction.commit();
-
-      return media;
-    } catch (error) {
-      await transaction.rollback();
-
-      for (const item of normalizedItems) {
-        try {
-          const filePath = fromPublicUrl(item.url);
-          await fs.unlink(filePath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.warn(
-              `Не удалось удалить файл после ошибки регистрации ${item.url}:`,
-              cleanupError.message
-            );
-          }
-        }
-      }
-
-      throw error;
-    }
+    });
   },
 
   /**
-   * Проверяет владение несколькими временными медиафайлами
-   * @param {number} currentUserId - ID пользователя
-   * @param {Object[]} items - массив объектов с параметрами запроса
-   * @returns {Promise<Object[]>} - массив объектов с временными медиафайлами
+   * Проверяет владение временными медиафайлами.
+   *
+   * @param {number} currentUserId
+   * @param {Object[]} items
+   * @param {Object} options
+   * @param {import('sequelize').Transaction} [options.transaction]
+   * @returns {Promise<Object[]>}
    */
-  async assertOwnershipMany(currentUserId, items) {
+  async assertOwnershipMany(currentUserId, items, options = {}) {
     const normalizedItems = items.filter((item) => item?.url);
+    const { transaction } = options;
 
     const mediaRecords = [];
 
@@ -78,7 +58,13 @@ const temporaryMediaService = {
         where.fieldName = item.fieldName;
       }
 
-      const media = await TemporaryMedia.findOne({ where });
+      const media = await TemporaryMedia.findOne({
+        where,
+        ...(transaction && {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        }),
+      });
 
       if (!media) {
         throw createError(
@@ -103,54 +89,74 @@ const temporaryMediaService = {
   },
 
   /**
-   * Удаляет несколько временных медиафайлов
-   * @param {number} currentUserId - ID пользователя
-   * @param {Object[]} items - массив объектов с параметрами запроса
-   * @returns {Promise<Object>} - Объект с результатом
+   * Отменяет временные загрузки пользователя.
+   *
+   * Удаляет записи TemporaryMedia.
+   * Физические файлы удаляются фоновой очисткой.
    */
   async removeMany(currentUserId, items) {
-    const mediaRecords = await this.assertOwnershipMany(currentUserId, items);
+    const normalizedItems = items.filter(
+      (item) => item?.url && item?.fieldName
+    );
 
-    for (const media of mediaRecords) {
-      try {
-        const filePath = fromPublicUrl(media.url);
-        if (filePath) {
-          await fs.unlink(filePath);
-        }
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить временный файл ${media.url}:`,
-            error.message
-          );
-        }
+    if (normalizedItems.length === 0) {
+      return {
+        message: 'Нет временных медиафайлов для удаления',
+        deleted: 0,
+      };
+    }
+
+    return TemporaryMedia.sequelize.transaction(async (transaction) => {
+      let deleted = 0;
+
+      for (const { url, fieldName } of normalizedItems) {
+        const count = await TemporaryMedia.destroy({
+          where: {
+            userId: currentUserId,
+            url,
+            fieldName,
+          },
+          transaction,
+        });
+
+        deleted += count;
       }
-    }
 
-    for (const media of mediaRecords) {
-      await media.destroy();
-    }
-
-    return {
-      message: 'Временные медиафайлы успешно удалены',
-    };
+      return {
+        message: 'Временные медиафайлы помечены для очистки',
+        deleted,
+      };
+    });
   },
 
   /**
-   * Фиксирует несколько временных медиафайлов
-   * @param {number} currentUserId - ID пользователя
-   * @param {Object[]} items - массив объектов с параметрами запроса
-   * @returns {Promise<Object[]>} - массив объектов с временными медиафайлами
+   * Фиксирует временные медиафайлы.
+   *
+   * @param {number} currentUserId
+   * @param {Object[]} items
+   * @param {Object} options
+   * @returns {Promise<Object[]>}
    */
-  async commitMany(currentUserId, items) {
-    const mediaRecords = await this.assertOwnershipMany(currentUserId, items);
+  async commitMany(currentUserId, items, options = {}) {
+    const execute = async (transaction) => {
+      const mediaRecords = await this.assertOwnershipMany(
+        currentUserId,
+        items,
+        { transaction }
+      );
 
-    for (const media of mediaRecords) {
-      if (!media.url) continue;
-      await media.destroy();
+      for (const media of mediaRecords) {
+        await media.destroy({ transaction });
+      }
+
+      return mediaRecords;
+    };
+
+    if (options.transaction) {
+      return execute(options.transaction);
     }
 
-    return mediaRecords;
+    return TemporaryMedia.sequelize.transaction(execute);
   },
 
   /**

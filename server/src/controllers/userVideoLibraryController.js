@@ -7,11 +7,11 @@ const userVideoLibraryController = {
   getMyVideoLibrary: async (req, res, next) => {
     try {
       const { page, limit, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userVideoLibraryService.getMyVideoLibrary({
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         sortKey,
       });
       res.status(200).json(result);
@@ -27,12 +27,12 @@ const userVideoLibraryController = {
     try {
       const { userId } = req.params;
       const { page, limit, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userVideoLibraryService.getUserVideosLibrary({
-        profileUserId: parseInt(userId),
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        profileUserId: Number(userId),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         sortKey,
       });
       res.status(200).json(result);
@@ -47,10 +47,10 @@ const userVideoLibraryController = {
   addToVideoLibrary: async (req, res, next) => {
     try {
       const { videoId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userVideoLibraryService.addToVideoLibrary(
-        parseInt(currentUserId),
-        parseInt(videoId)
+        currentUserId,
+        Number(videoId)
       );
       res.status(201).json(result);
     } catch (error) {
@@ -65,10 +65,10 @@ const userVideoLibraryController = {
     try {
       const { libraryId } = req.params;
       const { isFavorite } = req.body;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userVideoLibraryService.updateFavoriteVideo(
-        parseInt(currentUserId),
-        parseInt(libraryId),
+        currentUserId,
+        Number(libraryId),
         isFavorite
       );
       res.status(200).json(result);
@@ -84,7 +84,7 @@ const userVideoLibraryController = {
     try {
       const { libraryId } = req.params;
       const result = await userVideoLibraryService.incrementViewsCount(
-        parseInt(libraryId)
+        Number(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -98,10 +98,10 @@ const userVideoLibraryController = {
   deleteVideoFromLibrary: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userVideoLibraryService.deleteVideoFromLibrary(
-        parseInt(currentUserId),
-        parseInt(libraryId)
+        currentUserId,
+        Number(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {

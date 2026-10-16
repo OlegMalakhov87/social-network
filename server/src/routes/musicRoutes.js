@@ -1,7 +1,12 @@
 const { Router } = require('express');
 const musicController = require('../controllers/musicController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
-const { validateMusic } = require('../middleware/validation/musicValidation');
+const {
+  validateCreateTrack,
+} = require('../middleware/validation/validateCreateTrack');
+const {
+  validateUpdateTrack,
+} = require('../middleware/validation/validateUpdateTrack');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
   validatePrivacyUpdate,
@@ -10,6 +15,9 @@ const {
   upload,
   handleUploadError,
 } = require('../middleware/upload/uploadMiddleware');
+const {
+  validateUploadedMedia,
+} = require('../middleware/validation/validateUploadedMedia');
 
 const musicRoutes = Router();
 
@@ -20,7 +28,7 @@ musicRoutes.get('/', authMiddleware, musicController.getMusic);
 musicRoutes.post(
   '/add',
   authMiddleware,
-  validateMusic,
+  validateCreateTrack,
   musicController.createMusic
 );
 
@@ -30,6 +38,7 @@ musicRoutes.post(
   authMiddleware,
   upload.single('audioUrl'),
   handleUploadError,
+  validateUploadedMedia,
   musicController.uploadAudio
 );
 
@@ -39,6 +48,7 @@ musicRoutes.post(
   authMiddleware,
   upload.single('coverUrl'),
   handleUploadError,
+  validateUploadedMedia,
   musicController.uploadCover
 );
 
@@ -47,7 +57,7 @@ musicRoutes.put(
   '/:trackId/update',
   validateIdParam('trackId'),
   authMiddleware,
-  validateMusic,
+  validateUpdateTrack,
   musicController.updateMusic
 );
 

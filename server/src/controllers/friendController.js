@@ -7,10 +7,11 @@ const friendController = {
   getUsersWithFriendshipStatus: async (req, res, next) => {
     try {
       const { page, limit, category, q } = req.query;
+      const currentUserId = Number(req.user?.id);
       const result = await friendService.getUsersWithFriendshipStatus({
-        currentUserId: parseInt(req.user?.id),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         category,
         q,
       });
@@ -26,9 +27,10 @@ const friendController = {
   sendRequest: async (req, res, next) => {
     try {
       const { friendId } = req.body;
+      const currentUserId = Number(req.user?.id);
       const result = await friendService.sendRequest({
-        currentUserId: parseInt(req.user?.id),
-        friendId: parseInt(friendId),
+        currentUserId,
+        friendId: Number(friendId),
       });
       res.status(201).json(result);
     } catch (error) {
@@ -42,9 +44,10 @@ const friendController = {
   acceptRequest: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
+      const currentUserId = Number(req.user?.id);
       const result = await friendService.acceptRequest({
-        currentUserId: parseInt(req.user?.id),
-        friendshipId: parseInt(friendshipId),
+        currentUserId,
+        friendshipId: Number(friendshipId),
       });
       res.status(200).json(result);
     } catch (error) {
@@ -58,9 +61,10 @@ const friendController = {
   rejectRequest: async (req, res, next) => {
     try {
       const { friendshipId } = req.params;
+      const currentUserId = Number(req.user?.id);
       const result = await friendService.rejectRequest({
-        currentUserId: parseInt(req.user?.id),
-        friendshipId: parseInt(friendshipId),
+        currentUserId,
+        friendshipId: Number(friendshipId),
       });
       res.status(200).json(result);
     } catch (error) {
@@ -74,9 +78,10 @@ const friendController = {
   blockUser: async (req, res, next) => {
     try {
       const { friendId } = req.body;
+      const currentUserId = Number(req.user?.id);
       const result = await friendService.blockUser({
-        currentUserId: parseInt(req.user?.id),
-        friendId: parseInt(friendId),
+        currentUserId,
+        friendId: Number(friendId),
       });
       res.status(200).json(result);
     } catch (error) {

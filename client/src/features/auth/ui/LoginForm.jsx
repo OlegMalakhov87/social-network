@@ -95,7 +95,7 @@ export const LoginForm = () => {
                 disabled={form.isSubmitting || isSubmitting}
                 loading={form.isSubmitting || isSubmitting}
               >
-                Войти
+                {form.isSubmitting || isSubmitting ? 'Загрузка...' : 'Войти'}
               </Button>
 
               <Text variant="body2" className={style.footerText}>

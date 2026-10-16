@@ -1,5 +1,5 @@
-const fs = require('fs').promises;
 const {
+  sequelize,
   Video,
   User,
   Like,
@@ -8,7 +8,6 @@ const {
 } = require('../../db/models');
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
-const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
@@ -16,10 +15,10 @@ const {
 
 // Безопасный маппинг сортировки (защита от SQL-инъекций)
 const SORT_MAP = {
-  dateDesc: [['createdAt', 'DESC']],
-  dateAsc: [['createdAt', 'ASC']],
-  viewsDesc: [['viewsCount', 'DESC']],
-  viewsAsc: [['viewsCount', 'ASC']],
+  dateDesc: { field: 'createdAt', direction: 'DESC' },
+  dateAsc: { field: 'createdAt', direction: 'ASC' },
+  viewsDesc: { field: 'viewsCount', direction: 'DESC' },
+  viewsAsc: { field: 'viewsCount', direction: 'ASC' },
 };
 
 // Поля видео, которые можно обновлять
@@ -56,6 +55,8 @@ const videoService = {
     sortKey = 'dateDesc',
   } = {}) {
     const where = { isPublic: true }; // По умолчанию показываем только публичные
+
+    const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
     if (category && category !== 'all') {
       where.category = { [Op.iLike]: category };
@@ -104,7 +105,10 @@ const videoService = {
     const { count, rows: videos } = await Video.findAndCountAll({
       where,
       include: includes,
-      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      order: [
+        [sort.field, sort.direction],
+        ['id', sort.direction],
+      ],
       limit: limit,
       offset: (page - 1) * limit,
       distinct: true,
@@ -138,13 +142,13 @@ const videoService = {
   },
 
   /**
-   * Создать новое видео
-   * @param {number} currentUserId - ID текущего пользователя
+   * Создать новое видео.
+   *
+   * @param {number} currentUserId - ID пользователя
    * @param {Object} videoData - Данные видео
-   * @returns {Promise<Object>} - Объект с результатом
+   * @returns {Promise<Object>}
    */
   async createVideo(currentUserId, videoData) {
-    // Определяем новые медиа файлы
     const media = [
       {
         url: videoData.videoUrl,
@@ -160,10 +164,6 @@ const videoService = {
       },
     ];
 
-    // Проверяем владение новыми медиа файлами
-    await temporaryMediaService.assertOwnershipMany(currentUserId, media);
-
-    // Формируем данные для создания видео
     const dbData = {
       title: videoData.title,
       description: videoData.description,
@@ -175,39 +175,35 @@ const videoService = {
       duration: videoData.duration,
       size: videoData.size,
       uploadedBy: currentUserId,
-      year: new Date().getFullYear(),
       viewsCount: 0,
     };
 
-    // Создаем видео в базе данных
-    const video = await Video.create(dbData);
+    return sequelize.transaction(async (transaction) => {
+      await temporaryMediaService.commitMany(currentUserId, media, {
+        transaction,
+      });
 
-    // Фиксируем новые медиа файлы
-    try {
-      await temporaryMediaService.commitMany(currentUserId, media);
-    } catch (error) {
-      console.warn(
-        `Не удалось зафиксировать временные медиа видео ${video.id}:`,
-        error.message
+      const video = await Video.create(dbData, { validate: true, transaction });
+
+      const libraryItem = await UserVideoLibrary.create(
+        {
+          userId: currentUserId,
+          videoId: video.id,
+          isFavorite: true,
+          viewsCount: 0,
+          lastWatchedAt: null,
+        },
+        { validate: true, transaction }
       );
-    }
 
-    // Автоматически добавляем в библиотеку создателя
-    const libraryItem = await UserVideoLibrary.create({
-      userId: currentUserId,
-      videoId: video.id,
-      isFavorite: true,
-      viewsCount: 0,
-      lastWatchedAt: null,
+      return {
+        video: {
+          ...video.toJSON(),
+          isInLibrary: true,
+          libraryId: libraryItem.id,
+        },
+      };
     });
-
-    return {
-      video: {
-        ...video.toJSON(),
-        isInLibrary: true,
-        libraryId: libraryItem.id,
-      },
-    };
   },
 
   /**
@@ -235,100 +231,78 @@ const videoService = {
   },
 
   /**
-   * Обновление видео (владелец)
+   * Обновление видео (владелец).
+   *
    * @param {number} videoId - ID видео
    * @param {number} currentUserId - ID текущего пользователя
    * @param {Object} updateData - Обновляемые данные
-   * @returns {Promise<Object>} - Объект с результатом
+   * @returns {Promise<Object>} - { video }
    */
   async updateVideo(videoId, currentUserId, updateData) {
-    // Получаем видео
-    const video = await Video.findByPk(videoId);
+    return sequelize.transaction(async (transaction) => {
+      const video = await Video.findByPk(videoId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
 
-    // Проверяем, найдено ли видео
-    if (!video) throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
-
-    // Проверяем, является ли текущий пользователь автором видео
-    if (video.uploadedBy !== currentUserId)
-      throw createError(
-        'Вы не можете редактировать это видео',
-        403,
-        'FORBIDDEN'
-      );
-
-    // Выбираем только разрешенные поля
-    const dbUpdates = Object.fromEntries(
-      VIDEO_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
-        (field) => [field, updateData[field]]
-      )
-    );
-
-    // Проверяем, есть ли данные для обновления
-    if (Object.keys(dbUpdates).length === 0) {
-      throw createError(
-        'Нет данных для обновления',
-        400,
-        'NO_FIELDS_TO_UPDATE'
-      );
-    }
-
-    // Сравниваем новые и старые URL и получаем тольконовые URL
-    const newTemporaryMedia = [
-      {
-        url: dbUpdates.videoUrl,
-        fieldName: 'videoUrl',
-      },
-      {
-        url: dbUpdates.previewUrl,
-        fieldName: 'previewUrl',
-      },
-      {
-        url: dbUpdates.thumbnailUrl,
-        fieldName: 'thumbnailUrl',
-      },
-    ].filter(({ url, fieldName }) => {
-      return url && url !== video[fieldName];
-    });
-
-    // Проверяем владение новыми медиа файлами
-    await temporaryMediaService.assertOwnershipMany(
-      currentUserId,
-      newTemporaryMedia
-    );
-
-    // Обновляем видео в базе данных
-    let updatedVideo;
-
-    try {
-      updatedVideo = await video.update(dbUpdates);
-    } catch (error) {
-      // Если обновление видео не удалось, то удаляем новые медиа файлы
-      try {
-        await temporaryMediaService.removeMany(
-          currentUserId,
-          newTemporaryMedia
-        );
-      } catch (cleanupError) {
-        if (cleanupError.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить временные файлы для видео ${video.id}:`,
-            cleanupError.message
-          );
-        }
+      if (!video) {
+        throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
       }
-      throw createError('Не удалось обновить видео', 500, 'UPDATE_FAILED');
-    }
 
-    // Фиксируем новые медиа файлы
-    try {
-      await temporaryMediaService.commitMany(currentUserId, newTemporaryMedia);
-    } catch (error) {
-      console.warn(
-        `Не удалось зафиксировать временные медиа видео ${video.id}:`,
-        error.message
+      if (video.uploadedBy !== currentUserId) {
+        throw createError(
+          'Вы не можете редактировать это видео',
+          403,
+          'FORBIDDEN'
+        );
+      }
+
+      const dbUpdates = Object.fromEntries(
+        VIDEO_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
+          (field) => [field, updateData[field]]
+        )
       );
-    }
-    return { video: updatedVideo.toJSON() };
+
+      if (Object.keys(dbUpdates).length === 0) {
+        throw createError(
+          'Нет данных для обновления',
+          400,
+          'NO_FIELDS_TO_UPDATE'
+        );
+      }
+
+      const mediaFields = ['videoUrl', 'previewUrl', 'thumbnailUrl'];
+
+      const newTemporaryMedia = mediaFields
+        .filter((fieldName) => {
+          return (
+            Object.hasOwn(dbUpdates, fieldName) &&
+            dbUpdates[fieldName] &&
+            dbUpdates[fieldName] !== video[fieldName]
+          );
+        })
+        .map((fieldName) => ({
+          url: dbUpdates[fieldName],
+          fieldName,
+        }));
+
+      if (newTemporaryMedia.length > 0) {
+        await temporaryMediaService.commitMany(
+          currentUserId,
+          newTemporaryMedia,
+          { transaction }
+        );
+      }
+
+      const updatedVideo = await video.update(dbUpdates, {
+        validate: true,
+        transaction,
+      });
+
+      return {
+        video: updatedVideo.toJSON(),
+      };
+    });
   },
 
   /**

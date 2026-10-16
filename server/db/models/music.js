@@ -80,15 +80,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
         validate: {
-          len: [1, 2000],
+          len: [1, 1000],
         },
       },
-      year: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+      size: {
+        type: DataTypes.BIGINT,
+        allowNull: false,
         validate: {
-          min: 1900,
-          max: new Date().getFullYear(),
+          min: 1024,
         },
       },
       duration: {
@@ -101,7 +100,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       audioUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true,
+        allowNull: false,
         validate: {
           len: [1, 500],
         },

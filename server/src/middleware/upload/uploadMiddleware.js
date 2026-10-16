@@ -1,88 +1,66 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { MEDIA_ROOT } = require('../../../config/mediaCleanupConfig');
+const path = require('node:path');
+const fs = require('node:fs');
+const { randomUUID } = require('node:crypto');
+const {
+  STAGING_ROOT,
+  UPLOAD_MIME_CONFIG,
+} = require('../../../config/mediaUploadConfig');
 const { createError } = require('../../utils/createError');
 
-/** Гарантируем, что папки существуют при запуске */
-const ensureDirExists = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
-/** Получение пути для загрузки файла */
-const getDestination = (fieldName, mimetype) => {
-  const base = MEDIA_ROOT;
-
-  if (fieldName === 'avatarUrl') return path.join(base, 'avatars');
-  if (fieldName === 'thumbnailUrl') return path.join(base, 'videos/thumbnails');
-  if (fieldName === 'coverUrl') return path.join(base, 'music/covers');
-  if (fieldName === 'postUrl' && mimetype.startsWith('image/'))
-    return path.join(base, 'posts/images');
-  if (fieldName === 'postUrl' && mimetype.startsWith('video/'))
-    return path.join(base, 'posts/videos');
-  if (fieldName === 'newsUrl' && mimetype.startsWith('image/'))
-    return path.join(base, 'news/images');
-  if (fieldName === 'newsUrl' && mimetype.startsWith('video/'))
-    return path.join(base, 'news/videos');
-  if (fieldName === 'videoUrl') return path.join(base, 'videos/video');
-  if (fieldName === 'previewUrl') return path.join(base, 'videos/previews');
-  if (fieldName === 'audioUrl') return path.join(base, 'music/tracks');
-
-  throw createError(
-    `Недопустимый путь загрузки: ${fieldName} (${mimetype})`,
-    400,
-    'UNSUPPORTED_UPLOAD_DESTINATION'
-  );
-};
 /** Хранение файлов на диске */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = getDestination(file.fieldname, file.mimetype);
-    ensureDirExists(uploadPath);
-    cb(null, uploadPath);
+    try {
+      fs.mkdirSync(STAGING_ROOT, {
+        recursive: true,
+        mode: 0o700,
+      });
+
+      cb(null, STAGING_ROOT);
+    } catch (error) {
+      cb(error);
+    }
   },
+
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, randomUUID());
   },
 });
 
 /** Фильтрация файлов */
 const fileFilter = (req, file, cb) => {
-  const allowedMimes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/gif',
-    'image/jpg',
-    'image/jfif',
-    'video/mp4',
-    'video/webm',
-    'video/ogg',
-    'video/quicktime',
-    'audio/mpeg',
-    'audio/ogg',
-    'audio/wav',
-    'audio/flac',
-  ];
+  const allowedMimes = UPLOAD_MIME_CONFIG[file.fieldname];
 
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      createError('Неподдерживаемый тип файла', 400, 'UNSUPPORTED_FILE_TYPE'),
-      false
+  if (!allowedMimes) {
+    return cb(
+      createError(`Недопустимое поле загрузки`, 400, 'UNSUPPORTED_UPLOAD_FIELD')
     );
   }
+
+  if (!allowedMimes.includes(file.mimetype)) {
+    return cb(
+      createError(
+        'Недопустимый MIME-тип для поля загрузки',
+        400,
+        'UNSUPPORTED_FILE_TYPE'
+      )
+    );
+  }
+
+  cb(null, true);
 };
 
 /** Загрузка файлов */
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 200 * 1024 * 1024 },
+  limits: {
+    fileSize: 200 * 1024 * 1024, // 200 MB — макс. размер одного файла
+    files: 5, // макс. количество файлов в одном запросе
+    fields: 10, // макс. количество текстовых полей (не файлов) в multipart-форме
+    parts: 15, // макс. общее количество частей (файлы + поля) в multipart-форме
+  },
 });
 
 /** Обработка ошибок загрузки файлов */
@@ -94,9 +72,14 @@ const handleUploadError = (err, req, res, next) => {
         code: 'FILE_TOO_LARGE',
       });
     }
-    return res.status(400).json({ error: err.message, code: 'MULTER_ERROR' });
+
+    return res.status(400).json({
+      error: err.message,
+      code: 'MULTER_ERROR',
+    });
   }
-  next(err);
+
+  return next(err);
 };
 
 module.exports = {

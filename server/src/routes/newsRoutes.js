@@ -2,11 +2,19 @@ const { Router } = require('express');
 const newsController = require('../controllers/newsController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
-const { validateNews } = require('../middleware/validation/newsValidation');
+const {
+  validateCreateNews,
+} = require('../middleware/validation/validateCreateNews');
+const {
+  validateUpdateNews,
+} = require('../middleware/validation/validateUpdateNews');
 const {
   upload,
   handleUploadError,
 } = require('../middleware/upload/uploadMiddleware');
+const {
+  validateUploadedMedia,
+} = require('../middleware/validation/validateUploadedMedia');
 
 const newsRoutes = Router();
 
@@ -25,7 +33,7 @@ newsRoutes.get(
 newsRoutes.post(
   '/add',
   authMiddleware,
-  validateNews,
+  validateCreateNews,
   newsController.createNews
 );
 
@@ -35,6 +43,7 @@ newsRoutes.post(
   authMiddleware,
   upload.single('newsUrl'),
   handleUploadError,
+  validateUploadedMedia,
   newsController.uploadMedia
 );
 
@@ -43,7 +52,7 @@ newsRoutes.put(
   '/:newsId/update',
   validateIdParam('newsId'),
   authMiddleware,
-  validateNews,
+  validateUpdateNews,
   newsController.updateNews
 );
 

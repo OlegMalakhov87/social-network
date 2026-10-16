@@ -2,9 +2,7 @@ const { Router } = require('express');
 const commentController = require('../controllers/commentController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
-const {
-  validateComment,
-} = require('../middleware/validation/commentValidation');
+const { validateComment } = require('../middleware/validation/validateComment');
 
 const commentRoutes = Router();
 

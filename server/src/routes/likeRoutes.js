@@ -2,7 +2,7 @@ const { Router } = require('express');
 const likeController = require('../controllers/likeController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
-const { validateLike } = require('../middleware/validation/likeValidation');
+const { validateLike } = require('../middleware/validation/validateLike');
 
 const likeRoutes = Router();
 

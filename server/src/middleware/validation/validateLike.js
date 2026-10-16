@@ -14,9 +14,10 @@ const validateLike = [
 
   param('targetId')
     .notEmpty()
+    .withMessage('ID сущности обязателен')
     .isInt({ min: 1 })
-    .toInt()
-    .withMessage('Некорректный ID сущности'),
+    .withMessage('ID сущности должен быть числом больше 0')
+    .toInt(),
 
   validateErrors('Ошибка лайка'),
 ];

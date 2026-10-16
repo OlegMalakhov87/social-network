@@ -1,8 +1,14 @@
+const fs = require('node:fs/promises');
 const musicService = require('../services/musicService');
 const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
+const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
+const { createError } = require('../utils/createError');
 
+/**
+ * Контроллер для работы с музыкой
+ */
 const musicController = {
   /**
    * Получение публичной ленты треков и поиск
@@ -10,13 +16,13 @@ const musicController = {
   getMusic: async (req, res, next) => {
     try {
       const { page, limit, category, q, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await musicService.getMusic({
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: Number(page),
+        limit: Number(limit),
         category,
         q,
-        currentUserId: parseInt(currentUserId),
+        currentUserId,
         sortKey,
       });
       res.status(200).json(result);
@@ -30,11 +36,8 @@ const musicController = {
    */
   createMusic: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
-      const result = await musicService.createMusic(
-        parseInt(currentUserId),
-        req.body
-      );
+      const currentUserId = Number(req.user?.id);
+      const result = await musicService.createMusic(currentUserId, req.body);
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -45,6 +48,12 @@ const musicController = {
    * Загрузка аудио файла для трека
    */
   uploadAudio: async (req, res, next) => {
+    let registered = false;
+    let audioPath = null;
+
+    /** Сохраняем путь временного файла до любых операций */
+    const stagingPath = req.file?.path;
+
     try {
       if (!req.file) {
         return res
@@ -52,28 +61,96 @@ const musicController = {
           .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
       }
 
-      const audioPath = req.file.path;
-      const currentUserId = parseInt(req.user?.id);
+      const mediaType = req.file.mediaType;
+      const currentUserId = Number(req.user?.id);
 
-      const audioMetadata = await mediaService.getMetadata(audioPath);
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
+      if (!['audio'].includes(mediaType)) {
+        throw createError(
+          'Разрешены только аудио',
+          400,
+          'UNSUPPORTED_MEDIA_TYPE'
+        );
+      }
+
+      const audioMetadata = await mediaService.getMetadata(
+        stagingPath,
+        'audio'
+      );
+
+      if (
+        !Number.isFinite(audioMetadata.duration) ||
+        audioMetadata.duration <= 0 ||
+        audioMetadata.duration > 600
+      ) {
+        throw createError(
+          'Длительность аудио не должна превышать 10 минут',
+          400,
+          'AUDIO_DURATION_EXCEEDED'
+        );
+      }
+
+      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      audioPath = await mediaStorageService.publish(req.file);
 
       const audioUrl = toPublicUrl(audioPath);
 
-      await temporaryMediaService.registerMany([
+      const media = [
         {
           userId: currentUserId,
           url: audioUrl,
           mediaType: 'audio',
           fieldName: 'audioUrl',
         },
-      ]);
+      ];
 
-      res.status(200).json({
+      await temporaryMediaService.registerMany(media);
+      registered = true;
+
+      return res.status(200).json({
         audioUrl,
-        duration: audioMetadata.duration,
+        duration: Math.max(1, Math.round(audioMetadata.duration)),
+        size: Math.max(1024, Math.round(audioMetadata.size)),
       });
     } catch (error) {
-      next(error);
+      if (!registered && audioPath) {
+        try {
+          await fs.unlink(audioPath);
+
+          console.log(
+            '[MusicController] Удалён аудиофайл после ошибки:',
+            audioPath
+          );
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[MusicController] Ошибка удаления аудиофайла после ошибки:',
+              cleanupError
+            );
+          }
+        }
+      }
+      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      if (stagingPath) {
+        try {
+          await fs.unlink(stagingPath);
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[MusicController] Ошибка очистки временного файла:',
+              cleanupError
+            );
+          }
+        }
+      }
+      return next(error);
     }
   },
 
@@ -81,6 +158,13 @@ const musicController = {
    * Загрузка обложки для трека
    */
   uploadCover: async (req, res, next) => {
+    let registered = false;
+
+    /** Сохраняем путь временного файла до любых операций */
+    const stagingPath = req.file?.path;
+
+    let coverPath = null;
+
     try {
       if (!req.file) {
         return res
@@ -88,21 +172,75 @@ const musicController = {
           .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
       }
 
-      const currentUserId = parseInt(req.user?.id);
-      const coverUrl = toPublicUrl(req.file.path);
+      const mediaType = req.file.mediaType;
+      const currentUserId = Number(req.user?.id);
 
-      await temporaryMediaService.registerMany([
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
+      if (!['image'].includes(mediaType)) {
+        throw createError(
+          'Разрешены только изображения',
+          400,
+          'UNSUPPORTED_MEDIA_TYPE'
+        );
+      }
+
+      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      coverPath = await mediaStorageService.publish(req.file);
+
+      const coverUrl = toPublicUrl(coverPath);
+
+      const media = [
         {
           userId: currentUserId,
           url: coverUrl,
           mediaType: 'image',
           fieldName: 'coverUrl',
         },
-      ]);
+      ];
 
-      res.status(200).json({ coverUrl });
+      await temporaryMediaService.registerMany(media);
+      registered = true;
+
+      return res.status(200).json({ coverUrl });
     } catch (error) {
-      next(error);
+      if (!registered && coverPath) {
+        try {
+          await fs.unlink(coverPath);
+
+          console.log(
+            '[MusicController] Удалён файл обложки после ошибки:',
+            coverPath
+          );
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[MusicController] Ошибка удаления обложки после ошибки:',
+              cleanupError
+            );
+          }
+        }
+      }
+      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      if (stagingPath) {
+        try {
+          await fs.unlink(stagingPath);
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[MusicController] Ошибка очистки временного файла:',
+              cleanupError
+            );
+          }
+        }
+      }
+      return next(error);
     }
   },
 
@@ -111,9 +249,9 @@ const musicController = {
    */
   updateMusicPrivacy: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await musicService.updateMusicPrivacy(
-        parseInt(currentUserId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -128,10 +266,10 @@ const musicController = {
   updateMusic: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await musicService.updateMusic(
-        parseInt(trackId),
-        parseInt(currentUserId),
+        Number(trackId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -146,7 +284,7 @@ const musicController = {
   incrementPlaysCount: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const result = await musicService.incrementPlaysCount(parseInt(trackId));
+      const result = await musicService.incrementPlaysCount(Number(trackId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -159,10 +297,10 @@ const musicController = {
   deleteMusic: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await musicService.deleteMusic(
-        parseInt(trackId),
-        parseInt(currentUserId)
+        Number(trackId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -175,7 +313,16 @@ const musicController = {
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      const currentUserId = parseInt(req.user?.id);
+      const currentUserId = Number(req.user?.id);
+
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
       const media = [
         {
           url: req.body?.audioUrl,
@@ -202,7 +349,16 @@ const musicController = {
    */
   deleteUploadedCover: async (req, res, next) => {
     try {
-      const currentUserId = parseInt(req.user?.id);
+      const currentUserId = Number(req.user?.id);
+
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
       const result = await temporaryMediaService.removeMany(currentUserId, [
         {
           url: req.body?.coverUrl,

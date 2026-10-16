@@ -57,7 +57,6 @@ export const EditProfileForm = ({ currentUser }) => {
         maxLength(100, 'Максимум 100 символов'),
       ],
       avatarUrl: [
-        required('Аватар обязательно'),
         minLength(1, 'Минимум 1 символ'),
         maxLength(500, 'Максимум 500 символов'),
       ],
@@ -85,28 +84,26 @@ export const EditProfileForm = ({ currentUser }) => {
     onSubmit: async (values) => {
       try {
         await dispatch(updateUser(values)).unwrap();
-        commit();
-        reset();
-        form.reset();
-        notify.success('Профиль успешно обновлён');
-        navigate('/profile');
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка обновления профиля'));
         throw error;
       }
+
+      const isCleaned = await avatarUpload.finalize([values.avatarUrl]);
+
+      if (!isCleaned) {
+        console.warn('[EditProfileForm] Не все временные аватары очищены');
+      }
+
+      avatarUpload.reset();
+
+      notify.success('Профиль успешно обновлён');
+      navigate('/profile');
     },
   });
 
   /** Хук для загрузки фото */
-  const {
-    preview,
-    isUploading,
-    error,
-    handleFileChange,
-    cleanupUploadedFile,
-    reset,
-    commit,
-  } = useFileUpload(AVATAR_UPLOAD_CONFIG, {
+  const avatarUpload = useFileUpload(AVATAR_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('avatarUrl', data.avatarUrl);
     },
@@ -115,9 +112,13 @@ export const EditProfileForm = ({ currentUser }) => {
   /** Очистка загруженного файла при отмене */
   const handleCancel = async () => {
     try {
-      await cleanupUploadedFile();
+      const isCleaned = await avatarUpload.cleanupUploadedFile();
+
+      if (!isCleaned) {
+        console.warn('[EditProfileForm] Не все временные аватары очищены');
+      }
     } finally {
-      reset();
+      avatarUpload.reset();
       form.reset();
     }
   };
@@ -129,7 +130,14 @@ export const EditProfileForm = ({ currentUser }) => {
           leftSlot={
             <EntityMeta
               avatar={
-                <Avatar src={preview || currentUser?.avatarUrl} size="xl" />
+                <Avatar
+                  src={
+                    avatarUpload.preview ||
+                    form.values.avatarUrl ||
+                    currentUser?.avatarUrl
+                  }
+                  size="xl"
+                />
               }
               title={form.values.name}
               subtitle={form.values.email}
@@ -139,10 +147,10 @@ export const EditProfileForm = ({ currentUser }) => {
             <FileInput
               accept={AVATAR_UPLOAD_CONFIG.accept}
               buttonText="Изменить фото"
-              isUploading={isUploading}
-              error={error}
-              onChange={handleFileChange}
-              disabled={form.isSubmitting || isUploading}
+              isUploading={avatarUpload.isUploading}
+              error={avatarUpload.error}
+              onChange={avatarUpload.handleFileChange}
+              disabled={form.isSubmitting || avatarUpload.isUploading}
             />
           }
           className={style.profileHeader}
@@ -176,7 +184,7 @@ export const EditProfileForm = ({ currentUser }) => {
             type="button"
             variant="secondary"
             onClick={handleCancel}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || avatarUpload.isUploading}
           >
             Отменить
           </Button>
@@ -184,9 +192,11 @@ export const EditProfileForm = ({ currentUser }) => {
             type="submit"
             variant="primary"
             loading={form.isSubmitting}
-            disabled={form.isSubmitting || isUploading}
+            disabled={form.isSubmitting || avatarUpload.isUploading}
           >
-            Сохранить изменения
+            {form.isSubmitting || avatarUpload.isUploading
+              ? 'Загрузка...'
+              : 'Сохранить изменения'}
           </Button>
         </ButtonGroup>
       </form>

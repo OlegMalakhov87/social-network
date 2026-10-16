@@ -40,7 +40,7 @@ export const MediaPreview = ({
   onClick,
   type = 'image',
   clickable = false,
-  fallback = '/no-image-1200x900.png',
+  fallback = '/no-image-1200x720.png',
   className = '',
   disabled = false,
 }) => {
@@ -145,7 +145,7 @@ export const MediaPreview = ({
 
       {showPreviewFallback && (
         <Image
-          src={'/no-preview-1280x720.png'}
+          src={'/no-preview-1200x720.png'}
           alt="Превью видео недоступно"
           className={classNames(styles.preview, styles.previewVisible)}
         />

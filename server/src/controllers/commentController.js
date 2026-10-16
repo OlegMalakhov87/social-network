@@ -8,15 +8,15 @@ const commentController = {
     try {
       const { targetType, targetId } = req.params;
       const { page, limit, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
 
       const result = await commentService.getCommentsByTarget({
         targetType,
-        targetId: parseInt(targetId),
-        page: parseInt(page),
-        limit: parseInt(limit),
-        currentUserId: parseInt(currentUserId),
-        sortKey: sortKey,
+        targetId: Number(targetId),
+        page: Number(page),
+        limit: Number(limit),
+        currentUserId,
+        sortKey,
       });
       res.status(200).json(result);
     } catch (error) {
@@ -30,7 +30,7 @@ const commentController = {
   getCommentById: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const result = await commentService.getCommentById(parseInt(commentId));
+      const result = await commentService.getCommentById(Number(commentId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -42,9 +42,9 @@ const commentController = {
    */
   createComment: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await commentService.createComment(
-        parseInt(currentUserId),
+        currentUserId,
         req.body
       );
       res.status(201).json(result);
@@ -59,10 +59,10 @@ const commentController = {
   updateComment: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await commentService.updateComment(
-        parseInt(commentId),
-        parseInt(currentUserId),
+        Number(commentId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -77,10 +77,10 @@ const commentController = {
   deleteComment: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await commentService.deleteComment(
-        parseInt(commentId),
-        parseInt(currentUserId)
+        Number(commentId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {

@@ -3,7 +3,7 @@ const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
   validateRegister,
   validateLogin,
-} = require('../middleware/validation/userValidation');
+} = require('../middleware/validation/validateUser');
 const authController = require('../controllers/authController');
 
 const authRouter = Router();

@@ -1,10 +1,17 @@
-const { body } = require('express-validator');
+const { body, param } = require('express-validator');
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для комментариев
+ * Валидация для комментария
  */
 const validateComment = [
+  body('targetId')
+    .notEmpty()
+    .withMessage('ID сущности обязателен')
+    .isInt({ min: 1 })
+    .withMessage('ID сущности должен быть числом больше 0')
+    .toInt(),
+
   body('text')
     .notEmpty()
     .isString()
@@ -18,11 +25,6 @@ const validateComment = [
     .trim()
     .isIn(['posts', 'tracks', 'videos', 'news'])
     .withMessage('Некорректный тип комментария'),
-
-  body('targetId')
-    .isInt({ min: 1 })
-    .toInt()
-    .withMessage('Некорректный ID сущности'),
 
   validateErrors('Ошибка добавления комментария'),
 ];

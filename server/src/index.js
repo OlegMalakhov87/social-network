@@ -1,4 +1,4 @@
-const http = require('http');
+const http = require('node:http');
 const app = require('./app');
 const { redis } = require('./lib/redis');
 require('dotenv').config();

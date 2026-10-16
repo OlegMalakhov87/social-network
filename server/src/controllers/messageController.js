@@ -7,12 +7,12 @@ const messageController = {
    */
   getDialogs: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const { page, limit, q } = req.query;
       const result = await messageService.getDialogs({
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         q: q || '',
       });
       res.status(200).json(result);
@@ -28,12 +28,12 @@ const messageController = {
     try {
       const { partnerId } = req.params;
       const { page, limit } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.getConversation({
-        currentUserId: parseInt(currentUserId),
-        partnerId: parseInt(partnerId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        currentUserId,
+        partnerId: Number(partnerId),
+        page: Number(page),
+        limit: Number(limit),
       });
       res.status(200).json(result);
     } catch (error) {
@@ -47,10 +47,10 @@ const messageController = {
   getMessageById: async (req, res, next) => {
     try {
       const { messageId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.getMessageById(
-        parseInt(messageId),
-        parseInt(currentUserId)
+        Number(messageId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -64,16 +64,16 @@ const messageController = {
   sendMessage: async (req, res, next) => {
     try {
       const { receiverId, content } = req.body;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.sendMessage(
-        parseInt(currentUserId),
-        parseInt(receiverId),
+        currentUserId,
+        Number(receiverId),
         content
       );
 
       res.status(201).json(result);
 
-      notifyUser(parseInt(receiverId), {
+      notifyUser(Number(receiverId), {
         type: 'new_message',
         data: result.message,
       }).catch((err) =>
@@ -91,10 +91,10 @@ const messageController = {
     try {
       const { messageId } = req.params;
       const { content } = req.body;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.updateMessage(
-        parseInt(currentUserId),
-        parseInt(messageId),
+        currentUserId,
+        Number(messageId),
         content
       );
       res.status(200).json(result);
@@ -109,11 +109,8 @@ const messageController = {
   markAsRead: async (req, res, next) => {
     try {
       const { messageIds } = req.body;
-      const currentUserId = req.user?.id;
-      const result = await messageService.markAsRead(
-        parseInt(currentUserId),
-        messageIds
-      );
+      const currentUserId = Number(req.user?.id);
+      const result = await messageService.markAsRead(currentUserId, messageIds);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -126,10 +123,10 @@ const messageController = {
   hideMessage: async (req, res, next) => {
     try {
       const { messageId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.hideMessage(
-        parseInt(currentUserId),
-        parseInt(messageId)
+        currentUserId,
+        Number(messageId)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -143,10 +140,10 @@ const messageController = {
   clearChat: async (req, res, next) => {
     try {
       const { receiverId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await messageService.clearChat(
-        parseInt(currentUserId),
-        parseInt(receiverId)
+        currentUserId,
+        Number(receiverId)
       );
       res.status(200).json(result);
     } catch (error) {

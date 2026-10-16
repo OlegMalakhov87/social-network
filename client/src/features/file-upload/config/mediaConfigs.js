@@ -39,14 +39,14 @@ import {
  * Конфигурация загрузки аватара профиля.
  */
 export const AVATAR_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
+  accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Аватар не должен превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
+      ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
+      'Поддерживаются только JPEG, PNG, WEBP'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
+    fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
     minImageResolution(200, 200, 'Минимальное разрешение аватара: 200x200px'),
   ]),
   uploadFn: uploadAvatarApi,
@@ -58,21 +58,14 @@ export const AVATAR_UPLOAD_CONFIG = {
  * Конфигурация загрузки изображения для поста.
  */
 export const POST_IMAGE_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/gif,image/jpg,image/jfif',
+  accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
     fileType(
-      [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-        'image/gif',
-        'image/jpg',
-        'image/jfif',
-      ],
-      'Поддерживаются только JPEG, PNG, WEBP, GIF, JPG, JFIF'
+      ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
+      'Поддерживаются только JPEG, PNG, WEBP'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.gif', '.jpg', '.jfif']),
+    fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
     minImageResolution(
       200,
       200,
@@ -88,33 +81,34 @@ export const POST_IMAGE_UPLOAD_CONFIG = {
  * Конфигурация загрузки видео для поста.
  */
 export const POST_VIDEO_UPLOAD_CONFIG = {
-  accept: 'video/mp4,video/webm,video/quicktime,video/ogg',
+  accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
     maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100 MB'),
     fileType(
-      ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg'],
-      'Поддерживаются только MP4, WebM, MOV, OGG'
+      ['video/mp4', 'video/webm', 'video/quicktime'],
+      'Поддерживаются только MP4, WebM, MOV'
     ),
-    fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
+    fileExtension(['.mp4', '.webm', '.mov']),
     maxDuration(60, 'Длительность видео не должна превышать 1 минуты'),
   ]),
   uploadFn: uploadPostMediaApi,
   deleteFn: deleteUploadedPostApi,
   fieldName: 'postUrl',
+  mediaFields: ['postUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
 /**
  * Конфигурация загрузки изображения для новости.
  */
 export const NEWS_IMAGE_UPLOAD_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
+  accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Изображение не должно превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
+      ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
+      'Поддерживаются только JPEG, PNG, WEBP'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
+    fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
     minImageResolution(
       200,
       200,
@@ -130,34 +124,39 @@ export const NEWS_IMAGE_UPLOAD_CONFIG = {
  * Конфигурация загрузки видео для новости.
  */
 export const NEWS_VIDEO_UPLOAD_CONFIG = {
-  accept: 'video/mp4,video/webm,video/quicktime,video/ogg',
+  accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
     maxFileSize(100 * 1024 * 1024, 'Видео не должно превышать 100 MB'),
     fileType(
-      ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg'],
-      'Поддерживаются только MP4, WebM, MOV, OGG'
+      ['video/mp4', 'video/webm', 'video/quicktime'],
+      'Поддерживаются только MP4, WebM, MOV'
     ),
-    fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
+    fileExtension(['.mp4', '.webm', '.mov']),
     maxDuration(60, 'Длительность видео не должна превышать 1 минуты'),
   ]),
   uploadFn: uploadNewsMediaApi,
   deleteFn: deleteUploadedNewsApi,
   fieldName: 'newsUrl',
+  mediaFields: ['newsUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
 /**
  * Конфигурация загрузки обложки видео.
  */
 export const VIDEO_THUMBNAIL_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
+  accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Обложка не должна превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
+      ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
+      'Поддерживаются только JPEG, PNG, WEBP'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
-    minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
+    fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
+    minImageResolution(
+      200,
+      200,
+      'Минимальное разрешение изображения: 200x200px'
+    ),
   ]),
   uploadFn: uploadVideoThumbnailApi,
   deleteFn: deleteUploadedThumbnailApi,
@@ -168,14 +167,14 @@ export const VIDEO_THUMBNAIL_CONFIG = {
  * Конфигурация загрузки превью видео.
  */
 export const VIDEO_PREVIEW_CONFIG = {
-  accept: 'video/mp4,video/webm,video/quicktime,video/ogg',
+  accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
     maxFileSize(30 * 1024 * 1024, 'Превью не должно превышать 30 MB'),
     fileType(
-      ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg'],
-      'Поддерживаются только MP4, WebM, MOV, OGG'
+      ['video/mp4', 'video/webm', 'video/quicktime'],
+      'Поддерживаются только MP4, WebM, MOV'
     ),
-    fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
+    fileExtension(['.mp4', '.webm', '.mov']),
     maxDuration(6, 'Превью не должно быть длиннее 6 секунд'),
   ]),
   uploadFn: uploadVideoPreviewApi,
@@ -187,34 +186,39 @@ export const VIDEO_PREVIEW_CONFIG = {
  * Конфигурация загрузки видео.
  */
 export const VIDEO_UPLOAD_CONFIG = {
-  accept: 'video/mp4,video/webm,video/quicktime,video/ogg',
+  accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
     maxFileSize(200 * 1024 * 1024, 'Видео не должно превышать 200 MB'),
     fileType(
-      ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg'],
-      'Поддерживаются только MP4, WebM, MOV, OGG'
+      ['video/mp4', 'video/webm', 'video/quicktime'],
+      'Поддерживаются только MP4, WebM, MOV'
     ),
-    fileExtension(['.mp4', '.webm', '.mov', '.ogg']),
+    fileExtension(['.mp4', '.webm', '.mov']),
     maxDuration(1800, 'Длительность видео не должна превышать 30 минут'),
   ]),
   uploadFn: uploadVideoApi,
   deleteFn: deleteUploadedVideoApi,
   fieldName: 'videoUrl',
+  mediaFields: ['videoUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
 /**
  * Конфигурация загрузки обложки альбома (трека).
  */
 export const ALBUM_COVER_CONFIG = {
-  accept: 'image/jpeg,image/png,image/webp,image/jpg,image/jfif',
+  accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
     maxFileSize(10 * 1024 * 1024, 'Обложка не должна превышать 10MB'),
     fileType(
-      ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/jfif'],
-      'Поддерживаются только JPEG, PNG, WEBP, JPG, JFIF'
+      ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
+      'Поддерживаются только JPEG, PNG, WEBP'
     ),
-    fileExtension(['.jpeg', '.png', '.webp', '.jpg', '.jfif']),
-    minImageResolution(640, 360, 'Минимальное разрешение обложки: 640x360px'),
+    fileExtension(['.jpg', '.jpeg', '.png', '.webp']),
+    minImageResolution(
+      200,
+      200,
+      'Минимальное разрешение изображения: 200x200px'
+    ),
   ]),
   uploadFn: uploadTrackCoverApi,
   deleteFn: deleteUploadedCoverApi,
@@ -225,14 +229,14 @@ export const ALBUM_COVER_CONFIG = {
  * Конфигурация загрузки аудиотрека.
  */
 export const TRACK_UPLOAD_CONFIG = {
-  accept: 'audio/mpeg,audio/wav,audio/ogg,audio/flac',
+  accept: 'audio/mpeg,audio/ogg,audio/wav,audio/flac',
   validators: composeValidators([
     maxFileSize(50 * 1024 * 1024, 'Трек не должен превышать 50 MB'),
     fileType(
-      ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac'],
-      'Поддерживаются только MP3, WAV, OGG, FLAC'
+      ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/flac'],
+      'Поддерживаются только MP3, OGG, WAV, FLAC'
     ),
-    fileExtension(['.mp3', '.wav', '.ogg', '.flac']),
+    fileExtension(['.mp3', '.ogg', '.wav', '.flac']),
     maxDuration(600, 'Длительность трека не должна превышать 10 минут'),
   ]),
   uploadFn: uploadTrackAudioApi,

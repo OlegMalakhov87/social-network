@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { NEWS_CONFIG } from '..';
 import { CATEGORY_OPTIONS, NEWS_TYPES } from '../../../entities/news';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -42,20 +42,12 @@ export const NewsForm = ({
   const [isChangingType, setIsChangingType] = useState(false);
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
+  const isCancellingRef = useRef(false);
 
   /** Обработчик отправки формы */
   const handleSubmit = async (values) => {
     try {
       await onSubmit?.(values, isEdit, initialData?.id);
-      imageUpload.commit();
-      videoUpload.commit();
-      imageUpload.reset();
-      videoUpload.reset();
-      form.reset();
-      notify.success(
-        isEdit ? 'Новость успешно обновлена' : 'Новость успешно добавлена'
-      );
-      onClose?.();
     } catch (error) {
       notify.error(
         getApiErrorDisplay(
@@ -65,6 +57,26 @@ export const NewsForm = ({
       );
       throw error;
     }
+
+    // С этого момента сохранение на сервере уже успешно.
+    const usedUrls = [values.newsUrl, values.previewUrl, values.thumbnailUrl];
+
+    const results = await Promise.all([
+      imageUpload.finalize(usedUrls),
+      videoUpload.finalize(usedUrls),
+    ]);
+
+    if (!results.every(Boolean)) {
+      console.warn('[NewsForm] Не все неиспользуемые временные файлы очищены');
+    }
+
+    imageUpload.reset();
+    videoUpload.reset();
+
+    notify.success(
+      isEdit ? 'Новость успешно обновлена' : 'Новость успешно добавлена'
+    );
+    onClose?.();
   };
 
   /** Форма для создания/редактирования новости с валидацией*/
@@ -119,7 +131,11 @@ export const NewsForm = ({
 
   /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(NEWS_IMAGE_UPLOAD_CONFIG, {
-    onSuccess: (data) => form.setValue('newsUrl', data.newsUrl),
+    onSuccess: (data) => {
+      form.setValue('newsUrl', data.newsUrl);
+      form.setValue('previewUrl', null);
+      form.setValue('thumbnailUrl', null);
+    },
   });
 
   /** Хук для загрузки видео */
@@ -128,6 +144,14 @@ export const NewsForm = ({
       form.setValue('newsUrl', data.newsUrl);
       form.setValue('previewUrl', data.previewUrl);
       form.setValue('thumbnailUrl', data.thumbnailUrl);
+
+      void imageUpload.cleanupUploadedFile().then((isCleaned) => {
+        if (!isCleaned) {
+          console.warn('[NewsForm] Не удалось очистить часть старых медиа');
+        }
+      });
+
+      imageUpload.reset();
     },
   });
 
@@ -155,20 +179,20 @@ export const NewsForm = ({
             ? imageUpload
             : null;
 
-      await currentUpload?.cleanupUploadedFile();
-
       form.setValue('type', value);
-      form.setValue('title', null);
-      form.setValue('text', null);
-      form.setValue('category', null);
-      form.setValue('source', null);
       form.setValue('newsUrl', null);
       form.setValue('previewUrl', null);
       form.setValue('thumbnailUrl', null);
 
-      currentUpload.reset();
-    } catch {
-      // Не меняем тип, если старый файл не удалось удалить
+      if (currentUpload) {
+        currentUpload.reset();
+
+        const isCleaned = await currentUpload.cleanupUploadedFile();
+
+        if (!isCleaned) {
+          console.warn('[NewsForm] Часть временных файлов будет очищена позже');
+        }
+      }
     } finally {
       setIsChangingType(false);
     }
@@ -176,14 +200,28 @@ export const NewsForm = ({
 
   /** Обработчик закрытия формы */
   const handleCancel = async () => {
+    if (isCancellingRef.current || form.isSubmitting) return;
+
+    isCancellingRef.current = true;
+
+    // Сначала инвалидируем запросы и очищаем UI.
+    // Это защищает от применения ответа загрузки
+    // после начала закрытия формы.
+    videoUpload.reset();
+    imageUpload.reset();
+
     try {
-      await Promise.all([
-        imageUpload.cleanupUploadedFile(),
+      const results = await Promise.all([
         videoUpload.cleanupUploadedFile(),
+        imageUpload.cleanupUploadedFile(),
       ]);
+
+      if (!results.every(Boolean)) {
+        console.warn(
+          '[NewsForm] Не все неиспользуемые временные файлы очищены'
+        );
+      }
     } finally {
-      imageUpload.reset();
-      videoUpload.reset();
       form.reset();
       onClose?.();
     }
@@ -264,7 +302,11 @@ export const NewsForm = ({
             disabled={form.isSubmitting || isUploading || isChangingType}
             loading={form.isSubmitting || isUploading || isChangingType}
           >
-            {isEdit ? 'Сохранить' : 'Добавить'}
+            {form.isSubmitting || isUploading
+              ? 'Загрузка...'
+              : isEdit
+                ? 'Сохранить'
+                : 'Добавить'}
           </Button>
         </ButtonGroup>
       </form>

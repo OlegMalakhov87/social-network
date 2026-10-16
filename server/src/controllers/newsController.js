@@ -1,9 +1,15 @@
+const fs = require('node:fs/promises');
 const newsService = require('../services/newsService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
+const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
+const { createError } = require('../utils/createError');
 
+/**
+ * Контроллер для работы с новостями
+ */
 const newsController = {
   /**
    * Получение новостей
@@ -11,15 +17,15 @@ const newsController = {
   getNews: async (req, res, next) => {
     try {
       const { page, limit, sortKey, category, q } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
 
       const result = await newsService.getNews({
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: Number(page),
+        limit: Number(limit),
         sortKey,
         category,
         q,
-        currentUserId: parseInt(currentUserId),
+        currentUserId,
       });
       res.status(200).json(result);
     } catch (error) {
@@ -28,15 +34,15 @@ const newsController = {
   },
 
   /**
-   * Получить новость по ID
+   * Получить новость по ID для кнопки "Поделиться"
    */
   getNewsById: async (req, res, next) => {
     try {
       const { newsId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await newsService.getNewsById(
-        parseInt(newsId),
-        parseInt(currentUserId)
+        Number(newsId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -49,11 +55,8 @@ const newsController = {
    */
   createNews: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
-      const result = await newsService.createNews(
-        parseInt(currentUserId),
-        req.body
-      );
+      const currentUserId = Number(req.user?.id);
+      const result = await newsService.createNews(currentUserId, req.body);
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -61,52 +64,98 @@ const newsController = {
   },
 
   /**
-   * Загрузка медиа файла
+   * Загрузка изображения или видео для новости.
    */
   uploadMedia: async (req, res, next) => {
+    const createdFiles = [];
+    let registered = false;
+
+    /** Сохраняем путь временного файла до любых операций */
+    const stagingPath = req.file?.path;
+
     try {
       if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
+        return res.status(400).json({
+          error: 'Файл не был загружен',
+          code: 'NO_FILE',
+        });
       }
 
-      const currentUserId = parseInt(req.user?.id);
-      const mediaPath = req.file.path;
+      const currentUserId = Number(req.user?.id);
+      const mediaType = req.file.mediaType;
 
-      let newsUrl = null;
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
+      if (!['image', 'video'].includes(mediaType)) {
+        throw createError(
+          'Допустимы только изображения и видео',
+          400,
+          'UNSUPPORTED_MEDIA_TYPE'
+        );
+      }
+
+      let metadata = null;
+
+      /** Проверяем видео, пока оно ещё в закрытой директории */
+      if (mediaType === 'video') {
+        metadata = await mediaService.getMetadata(stagingPath, 'video');
+
+        if (
+          !Number.isFinite(metadata.duration) ||
+          metadata.duration <= 0 ||
+          metadata.duration > 60
+        ) {
+          throw createError(
+            'Длительность видео не должна превышать 1 минуты',
+            400,
+            'NEWS_VIDEO_DURATION_EXCEEDED'
+          );
+        }
+      }
+
+      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      const mediaPath = await mediaStorageService.publish(req.file);
+
+      createdFiles.push(mediaPath);
+
+      const newsUrl = toPublicUrl(mediaPath);
       let previewUrl = null;
       let thumbnailUrl = null;
 
-      // Генерируем медиа файлы для видео и сохраняем в temporaryMediaService
-      if (req.file.mimetype.startsWith('video/')) {
-        // Получаем метаданные видео
-        const newsMetadata = await mediaService.getMetadata(mediaPath);
+      const media = [
+        {
+          userId: currentUserId,
+          url: newsUrl,
+          mediaType,
+          fieldName: 'newsUrl',
+        },
+      ];
 
-        // Генерируем превью видео
+      if (mediaType === 'video') {
         const previewPath = await videoPreviewService.generatePreview(
           mediaPath,
-          newsMetadata.duration
+          metadata.duration
         );
 
-        // Генерируем обложку видео
+        createdFiles.push(previewPath);
+
         const thumbnailPath = await videoPreviewService.generateThumbnail(
           mediaPath,
-          newsMetadata.duration
+          metadata.duration
         );
 
-        newsUrl = toPublicUrl(mediaPath);
+        createdFiles.push(thumbnailPath);
+
         previewUrl = toPublicUrl(previewPath);
         thumbnailUrl = toPublicUrl(thumbnailPath);
 
-        // Сохраняем медиа файлы в temporaryMediaService
-        await temporaryMediaService.registerMany([
-          {
-            userId: currentUserId,
-            url: newsUrl,
-            mediaType: 'video',
-            fieldName: 'newsUrl',
-          },
+        media.push(
           {
             userId: currentUserId,
             url: previewUrl,
@@ -118,23 +167,12 @@ const newsController = {
             url: thumbnailUrl,
             mediaType: 'image',
             fieldName: 'thumbnailUrl',
-          },
-        ]);
+          }
+        );
       }
 
-      // Сохраняем медиа файлы в temporaryMediaService
-      if (req.file.mimetype.startsWith('image/')) {
-        newsUrl = toPublicUrl(mediaPath);
-        
-        await temporaryMediaService.registerMany([
-          {
-            userId: currentUserId,
-            url: newsUrl,
-            mediaType: 'image',
-            fieldName: 'newsUrl',
-          },
-        ]);
-      }
+      await temporaryMediaService.registerMany(media);
+      registered = true;
 
       return res.status(200).json({
         newsUrl,
@@ -142,7 +180,43 @@ const newsController = {
         thumbnailUrl,
       });
     } catch (error) {
-      next(error);
+      if (!registered && createdFiles.length > 0) {
+        await Promise.allSettled(
+          createdFiles.map(async (filePath) => {
+            try {
+              await fs.unlink(filePath);
+
+              console.log(
+                '[NewsController] Удалён файл после ошибки:',
+                filePath
+              );
+            } catch (cleanupError) {
+              if (cleanupError.code !== 'ENOENT') {
+                console.error(
+                  '[NewsController] Ошибка удаления файла после ошибки:',
+                  cleanupError
+                );
+              }
+            }
+          })
+        );
+      }
+
+      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      if (stagingPath) {
+        try {
+          await fs.unlink(stagingPath);
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[NewsController] Ошибка очистки временного файла:',
+              cleanupError
+            );
+          }
+        }
+      }
+
+      return next(error);
     }
   },
 
@@ -152,10 +226,10 @@ const newsController = {
   updateNews: async (req, res, next) => {
     try {
       const { newsId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await newsService.updateNews(
-        parseInt(newsId),
-        parseInt(currentUserId),
+        Number(newsId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -170,7 +244,7 @@ const newsController = {
   incrementViewsCount: async (req, res, next) => {
     try {
       const { newsId } = req.params;
-      const result = await newsService.incrementViewsCount(parseInt(newsId));
+      const result = await newsService.incrementViewsCount(Number(newsId));
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -183,10 +257,10 @@ const newsController = {
   deleteNews: async (req, res, next) => {
     try {
       const { newsId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await newsService.deleteNews(
-        parseInt(newsId),
-        parseInt(currentUserId)
+        Number(newsId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -199,7 +273,16 @@ const newsController = {
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      const currentUserId = parseInt(req.user?.id);
+      const currentUserId = Number(req.user?.id);
+
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
       const media = [
         {
           url: req.body?.newsUrl,

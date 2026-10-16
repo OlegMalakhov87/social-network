@@ -1,9 +1,15 @@
+const fs = require('node:fs/promises');
 const postService = require('../services/postService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
+const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
+const { createError } = require('../utils/createError');
 
+/**
+ * Контроллер для работы с постами
+ */
 const postController = {
   /**
    * Получение постов пользователя
@@ -12,13 +18,13 @@ const postController = {
     try {
       const { userId } = req.params;
       const { page, limit, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
 
       const result = await postService.getUserPosts({
-        targetUserId: parseInt(userId),
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        targetUserId: Number(userId),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         sortKey,
       });
       res.status(200).json(result);
@@ -28,15 +34,15 @@ const postController = {
   },
 
   /**
-   * Получение поста по ID
+   * Получение поста по ID для кнопки "Поделиться"
    */
   getPostById: async (req, res, next) => {
     try {
       const { postId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await postService.getPostById(
-        parseInt(postId),
-        parseInt(currentUserId)
+        Number(postId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -49,11 +55,8 @@ const postController = {
    */
   createPost: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
-      const result = await postService.createPost(
-        parseInt(currentUserId),
-        req.body
-      );
+      const currentUserId = Number(req.user?.id);
+      const result = await postService.createPost(currentUserId, req.body);
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -61,9 +64,15 @@ const postController = {
   },
 
   /**
-   * Загрузка медиа файла
+   * Загрузка изображения или видео для поста.
    */
   uploadMedia: async (req, res, next) => {
+    const createdFiles = [];
+    let registered = false;
+
+    /** Сохраняем путь временного файла до любых операций */
+    const stagingPath = req.file?.path;
+
     try {
       if (!req.file) {
         return res
@@ -71,42 +80,80 @@ const postController = {
           .json({ error: 'Файл не был загружен', code: 'NO_FILE' });
       }
 
-      const currentUserId = parseInt(req.user?.id);
-      const mediaPath = req.file.path;
+      const mediaType = req.file.mediaType;
+      const currentUserId = Number(req.user?.id);
 
-      let postUrl = null;
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
+      if (!['image', 'video'].includes(mediaType)) {
+        throw createError(
+          'Разрешены только изображения и видео',
+          400,
+          'UNSUPPORTED_MEDIA_TYPE'
+        );
+      }
+
+      let metadata = null;
+
+      /** Проверяем видео, пока оно ещё в закрытой директории */
+      if (mediaType === 'video') {
+        metadata = await mediaService.getMetadata(stagingPath, 'video');
+
+        if (
+          !Number.isFinite(metadata.duration) ||
+          metadata.duration <= 0 ||
+          metadata.duration > 60
+        ) {
+          throw createError(
+            'Длительность видео не должна превышать 1 минуты',
+            400,
+            'POST_VIDEO_DURATION_EXCEEDED'
+          );
+        }
+      }
+
+      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      const mediaPath = await mediaStorageService.publish(req.file);
+
+      createdFiles.push(mediaPath);
+
+      const postUrl = toPublicUrl(mediaPath);
       let previewUrl = null;
       let thumbnailUrl = null;
 
-      // Генерируем медиа файлы для видео и сохраняем в temporaryMediaService
-      if (req.file.mimetype.startsWith('video/')) {
-        // Получаем метаданные видео
-        const postMetadata = await mediaService.getMetadata(mediaPath);
+      const media = [
+        {
+          userId: currentUserId,
+          url: postUrl,
+          mediaType,
+          fieldName: 'postUrl',
+        },
+      ];
 
-        // Генерируем превью видео
+      if (mediaType === 'video') {
         const previewPath = await videoPreviewService.generatePreview(
           mediaPath,
-          postMetadata.duration
+          metadata.duration
         );
 
-        // Генерируем обложку видео
+        createdFiles.push(previewPath);
+
         const thumbnailPath = await videoPreviewService.generateThumbnail(
           mediaPath,
-          postMetadata.duration
+          metadata.duration
         );
+        createdFiles.push(thumbnailPath);
 
-        postUrl = toPublicUrl(mediaPath);
         previewUrl = toPublicUrl(previewPath);
         thumbnailUrl = toPublicUrl(thumbnailPath);
 
-        // Сохраняем медиа файлы в temporaryMediaService
-        await temporaryMediaService.registerMany([
-          {
-            userId: currentUserId,
-            url: postUrl,
-            mediaType: 'video',
-            fieldName: 'postUrl',
-          },
+        media.push(
           {
             userId: currentUserId,
             url: previewUrl,
@@ -118,23 +165,12 @@ const postController = {
             url: thumbnailUrl,
             mediaType: 'image',
             fieldName: 'thumbnailUrl',
-          },
-        ]);
+          }
+        );
       }
 
-      // Сохраняем медиа файлы в temporaryMediaService
-      if (req.file.mimetype.startsWith('image/')) {
-        postUrl = toPublicUrl(mediaPath);
-
-        await temporaryMediaService.registerMany([
-          {
-            userId: currentUserId,
-            url: postUrl,
-            mediaType: 'image',
-            fieldName: 'postUrl',
-          },
-        ]);
-      }
+      await temporaryMediaService.registerMany(media);
+      registered = true;
 
       return res.status(200).json({
         postUrl,
@@ -142,7 +178,42 @@ const postController = {
         thumbnailUrl,
       });
     } catch (error) {
-      next(error);
+      if (!registered && createdFiles.length > 0) {
+        await Promise.allSettled(
+          createdFiles.map(async (filePath) => {
+            try {
+              await fs.unlink(filePath);
+
+              console.log(
+                '[PostController] Удалён файл после ошибки:',
+                filePath
+              );
+            } catch (cleanupError) {
+              if (cleanupError.code !== 'ENOENT') {
+                console.error(
+                  '[PostController] Ошибка удаления файла после ошибки:',
+                  cleanupError
+                );
+              }
+            }
+          })
+        );
+      }
+      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      if (stagingPath) {
+        try {
+          await fs.unlink(stagingPath);
+        } catch (cleanupError) {
+          if (cleanupError.code !== 'ENOENT') {
+            console.error(
+              '[PostController] Ошибка очистки временного файла:',
+              cleanupError
+            );
+          }
+        }
+      }
+
+      return next(error);
     }
   },
 
@@ -152,10 +223,10 @@ const postController = {
   updatePost: async (req, res, next) => {
     try {
       const { postId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await postService.updatePost(
-        parseInt(postId),
-        parseInt(currentUserId),
+        Number(postId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -169,9 +240,9 @@ const postController = {
    */
   updatePostPrivacy: async (req, res, next) => {
     try {
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await postService.updatePostPrivacy(
-        parseInt(currentUserId),
+        currentUserId,
         req.body
       );
       res.status(200).json(result);
@@ -186,10 +257,10 @@ const postController = {
   deletePost: async (req, res, next) => {
     try {
       const { postId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await postService.deletePost(
-        parseInt(postId),
-        parseInt(currentUserId)
+        Number(postId),
+        currentUserId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -202,7 +273,16 @@ const postController = {
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
-      const currentUserId = parseInt(req.user?.id);
+      const currentUserId = Number(req.user?.id);
+
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
       const media = [
         {
           url: req.body?.postUrl,

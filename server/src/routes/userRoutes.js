@@ -5,7 +5,7 @@ const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
   validateUser,
   validatePasswordChange,
-} = require('../middleware/validation/userValidation');
+} = require('../middleware/validation/validateUser');
 const {
   validatePrivacyUpdate,
 } = require('../middleware/validation/validatePrivacyUpdate');
@@ -13,6 +13,9 @@ const {
   upload,
   handleUploadError,
 } = require('../middleware/upload/uploadMiddleware');
+const {
+  validateUploadedMedia,
+} = require('../middleware/validation/validateUploadedMedia');
 
 const userRoutes = Router();
 
@@ -37,6 +40,7 @@ userRoutes.post(
   authMiddleware,
   upload.single('avatarUrl'),
   handleUploadError,
+  validateUploadedMedia,
   userController.uploadAvatar
 );
 

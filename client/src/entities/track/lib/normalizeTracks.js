@@ -14,7 +14,7 @@ export const normalizeTracks = (raw) => {
     title: raw.title,
     artist: raw.artist,
     album: raw.album,
-    year: raw.year,
+    size: raw.size,
     duration: raw.duration,
     audioUrl: raw.audioUrl,
     coverUrl: raw.coverUrl,

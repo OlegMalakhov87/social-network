@@ -10,7 +10,7 @@
 
 export const Image = ({
   src,
-  fallback = '/no-image-1200x900.png',
+  fallback = '/no-image-1200x720.png',
   alt = 'Изображение',
   className = '',
   ...rest

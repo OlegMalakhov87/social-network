@@ -1,7 +1,10 @@
 const { Router } = require('express');
 const {
-  validateMessage,
-} = require('../middleware/validation/messageValidation');
+  validateCreateMessage,
+} = require('../middleware/validation/validateCreateMessage');
+const {
+  validateUpdateMessage,
+} = require('../middleware/validation/validateUpdateMessage');
 const messageController = require('../controllers/messageController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
@@ -30,7 +33,7 @@ messageRoutes.get(
 // Отправить сообщение собеседнику
 messageRoutes.post(
   '/send',
-  validateMessage,
+  validateCreateMessage,
   authMiddleware,
   messageController.sendMessage
 );
@@ -40,7 +43,7 @@ messageRoutes.patch(
   '/:messageId/edit',
   validateIdParam('messageId'),
   authMiddleware,
-  validateMessage,
+  validateUpdateMessage,
   messageController.updateMessage
 );
 

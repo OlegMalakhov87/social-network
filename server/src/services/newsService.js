@@ -1,25 +1,24 @@
-const fs = require('fs').promises;
-const { News, Like, Comment, User } = require('../../db/models');
+const { sequelize, News, Like, Comment, User } = require('../../db/models');
 const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
-const { fromPublicUrl } = require('../utils/fromPublicUrl');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
+const { validateMedia } = require('../utils/validateMedia');
 
-// Безопасный маппинг сортировки (защита от SQL-инъекций)
+/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
 const SORT_MAP = {
-  dateDesc: [['createdAt', 'DESC']],
-  dateAsc: [['createdAt', 'ASC']],
-  viewsDesc: [['viewsCount', 'DESC']],
-  viewsAsc: [['viewsCount', 'ASC']],
+  dateDesc: { field: 'publishedAt', direction: 'DESC' },
+  dateAsc: { field: 'publishedAt', direction: 'ASC' },
+  viewsDesc: { field: 'viewsCount', direction: 'DESC' },
+  viewsAsc: { field: 'viewsCount', direction: 'ASC' },
 };
 
-// Срок хранения новостей в архиве
+/** Срок хранения новостей в архиве */
 const NEWS_RETENTION_DAYS = 30;
 
-// Поля новости, которые можно обновлять
+/** Поля новости, которые можно обновлять */
 const NEWS_FIELDS = [
   'title',
   'text',
@@ -53,21 +52,18 @@ const newsService = {
   } = {}) {
     const where = {};
 
-    // Проверяем, есть ли поисковый запрос
+    const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
+
     const hasSearch = Boolean(q && q.trim().length >= 2);
 
-    // Обычная лента показывает только актуальные новости.
-    // При поиске архивные новости тоже доступны.
     if (!hasSearch) {
       where.archivedAt = null;
     }
 
-    //  Фильтр по категории
     if (category && category !== 'all') {
       where.category = category;
     }
 
-    // Поиск по ключевому слову
     if (hasSearch) {
       const searchTerm = `%${q.trim()}%`;
 
@@ -77,7 +73,6 @@ const newsService = {
       ];
     }
 
-    // Получаем новости с авторами, лайками и комментариями
     const { count, rows: news } = await News.findAndCountAll({
       where,
       attributes: {
@@ -113,13 +108,15 @@ const newsService = {
           ],
         },
       ],
-      order: SORT_MAP[sortKey] || SORT_MAP.dateDesc,
+      order: [
+        [sort.field, sort.direction],
+        ['id', sort.direction],
+      ],
       limit: limit,
       offset: (page - 1) * limit,
       distinct: true,
     });
 
-    // Обогащаем новости данными о лайках и комментариях
     return {
       news: news.map((item) => ({
         ...item.toJSON(),
@@ -127,7 +124,6 @@ const newsService = {
         isLiked: item.likes?.some((like) => like.userId === currentUserId),
         commentsCount: item.comments?.length,
       })),
-      // Получаем пагинацию для новостей
       pagination: {
         totalNews: count,
         totalPages: Math.ceil(count / limit),
@@ -144,7 +140,6 @@ const newsService = {
    * @returns {Promise<Object>} - { news }
    */
   async getNewsById(newsId, currentUserId) {
-    // Получаем новость с автором, лайками и комментариями
     const news = await News.findByPk(newsId, {
       attributes: {
         exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
@@ -168,7 +163,6 @@ const newsService = {
       throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
     }
 
-    // Обогащаем новость данными о количестве лайков, комментариев и статусе лайка
     return {
       news: {
         ...news.toJSON(),
@@ -186,7 +180,13 @@ const newsService = {
    * @returns {Promise<Object>} - { news }
    */
   async createNews(currentUserId, newsData) {
-    // Определяем новые медиа файлы
+    validateMedia({
+      type: newsData.type,
+      mediaUrl: newsData.newsUrl,
+      previewUrl: newsData.previewUrl,
+      thumbnailUrl: newsData.thumbnailUrl,
+    });
+
     const media = [
       {
         url: newsData.newsUrl,
@@ -202,10 +202,6 @@ const newsService = {
       },
     ];
 
-    // Проверяем владение новыми медиа файлами
-    await temporaryMediaService.assertOwnershipMany(currentUserId, media);
-
-    // Определяем данные для создания новости в базе данных
     const dbData = {
       uploadedBy: currentUserId,
       title: newsData.title,
@@ -225,36 +221,29 @@ const newsService = {
       viewsCount: 0,
     };
 
-    // Создаем новость в базе данных
-    const news = await News.create(dbData, { validate: true });
+    return sequelize.transaction(async (transaction) => {
+      await temporaryMediaService.commitMany(currentUserId, media, {
+        transaction,
+      });
 
-    // Фиксируем новые медиа файлы
-    try {
-      await temporaryMediaService.commitMany(currentUserId, media);
-    } catch (error) {
-      console.warn(
-        `Не удалось зафиксировать временные медиа новости ${news.id}:`,
-        error.message
-      );
-    }
+      const news = await News.create(dbData, { validate: true, transaction });
 
-    // Получаем созданную новость с автором одним запросом
-    const newsWithAuthor = await News.findByPk(news.id, {
-      attributes: {
-        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
-      },
-      include: [
-        {
-          model: User,
-          as: 'uploader',
-          attributes: ['id', 'name', 'avatarUrl'],
+      const newsWithAuthor = await News.findByPk(news.id, {
+        attributes: {
+          exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
         },
-      ],
-    });
+        include: [
+          {
+            model: User,
+            as: 'uploader',
+            attributes: ['id', 'name', 'avatarUrl'],
+          },
+        ],
+        transaction,
+      });
 
-    return {
-      news: (newsWithAuthor ?? news).toJSON(),
-    };
+      return { news: newsWithAuthor.toJSON() };
+    });
   },
 
   /**
@@ -265,120 +254,114 @@ const newsService = {
    * @returns {Promise<Object>} - { news }
    */
   async updateNews(newsId, currentUserId, updateData) {
-    // Получаем новость с автором
-    const news = await News.findByPk(newsId, {
-      attributes: {
-        exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
-      },
-    });
+    return sequelize.transaction(async (transaction) => {
+      const news = await News.findByPk(newsId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
 
-    // Проверяем, что новость найдена
-    if (!news) {
-      throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
-    }
-
-    // Проверяем, что пользователь является автором новости
-    if (news.uploadedBy !== currentUserId) {
-      throw createError('Вы не можете обновить эту новость', 403, 'FORBIDDEN');
-    }
-
-    // Выбираем только разрешенные поля
-    const dbUpdates = Object.fromEntries(
-      NEWS_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
-        (field) => [field, updateData[field]]
-      )
-    );
-
-    // Проверяем, что есть данные для обновления
-    if (Object.keys(dbUpdates).length === 0) {
-      throw createError(
-        'Нет данных для обновления',
-        400,
-        'NO_FIELDS_TO_UPDATE'
-      );
-    }
-
-    // Определяем тип новости
-    const nextType = updateData.type ?? news.type;
-
-    // Устанавливаем флаг обновления
-    dbUpdates.isEdited = true;
-
-    // Определяем URL новости
-    dbUpdates.newsUrl =
-      nextType === 'text' ? null : (updateData.newsUrl ?? news.newsUrl);
-
-    // Определяем URL превью
-    dbUpdates.previewUrl =
-      nextType === 'video' ? (updateData.previewUrl ?? news.previewUrl) : null;
-
-    // Определяем URL thumbnail
-    dbUpdates.thumbnailUrl =
-      nextType === 'video'
-        ? (updateData.thumbnailUrl ?? news.thumbnailUrl)
-        : null;
-
-    // Сравниваем новые и старые URL и получаем тольконовые URL
-    const newTemporaryMedia = [
-      {
-        url: dbUpdates.newsUrl,
-        fieldName: 'newsUrl',
-      },
-      {
-        url: dbUpdates.previewUrl,
-        fieldName: 'previewUrl',
-      },
-      {
-        url: dbUpdates.thumbnailUrl,
-        fieldName: 'thumbnailUrl',
-      },
-    ].filter(({ url, fieldName }) => {
-      return url && url !== news[fieldName];
-    });
-
-    // Проверяем владение новыми медиа файлами
-    await temporaryMediaService.assertOwnershipMany(
-      currentUserId,
-      newTemporaryMedia
-    );
-
-    // Обновляем новость
-    let updatedNews;
-
-    try {
-      updatedNews = await news.update(dbUpdates, { validate: true });
-    } catch (error) {
-      // Если обновление новости не удалось, то удаляем новые медиа файлы
-      try {
-        await temporaryMediaService.removeMany(
-          currentUserId,
-          newTemporaryMedia
-        );
-      } catch (cleanupError) {
-        // Если удаление новых медиа файлов не удалось, то логируем ошибку
-        if (cleanupError.code !== 'ENOENT') {
-          console.warn(
-            `Не удалось удалить временные файлы для новости ${newsId}:`,
-            cleanupError.message
-          );
-        }
+      if (!news) {
+        throw createError('Новость не найдена', 404, 'NEWS_NOT_FOUND');
       }
-      throw createError('Не удалось обновить новость', 500, 'UPDATE_FAILED');
-    }
 
-    // Фиксируем новые медиа файлы
-    try {
-      await temporaryMediaService.commitMany(currentUserId, newTemporaryMedia);
-    } catch (error) {
-      console.warn(
-        `Не удалось зафиксировать временные медиа новости ${newsId}:`,
-        error.message
+      if (news.uploadedBy !== currentUserId) {
+        throw createError(
+          'Вы не можете обновить эту новость',
+          403,
+          'FORBIDDEN'
+        );
+      }
+
+      const dbUpdates = Object.fromEntries(
+        NEWS_FIELDS.filter((field) => Object.hasOwn(updateData, field)).map(
+          (field) => [field, updateData[field]]
+        )
       );
-    }
 
-    return {
-      news: updatedNews.toJSON(),
-    };
+      if (Object.keys(dbUpdates).length === 0) {
+        throw createError(
+          'Нет данных для обновления',
+          400,
+          'NO_FIELDS_TO_UPDATE'
+        );
+      }
+
+      const nextType = dbUpdates.type ?? news.type;
+      const typeChanged = nextType !== news.type;
+
+      const getNextUrl = (fieldName) => {
+        if (Object.hasOwn(dbUpdates, fieldName)) {
+          return dbUpdates[fieldName];
+        }
+
+        return typeChanged ? null : news[fieldName];
+      };
+
+      const nextMedia = {
+        type: nextType,
+        newsUrl: nextType === 'text' ? null : getNextUrl('newsUrl'),
+        previewUrl: nextType === 'video' ? getNextUrl('previewUrl') : null,
+        thumbnailUrl: nextType === 'video' ? getNextUrl('thumbnailUrl') : null,
+      };
+
+      validateMedia({
+        type: nextMedia.type,
+        mediaUrl: nextMedia.newsUrl,
+        previewUrl: nextMedia.previewUrl,
+        thumbnailUrl: nextMedia.thumbnailUrl,
+      });
+
+      Object.assign(dbUpdates, {
+        newsUrl: nextMedia.newsUrl,
+        previewUrl: nextMedia.previewUrl,
+        thumbnailUrl: nextMedia.thumbnailUrl,
+        isEdited: true,
+      });
+
+      const mediaFields = ['newsUrl', 'previewUrl', 'thumbnailUrl'];
+
+      const newTemporaryMedia = mediaFields
+        .filter((fieldName) => {
+          return (
+            Object.hasOwn(dbUpdates, fieldName) &&
+            dbUpdates[fieldName] &&
+            dbUpdates[fieldName] !== news[fieldName]
+          );
+        })
+        .map((fieldName) => ({
+          url: dbUpdates[fieldName],
+          fieldName,
+        }));
+
+      if (newTemporaryMedia.length > 0) {
+        await temporaryMediaService.commitMany(
+          currentUserId,
+          newTemporaryMedia,
+          { transaction }
+        );
+      }
+
+      const updatedNews = await news.update(dbUpdates, {
+        validate: true,
+        transaction,
+      });
+
+      const updatedNewsWithAuthor = await News.findByPk(updatedNews.id, {
+        attributes: {
+          exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+        },
+        include: [
+          {
+            model: User,
+            as: 'uploader',
+            attributes: ['id', 'name', 'avatarUrl'],
+          },
+        ],
+        transaction,
+      });
+
+      return { news: updatedNewsWithAuthor.toJSON() };
+    });
   },
 
   /**
@@ -387,7 +370,6 @@ const newsService = {
    * @returns {Promise<Object>} - { success, viewsCount }
    */
   async incrementViewsCount(newsId) {
-    // Инкрементируем счетчик просмотров новости
     await News.increment('viewsCount', {
       by: 1,
       where: { id: newsId },
@@ -403,12 +385,10 @@ const newsService = {
    * @returns {Promise<Object>} - { message, newsId }
    */
   async deleteNews(newsId, currentUserId) {
-    // Получаем новость
     const news = await News.findOne({
       where: { id: newsId, uploadedBy: currentUserId },
     });
 
-    // Проверяем, найдена ли новость
     if (!news) {
       throw createError(
         'Новость не найдено или нет прав на удаление',
@@ -416,7 +396,6 @@ const newsService = {
         'NEWS_NOT_FOUND_OR_FORBIDDEN'
       );
     }
-    // Удаляем новость и все связанные данные
     const result = await deleteEntityWithRelations({
       entity: news,
       targetType: 'News',
@@ -430,7 +409,7 @@ const newsService = {
   },
 
   /**
-   * Архивировать новости старше 30 дней
+   * Архивировать новости старше {NEWS_RETENTION_DAYS} дней
    * @returns {Promise<number>} Количество архивированных новостей
    */
   async archiveOldNews() {

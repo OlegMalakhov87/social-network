@@ -98,7 +98,6 @@ module.exports = {
     await queryInterface.addIndex('News', ['category']);
     await queryInterface.addIndex('News', ['viewsCount']);
     await queryInterface.addIndex('News', ['type']);
-    await queryInterface.addIndex('News', ['archivedAt']);
     await queryInterface.addIndex('News', ['archivedAt', 'createdAt']);
     await queryInterface.addIndex('News', ['origin']);
     await queryInterface.addIndex('News', ['externalUrl']);

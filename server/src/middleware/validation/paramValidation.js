@@ -6,13 +6,12 @@ const { validateErrors } = require('../../utils/validateErrors');
  */
 const validateIdParam = (paramName) => [
   param(paramName)
+    .notEmpty()
+    .withMessage(`${paramName} обязателен`)
     .isInt({ min: 1 })
-    .toInt()
-    .withMessage(`${paramName} должен быть числом`),
-
-  validateErrors(`Неверный формат ${paramName}`),
+    .withMessage(`${paramName} должен быть числом больше 0`)
+    .toInt(),
+  validateErrors(`Ошибка валидации ${paramName}`),
 ];
 
-module.exports = {
-  validateIdParam,
-};
+module.exports = { validateIdParam };

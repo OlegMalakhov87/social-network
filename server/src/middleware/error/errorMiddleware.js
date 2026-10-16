@@ -47,11 +47,15 @@ const errorMiddleware = (err, req, res, next) => {
 
   // Ошибки JWT
   if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({ error: 'Недействительный токен', code: 'INVALID_TOKEN' });
+    return res
+      .status(401)
+      .json({ error: 'Недействительный токен', code: 'INVALID_TOKEN' });
   }
 
   if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({ error: 'Токен истек', code: 'TOKEN_EXPIRED' });
+    return res
+      .status(401)
+      .json({ error: 'Токен истек', code: 'TOKEN_EXPIRED' });
   }
 
   // Ошибки multer

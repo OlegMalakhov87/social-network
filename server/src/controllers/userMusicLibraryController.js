@@ -7,12 +7,12 @@ const userMusicLibraryController = {
   getMyMusicLibrary: async (req, res, next) => {
     try {
       const { page, limit, sortKey } = req.query;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userMusicLibraryService.getMyMusicLibrary({
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sortKey: sortKey,
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
+        sortKey,
       });
       res.status(200).json(result);
     } catch (error) {
@@ -26,13 +26,13 @@ const userMusicLibraryController = {
   getUserMusicLibrary: async (req, res, next) => {
     try {
       const { userId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const { page, limit, sortKey } = req.query;
       const result = await userMusicLibraryService.getUserMusicLibrary({
-        profileUserId: parseInt(userId),
-        currentUserId: parseInt(currentUserId),
-        page: parseInt(page),
-        limit: parseInt(limit),
+        profileUserId: Number(userId),
+        currentUserId,
+        page: Number(page),
+        limit: Number(limit),
         sortKey,
       });
       res.status(200).json(result);
@@ -47,10 +47,10 @@ const userMusicLibraryController = {
   addToMusicLibrary: async (req, res, next) => {
     try {
       const { trackId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userMusicLibraryService.addToMusicLibrary(
-        parseInt(currentUserId),
-        parseInt(trackId)
+        currentUserId,
+        Number(trackId)
       );
       res.status(201).json(result);
     } catch (error) {
@@ -65,10 +65,10 @@ const userMusicLibraryController = {
     try {
       const { libraryId } = req.params;
       const { isFavorite } = req.body;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userMusicLibraryService.updateFavoriteTrack(
-        parseInt(currentUserId),
-        parseInt(libraryId),
+        currentUserId,
+        Number(libraryId),
         isFavorite
       );
       res.status(200).json(result);
@@ -84,7 +84,7 @@ const userMusicLibraryController = {
     try {
       const { libraryId } = req.params;
       const result = await userMusicLibraryService.incrementPlaysCount(
-        parseInt(libraryId)
+        Number(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {
@@ -98,10 +98,10 @@ const userMusicLibraryController = {
   deleteMusicFromLibrary: async (req, res, next) => {
     try {
       const { libraryId } = req.params;
-      const currentUserId = req.user?.id;
+      const currentUserId = Number(req.user?.id);
       const result = await userMusicLibraryService.deleteMusicFromLibrary(
-        parseInt(currentUserId),
-        parseInt(libraryId)
+        currentUserId,
+        Number(libraryId)
       );
       res.status(200).json(result);
     } catch (error) {

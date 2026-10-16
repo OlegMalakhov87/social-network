@@ -13,7 +13,6 @@ export const VideoSchema = z.object({
   description: z.string().nullish(),
   duration: z.number().nullish(),
   size: z.coerce.number().nullish(),
-  year: z.number().nullish(),
   videoUrl: z.string().nullish(),
   previewUrl: z.string().nullish(),
   thumbnailUrl: z.string().nullish(),

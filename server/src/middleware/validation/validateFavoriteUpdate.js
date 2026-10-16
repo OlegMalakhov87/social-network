@@ -5,7 +5,11 @@ const { validateErrors } = require('../../utils/validateErrors');
  * Валидация для обновления избранного
  */
 const validateFavoriteUpdate = [
-  body('isFavorite').isBoolean().withMessage('Некорректный статус избранного'),
+  body('isFavorite')
+    .isBoolean()
+    .withMessage('Некорректный статус избранного')
+    .bail()
+    .toBoolean(),
 
   validateErrors('Ошибка обновления избранного'),
 ];

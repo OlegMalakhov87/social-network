@@ -78,7 +78,7 @@ export const Photo = ({
           <EntityContent>
             <MediaPreview
               src={photo.postUrl}
-              fallback={'/no-image-1200x900.png'}
+              fallback={'/no-image-1200x720.png'}
               alt="Фото"
               className={styles.media}
               type="image"

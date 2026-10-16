@@ -1,4 +1,4 @@
-import { formatDate } from '../../../shared/utils';
+import { formatDate, formatSize } from '../../../shared/utils';
 
 /**
  * Подготавливает данные для отображения TrackMeta.
@@ -11,7 +11,7 @@ export const getTrackMeta = (track, mode) => {
     details: [
       { label: 'Исполнитель', value: track.artist },
       { label: 'Альбом', value: track.album || 'Не указан' },
-      { label: 'Год', value: track.year },
+      { label: 'Размер', value: formatSize(track.size) },
     ],
 
     dates:
