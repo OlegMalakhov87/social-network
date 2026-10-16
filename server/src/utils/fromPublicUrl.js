@@ -18,7 +18,7 @@ const fromPublicUrl = (url) => {
   }
 
   // Старые записи могли хранить путь без начального слеша.
-  const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+  const normalizedUrl = url.startsWith('/') ? url : '/' + url;
 
   if (!normalizedUrl.startsWith(MEDIA_URL_PREFIX)) {
     throw createError('Некорректный путь URL', 400, 'INVALID_MEDIA_PATH');
@@ -28,11 +28,11 @@ const fromPublicUrl = (url) => {
 
   if (
     !relativePath ||
-    relativePath.includes('\\\\') ||
+    relativePath.includes('\\') ||
     relativePath.includes('?') ||
     relativePath.includes('#') ||
     relativePath.includes('%') ||
-    relativePath.includes('\\0')
+    relativePath.includes('\0')
   ) {
     throw createError('Недопустимые символы в URL', 400, 'INVALID_MEDIA_URL');
   }
@@ -53,7 +53,7 @@ const fromPublicUrl = (url) => {
   if (
     !relative ||
     relative === '..' ||
-    relative.startsWith(`..${path.sep}`) ||
+    relative.startsWith('..' + path.sep) ||
     path.isAbsolute(relative)
   ) {
     throw createError(
