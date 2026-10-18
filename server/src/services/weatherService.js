@@ -1,5 +1,6 @@
 const { redis } = require('../lib/redis');
 const { createError } = require('../utils/createError');
+const { fetchWithRetry } = require('../utils/fetchWithRetry');
 const {
   WEATHER_CODES,
   CACHE_TTL_1_HOUR,
@@ -25,7 +26,7 @@ const weatherService = {
       const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ru`;
 
       /** Запрос к сервису геокодирования OpenStreetMap. */
-      const response = await fetch(url, {
+      const response = await fetchWithRetry(url, {
         headers: {
           'User-Agent': `${process.env.APP_NAME}/${process.env.APP_VERSION} (${process.env.APP_CONTACT})`,
           'Accept-Language': 'ru',
@@ -111,10 +112,22 @@ const weatherService = {
     /** URL для запроса к API Open-Meteo. */
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,pressure_msl&daily=sunrise,sunset&timezone=auto`;
 
-    /** Запрос к API Open-Meteo. */
-    const response = await fetch(url);
+    let response;
 
-    /** Если не удалось получить данные, выбрасываем ошибку. */
+    try {
+      response = await fetchWithRetry(url);
+    } catch (error) {
+      console.error(
+        '[Weather] Open-Meteo недоступен после retry:',
+        error.message
+      );
+      throw createError(
+        'Сервис погоды временно недоступен. Попробуйте позже.',
+        502,
+        'WEATHER_API_UNAVAILABLE'
+      );
+    }
+
     if (!response.ok) {
       throw createError('Не удалось получить погоду', 502, 'WEATHER_API_ERROR');
     }

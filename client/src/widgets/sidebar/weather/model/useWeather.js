@@ -1,9 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAbortableRequest } from '../../../../shared/hooks';
 import { fetchWeatherApi } from '../api/weatherApi';
 
-  /** Интервал обновления погоды в миллисекундах. */
-  const WEATHER_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+/** Интервал обновления погоды в миллисекундах. */
+const WEATHER_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+
+/** Базовая задержка повторных запросов погоды в миллисекундах. */
+const RETRY_BASE_DELAY_MS = 5 * 60 * 1000;
+/** Максимальная задержка повторных запросов погоды в миллисекундах. */
+const RETRY_MAX_DELAY_MS = 30 * 60 * 1000;
 
 /**
  * Хук для получения погоды по координатам пользователя из браузера.
@@ -15,6 +20,7 @@ import { fetchWeatherApi } from '../api/weatherApi';
  */
 export const useWeather = (params) => {
   const { lat, lon } = params;
+  const [retryCount, setRetryCount] = useState(0);
 
   /** Проверяем, что координаты валидны. */
   const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
@@ -43,6 +49,18 @@ export const useWeather = (params) => {
     },
   });
 
+  /** Сброс retryCount при смене координат. */
+  useEffect(() => {
+    setRetryCount(0);
+  }, [lat, lon]);
+
+  /** Сброс retryCount при успешном запросе. */
+  useEffect(() => {
+    if (weather) {
+      setRetryCount(0);
+    }
+  }, [weather]);
+
   /** Установка интервала обновления погоды. */
   useEffect(() => {
     if (!hasCoords) return;
@@ -52,6 +70,23 @@ export const useWeather = (params) => {
     );
     return () => clearInterval(intervalId);
   }, [hasCoords, refetch]);
+
+  /** Установка интервала повторных запросов погоды при ошибке. */
+  useEffect(() => {
+    if (!hasCoords || !error) return;
+
+    const retryDelay = Math.min(
+      RETRY_BASE_DELAY_MS * 2 ** retryCount,
+      RETRY_MAX_DELAY_MS
+    );
+
+    const retryTimeout = setTimeout(() => {
+      setRetryCount((c) => c + 1);
+      refetch();
+    }, retryDelay);
+
+    return () => clearTimeout(retryTimeout);
+  }, [hasCoords, error, refetch, retryCount]);
 
   return {
     weather,

@@ -32,7 +32,7 @@ const errorMiddleware = (err, req, res, next) => {
   // Sequelize ошибки уникальности
   if (err.name === 'SequelizeUniqueConstraintError') {
     const field = err.errors[0]?.path || 'поле';
-    return res.status(400).json({
+    return res.status(409).json({
       error: `Запись с таким ${field} уже существует`,
       code: 'UNIQUE_CONSTRAINT',
     });

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { UniqueConstraintError } = require('sequelize');
 const { User } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
@@ -60,12 +61,25 @@ const authService = {
 
     const passwordHash = await createPasswordHash(password);
 
-    const user = await User.create({
-      name,
-      email,
-      passwordHash,
-      gender,
-    });
+    let user;
+
+    try {
+      user = await User.create({
+        name,
+        email,
+        passwordHash,
+        gender,
+      });
+    } catch (error) {
+      if (
+        error instanceof UniqueConstraintError &&
+        error.errors?.some((item) => item.path === 'email')
+      ) {
+        throw createError('Email уже используется', 409, 'USER_EXISTS');
+      }
+
+      throw error;
+    }
 
     const token = generateToken(user.id);
 

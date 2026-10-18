@@ -1,8 +1,6 @@
-const fs = require('node:fs/promises');
 const { Op } = require('sequelize');
 const { TemporaryMedia } = require('../../db/models');
 const { createError } = require('../utils/createError');
-const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 /** Срок действия временного медиафайла в миллисекундах */
 const TEMPORARY_MEDIA_TTL = 24 * 60 * 60 * 1000;
@@ -14,9 +12,24 @@ const temporaryMediaService = {
    * @returns {Promise<Object[]>} - массив объектов с временными медиафайлами
    */
   async registerMany(items) {
-    const normalizedItems = items.filter((item) => item?.url);
+    if (
+      !Array.isArray(items) ||
+      items.some(
+        (item) =>
+          typeof item?.url !== 'string' ||
+          !item.url.trim() ||
+          typeof item?.fieldName !== 'string' ||
+          !item.fieldName.trim()
+      )
+    ) {
+      throw createError(
+        'Некорректные параметры временных медиафайлов',
+        400,
+        'INVALID_TEMPORARY_MEDIA'
+      );
+    }
 
-    if (normalizedItems.length === 0) {
+    if (items.length === 0) {
       return [];
     }
 
@@ -24,7 +37,7 @@ const temporaryMediaService = {
 
     return TemporaryMedia.sequelize.transaction(async (transaction) => {
       return TemporaryMedia.bulkCreate(
-        normalizedItems.map((item) => ({
+        items.map((item) => ({
           ...item,
           expiresAt,
         })),
@@ -43,23 +56,34 @@ const temporaryMediaService = {
    * @returns {Promise<Object[]>}
    */
   async assertOwnershipMany(currentUserId, items, options = {}) {
-    const normalizedItems = items.filter((item) => item?.url);
     const { transaction } = options;
+
+    if (
+      !Array.isArray(items) ||
+      items.some(
+        (item) =>
+          typeof item?.url !== 'string' ||
+          !item.url.trim() ||
+          typeof item?.fieldName !== 'string' ||
+          !item.fieldName.trim()
+      )
+    ) {
+      throw createError(
+        'Некорректные параметры временных медиафайлов',
+        400,
+        'INVALID_TEMPORARY_MEDIA'
+      );
+    }
 
     const mediaRecords = [];
 
-    for (const item of normalizedItems) {
-      const where = {
-        userId: currentUserId,
-        url: item.url,
-      };
-
-      if (item.fieldName) {
-        where.fieldName = item.fieldName;
-      }
-
+    for (const { url, fieldName } of items) {
       const media = await TemporaryMedia.findOne({
-        where,
+        where: {
+          userId: currentUserId,
+          url,
+          fieldName,
+        },
         ...(transaction && {
           transaction,
           lock: transaction.LOCK.UPDATE,
@@ -95,11 +119,24 @@ const temporaryMediaService = {
    * Физические файлы удаляются фоновой очисткой.
    */
   async removeMany(currentUserId, items) {
-    const normalizedItems = items.filter(
-      (item) => item?.url && item?.fieldName
-    );
+    if (
+      !Array.isArray(items) ||
+      items.some(
+        (item) =>
+          typeof item?.url !== 'string' ||
+          !item.url.trim() ||
+          typeof item?.fieldName !== 'string' ||
+          !item.fieldName.trim()
+      )
+    ) {
+      throw createError(
+        'Некорректные параметры временных медиафайлов',
+        400,
+        'INVALID_TEMPORARY_MEDIA'
+      );
+    }
 
-    if (normalizedItems.length === 0) {
+    if (items.length === 0) {
       return {
         message: 'Нет временных медиафайлов для удаления',
         deleted: 0,
@@ -109,7 +146,7 @@ const temporaryMediaService = {
     return TemporaryMedia.sequelize.transaction(async (transaction) => {
       let deleted = 0;
 
-      for (const { url, fieldName } of normalizedItems) {
+      for (const { url, fieldName } of items) {
         const count = await TemporaryMedia.destroy({
           where: {
             userId: currentUserId,

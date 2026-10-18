@@ -33,11 +33,11 @@ let isRunning = false;
  *  - STAGING_ROOT
  *  - PUBLISH_STAGING_ROOT
  *
- * Очистка происходит в 18:30 ежедневно.
+ * Очистка происходит в 20:30 ежедневно.
  *
  */
 const startMaintenanceAndCleanupJob = () => {
-  cron.schedule('30 18 * * *', async () => {
+  cron.schedule('30 20 * * *', async () => {
     if (isRunning) {
       console.warn('[Maintenance] Предыдущая очистка ещё выполняется');
       return;

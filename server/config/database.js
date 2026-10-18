@@ -1,4 +1,19 @@
-require("dotenv").config();
+require('dotenv').config();
+
+if (process.env.NODE_ENV === 'test') {
+  if (!process.env.DB_NAME_TEST) {
+    throw new Error('DB_NAME_TEST не задана');
+  }
+
+  if (
+    process.env.DB_NAME_TEST === process.env.DB_NAME ||
+    process.env.DB_NAME_TEST === process.env.DB_NAME_PROD
+  ) {
+    throw new Error(
+      'Тестовая БД должна отличаться от development и production'
+    );
+  }
+}
 
 module.exports = {
   development: {
@@ -7,17 +22,17 @@ module.exports = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    use_env_variable: process.env.DB_URL ? "DB_URL" : undefined,
-    dialect: "postgres",
+    use_env_variable: process.env.DB_URL ? 'DB_URL' : undefined,
+    dialect: 'postgres',
   },
   test: {
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
+    database: process.env.DB_NAME_TEST,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    use_env_variable: process.env.DB_URL ? "DB_URL" : undefined,
-    dialect: "postgres",
+    dialect: 'postgres',
+    logging: false,
   },
   production: {
     username: process.env.DB_USER_PROD,
@@ -25,7 +40,7 @@ module.exports = {
     database: process.env.DB_NAME_PROD,
     host: process.env.DB_HOST_PROD,
     port: process.env.DB_PORT_PROD,
-    use_env_variable: process.env.DB_URL_PROD ? "DB_URL_PROD" : undefined,
-    dialect: "postgres",
+    use_env_variable: process.env.DB_URL_PROD ? 'DB_URL_PROD' : undefined,
+    dialect: 'postgres',
   },
 };

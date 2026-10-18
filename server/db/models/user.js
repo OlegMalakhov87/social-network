@@ -188,11 +188,7 @@ module.exports = (sequelize, DataTypes) => {
       createdAt: 'createdAt',
       updatedAt: 'updatedAt',
       //underscored: true,
-      indexes: [
-        { fields: ['email'] },
-        { fields: ['nickname'] },
-        { fields: ['name'] },
-      ],
+      indexes: [{ fields: ['name'] }],
     }
   );
   return User;
