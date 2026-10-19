@@ -5,11 +5,10 @@ const bcrypt = require('bcryptjs');
 const { sequelize, User, TemporaryMedia } = require('../../db/models');
 const temporaryMediaService = require('../../src/services/temporaryMediaService');
 
-const TEST_DATABASE = 'socialnet_test';
 
 if (
   process.env.NODE_ENV !== 'test' ||
-  sequelize.getDatabaseName() !== TEST_DATABASE
+  sequelize.getDatabaseName() !== 'socialnet_test'
 ) {
   throw new Error('Интеграционные тесты разрешены только в socialnet_test');
 }

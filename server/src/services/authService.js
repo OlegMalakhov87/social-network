@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { UniqueConstraintError } = require('sequelize');
-const { User } = require('../../db/models');
+const { sequelize, User } = require('../../db/models');
+const refreshSessionService = require('./refreshSessionService');
 const { createError } = require('../utils/createError');
 
 /**
@@ -11,7 +12,7 @@ const { createError } = require('../utils/createError');
  */
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
@@ -55,6 +56,7 @@ const authService = {
     const { name, email, password, gender } = userData;
 
     const existingUser = await User.findOne({ where: { email } });
+
     if (existingUser) {
       throw createError('Email уже используется', 409, 'USER_EXISTS');
     }
@@ -62,13 +64,23 @@ const authService = {
     const passwordHash = await createPasswordHash(password);
 
     let user;
+    let refreshSession;
 
     try {
-      user = await User.create({
-        name,
-        email,
-        passwordHash,
-        gender,
+      await sequelize.transaction(async (transaction) => {
+        user = await User.create(
+          {
+            name,
+            email,
+            passwordHash,
+            gender,
+          },
+          { transaction }
+        );
+
+        refreshSession = await refreshSessionService.create(user.id, {
+          transaction,
+        });
       });
     } catch (error) {
       if (
@@ -87,7 +99,12 @@ const authService = {
     delete userResponse.passwordHash;
     delete userResponse.isSystem;
 
-    return { user: userResponse, token };
+    return {
+      user: userResponse,
+      token,
+      refreshToken: refreshSession.refreshToken,
+      expiresAt: refreshSession.expiresAt,
+    };
   },
 
   /**
@@ -120,13 +137,69 @@ const authService = {
       );
     }
 
+    const refreshSession = await refreshSessionService.create(user.id);
     const token = generateToken(user.id);
 
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
     delete userResponse.isSystem;
 
-    return { user: userResponse, token };
+    return {
+      user: userResponse,
+      token,
+      refreshToken: refreshSession.refreshToken,
+      expiresAt: refreshSession.expiresAt,
+    };
+  },
+
+  /**
+   * Обновление пользовательской авторизации.
+   *
+   * @param {string} refreshToken
+   * @returns {Promise<{
+   *   token: string,
+   *   refreshToken: string,
+   *   expiresAt: Date
+   * }>}
+   */
+  async refresh(refreshToken) {
+    const session = await refreshSessionService.rotate(refreshToken);
+
+    const user = await User.findByPk(session.userId, {
+      attributes: ['id', 'isSystem'],
+    });
+
+    if (!user || user.isSystem) {
+      await refreshSessionService.revoke(session.refreshToken);
+
+      throw createError(
+        'Недействительная сессия',
+        401,
+        'INVALID_REFRESH_TOKEN'
+      );
+    }
+
+    const token = generateToken(user.id);
+
+    return {
+      token,
+      refreshToken: session.refreshToken,
+      expiresAt: session.expiresAt,
+    };
+  },
+
+  /**
+   * Завершение текущей пользовательской сессии.
+   *
+   * @param {string} refreshToken
+   * @returns {Promise<{message: string}>}
+   */
+  async logout(refreshToken) {
+    await refreshSessionService.revoke(refreshToken);
+
+    return {
+      message: 'Выход выполнен успешно',
+    };
   },
 };
 

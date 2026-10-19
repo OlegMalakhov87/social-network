@@ -3,6 +3,7 @@ const app = express();
 const path = require('node:path');
 const morgan = require('morgan');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const { MEDIA_ROOT } = require('../config/mediaUploadConfig');
 const authRoutes = require('./routes/authRoutes');
@@ -21,6 +22,7 @@ const widgetRoutes = require('./routes/widgetRoutes');
 
 const errorMiddleware = require('./middleware/error/errorMiddleware');
 
+// CORS
 app.use(
   cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000', // только с этого домена
@@ -28,11 +30,22 @@ app.use(
     credentials: true, // разрешить куки/авторизацию
   })
 );
+
+// JSON
 app.use(express.json());
+
+// Cookie parser
+app.use(cookieParser());
+
+// URL-encoded
 app.use(express.urlencoded({ extended: true }));
+
+// Morgan
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
+
+// Static files
 app.use(
   '/uploads',
   express.static(MEDIA_ROOT, {
@@ -42,6 +55,7 @@ app.use(
   })
 );
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', userRoutes);
 app.use('/api/messages', messageRoutes);
@@ -56,6 +70,7 @@ app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/widgets', widgetRoutes);
 
+// Error middleware
 app.use(errorMiddleware);
 
 module.exports = app;

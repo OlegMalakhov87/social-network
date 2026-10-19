@@ -1,5 +1,9 @@
 const { authService } = require('../services/authService');
 
+const { REFRESH_COOKIE_NAME } = require('../../config/authConfig');
+
+const { setRefreshCookie, clearRefreshCookie } = require('../utils/authCookie');
+
 const authController = {
   /**
    * Получение информации о текущем пользователе
@@ -19,8 +23,17 @@ const authController = {
    */
   register: async (req, res, next) => {
     try {
-      const result = await authService.register(req.body);
-      res.status(201).json(result);
+      const { user, token, refreshToken, expiresAt } =
+        await authService.register(req.body);
+
+      const remainingMs = Math.max(
+        0,
+        new Date(expiresAt).getTime() - Date.now()
+      );
+
+      setRefreshCookie(res, refreshToken, remainingMs);
+
+      res.status(201).json({ user, token });
     } catch (error) {
       next(error);
     }
@@ -31,8 +44,62 @@ const authController = {
    */
   login: async (req, res, next) => {
     try {
-      const result = await authService.login(req.body);
-      res.json(result);
+      const { user, token, refreshToken, expiresAt } = await authService.login(
+        req.body
+      );
+
+      const remainingMs = Math.max(
+        0,
+        new Date(expiresAt).getTime() - Date.now()
+      );
+
+      setRefreshCookie(res, refreshToken, remainingMs);
+
+      res.json({ user, token });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Обновление пользовательской авторизации.
+   */
+  refresh: async (req, res, next) => {
+    try {
+      const currentRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+
+      const { token, refreshToken, expiresAt } =
+        await authService.refresh(currentRefreshToken);
+
+      const remainingMs = Math.max(
+        0,
+        new Date(expiresAt).getTime() - Date.now()
+      );
+
+      setRefreshCookie(res, refreshToken, remainingMs);
+
+      res.json({ token });
+    } catch (error) {
+      if (error.statusCode === 401) {
+        clearRefreshCookie(res);
+      }
+
+      next(error);
+    }
+  },
+
+  /**
+   * Завершение пользовательской сессии.
+   */
+  logout: async (req, res, next) => {
+    try {
+      const currentRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+
+      await authService.logout(currentRefreshToken);
+
+      clearRefreshCookie(res);
+
+      res.json({ message: 'Выход выполнен успешно' });
     } catch (error) {
       next(error);
     }

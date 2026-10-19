@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'temporaryMedia',
       });
 
+      // Refresh-сессии пользователя
+      User.hasMany(models.RefreshSession, {
+        foreignKey: 'userId',
+        as: 'refreshSessions',
+      });
+
       // Отправленные сообщения
       User.hasMany(models.Message, {
         foreignKey: 'senderId',

@@ -20,10 +20,8 @@ const PORT = process.env.PORT || 5000;
 // Проверка Redis подключения при старте
 redis
   .ping()
-  .then(() => console.log('[Redis] PONG — всё ок'))
-  .catch((err) =>
-    console.error('[Redis] Не удалось подключиться:', err.message)
-  );
+  .then(() => console.log('[Redis] Подключение установлено'))
+  .catch((err) => console.error('[Redis] Ошибка:', err.message));
 
 // Запуск обслуживания и очистки данных
 startMaintenanceAndCleanupJob();

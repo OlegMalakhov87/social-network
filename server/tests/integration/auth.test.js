@@ -2,26 +2,64 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, createHash } = require('node:crypto');
 
-const { sequelize, User } = require('../../db/models');
+const { sequelize, User, RefreshSession } = require('../../db/models');
+
+const {
+  REFRESH_COOKIE_NAME,
+  REFRESH_COOKIE_PATH,
+} = require('../../config/authConfig');
 
 const app = require('../../src/app');
 const { redis } = require('../../src/lib/redis');
 
-const TEST_DATABASE = 'socialnet_test';
-
 if (
   process.env.NODE_ENV !== 'test' ||
-  sequelize.getDatabaseName() !== TEST_DATABASE
+  sequelize.getDatabaseName() !== 'socialnet_test'
 ) {
   throw new Error('Интеграционные тесты разрешены только в socialnet_test');
 }
 
 let server;
 let baseUrl;
+
 const createTestEmail = () =>
   `test-${randomUUID().replaceAll('-', '')}@example.com`;
+
+const assertRefreshCookie = async (response, userId) => {
+  const setCookie = response.headers.get('set-cookie');
+
+  assert.ok(setCookie, 'Ожидался заголовок Set-Cookie');
+
+  const cookieParts = setCookie.split(';');
+  const [name, refreshToken] = cookieParts[0].split('=');
+
+  assert.equal(name, REFRESH_COOKIE_NAME);
+  assert.match(refreshToken, /^[a-f0-9]{64}$/);
+
+  const attributes = cookieParts
+    .slice(1)
+    .map((part) => part.trim().toLowerCase());
+
+  assert.ok(attributes.includes('httponly'));
+  assert.ok(attributes.includes('samesite=lax'));
+  assert.ok(attributes.includes(`path=${REFRESH_COOKIE_PATH}`.toLowerCase()));
+
+  assert.ok(attributes.some((attribute) => attribute.startsWith('max-age=')));
+
+  const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
+
+  const session = await RefreshSession.findOne({
+    where: { tokenHash },
+  });
+
+  assert.ok(session, 'Refresh-сессия должна существовать');
+  assert.equal(session.userId, userId);
+  assert.ok(session.expiresAt > new Date());
+
+  return session;
+};
 
 before(async () => {
   server = app.listen(0);
@@ -181,6 +219,21 @@ test('POST /api/auth/register успешно регистрирует польз
     const decoded = jwt.verify(body.token, process.env.JWT_SECRET);
 
     assert.equal(decoded.id, createdUser.id);
+
+    // Refresh token и срок сессии не должны попадать в JSON.
+    assert.equal(Object.hasOwn(body, 'refreshToken'), false);
+    assert.equal(Object.hasOwn(body, 'expiresAt'), false);
+
+    // Проверяем реальную cookie и запись в PostgreSQL.
+    await assertRefreshCookie(response, createdUser.id);
+
+    // Должна существовать ровно одна refresh-сессия
+    // для только что зарегистрированного пользователя.
+    const sessionsCount = await RefreshSession.count({
+      where: { userId: createdUser.id },
+    });
+
+    assert.equal(sessionsCount, 1);
   } finally {
     // Ищем запись повторно, чтобы удалить её даже
     // при ошибке проверки до присваивания createdUser.
@@ -405,6 +458,17 @@ test('POST /api/auth/login успешно авторизует пользова�
     const decoded = jwt.verify(body.token, process.env.JWT_SECRET);
 
     assert.equal(decoded.id, user.id);
+
+    assert.equal(Object.hasOwn(body, 'refreshToken'), false);
+    assert.equal(Object.hasOwn(body, 'expiresAt'), false);
+
+    await assertRefreshCookie(response, user.id);
+
+    const sessionsCount = await RefreshSession.count({
+      where: { userId: user.id },
+    });
+
+    assert.equal(sessionsCount, 1);
   } finally {
     await user.destroy();
   }
@@ -458,6 +522,15 @@ test('POST /api/auth/login отклоняет неправильный паро�
     assert.equal(response.status, 401);
     assert.equal(body.code, 'INVALID_CREDENTIALS');
     assert.equal(body.error, 'Неверный email или пароль');
+
+    assert.equal(response.headers.get('set-cookie'), null);
+
+    assert.equal(
+      await RefreshSession.count({
+        where: { userId: user.id },
+      }),
+      0
+    );
   } finally {
     await user.destroy();
   }
@@ -495,4 +568,228 @@ test('POST /api/auth/login запрещает вход системному по
   } finally {
     await user.destroy();
   }
+});
+
+test('login → refresh → logout → refresh: полный цикл сессии', async () => {
+  const email = createTestEmail();
+  const password = 'test-password-123';
+
+  const user = await User.create({
+    name: 'Session Test User',
+    email,
+    passwordHash: await bcrypt.hash(password, 4),
+    gender: 'male',
+  });
+
+  const origin = process.env.CLIENT_URL;
+
+  // Node.js fetch не сохраняет cookie автоматически.
+  const getCookie = (response) => {
+    const setCookie = response.headers.get('set-cookie');
+
+    assert.ok(setCookie, 'Ожидался Set-Cookie');
+
+    return setCookie.split(';')[0];
+  };
+
+  try {
+    // 1. Авторизация
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.equal(loginResponse.status, 200);
+
+    const loginBody = await loginResponse.json();
+
+    assert.equal(typeof loginBody.token, 'string');
+    assert.equal(Object.hasOwn(loginBody, 'refreshToken'), false);
+
+    const firstCookie = getCookie(loginResponse);
+
+    // 2. Обновление токенов
+    const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: firstCookie,
+      },
+    });
+
+    assert.equal(refreshResponse.status, 200);
+
+    const refreshBody = await refreshResponse.json();
+
+    assert.equal(typeof refreshBody.token, 'string');
+    assert.equal(Object.hasOwn(refreshBody, 'refreshToken'), false);
+
+    const secondCookie = getCookie(refreshResponse);
+
+    // Refresh token изменился.
+    assert.notEqual(secondCookie, firstCookie);
+
+    // Новый access token действителен.
+    const decoded = jwt.verify(refreshBody.token, process.env.JWT_SECRET);
+
+    assert.equal(decoded.id, user.id);
+
+    // 3. Выход из аккаунта
+    const logoutResponse = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: secondCookie,
+      },
+    });
+
+    assert.equal(logoutResponse.status, 200);
+
+    const clearedCookie = logoutResponse.headers.get('set-cookie');
+
+    assert.ok(clearedCookie);
+    assert.match(clearedCookie, /refreshToken=/);
+    assert.match(clearedCookie, /Path=\/api\/auth/i);
+    assert.match(clearedCookie, /HttpOnly/i);
+    
+    const expiresMatch = clearedCookie.match(/Expires=([^;]+)/i);
+
+    assert.ok(expiresMatch, 'Ожидался атрибут Expires');
+    
+    const expiresAt = new Date(expiresMatch[1]);
+    
+    assert.ok(
+      expiresAt.getTime() <= Date.now(),
+      'Cookie должна иметь истёкший срок действия'
+    );
+    assert.equal(
+      await RefreshSession.count({
+        where: { userId: user.id },
+      }),
+      0
+    );
+
+    // 4. Попытка обновить завершённую сессию
+    const rejectedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: secondCookie,
+      },
+    });
+
+    assert.equal(rejectedRefresh.status, 401);
+  } finally {
+    await user.destroy();
+  }
+});
+
+test('POST /api/auth/refresh отклоняет недопустимый Origin', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      Origin: 'https://untrusted.example',
+    },
+  });
+
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
+  assert.equal(body.code, 'INVALID_ORIGIN');
+});
+
+test('повторное использование старой refresh cookie отзывает сессию', async () => {
+  const email = createTestEmail();
+  const password = 'test-password-123';
+
+  const user = await User.create({
+    name: 'Refresh Reuse Test',
+    email,
+    passwordHash: await bcrypt.hash(password, 4),
+    gender: 'male',
+  });
+
+  const origin = process.env.CLIENT_URL;
+
+  try {
+    // Авторизуемся.
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.equal(loginResponse.status, 200);
+
+    const oldCookie = loginResponse.headers.get('set-cookie').split(';')[0];
+
+    // Первая ротация проходит успешно.
+    const firstRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: oldCookie,
+      },
+    });
+
+    assert.equal(firstRefresh.status, 200);
+
+    const newCookie = firstRefresh.headers.get('set-cookie').split(';')[0];
+
+    assert.notEqual(oldCookie, newCookie);
+
+    // Повторно предъявляем уже использованный токен.
+    const reusedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: oldCookie,
+      },
+    });
+
+    assert.equal(reusedRefresh.status, 401);
+
+    const errorBody = await reusedRefresh.json();
+
+    assert.equal(errorBody.code, 'REFRESH_TOKEN_REUSED');
+
+    // Согласно строгой политике сессия должна быть удалена.
+    assert.equal(
+      await RefreshSession.count({
+        where: { userId: user.id },
+      }),
+      0
+    );
+
+    // Даже новая cookie больше не позволяет обновиться.
+    const rejectedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Origin: origin,
+        Cookie: newCookie,
+      },
+    });
+
+    assert.equal(rejectedRefresh.status, 401);
+  } finally {
+    await user.destroy();
+  }
+});
+
+test('POST /api/auth/refresh отклоняет запрос без Origin', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/refresh`, {
+    method: 'POST',
+  });
+
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
+  assert.equal(body.code, 'INVALID_ORIGIN');
 });

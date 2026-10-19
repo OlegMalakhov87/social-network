@@ -7,12 +7,14 @@
     "dev": "nodemon src/index.js",
     "test": "NODE_ENV=test node --test --test-concurrency=1",
     "test:watch": "NODE_ENV=test node --test --watch",
-    "devop": "NODE_ENV=development yarn sequelize db:drop && NODE_ENV=development yarn sequelize db:create && NODE_ENV=development yarn sequelize db:migrate && NODE_ENV=development yarn sequelize db:seed:all ",
-    "prod": "NODE_ENV=production yarn sequelize db:migrate:undo:all && NODE_ENV=production yarn sequelize db:migrate && NODE_ENV=production yarn sequelize db:seed:all"
+    "test:db": "NODE_ENV=test yarn sequelize db:drop && NODE_ENV=test yarn sequelize db:create && NODE_ENV=test yarn sequelize db:migrate",
+    "dev:db": "NODE_ENV=development yarn sequelize db:drop && NODE_ENV=development yarn sequelize db:create && NODE_ENV=development yarn sequelize db:migrate && NODE_ENV=development yarn sequelize db:seed:all ",
+    "prod:db": "NODE_ENV=production yarn sequelize db:migrate:undo:all && NODE_ENV=production yarn sequelize db:migrate && NODE_ENV=production yarn sequelize db:seed:all"
   },
   "dependencies": {
     "@google/genai": "^2.27.0",
-    "bcryptjs": "^3.0.3",
+    "bcryptjs": "^3.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
@@ -23,7 +25,7 @@
     "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
     "multer": "^2.2.0",
-    "node-cron": "^4.6.5",
+    "node-cron": "^4.6.0",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "rss-parser": "^3.13.0",
@@ -33,7 +35,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^3.0.3",
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/dotenv": "^8.2.0",
     "@types/express": "^5.0.6",
