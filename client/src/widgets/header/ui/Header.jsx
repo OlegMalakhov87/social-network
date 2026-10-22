@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { logout, selectHasUser } from '../../../entities/auth';
+import { logoutSession, selectHasUser } from '../../../entities/auth';
 import {
   Button,
   EntityHeader,
@@ -18,6 +18,7 @@ import style from './Header.module.css';
  * @param {Function} props.onSearchChange - колбэк при изменении поискового запроса
  */
 export const Header = ({ onSearchChange }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -55,9 +56,19 @@ export const Header = ({ onSearchChange }) => {
   /**
    * Обработчик выхода из аккаунта.
    */
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      await dispatch(logoutSession()).unwrap();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Ошибка выхода из аккаунта:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -101,8 +112,13 @@ export const Header = ({ onSearchChange }) => {
         }
         rightSlot={
           isAuthenticated ? (
-            <Button variant="primary" size="md" onClick={handleLogout}>
-              Выйти
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? 'Выход...' : 'Выйти'}
             </Button>
           ) : (
             <NavLink

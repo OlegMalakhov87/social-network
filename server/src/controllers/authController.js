@@ -1,7 +1,5 @@
 const { authService } = require('../services/authService');
-
 const { REFRESH_COOKIE_NAME } = require('../../config/authConfig');
-
 const { setRefreshCookie, clearRefreshCookie } = require('../utils/authCookie');
 
 const authController = {
@@ -91,15 +89,38 @@ const authController = {
   /**
    * Завершение пользовательской сессии.
    */
+
   logout: async (req, res, next) => {
     try {
       const currentRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
 
-      await authService.logout(currentRefreshToken);
+      const { sessionId } = req.body ?? {};
+
+      const uuidPattern = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+
+      if (typeof sessionId !== 'string' || !uuidPattern.test(sessionId)) {
+        return res.status(400).json({
+          code: 'INVALID_SESSION_ID',
+          message: 'Некорректный идентификатор сессии',
+        });
+      }
+
+      const result = await authService.logout(currentRefreshToken, {
+        expectedSessionId: sessionId,
+      });
+
+      if (result.reason === 'SESSION_CHANGED') {
+        return res.status(409).json({
+          code: 'SESSION_CHANGED',
+          message: 'Текущая сессия изменилась',
+        });
+      }
 
       clearRefreshCookie(res);
 
-      res.json({ message: 'Выход выполнен успешно' });
+      return res.json({
+        message: 'Выход выполнен успешно',
+      });
     } catch (error) {
       next(error);
     }

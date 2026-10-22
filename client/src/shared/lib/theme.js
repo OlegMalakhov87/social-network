@@ -4,9 +4,21 @@ const DARK_THEME = 'dark';
 const LIGHT_THEME = 'light';
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
 
+/**
+ * Получает сохранённую тему из localStorage.
+ *
+ * @returns {string} - Сохранённая тема пользователя
+ */
 export const getStoredThemePreference = () =>
   localStorage.getItem(THEME_STORAGE_KEY) || SYSTEM_THEME;
 
+/**
+ * Определяет тему на основе предпочтения пользователя и состояния медиа-запроса.
+ *
+ * @param {string} themePreference - Предпочитаемая тема пользователя
+ * @param {MediaQueryList} mediaQueryList - Медиа-запрос для определения темы
+ * @returns {string}
+ */
 export const resolveTheme = (themePreference, mediaQueryList) => {
   if (themePreference === SYSTEM_THEME) {
     return mediaQueryList.matches ? DARK_THEME : LIGHT_THEME;
@@ -15,6 +27,13 @@ export const resolveTheme = (themePreference, mediaQueryList) => {
   return themePreference;
 };
 
+/**
+ * Применяет тему к DOM-элементам.
+ *
+ * @param {string} themePreference - Предпочитаемая тема пользователя
+ * @param {MediaQueryList} mediaQueryList - Медиа-запрос для определения темы
+ * @returns {void}
+ */
 export const applyThemePreference = (
   themePreference,
   mediaQueryList = window.matchMedia(DARK_MEDIA_QUERY)

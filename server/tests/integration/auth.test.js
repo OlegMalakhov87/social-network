@@ -14,6 +14,10 @@ const {
 const app = require('../../src/app');
 const { redis } = require('../../src/lib/redis');
 
+/**
+ * Проверяет, что тесты запускаются в правильном окружении.
+ * @returns {void}
+ */
 if (
   process.env.NODE_ENV !== 'test' ||
   sequelize.getDatabaseName() !== 'socialnet_test'
@@ -21,12 +25,19 @@ if (
   throw new Error('Интеграционные тесты разрешены только в socialnet_test');
 }
 
-let server;
-let baseUrl;
-
+/**
+ * Создает тестовый email.
+ * @returns {string}
+ */
 const createTestEmail = () =>
   `test-${randomUUID().replaceAll('-', '')}@example.com`;
 
+/**
+ * Проверяет refresh cookie.
+ * @param {Response} response
+ * @param {number} userId
+ * @returns {Promise<void>}
+ */
 const assertRefreshCookie = async (response, userId) => {
   const setCookie = response.headers.get('set-cookie');
 
@@ -61,6 +72,13 @@ const assertRefreshCookie = async (response, userId) => {
   return session;
 };
 
+let server;
+let baseUrl;
+
+/**
+ * Запускает сервер.
+ * @returns {Promise<void>}
+ */
 before(async () => {
   server = app.listen(0);
 
@@ -73,6 +91,10 @@ before(async () => {
   baseUrl = `http://127.0.0.1:${port}`;
 });
 
+/**
+ * Останавливает сервер.
+ * @returns {Promise<void>}
+ */
 after(async () => {
   try {
     if (server) {
@@ -142,7 +164,6 @@ test('GET /api/auth/me возвращает текущего пользоват�
     assert.equal(body.user.id, user.id);
     assert.equal(body.user.email, user.email);
 
-    // Конфиденциальные поля не должны попадать в ответ.
     assert.equal(Object.hasOwn(body.user, 'passwordHash'), false);
     assert.equal(Object.hasOwn(body.user, 'isSystem'), false);
   } finally {
@@ -198,45 +219,35 @@ test('POST /api/auth/register успешно регистрирует польз
     assert.equal(body.user.name, 'Test User');
     assert.equal(typeof body.token, 'string');
 
-    // Конфиденциальные поля отсутствуют в ответе.
     assert.equal(Object.hasOwn(body.user, 'passwordHash'), false);
     assert.equal(Object.hasOwn(body.user, 'isSystem'), false);
 
-    // Проверяем фактическое сохранение пользователя в БД.
     createdUser = await User.findOne({ where: { email } });
 
     assert.ok(createdUser);
     assert.equal(createdUser.id, body.user.id);
 
-    // Пароль не должен храниться в открытом виде.
     assert.notEqual(createdUser.passwordHash, password);
     assert.equal(
       await bcrypt.compare(password, createdUser.passwordHash),
       true
     );
 
-    // JWT должен содержать ID зарегистрированного пользователя.
     const decoded = jwt.verify(body.token, process.env.JWT_SECRET);
 
     assert.equal(decoded.id, createdUser.id);
 
-    // Refresh token и срок сессии не должны попадать в JSON.
     assert.equal(Object.hasOwn(body, 'refreshToken'), false);
     assert.equal(Object.hasOwn(body, 'expiresAt'), false);
 
-    // Проверяем реальную cookie и запись в PostgreSQL.
     await assertRefreshCookie(response, createdUser.id);
 
-    // Должна существовать ровно одна refresh-сессия
-    // для только что зарегистрированного пользователя.
     const sessionsCount = await RefreshSession.count({
       where: { userId: createdUser.id },
     });
 
     assert.equal(sessionsCount, 1);
   } finally {
-    // Ищем запись повторно, чтобы удалить её даже
-    // при ошибке проверки до присваивания createdUser.
     const user =
       createdUser ??
       (await User.findOne({
@@ -256,7 +267,6 @@ test('POST /api/auth/register отклоняет повторную регист
   let createdUser;
 
   try {
-    // Первая регистрация
     const firstResponse = await fetch(`${baseUrl}/api/auth/register`, {
       method: 'POST',
       headers: {
@@ -272,7 +282,6 @@ test('POST /api/auth/register отклоняет повторную регист
 
     assert.equal(firstResponse.status, 201);
 
-    // Повторная регистрация с тем же email
     const secondResponse = await fetch(`${baseUrl}/api/auth/register`, {
       method: 'POST',
       headers: {
@@ -292,7 +301,6 @@ test('POST /api/auth/register отклоняет повторную регист
     assert.equal(body.code, 'USER_EXISTS');
     assert.equal(body.error, 'Email уже используется');
 
-    // Проверяем, что в БД остался только один пользователь.
     const usersCount = await User.count({
       where: { email },
     });
@@ -412,7 +420,6 @@ test('POST /api/auth/register отклоняет некорректные дан
         `Ожидалась ошибка поля ${invalidCase.field}`
       );
 
-      // Некорректный запрос не должен создавать пользователя.
       const usersCount = await User.count({
         where: { email },
       });
@@ -583,7 +590,6 @@ test('login → refresh → logout → refresh: полный цикл сесси
 
   const origin = process.env.CLIENT_URL;
 
-  // Node.js fetch не сохраняет cookie автоматически.
   const getCookie = (response) => {
     const setCookie = response.headers.get('set-cookie');
 
@@ -593,7 +599,6 @@ test('login → refresh → logout → refresh: полный цикл сесси
   };
 
   try {
-    // 1. Авторизация
     const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -607,12 +612,17 @@ test('login → refresh → logout → refresh: полный цикл сесси
 
     const loginBody = await loginResponse.json();
 
+    const loginPayload = jwt.verify(loginBody.token, process.env.JWT_SECRET);
+
+    assert.equal(loginPayload.id, user.id);
+    assert.equal(typeof loginPayload.sid, 'string');
+    assert.ok(loginPayload.sid.length > 0);
+
     assert.equal(typeof loginBody.token, 'string');
     assert.equal(Object.hasOwn(loginBody, 'refreshToken'), false);
 
     const firstCookie = getCookie(loginResponse);
 
-    // 2. Обновление токенов
     const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -625,26 +635,29 @@ test('login → refresh → logout → refresh: полный цикл сесси
 
     const refreshBody = await refreshResponse.json();
 
+    const refreshPayload = jwt.verify(
+      refreshBody.token,
+      process.env.JWT_SECRET
+    );
+
+    assert.equal(refreshPayload.id, loginPayload.id);
+    assert.equal(refreshPayload.sid, loginPayload.sid);
+
     assert.equal(typeof refreshBody.token, 'string');
     assert.equal(Object.hasOwn(refreshBody, 'refreshToken'), false);
 
     const secondCookie = getCookie(refreshResponse);
 
-    // Refresh token изменился.
     assert.notEqual(secondCookie, firstCookie);
 
-    // Новый access token действителен.
-    const decoded = jwt.verify(refreshBody.token, process.env.JWT_SECRET);
-
-    assert.equal(decoded.id, user.id);
-
-    // 3. Выход из аккаунта
     const logoutResponse = await fetch(`${baseUrl}/api/auth/logout`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Origin: origin,
         Cookie: secondCookie,
       },
+      body: JSON.stringify({ sessionId: refreshPayload.sid }),
     });
 
     assert.equal(logoutResponse.status, 200);
@@ -655,13 +668,13 @@ test('login → refresh → logout → refresh: полный цикл сесси
     assert.match(clearedCookie, /refreshToken=/);
     assert.match(clearedCookie, /Path=\/api\/auth/i);
     assert.match(clearedCookie, /HttpOnly/i);
-    
+
     const expiresMatch = clearedCookie.match(/Expires=([^;]+)/i);
 
     assert.ok(expiresMatch, 'Ожидался атрибут Expires');
-    
+
     const expiresAt = new Date(expiresMatch[1]);
-    
+
     assert.ok(
       expiresAt.getTime() <= Date.now(),
       'Cookie должна иметь истёкший срок действия'
@@ -673,7 +686,6 @@ test('login → refresh → logout → refresh: полный цикл сесси
       0
     );
 
-    // 4. Попытка обновить завершённую сессию
     const rejectedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -716,7 +728,6 @@ test('повторное использование старой refresh cookie 
   const origin = process.env.CLIENT_URL;
 
   try {
-    // Авторизуемся.
     const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -728,9 +739,16 @@ test('повторное использование старой refresh cookie 
 
     assert.equal(loginResponse.status, 200);
 
+    const loginBody = await loginResponse.json();
+
     const oldCookie = loginResponse.headers.get('set-cookie').split(';')[0];
 
-    // Первая ротация проходит успешно.
+    const decoded = jwt.verify(loginBody.token, process.env.JWT_SECRET);
+
+    assert.equal(decoded.id, user.id);
+    assert.equal(typeof decoded.sid, 'string');
+    assert.ok(decoded.sid.length > 0);
+
     const firstRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -745,7 +763,6 @@ test('повторное использование старой refresh cookie 
 
     assert.notEqual(oldCookie, newCookie);
 
-    // Повторно предъявляем уже использованный токен.
     const reusedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -760,7 +777,6 @@ test('повторное использование старой refresh cookie 
 
     assert.equal(errorBody.code, 'REFRESH_TOKEN_REUSED');
 
-    // Согласно строгой политике сессия должна быть удалена.
     assert.equal(
       await RefreshSession.count({
         where: { userId: user.id },
@@ -768,7 +784,6 @@ test('повторное использование старой refresh cookie 
       0
     );
 
-    // Даже новая cookie больше не позволяет обновиться.
     const rejectedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -783,6 +798,65 @@ test('повторное использование старой refresh cookie 
   }
 });
 
+test('POST /api/auth/login создаёт отдельную сессию при каждом входе', async () => {
+  const email = createTestEmail();
+  const password = 'test-password-123';
+
+  const user = await User.create({
+    name: 'Login Test User',
+    email,
+    passwordHash: await bcrypt.hash(password, 4),
+    gender: 'male',
+  });
+
+  const origin = process.env.CLIENT_URL;
+
+  const UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  try {
+    const firstResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.equal(firstResponse.status, 200);
+
+    const firstBody = await firstResponse.json();
+
+    const firstPayload = jwt.verify(firstBody.token, process.env.JWT_SECRET);
+
+    const secondResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.equal(secondResponse.status, 200);
+
+    const secondBody = await secondResponse.json();
+
+    const secondPayload = jwt.verify(secondBody.token, process.env.JWT_SECRET);
+
+    assert.equal(firstPayload.id, user.id);
+    assert.equal(secondPayload.id, user.id);
+
+    assert.match(firstPayload.sid, UUID_REGEX);
+    assert.match(secondPayload.sid, UUID_REGEX);
+
+    assert.notEqual(firstPayload.sid, secondPayload.sid);
+  } finally {
+    await user.destroy();
+  }
+});
+
 test('POST /api/auth/refresh отклоняет запрос без Origin', async () => {
   const response = await fetch(`${baseUrl}/api/auth/refresh`, {
     method: 'POST',
@@ -792,4 +866,88 @@ test('POST /api/auth/refresh отклоняет запрос без Origin', asy
 
   assert.equal(response.status, 403);
   assert.equal(body.code, 'INVALID_ORIGIN');
+});
+
+test('POST /api/auth/logout отклоняет некорректный sessionId', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/logout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: process.env.CLIENT_URL,
+    },
+    body: JSON.stringify({ sessionId: 'invalid-session-id' }),
+  });
+
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.code, 'INVALID_SESSION_ID');
+  assert.equal(body.message, 'Некорректный идентификатор сессии');
+});
+
+test('POST /api/auth/logout возвращает 409 при несовпадении сессий', async () => {
+  const email = createTestEmail();
+  const password = 'test-password-123';
+
+  const user = await User.create({
+    name: 'Session Conflict User',
+    email,
+    passwordHash: await bcrypt.hash(password, 4),
+    gender: 'male',
+  });
+
+  try {
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: process.env.CLIENT_URL,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.equal(loginResponse.status, 200);
+
+    const loginBody = await loginResponse.json();
+
+    const payload = jwt.verify(loginBody.token, process.env.JWT_SECRET);
+
+    const setCookie = loginResponse.headers.get('set-cookie');
+
+    assert.ok(setCookie);
+
+    const refreshCookie = setCookie.split(';')[0];
+
+    const wrongSessionId = randomUUID();
+
+    assert.notEqual(wrongSessionId, payload.sid);
+
+    const response = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: process.env.CLIENT_URL,
+        Cookie: refreshCookie,
+      },
+      body: JSON.stringify({
+        sessionId: wrongSessionId,
+      }),
+    });
+
+    assert.equal(response.status, 409);
+
+    const body = await response.json();
+
+    assert.equal(body.code, 'SESSION_CHANGED');
+
+    const logoutSetCookie = response.headers.get('set-cookie');
+
+    assert.equal(logoutSetCookie, null);
+
+    const sessionInDb = await RefreshSession.findByPk(payload.sid);
+
+    assert.ok(sessionInDb, 'Исходная сессия не должна удаляться');
+  } finally {
+    await user.destroy();
+  }
 });

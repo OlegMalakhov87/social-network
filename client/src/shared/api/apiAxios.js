@@ -6,6 +6,7 @@ import { dispatchAuthLogout } from './authSession';
 export const apiAxios = axios.create({
   baseURL: API_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 

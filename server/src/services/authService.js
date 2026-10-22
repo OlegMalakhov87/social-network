@@ -10,10 +10,24 @@ const { createError } = require('../utils/createError');
  * @param {number} userId - ID пользователя
  * @returns {string} - JWT токен
  */
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+/**
+ * Генерация access JWT.
+ *
+ * @param {number} userId - ID пользователя.
+ * @param {string} sessionId - ID refresh-сессии.
+ * @returns {string} - JWT токен
+ */
+const generateToken = (userId, sessionId) => {
+  return jwt.sign(
+    {
+      id: userId,
+      sid: sessionId,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    }
+  );
 };
 
 /**
@@ -93,7 +107,7 @@ const authService = {
       throw error;
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, refreshSession.sessionId);
 
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
@@ -138,7 +152,7 @@ const authService = {
     }
 
     const refreshSession = await refreshSessionService.create(user.id);
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, refreshSession.sessionId);
 
     const userResponse = user.toJSON();
     delete userResponse.passwordHash;
@@ -179,7 +193,7 @@ const authService = {
       );
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, session.sessionId);
 
     return {
       token,
@@ -189,17 +203,18 @@ const authService = {
   },
 
   /**
-   * Завершение текущей пользовательской сессии.
+   * Завершение ожидаемой серверной сессии.
    *
    * @param {string} refreshToken
-   * @returns {Promise<{message: string}>}
+   * @param {Object} options
+   * @param {string} options.expectedSessionId - Ожидаемый sessionId.
+   * @returns {Promise<{
+   *   revoked: boolean,
+   *   reason: string
+   * }>}
    */
-  async logout(refreshToken) {
-    await refreshSessionService.revoke(refreshToken);
-
-    return {
-      message: 'Выход выполнен успешно',
-    };
+  async logout(refreshToken, { expectedSessionId }) {
+    return refreshSessionService.revoke(refreshToken, expectedSessionId);
   },
 };
 

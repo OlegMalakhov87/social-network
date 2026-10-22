@@ -1,31 +1,35 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { apiErrorMessageFromPayload } from '../../../shared/lib';
 import {
   changePassword,
   checkAuth,
   deleteUser,
-  getToken,
   login,
+  logoutSession,
   register,
-  removeToken,
-  saveToken,
   updateUser,
-} from '..';
-import { apiErrorMessageFromPayload } from '../../../shared/lib';
+} from './authThunks';
 
 /** Начальное состояние авторизации.*/
 const initialState = {
   user: null, // пользователь
-  token: getToken(), // токен авторизации
-  isCheckingAuth: true, // проверка авторизации при загрузке страницы (true/false)
-  isAuthenticated: false, // авторизован или нет (true/false)
-  status: 'idle', // idle - нет авторизации, loading - проверяем авторизацию, succeeded - авторизован, failed - ошибка авторизации
+  token: null, // токен авторизации
+  isCheckingAuth: true, // проверка авторизации при загрузке страницы
+  isAuthenticated: false, // авторизован или нет
+  status: 'idle', // состояние авторизации
   error: null, // ошибка авторизации
+  authCheckRequestId: null, // идентификатор запроса проверки авторизации
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    /** Обновление access token без изменения данных пользователя. */
+    setAccessToken(state, action) {
+      state.token = action.payload;
+    },
+
     /** Выход пользователя.*/
     logout(state) {
       state.user = null;
@@ -33,7 +37,8 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.status = 'idle';
       state.error = null;
-      removeToken();
+      state.authCheckRequestId = null;
+      state.isCheckingAuth = false;
     },
 
     /**Очистить ошибку.*/
@@ -48,6 +53,7 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.status = 'loading';
         state.error = null;
+        state.authCheckRequestId = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -55,7 +61,6 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isCheckingAuth = false;
-        saveToken(action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
@@ -69,6 +74,7 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.status = 'loading';
         state.error = null;
+        state.authCheckRequestId = null;
       })
       .addCase(register.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -76,7 +82,6 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isCheckingAuth = false;
-        saveToken(action.payload.token);
       })
       .addCase(register.rejected, (state, action) => {
         state.status = 'failed';
@@ -87,37 +92,39 @@ const authSlice = createSlice({
       })
 
       /** Проверка авторизации пользователя.*/
-      .addCase(checkAuth.pending, (state) => {
+      .addCase(checkAuth.pending, (state, action) => {
         state.status = 'loading';
         state.isCheckingAuth = true;
+        state.authCheckRequestId = action.meta.requestId;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        state.isCheckingAuth = false;
-        if (action.payload.skipped) {
-          state.status = 'idle';
-          state.user = null;
-          state.token = null;
-          state.isAuthenticated = false;
-          state.error = null;
+        if (state.authCheckRequestId !== action.meta.requestId) {
           return;
         }
-        state.status = 'succeeded';
+
+        state.authCheckRequestId = null;
+        state.isCheckingAuth = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.status = 'succeeded';
         state.error = null;
       })
       .addCase(checkAuth.rejected, (state, action) => {
-        state.status = 'failed';
+        if (state.authCheckRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.authCheckRequestId = null;
+        state.isCheckingAuth = false;
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
-        state.isCheckingAuth = false;
+        state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
           'Сессия истекла'
         );
-        removeToken();
       })
 
       /** Обновление профиля пользователя.*/
@@ -146,6 +153,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.status = 'idle';
         state.error = null;
+        state.authCheckRequestId = null;
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.status = 'failed';
@@ -169,10 +177,34 @@ const authSlice = createSlice({
           action.payload,
           'Ошибка обновления пароля'
         );
+      })
+
+      /** Завершение текущей серверной сессии.*/
+      .addCase(logoutSession.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.authCheckRequestId = null;
+        state.isCheckingAuth = false;
+      })
+      .addCase(logoutSession.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.isCheckingAuth = false;
+        state.status = 'idle';
+        state.error = null;
+        state.authCheckRequestId = null;
+      })
+      .addCase(logoutSession.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = apiErrorMessageFromPayload(
+          action.payload,
+          'Не удалось завершить сессию'
+        );
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { clearError, logout, setAccessToken } = authSlice.actions;
 
 export default authSlice.reducer;

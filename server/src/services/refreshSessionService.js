@@ -31,13 +31,17 @@ const refreshSessionService = {
    * @param {number} userId
    * @param {Object} [options]
    * @param {import('sequelize').Transaction} [options.transaction]
-   * @returns {Promise<{refreshToken: string, expiresAt: Date}>}
+   * @returns {Promise<{
+   *   sessionId: string,
+   *   refreshToken: string,
+   *   expiresAt: Date
+   * }>}
    */
   async create(userId, { transaction } = {}) {
     const refreshToken = generateRefreshToken();
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
-    await RefreshSession.create(
+    const session = await RefreshSession.create(
       {
         userId,
         tokenHash: hashRefreshToken(refreshToken),
@@ -46,13 +50,19 @@ const refreshSessionService = {
       { transaction }
     );
 
-    return { refreshToken, expiresAt };
+    return { sessionId: session.id, refreshToken, expiresAt };
   },
 
   /**
    * Ротация refresh token с обнаружением повторного использования.
+   *
    * @param {string} refreshToken
-   * @returns {Promise<{userId: number, refreshToken: string, expiresAt: Date}>}
+   * @returns {Promise<{
+   *   sessionId: string,
+   *   userId: number,
+   *   refreshToken: string,
+   *   expiresAt: Date
+   * }>}
    */
   async rotate(refreshToken) {
     if (
@@ -103,6 +113,7 @@ const refreshSessionService = {
 
         return {
           status: 'rotated',
+          sessionId: session.id,
           userId: session.userId,
           refreshToken: newRefreshToken,
           expiresAt: session.expiresAt,
@@ -137,6 +148,7 @@ const refreshSessionService = {
 
     if (result.status === 'rotated') {
       return {
+        sessionId: result.sessionId,
         userId: result.userId,
         refreshToken: result.refreshToken,
         expiresAt: result.expiresAt,
@@ -159,26 +171,58 @@ const refreshSessionService = {
   },
 
   /**
-   * Отзыв refresh-сессии по текущему refresh token.
+   * Отзывает только ожидаемую refresh-сессию.
    *
    * @param {string} refreshToken
-   * @returns {Promise<boolean>}
+   * @param {string} expectedSessionId
+   * @returns {Promise<{
+   *   revoked: boolean,
+   *   reason?: 'SESSION_CHANGED' | 'NOT_FOUND'
+   * }>}
    */
-  async revoke(refreshToken) {
+  async revoke(refreshToken, expectedSessionId) {
     if (
       typeof refreshToken !== 'string' ||
       !/^[a-f0-9]{64}$/.test(refreshToken)
     ) {
-      return false;
+      return {
+        revoked: false,
+        reason: 'NOT_FOUND',
+      };
     }
 
     const tokenHash = hashRefreshToken(refreshToken);
 
+    // Удаляем запись только при совпадении
+    // refresh token и ожидаемого sessionId.
     const deletedCount = await RefreshSession.destroy({
-      where: { tokenHash },
+      where: {
+        tokenHash,
+        id: expectedSessionId,
+      },
     });
 
-    return deletedCount > 0;
+    if (deletedCount > 0) {
+      return { revoked: true };
+    }
+
+    // Если удалить не удалось, выясняем причину.
+    const currentSession = await RefreshSession.findOne({
+      where: { tokenHash },
+      attributes: ['id'],
+    });
+
+    if (currentSession) {
+      return {
+        revoked: false,
+        reason: 'SESSION_CHANGED',
+      };
+    }
+
+    return {
+      revoked: false,
+      reason: 'NOT_FOUND',
+    };
   },
 };
 

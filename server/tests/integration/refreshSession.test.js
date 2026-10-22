@@ -9,6 +9,10 @@ const {
 } = require('../../db/models');
 const refreshSessionService = require('../../src/services/refreshSessionService');
 
+/**
+ * Проверяет, что тесты запускаются в правильном окружении.
+ * @returns {void}
+ */
 if (
   process.env.NODE_ENV !== 'test' ||
   sequelize.getDatabaseName() !== 'socialnet_test'
@@ -16,10 +20,18 @@ if (
   throw new Error('Интеграционные тесты разрешены только в socialnet_test');
 }
 
+/**
+ * Останавливает сервер.
+ * @returns {Promise<void>}
+ */
 after(async () => {
   await sequelize.close();
 });
 
+/**
+ * Создает тестового пользователя.
+ * @returns {Promise<User>}
+ */
 const createTestUser = async () => {
   return User.create({
     name: 'Refresh Test User',
@@ -29,6 +41,11 @@ const createTestUser = async () => {
   });
 };
 
+/**
+ * Хеширует refresh token.
+ * @param {string} token
+ * @returns {string}
+ */
 const hashToken = (token) => createHash('sha256').update(token).digest('hex');
 
 test('Удаление пользователя каскадно удаляет его refresh-сессии', async () => {
@@ -69,26 +86,21 @@ test('create создаёт refresh-сессию и сохраняет толь�
 
     const afterCreation = Date.now();
 
-    // Проверяем формат выданного токена.
     assert.match(refreshToken, /^[a-f0-9]{64}$/);
 
     const tokenHash = hashToken(refreshToken);
 
-    // Находим сессию по хешу выданного токена.
     const session = await RefreshSession.findOne({
       where: { tokenHash },
     });
 
     assert.ok(session);
 
-    // Сессия принадлежит нужному пользователю.
     assert.equal(session.userId, user.id);
 
-    // В БД хранится хеш, а не исходный refresh token.
     assert.equal(session.tokenHash, tokenHash);
     assert.notEqual(session.tokenHash, refreshToken);
 
-    // Срок действия — 7 дней с момента создания.
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const expiresAt = new Date(session.expiresAt).getTime();
 
@@ -128,7 +140,6 @@ test('rotate заменяет refresh token, сохраняя срок сесс�
     assert.equal(sessionAfter.tokenHash, hashToken(newToken));
     assert.notEqual(sessionAfter.tokenHash, oldHash);
 
-    // ID сессии и абсолютный срок действия не изменились.
     assert.equal(sessionAfter.id, sessionBefore.id);
     assert.equal(
       sessionAfter.expiresAt.getTime(),
@@ -174,7 +185,6 @@ test('rotate запрещает обновление просроченной с
 
     const tokenHash = hashToken(refreshToken);
 
-    // Искусственно делаем сессию просроченной.
     await RefreshSession.update(
       { expiresAt: new Date(Date.now() - 60_000) },
       { where: { tokenHash } }
@@ -189,7 +199,6 @@ test('rotate запрещает обновление просроченной с
       }
     );
 
-    // Проверяем, что хеш не был заменён.
     const session = await RefreshSession.findOne({
       where: { tokenHash },
     });
@@ -217,16 +226,12 @@ test('rotate отзывает сессию при конкурентном по�
 
     const rejected = results.filter((result) => result.status === 'rejected');
 
-    // Только одна ротация может завершиться успешно.
     assert.equal(successful.length, 1);
     assert.equal(rejected.length, 1);
 
-    // Второй запрос обнаруживает повторное использование.
     assert.equal(rejected[0].reason.statusCode, 401);
     assert.equal(rejected[0].reason.code, 'REFRESH_TOKEN_REUSED');
 
-    // Полученный первым запросом токен больше нельзя использовать,
-    // поскольку вся refresh-сессия была отозвана.
     const newToken = successful[0].value.refreshToken;
 
     const session = await RefreshSession.findOne({
@@ -235,7 +240,6 @@ test('rotate отзывает сессию при конкурентном по�
 
     assert.equal(session, null);
 
-    // У пользователя не осталось refresh-сессии этого теста.
     const sessionCount = await RefreshSession.count({
       where: { userId: user.id },
     });
@@ -254,7 +258,6 @@ test('revoke удаляет refresh-сессию и историю исполь�
       user.id
     );
 
-    // Выполняем ротацию, чтобы появилась запись в истории.
     const { refreshToken: currentToken } =
       await refreshSessionService.rotate(oldToken);
 
@@ -264,24 +267,23 @@ test('revoke удаляет refresh-сессию и историю исполь�
 
     assert.ok(session);
 
-    // Проверяем, что история старого токена существует.
     const usedTokenBefore = await UsedRefreshToken.findOne({
       where: { tokenHash: hashToken(oldToken) },
     });
 
     assert.ok(usedTokenBefore);
 
-    // Завершаем сессию.
-    const revoked = await refreshSessionService.revoke(currentToken);
+    const { revoked } = await refreshSessionService.revoke(
+      currentToken,
+      session.id
+    );
 
     assert.equal(revoked, true);
 
-    // Refresh-сессия удалена.
     const sessionAfter = await RefreshSession.findByPk(session.id);
 
     assert.equal(sessionAfter, null);
 
-    // История удалена автоматически через ON DELETE CASCADE.
     const usedTokenAfter = await UsedRefreshToken.findByPk(usedTokenBefore.id);
 
     assert.equal(usedTokenAfter, null);
@@ -290,17 +292,26 @@ test('revoke удаляет refresh-сессию и историю исполь�
   }
 });
 
-test('revoke безопасно обрабатывает повторный отзыв сессии', async () => {
+test('revoke безопасно обрабатывает повторный отзыв сессии и некорректный токен', async () => {
   const user = await createTestUser();
 
   try {
-    const { refreshToken } = await refreshSessionService.create(user.id);
+    const { refreshToken, sessionId } = await refreshSessionService.create(
+      user.id
+    );
 
-    const firstResult = await refreshSessionService.revoke(refreshToken);
-    const secondResult = await refreshSessionService.revoke(refreshToken);
+    const firstResult = await refreshSessionService.revoke(
+      refreshToken,
+      sessionId
+    );
+    const secondResult = await refreshSessionService.revoke(
+      refreshToken,
+      sessionId
+    );
 
-    assert.equal(firstResult, true);
-    assert.equal(secondResult, false);
+    assert.equal(firstResult.revoked, true);
+    assert.equal(secondResult.revoked, false);
+    assert.equal(secondResult.reason, 'NOT_FOUND');
 
     assert.equal(
       await RefreshSession.count({
@@ -309,8 +320,97 @@ test('revoke безопасно обрабатывает повторный от
       0
     );
 
-    // Некорректный токен не вызывает ошибку.
-    assert.equal(await refreshSessionService.revoke('invalid-token'), false);
+    assert.equal(
+      (
+        await refreshSessionService.revoke(
+          'invalid-token',
+          'invalid-session-id'
+        )
+      ).revoked,
+      false
+    );
+
+    assert.equal(
+      (
+        await refreshSessionService.revoke(
+          'invalid-token',
+          'invalid-session-id'
+        )
+      ).reason,
+      'NOT_FOUND'
+    );
+  } finally {
+    await user.destroy();
+  }
+});
+
+test('revoke безопасно обрабатывает чужой sessionId, запись в БД не удаляется', async () => {
+  const user = await createTestUser();
+  const otherUser = await createTestUser();
+
+  try {
+    const { refreshToken, sessionId } = await refreshSessionService.create(
+      user.id
+    );
+
+    const {
+      refreshToken: otherUserRefreshToken,
+      sessionId: otherUserSessionId,
+    } = await refreshSessionService.create(otherUser.id);
+
+    const { revoked, reason } = await refreshSessionService.revoke(
+      refreshToken,
+      otherUserSessionId
+    );
+
+    assert.equal(revoked, false);
+    assert.equal(reason, 'SESSION_CHANGED');
+
+    const originalUserSession = await RefreshSession.findOne({
+      where: { userId: user.id },
+    });
+    assert.ok(
+      originalUserSession,
+      'Сессия пользователя не должна быть удалена при несовпадении ID сессий'
+    );
+    assert.equal(originalUserSession.tokenHash, hashToken(refreshToken));
+    assert.equal(originalUserSession.id, sessionId);
+
+    const otherUserSession = await RefreshSession.findOne({
+      where: { userId: otherUser.id },
+    });
+    assert.ok(
+      otherUserSession,
+      'Сессия другого пользователя не должна быть удалена при несовпадении ID сессий'
+    );
+    assert.equal(otherUserSession.tokenHash, hashToken(otherUserRefreshToken));
+    assert.equal(otherUserSession.id, otherUserSessionId);
+  } finally {
+    await user.destroy();
+    await otherUser.destroy();
+  }
+});
+
+test('устаревший refresh token: возвращается NOT_FOUND, новая сессия не удаляется', async () => {
+  const user = await createTestUser();
+
+  try {
+    const { refreshToken, sessionId } = await refreshSessionService.create(
+      user.id
+    );
+
+    const rotated = await refreshSessionService.rotate(refreshToken);
+
+    const result = await refreshSessionService.revoke(refreshToken, sessionId);
+
+    assert.equal(result.revoked, false);
+    assert.equal(result.reason, 'NOT_FOUND');
+
+    const sessionInDb = await RefreshSession.findByPk(sessionId);
+
+    assert.ok(sessionInDb, 'Запись в БД должна существовать');
+    assert.equal(sessionInDb.tokenHash, hashToken(rotated.refreshToken));
+    assert.notEqual(sessionInDb.tokenHash, hashToken(refreshToken));
   } finally {
     await user.destroy();
   }

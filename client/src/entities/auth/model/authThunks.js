@@ -1,20 +1,20 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { getCurrentUser, loginUser, registerUser } from '..';
 import { parseApiError } from '../../../shared/lib';
 import {
   changePasswordApi,
   deleteCurrentUser,
   updateCurrentUser,
 } from '../../user';
-import { getToken } from '../lib/authStorage';
+import { getCurrentUser } from '../api/authApi';
 
 /** Авторизация пользователя. */
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, thunkAPI) => {
     try {
-      const data = await loginUser(credentials);
-      return data;
+      const { coordinator } = thunkAPI.extra;
+
+      return await coordinator.loginSession(credentials);
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));
     }
@@ -24,27 +24,35 @@ export const login = createAsyncThunk(
 /** Регистрация пользователя. */
 export const register = createAsyncThunk(
   'auth/register',
-  async (userData, thunkAPI) => {
+  async (formData, thunkAPI) => {
     try {
-      const data = await registerUser(userData);
-      return data;
+      const { coordinator } = thunkAPI.extra;
+
+      return await coordinator.registerSession(formData);
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }
 );
 
-/** Проверка авторизации при запуске приложения. */
+/** Восстановление авторизации при запуске приложения. */
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, thunkAPI) => {
-    const token = getToken();
-    if (!token) {
-      return { skipped: true };
-    }
     try {
-      const data = await getCurrentUser();
-      return { user: data?.user, token };
+      // Получаем новый access token через HttpOnly cookie.
+      const { coordinator } = thunkAPI.extra;
+
+      const { token } = await coordinator.refreshSession();
+
+      if (typeof token !== 'string' || !token) {
+        throw new Error('Сервер не вернул access token');
+      }
+
+      // Получаем пользователя с новым access token.
+      const { user } = await getCurrentUser(token);
+
+      return { user, token };
     } catch (error) {
       return thunkAPI.rejectWithValue(parseApiError(error));
     }
@@ -85,6 +93,30 @@ export const changePassword = createAsyncThunk(
       const data = await changePasswordApi(credentials);
       return data;
     } catch (error) {
+      return thunkAPI.rejectWithValue(parseApiError(error));
+    }
+  }
+);
+
+/**
+ * Завершение текущей серверной сессии.
+ */
+export const logoutSession = createAsyncThunk(
+  'auth/logoutSession',
+  async (_, thunkAPI) => {
+    try {
+      const { coordinator } = thunkAPI.extra;
+
+      await coordinator.endSession();
+
+      return { sessionChanged: false };
+    } catch (error) {
+      if (
+        error.response?.status === 409 &&
+        error.response?.data?.code === 'SESSION_CHANGED'
+      ) {
+        return { sessionChanged: true };
+      }
       return thunkAPI.rejectWithValue(parseApiError(error));
     }
   }

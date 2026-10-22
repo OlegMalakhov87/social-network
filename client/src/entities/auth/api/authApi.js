@@ -1,12 +1,20 @@
-import { api } from '../../../shared/api';
+import { api, authAxios } from '../../../shared/api';
 import { UserSchema } from '../../user';
+
+// Promise для кеширования refresh запроса
+let refreshPromise = null;
 
 /**
  * Получить данные текущего пользователя.
+ * @param {string} accessToken - access token пользователя
  * @returns {Promise<{user: UserSchema}} {user}
  */
-export const getCurrentUser = async () => {
-  const response = await api.get('/auth/me');
+export const getCurrentUser = async (accessToken) => {
+  const response = await api.get('/auth/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   return { user: UserSchema.parse(response.data?.user) };
 };
 
@@ -34,4 +42,36 @@ export const loginUser = async (credentials) => {
     user: UserSchema.parse(response.data?.user),
     token: response.data?.token,
   };
+};
+
+/**
+ * Получить новый access token через refresh cookie.
+ *
+ * @returns {Promise<{token: string}} {token}
+ */
+export const refreshAuth = () => {
+  if (!refreshPromise) {
+    refreshPromise = authAxios
+      .post('/auth/refresh')
+      .then(({ data }) => ({
+        token: data?.token,
+      }))
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+};
+
+/**
+ * Завершить refresh-сессию на сервере.
+ *
+ * @param {string} sessionId - идентификатор сессии
+ * @returns {Promise<void>}
+ */
+export const logoutUser = async (sessionId) => {
+  await authAxios.post('/auth/logout', {
+    sessionId,
+  });
 };
