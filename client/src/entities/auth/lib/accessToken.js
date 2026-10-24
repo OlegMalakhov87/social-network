@@ -44,22 +44,3 @@ export const getAccessTokenClaims = (token) => {
     return null;
   }
 };
-
-/**
- * Проверяет, не истекает ли access token слишком скоро.
- *
- * @param {string} token
- * @param {number} [minValiditySeconds=30]
- * @returns {boolean}
- */
-export const isAccessTokenUsable = (token, minValiditySeconds = 30) => {
-  const claims = getAccessTokenClaims(token);
-
-  if (!claims) {
-    return false;
-  }
-
-  const nowSeconds = Date.now() / 1000;
-
-  return claims.exp > nowSeconds + minValiditySeconds;
-};

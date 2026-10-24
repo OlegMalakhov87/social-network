@@ -2,7 +2,7 @@ import {
   createAuthRefreshChannel,
   withAuthRefreshLock,
 } from '../../../shared/lib';
-import { getAccessTokenClaims, isAccessTokenUsable } from './accessToken';
+import { getAccessTokenClaims } from './accessToken';
 import { AUTH_MESSAGE_TYPES } from './authRefreshMessages';
 
 /**
@@ -10,10 +10,10 @@ import { AUTH_MESSAGE_TYPES } from './authRefreshMessages';
  *
  * @param {Object} options
  * @param {() => string | null} options.getToken - функция для получения токена
- * @param {() => Promise<void>} options.refreshAuth - функция для обновления токена
- * @param {() => Promise<void>} options.logoutUser - функция для завершения сессии
- * @param {() => Promise<void>} options.loginUser - функция для авторизации пользователя
- * @param {() => Promise<void>} options.registerUser - функция для регистрации пользователя
+ * @param {() => Promise<{ token: string }>} options.refreshAuth - функция для обновления токена
+ * @param {(credentials: Object) => Promise<Object>} options.loginUser - функция для авторизации пользователя
+ * @param {(formData: Object) => Promise<Object>} options.registerUser - функция для регистрации пользователя
+ * @param {(sessionId: string) => Promise<void>} options.logoutUser - функция для завершения сессии
  * @param {() => Promise<void>} options.onSessionLogout - функция для выполнения после завершения сессии
  * @param {() => Promise<void>} options.onSessionChanged - функция для выполнения после изменения сессии
  * @returns {Object}
@@ -45,6 +45,23 @@ export const createAuthRefreshCoordinator = ({
       return;
     }
 
+    if (message.type === AUTH_MESSAGE_TYPES.SESSION_CHANGED) {
+      const { userId, sessionId } = message;
+
+      if (
+        !Number.isSafeInteger(userId) ||
+        userId <= 0 ||
+        typeof sessionId !== 'string' ||
+        !sessionId
+      ) {
+        return;
+      }
+
+      onSessionChanged?.({ userId, sessionId });
+
+      return;
+    }
+
     if (message.type === AUTH_MESSAGE_TYPES.SESSION_LOGOUT) {
       const { userId, sessionId } = message;
 
@@ -60,57 +77,6 @@ export const createAuthRefreshCoordinator = ({
       onSessionLogout?.({ userId, sessionId });
 
       return;
-    }
-
-    if (message.type === AUTH_MESSAGE_TYPES.TOKEN_REQUEST) {
-      const { requestId, userId, sessionId } = message;
-
-      if (
-        typeof requestId !== 'string' ||
-        !requestId ||
-        !Number.isSafeInteger(userId) ||
-        userId <= 0 ||
-        typeof sessionId !== 'string' ||
-        !sessionId
-      ) {
-        return;
-      }
-
-      if (message.type === AUTH_MESSAGE_TYPES.SESSION_CHANGED) {
-        const { userId, sessionId } = message;
-
-        if (
-          !Number.isSafeInteger(userId) ||
-          userId <= 0 ||
-          typeof sessionId !== 'string' ||
-          !sessionId
-        ) {
-          return;
-        }
-
-        onSessionChanged?.({ userId, sessionId });
-
-        return;
-      }
-
-      const token = getToken();
-
-      if (!isAccessTokenUsable(token)) {
-        return;
-      }
-
-      const claims = getAccessTokenClaims(token);
-
-      if (claims.id !== userId || claims.sid !== sessionId) {
-        return;
-      }
-
-      channel.publish({
-        type: AUTH_MESSAGE_TYPES.TOKEN_RESPONSE,
-        senderId: tabId,
-        requestId,
-        token,
-      });
     }
   };
 
@@ -157,15 +123,21 @@ export const createAuthRefreshCoordinator = ({
     const claims = getAccessTokenClaims(result?.token);
 
     if (!claims || claims.id !== result?.user?.id) {
-      throw new Error('Не удалось определить новую серверную сессию');
+      console.warn('Не удалось определить новую серверную сессию');
+
+      return result;
     }
 
-    channel.publish({
-      type: AUTH_MESSAGE_TYPES.SESSION_CHANGED,
-      senderId: tabId,
-      userId: claims.id,
-      sessionId: claims.sid,
-    });
+    try {
+      channel.publish({
+        type: AUTH_MESSAGE_TYPES.SESSION_CHANGED,
+        senderId: tabId,
+        userId: claims.id,
+        sessionId: claims.sid,
+      });
+    } catch (error) {
+      console.warn('Не удалось уведомить другие вкладки о смене сессии', error);
+    }
 
     return result;
   };
@@ -213,11 +185,44 @@ export const createAuthRefreshCoordinator = ({
       return publishSessionChanged(result);
     });
 
+  /**
+   * Уведомляет другие вкладки об отзыве текущей сессии.
+   *
+   * Серверный logout не выполняется: сессия уже
+   * признана недействительной.
+   *
+   * @param {string} token
+   * @returns {void}
+   */
+  const notifySessionRevoked = (token) => {
+    if (disposed || !token || getToken() !== token) {
+      return;
+    }
+
+    const claims = getAccessTokenClaims(token);
+
+    if (!claims) {
+      return;
+    }
+
+    try {
+      channel.publish({
+        type: AUTH_MESSAGE_TYPES.SESSION_LOGOUT,
+        senderId: tabId,
+        userId: claims.id,
+        sessionId: claims.sid,
+      });
+    } catch (error) {
+      console.warn('Не удалось уведомить вкладки об отзыве сессии', error);
+    }
+  };
+
   return {
     dispose,
     refreshSession,
     endSession,
     loginSession,
     registerSession,
+    notifySessionRevoked,
   };
 };

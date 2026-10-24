@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { randomUUID, createHash } = require('node:crypto');
-
+const refreshSessionService = require('../../src/services/refreshSessionService');
 const { sequelize, User, RefreshSession } = require('../../db/models');
 
 const {
@@ -147,10 +147,17 @@ test('GET /api/auth/me возвращает текущего пользоват�
     passwordHash: await bcrypt.hash('test-password', 4),
   });
 
+  const { sessionId } = await refreshSessionService.create(user.id);
+
   try {
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '5m',
-    });
+    const token = jwt.sign(
+      {
+        id: user.id,
+        sid: sessionId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
 
     const response = await fetch(`${baseUrl}/api/auth/me`, {
       headers: {
@@ -174,9 +181,14 @@ test('GET /api/auth/me возвращает текущего пользоват�
 test('GET /api/auth/me возвращает 404, если пользователь не существует', async () => {
   const userId = -1;
 
-  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: '5m',
-  });
+  const token = jwt.sign(
+    {
+      id: 999999999,
+      sid: randomUUID(),
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
 
   const response = await fetch(`${baseUrl}/api/auth/me`, {
     headers: {
@@ -186,9 +198,9 @@ test('GET /api/auth/me возвращает 404, если пользовател
 
   const body = await response.json();
 
-  assert.equal(response.status, 404);
-  assert.equal(body.code, 'USER_NOT_FOUND');
-  assert.equal(body.error, 'Пользователь не найден');
+  assert.equal(response.status, 401);
+  assert.equal(body.code, 'SESSION_REVOKED');
+  assert.equal(body.error, 'Сессия завершена или истекла');
 });
 
 test('POST /api/auth/register успешно регистрирует пользователя', async () => {
@@ -577,7 +589,7 @@ test('POST /api/auth/login запрещает вход системному по
   }
 });
 
-test('login → refresh → logout → refresh: полный цикл сессии', async () => {
+test('login → refresh → logout → me → refresh: полный цикл сессии', async () => {
   const email = createTestEmail();
   const password = 'test-password-123';
 
@@ -640,6 +652,11 @@ test('login → refresh → logout → refresh: полный цикл сесси
       process.env.JWT_SECRET
     );
 
+    assert.ok(
+      refreshPayload.exp > Math.floor(Date.now() / 1000),
+      'Access JWT должен быть действителен'
+    );
+
     assert.equal(refreshPayload.id, loginPayload.id);
     assert.equal(refreshPayload.sid, loginPayload.sid);
 
@@ -649,6 +666,15 @@ test('login → refresh → logout → refresh: полный цикл сесси
     const secondCookie = getCookie(refreshResponse);
 
     assert.notEqual(secondCookie, firstCookie);
+
+    // Access JWT действителен до завершения сессии.
+    const meBeforeLogout = await fetch(`${baseUrl}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${refreshBody.token}`,
+      },
+    });
+
+    assert.equal(meBeforeLogout.status, 200);
 
     const logoutResponse = await fetch(`${baseUrl}/api/auth/logout`, {
       method: 'POST',
@@ -685,6 +711,22 @@ test('login → refresh → logout → refresh: полный цикл сесси
       }),
       0
     );
+
+    assert.ok(
+      refreshPayload.exp > Math.floor(Date.now() / 1000),
+      'Access JWT не должен истечь до проверки отзыва'
+    );
+
+    const meResponse = await fetch(`${baseUrl}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${refreshBody.token}`,
+      },
+    });
+
+    const meBody = await meResponse.json();
+
+    assert.equal(meResponse.status, 401);
+    assert.equal(meBody.code, 'SESSION_REVOKED');
 
     const rejectedRefresh = await fetch(`${baseUrl}/api/auth/refresh`, {
       method: 'POST',

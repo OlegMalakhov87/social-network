@@ -42,7 +42,6 @@ const createDeferred = () => {
  */
 describe('authRefreshCoordinator', () => {
   let channel;
-  let messageHandler;
 
   beforeEach(() => {
     Object.defineProperty(window, 'crypto', {
@@ -52,12 +51,9 @@ describe('authRefreshCoordinator', () => {
       },
     });
 
-    messageHandler = null;
-
     channel = {
       publish: jest.fn(),
       subscribe: jest.fn((callback) => {
-        messageHandler = callback;
         return jest.fn();
       }),
       close: jest.fn(),
@@ -104,124 +100,6 @@ describe('authRefreshCoordinator', () => {
 
     return `${header}.${payload}.test-signature`;
   };
-
-  test('отвечает на запрос токена той же сессии', () => {
-    const token = createTestToken();
-
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () => token,
-    });
-
-    messageHandler({
-      type: AUTH_MESSAGE_TYPES.TOKEN_REQUEST,
-      senderId: 'another-tab',
-      requestId: 'request-123',
-      userId: 15,
-      sessionId: 'session-123',
-    });
-
-    expect(channel.publish).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: AUTH_MESSAGE_TYPES.TOKEN_RESPONSE,
-        requestId: 'request-123',
-        token,
-      })
-    );
-
-    coordinator.dispose();
-  });
-
-  test('не отправляет ответ при отсутствии токена', () => {
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () => null,
-    });
-
-    messageHandler({
-      type: AUTH_MESSAGE_TYPES.TOKEN_REQUEST,
-      senderId: 'another-tab',
-      requestId: 'request-123',
-      userId: 15,
-      sessionId: 'session-123',
-    });
-
-    expect(channel.publish).not.toHaveBeenCalled();
-
-    coordinator.dispose();
-  });
-
-  test('не отвечает на сообщение без requestId', () => {
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () => createTestToken(),
-    });
-
-    messageHandler({
-      type: AUTH_MESSAGE_TYPES.TOKEN_REQUEST,
-      senderId: 'another-tab',
-      userId: 15,
-      sessionId: 'session-123',
-    });
-
-    expect(channel.publish).not.toHaveBeenCalled();
-
-    coordinator.dispose();
-  });
-
-  test('после dispose освобождает ресурсы', () => {
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () => createTestToken(),
-    });
-
-    const unsubscribe = channel.subscribe.mock.results[0].value;
-
-    coordinator.dispose();
-    coordinator.dispose();
-
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
-    expect(channel.close).toHaveBeenCalledTimes(1);
-  });
-
-  test('не передаёт токен другой сессии', () => {
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () =>
-        createTestToken({
-          id: 15,
-          sid: 'session-A',
-        }),
-    });
-
-    messageHandler({
-      type: AUTH_MESSAGE_TYPES.TOKEN_REQUEST,
-      senderId: 'another-tab',
-      requestId: 'request-123',
-      userId: 15,
-      sessionId: 'session-B',
-    });
-
-    expect(channel.publish).not.toHaveBeenCalled();
-
-    coordinator.dispose();
-  });
-
-  test('не передаёт истёкший access token', () => {
-    const coordinator = createAuthRefreshCoordinator({
-      getToken: () =>
-        createTestToken({
-          exp: Math.floor(Date.now() / 1000) - 60,
-        }),
-    });
-
-    messageHandler({
-      type: AUTH_MESSAGE_TYPES.TOKEN_REQUEST,
-      senderId: 'another-tab',
-      requestId: 'request-123',
-      userId: 15,
-      sessionId: 'session-123',
-    });
-
-    expect(channel.publish).not.toHaveBeenCalled();
-
-    coordinator.dispose();
-  });
 
   test('refreshSession выполняет refresh через Web Lock', async () => {
     const refreshAuth = jest.fn().mockResolvedValue({
@@ -549,6 +427,205 @@ describe('authRefreshCoordinator', () => {
     expect(onSessionLogout).toHaveBeenCalledTimes(1);
 
     expect(onSessionLogout).toHaveBeenCalledWith({
+      userId: 15,
+      sessionId: 'session-123',
+    });
+
+    coordinator.dispose();
+  });
+
+  test('loginSession публикует SESSION_CHANGED', async () => {
+    const user = { id: 15, name: 'Test User' };
+
+    const result = {
+      user,
+      token: createTestToken({ id: 15, sid: 'session-123' }),
+    };
+
+    const loginUser = jest.fn().mockResolvedValue(result);
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => null,
+      refreshAuth: jest.fn(),
+      logoutUser: jest.fn(),
+      loginUser,
+    });
+
+    const credentials = {
+      email: 'test@example.com',
+      password: 'test-password',
+    };
+
+    const response = await coordinator.loginSession(credentials);
+
+    expect(loginUser).toHaveBeenCalledWith(credentials);
+
+    expect(response).toEqual(result);
+
+    expect(channel.publish).toHaveBeenCalledWith({
+      type: AUTH_MESSAGE_TYPES.SESSION_CHANGED,
+      senderId: 'test-tab-id',
+      userId: 15,
+      sessionId: 'session-123',
+    });
+
+    coordinator.dispose();
+  });
+
+  test('registerSession публикует SESSION_CHANGED', async () => {
+    const user = { id: 15, name: 'Test User' };
+
+    const result = {
+      user,
+      token: createTestToken({ id: 15, sid: 'session-123' }),
+    };
+
+    const registerUser = jest.fn().mockResolvedValue(result);
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => null,
+      refreshAuth: jest.fn(),
+      logoutUser: jest.fn(),
+      registerUser,
+    });
+
+    const formData = {
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'test-password',
+    };
+
+    const response = await coordinator.registerSession(formData);
+
+    expect(registerUser).toHaveBeenCalledWith(formData);
+
+    expect(response).toEqual(result);
+
+    expect(channel.publish).toHaveBeenCalledWith({
+      type: AUTH_MESSAGE_TYPES.SESSION_CHANGED,
+      senderId: 'test-tab-id',
+      userId: 15,
+      sessionId: 'session-123',
+    });
+
+    coordinator.dispose();
+  });
+
+  test('loginSession не публикует сообщение при ошибке login', async () => {
+    const loginUser = jest
+      .fn()
+      .mockRejectedValue(new Error('Invalid credentials'));
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => null,
+      refreshAuth: jest.fn(),
+      logoutUser: jest.fn(),
+      loginUser,
+    });
+
+    await expect(
+      coordinator.loginSession({
+        email: 'test@example.com',
+        password: 'wrong-password',
+      })
+    ).rejects.toThrow('Invalid credentials');
+
+    expect(channel.publish).not.toHaveBeenCalled();
+
+    coordinator.dispose();
+  });
+
+  test('SESSION_CHANGED вызывает onSessionChanged', () => {
+    const onSessionChanged = jest.fn();
+
+    const subscriptionsBefore = channel.subscribe.mock.calls.length;
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => null,
+      refreshAuth: jest.fn(),
+      logoutUser: jest.fn(),
+      onSessionChanged,
+    });
+
+    try {
+      expect(channel.subscribe.mock.calls.length).toBe(subscriptionsBefore + 1);
+
+      const handler = channel.subscribe.mock.calls[subscriptionsBefore][0];
+
+      expect(handler).toEqual(expect.any(Function));
+
+      expect(AUTH_MESSAGE_TYPES.SESSION_CHANGED).toBe('SESSION_CHANGED');
+
+      handler({
+        type: AUTH_MESSAGE_TYPES.SESSION_CHANGED,
+        senderId: 'another-tab',
+        userId: 15,
+        sessionId: 'new-session-id',
+      });
+
+      expect(onSessionChanged).toHaveBeenCalledTimes(1);
+
+      expect(onSessionChanged).toHaveBeenCalledWith({
+        userId: 15,
+        sessionId: 'new-session-id',
+      });
+    } finally {
+      coordinator.dispose();
+    }
+  });
+
+  test('ошибка публикации не отменяет успешный login', async () => {
+    const result = {
+      user: { id: 15, name: 'Test User' },
+      token: createTestToken({ id: 15, sid: 'session-123' }),
+    };
+
+    const loginUser = jest.fn().mockResolvedValue(result);
+
+    channel.publish.mockImplementation(() => {
+      throw new Error('BroadcastChannel failed');
+    });
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => null,
+      refreshAuth: jest.fn(),
+      logoutUser: jest.fn(),
+      loginUser,
+    });
+
+    try {
+      await expect(
+        coordinator.loginSession({
+          email: 'test@example.com',
+          password: 'test-password',
+        })
+      ).resolves.toEqual(result);
+
+      expect(warnSpy).toHaveBeenCalled();
+    } finally {
+      coordinator.dispose();
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('notifySessionRevoked уведомляет вкладки о текущей сессии', () => {
+    const token = createTestToken({
+      id: 15,
+      sid: 'session-123',
+    });
+
+    const coordinator = createAuthRefreshCoordinator({
+      getToken: () => token,
+      refreshAuth: jest.fn(),
+    });
+
+    coordinator.notifySessionRevoked(token);
+
+    expect(channel.publish).toHaveBeenCalledWith({
+      type: AUTH_MESSAGE_TYPES.SESSION_LOGOUT,
+      senderId: 'test-tab-id',
       userId: 15,
       sessionId: 'session-123',
     });

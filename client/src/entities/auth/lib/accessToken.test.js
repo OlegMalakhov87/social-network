@@ -1,4 +1,4 @@
-import { getAccessTokenClaims, isAccessTokenUsable } from './accessToken';
+import { getAccessTokenClaims } from './accessToken';
 
 /**
  * Создаёт тестовый токен.
@@ -58,35 +58,5 @@ describe('accessToken', () => {
         })
       )
     ).toBeNull();
-  });
-
-  test('принимает токен с достаточным сроком действия', () => {
-    const token = createTestToken({
-      id: 15,
-      sid: 'session-123',
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    });
-
-    expect(isAccessTokenUsable(token)).toBe(true);
-  });
-
-  test('отклоняет истёкший токен', () => {
-    const token = createTestToken({
-      id: 15,
-      sid: 'session-123',
-      exp: Math.floor(Date.now() / 1000) - 60,
-    });
-
-    expect(isAccessTokenUsable(token)).toBe(false);
-  });
-
-  test('отклоняет токен, срок действия которого почти истёк', () => {
-    const token = createTestToken({
-      id: 15,
-      sid: 'session-123',
-      exp: Math.floor(Date.now() / 1000) + 10,
-    });
-
-    expect(isAccessTokenUsable(token)).toBe(false);
   });
 });

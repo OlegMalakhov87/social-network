@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { getCurrentUser } from '../api/authApi';
-import authReducer from './authSlice';
+import authReducer, { logout } from './authSlice';
 import { checkAuth, login, logoutSession, register } from './authThunks';
 
 /**
@@ -373,6 +373,76 @@ describe('authThunks', () => {
         isAuthenticated: false,
         status: 'idle',
         error: null,
+      })
+    );
+  });
+
+  test('устаревший login не восстанавливает авторизацию после logout', async () => {
+    const coordinator = createTestCoordinator();
+    const store = createTestStore(coordinator);
+
+    const deferredLogin = createDeferred();
+
+    coordinator.loginSession.mockReturnValue(deferredLogin.promise);
+
+    const loginPromise = store.dispatch(
+      login({
+        email: 'test@example.com',
+        password: 'test-password',
+      })
+    );
+
+    store.dispatch(logout());
+
+    deferredLogin.resolve({
+      user: { id: 15, name: 'Test User' },
+      token: 'old-access-token',
+    });
+
+    await loginPromise;
+
+    expect(store.getState().auth).toEqual(
+      expect.objectContaining({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        status: 'idle',
+      })
+    );
+  });
+
+  test('устаревший register не восстанавливает авторизацию после logout', async () => {
+    const coordinator = createTestCoordinator();
+    const store = createTestStore(coordinator);
+
+    const deferredRegister = createDeferred();
+
+    coordinator.registerSession.mockReturnValue(deferredRegister.promise);
+
+    const registerPromise = store.dispatch(
+      register({
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'test-password',
+      })
+    );
+
+    store.dispatch(logout());
+
+    deferredRegister.resolve({
+      user: { id: 15, name: 'Test User' },
+      token: 'old-access-token',
+    });
+
+    await registerPromise;
+
+    expect(store.getState().auth).toEqual(
+      expect.objectContaining({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        status: 'idle',
+        authMutationRequestId: null,
       })
     );
   });

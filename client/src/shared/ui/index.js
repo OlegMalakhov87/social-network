@@ -12,7 +12,7 @@ export { EntityStats } from './data-display/EntityStats/EntityStats'; // ком�
 export { Pagination } from './data-display/Pagination/Pagination'; // компонент для отображения пагинации
 export { Stat } from './data-display/Stat/Stat'; // компонент для отображения статистики
 /** feedback */
-export { Alert } from '../Alert/Alert'; // компонент для отображения всплывающего окна с сообщением
+export { Alert } from './feedback/Alert/Alert'; // компонент для отображения всплывающего окна с сообщением
 export { ConfirmDialog } from './feedback/ConfirmDialog/ConfirmDialog'; // компонент для отображения диалога подтверждения
 export { ContentRefetchOverlay } from './feedback/ContentRefetchOverlay/ContentRefetchOverlay'; // компонент для отображения оверлея при перезагрузке контента
 export { ErrorBanner } from './feedback/ErrorBanner/ErrorBanner'; // компонент для отображения ошибки

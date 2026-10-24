@@ -1,16 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
-
-import { authReducer, getAccessTokenClaims, logout } from '../../entities/auth';
 import {
   loginUser,
   logoutUser,
   refreshAuth,
   registerUser,
 } from '../../entities/auth/api/authApi';
+import { getAccessTokenClaims } from '../../entities/auth/lib/accessToken';
 import { createAuthRefreshCoordinator } from '../../entities/auth/lib/authRefreshCoordinator';
-
-import { setupAxiosInterceptors } from '../../shared/api';
-import { audioPlayerReducer } from '../../widgets/audio-player';
+import authReducer, {
+  logout,
+  setAccessToken,
+} from '../../entities/auth/model/authSlice';
+import { setupAxiosInterceptors } from '../../shared/api/apiAxios';
+import audioPlayerReducer from '../../widgets/audio-player/model/audioPlayerSlice';
+import { createAuthSessionHandlers } from './authSessionHandlers';
 
 /** Объект зависимостей для async thunks */
 const authDependencies = {
@@ -32,6 +35,9 @@ export const store = configureStore({
     }),
 });
 
+/** Создаём обработчики сессии */
+const { onSessionLogout, onSessionChanged } = createAuthSessionHandlers(store);
+
 /** Создаём координатор после создания Redux Store */
 authDependencies.coordinator = createAuthRefreshCoordinator({
   getToken: () => store.getState().auth.token,
@@ -39,40 +45,15 @@ authDependencies.coordinator = createAuthRefreshCoordinator({
   logoutUser,
   loginUser,
   registerUser,
-  onSessionLogout: ({ userId, sessionId }) => {
-    const auth = store.getState().auth;
-    const claims = getAccessTokenClaims(auth.token);
-
-    if (claims) {
-      if (claims.id === userId && claims.sid === sessionId) {
-        store.dispatch(logout());
-      }
-
-      return;
-    }
-
-    if (auth.authCheckRequestId !== null) {
-      store.dispatch(logout());
-    }
-  },
-  onSessionChanged: ({ userId, sessionId }) => {
-    const auth = store.getState().auth;
-    const claims = getAccessTokenClaims(auth.token);
-
-    if (claims?.id === userId && claims?.sid === sessionId) {
-      return;
-    }
-
-    if (auth.isAuthenticated) {
-      store.dispatch(logout());
-      return;
-    }
-
-    if (auth.authCheckRequestId !== null) {
-      store.dispatch(logout());
-    }
-  },
+  onSessionLogout,
+  onSessionChanged,
 });
 
 /** Настраиваем interceptors для axios */
-setupAxiosInterceptors(store);
+setupAxiosInterceptors(store, {
+  refreshSession: authDependencies.coordinator.refreshSession,
+  notifySessionRevoked: authDependencies.coordinator.notifySessionRevoked,
+  setAccessToken,
+  getAccessTokenClaims,
+  logout,
+});

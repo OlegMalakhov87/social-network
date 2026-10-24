@@ -3,6 +3,7 @@ const mediaCleanupService = require('../src/services/mediaCleanupService');
 const temporaryMediaService = require('../src/services/temporaryMediaService');
 const messageService = require('../src/services/messageService');
 const newsService = require('../src/services/newsService');
+const authSessionCleanupService = require('../src/services/authSessionCleanupService');
 
 /** Обёртка с изоляцией ошибок
  * @param {string} name - Название задачи
@@ -61,6 +62,11 @@ const startMaintenanceAndCleanupJob = () => {
       results.push(
         await runTask('Очистка удаленных сообщений', () =>
           messageService.cleanupDeletedMessages()
+        )
+      );
+      results.push(
+        await runTask('Очистка истёкших refresh-сессий', () =>
+          authSessionCleanupService.cleanupExpired()
         )
       );
       results.push(

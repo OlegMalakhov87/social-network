@@ -6,11 +6,6 @@ const refreshSessionService = require('./refreshSessionService');
 const { createError } = require('../utils/createError');
 
 /**
- * Генерация JWT токена
- * @param {number} userId - ID пользователя
- * @returns {string} - JWT токен
- */
-/**
  * Генерация access JWT.
  *
  * @param {number} userId - ID пользователя.

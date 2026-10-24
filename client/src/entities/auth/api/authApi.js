@@ -1,4 +1,4 @@
-import { api, authAxios } from '../../../shared/api';
+import { authAxios } from '../../../shared/api';
 import { UserSchema } from '../../user';
 
 // Promise для кеширования refresh запроса
@@ -10,7 +10,7 @@ let refreshPromise = null;
  * @returns {Promise<{user: UserSchema}} {user}
  */
 export const getCurrentUser = async (accessToken) => {
-  const response = await api.get('/auth/me', {
+  const response = await authAxios.get('/auth/me', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -24,7 +24,7 @@ export const getCurrentUser = async (accessToken) => {
  * @returns {Promise<{user: UserSchema, token: string}} {user, token}
  */
 export const registerUser = async (formData) => {
-  const response = await api.post('/auth/register', formData);
+  const response = await authAxios.post('/auth/register', formData);
   return {
     user: UserSchema.parse(response.data?.user),
     token: response.data?.token,
@@ -37,7 +37,7 @@ export const registerUser = async (formData) => {
  * @returns {Promise<{user: UserSchema, token: string}} {user, token}
  */
 export const loginUser = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
+  const response = await authAxios.post('/auth/login', credentials);
   return {
     user: UserSchema.parse(response.data?.user),
     token: response.data?.token,
