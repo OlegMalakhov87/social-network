@@ -1,19 +1,20 @@
 import { useCallback } from 'react';
+
 import { parseApiError } from '../lib';
 
 /**
- * Универсальный хук для оптимистичных мутаций (CRUD).
+ * Добавляет, изменяет и удаляет элемент до ответа сервера.
  *
- * @param {Object} params - параметры запроса
- * @param {Array} params.items - массив сущностей
- * @param {Function} params.setItems - функция обновления массива
- * @param {Function} params.addFn - функция добавления (async)
- * @param {Function} params.editFn - функция обновления (async)
- * @param {Function} params.deleteFn - функция удаления (async)
- * @param {string} [params.idField='id'] - поле ID
- * @param {Function} [params.onSuccess] - колбэк успеха
- * @param {Function} [params.onError] - колбэк ошибки
- * @returns {Object} - { add, edit, remove }
+ * @param {Object} params - Параметры изменения
+ * @param {Array} params.items - Текущие элементы
+ * @param {Function} params.setItems - Обновляет массив элементов
+ * @param {Function} params.addFn - Добавляет элемент на сервере
+ * @param {Function} params.editFn - Обновляет элемент на сервере
+ * @param {Function} params.deleteFn - Удаляет элемент на сервере
+ * @param {string} [params.idField='id'] - Поле идентификатора
+ * @param {Function} [params.onSuccess] - Вызывается после успешной операции
+ * @param {Function} [params.onError] - Вызывается при ошибке
+ * @returns {{ add: Function, edit: Function, remove: Function }} Методы добавления, изменения и удаления.
  */
 export const useOptimisticMutation = ({
   items,
@@ -25,7 +26,12 @@ export const useOptimisticMutation = ({
   onSuccess,
   onError,
 }) => {
-  /** Добавление сущности */
+  /**
+   * Добавляет элемент и убирает его при ошибке сервера.
+   *
+   * @param {Object} data - Данные нового элемента
+   * @returns {Promise<boolean>} Признак успеха или false, если добавление недоступно.
+   */
   const addItem = useCallback(
     async (data) => {
       if (!addFn) {
@@ -58,7 +64,13 @@ export const useOptimisticMutation = ({
     [addFn, setItems, idField]
   );
 
-  /** Обновление сущности */
+  /**
+   * Изменяет элемент и возвращает прежнее состояние при ошибке.
+   *
+   * @param {number|string} id - Идентификатор элемента
+   * @param {Object} data - Новые поля элемента
+   * @returns {Promise<boolean>} Признак успеха или false, если изменение недоступно или идентификатор пуст.
+   */
   const editItem = useCallback(
     async (id, data) => {
       if (!editFn || id == null) return false;
@@ -89,7 +101,12 @@ export const useOptimisticMutation = ({
     [items, setItems, editFn, idField]
   );
 
-  /** Удаление сущности */
+  /**
+   * Удаляет элемент и возвращает прежнее состояние при ошибке.
+   *
+   * @param {number|string} id - Идентификатор элемента
+   * @returns {Promise<boolean>} Признак успеха или false, если удаление недоступно или идентификатор пуст.
+   */
   const removeItem = useCallback(
     async (id) => {
       if (!deleteFn || id == null) return false;

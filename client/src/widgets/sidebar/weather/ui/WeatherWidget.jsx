@@ -13,24 +13,26 @@ import {
   WEATHER_SUN_FIELDS,
 } from '../config/weatherWidgetConfig';
 import { useWeather } from '../model/useWeather';
+
 import styles from './WeatherWidget.module.css';
 
 /**
- * Виджет погоды в сайдбаре.
+ * Отображает погоду в боковой панели.
+ *
+ * @returns {JSX.Element} Разметка виджета.
  */
 export const WeatherWidget = () => {
-  /**  Хук для получения геолокации пользователя. */
   const { coords, isLoadingLocation, errorLocation, requestLocation } =
     useGeolocation();
 
-  /** Хук для получения данных о погоде. */
   const { weather, isLoadingWeather, errorWeather, refetchWeather } =
     useWeather({ lat: coords?.latitude, lon: coords?.longitude });
 
-  /** Обработчик обновления данных. */
   const handleRefresh = () => {
+    // Повторный запрос не запускает, пока геолокация или погода ещё загружаются.
     if (isLoadingLocation || isLoadingWeather) return;
 
+    // Сначала запрашивает координаты, если их ещё нет.
     if (!coords) {
       requestLocation();
       return;
@@ -39,7 +41,6 @@ export const WeatherWidget = () => {
     refetchWeather?.();
   };
 
-  /** Если данные загружаются, отображаем загрузочный скелетон. */
   if (isLoadingLocation || (isLoadingWeather && !weather)) {
     return (
       <BaseCard
@@ -55,7 +56,6 @@ export const WeatherWidget = () => {
     );
   }
 
-  /** Если есть ошибка и данные не загружены, отображаем сообщение об ошибке. */
   if (errorWeather && !weather) {
     return (
       <BaseCard
@@ -94,7 +94,6 @@ export const WeatherWidget = () => {
     );
   }
 
-  /** Если данные загружены, отображаем виджет погоды. */
   return (
     <BaseCard
       className={styles.widget}
@@ -121,7 +120,6 @@ export const WeatherWidget = () => {
             </Text>
           </div>
 
-          {/** Отображаем мета информацию о погоде. */}
           {weather &&
             WEATHER_META_FIELDS.map((row) => (
               <Text key={row.key} variant="caption" className={styles.metaLine}>
@@ -129,7 +127,6 @@ export const WeatherWidget = () => {
               </Text>
             ))}
 
-          {/** Отображаем информацию о солнце. */}
           <div className={styles.sunTimes}>
             {weather &&
               WEATHER_SUN_FIELDS.map((row) => (

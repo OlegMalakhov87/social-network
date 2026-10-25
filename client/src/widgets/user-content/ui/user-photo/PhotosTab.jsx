@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+
 import { Photo } from '../../../../entities/photo';
 import { normalizeSharedPhoto } from '../../../../entities/shared-entity';
 import { useShareEntity } from '../../../../features/shared-entities';
@@ -9,28 +10,30 @@ import {
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
 import { CommentableGrid } from '../../../comment';
+
 import styles from './PhotosTab.module.css';
 
 /**
- * Вкладка с сеткой фото (посты у которых тип image).
- * @param {Object} props
- * @param {Array} props.photos - массив фото (посты у которых тип image)
- * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isOwnProfile - владелец профиля(да или нет)
- * @param {boolean} props.isLoading - флаг общей загрузки фото
- * @param {string|null} props.error - ошибка
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.deletePhoto - удалить фото
- * @param {Function} props.toggleComments - открыть комментарии
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы фото
- * @param {boolean} props.hasMore - флаг наличия следующей страницы фото
- * @param {Function} props.onRetry - повторить загрузку
- * @param {Function} props.loadMore - функция для загрузки следующей страницы фото
- * @param {Object} props.commentTarget - целевой тип и id комментариев
- * @param {Function} props.onCloseComments - закрыть комментарии
- * @param {Function} props.onCommentChange - изменить количество комментариев
+ * Отображает вкладку с сеткой фотографий.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.photos=[]] - Список фотографий
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {boolean} props.isOwnProfile - Признак собственного профиля
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.deletePhoto - Обработчик удаления фотографии
+ * @param {Function} props.toggleComments - Обработчик открытия комментариев
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Function} props.onCommentChange - Обработчик изменения количества комментариев
+ * @returns {JSX.Element} Разметка вкладки.
  */
-
 export const PhotosTab = ({
   photos = [],
   currentUser,
@@ -50,19 +53,17 @@ export const PhotosTab = ({
 }) => {
   const navigate = useNavigate();
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
   const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedPhoto,
     onSuccess: () => navigate('/messages'),
   });
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных фотографиях.
   const isRefetching = isLoading && photos.length > 0;
 
   return (

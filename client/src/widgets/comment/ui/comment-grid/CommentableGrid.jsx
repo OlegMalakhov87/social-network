@@ -1,20 +1,22 @@
 import { useCallback, useRef } from 'react';
+
 import { CommentsSection } from '../..';
 import { useCommentsPanelInteraction } from '../../../../shared/hooks';
+
 import styles from './CommentableGrid.module.css';
 
 /**
- * Компонент для отображения сетки с комментариями.
+ * Отображает сетку элементов с панелью комментариев.
  *
- * @param {Object} props - Пропсы компонента.
- * @param {Function} props.renderItem - Функция для рендера элемента.
- * @param {Array} props.items - Массив элементов.
- * @param {Object} props.commentTarget - Объект цели комментария.
- * @param {Function} props.onToggleComments - Функция для открытия/закрытия комментариев.
- * @param {Function} props.onCloseComments - Функция для закрытия комментариев.
- * @param {Object} props.currentUser - Объект текущего пользователя.
- * @param {Function} props.onCommentChange - Функция для изменения комментария.
- * @returns {JSX.Element} Компонент сетки с комментариями.
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.items=[]] - Элементы сетки
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onToggleComments - Обработчик открытия и закрытия комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Function} props.onCommentChange - Обработчик изменения комментариев
+ * @param {Function} props.renderItem - Отрисовка элемента сетки
+ * @returns {JSX.Element} Разметка сетки.
  */
 export const CommentableGrid = ({
   items = [],
@@ -28,17 +30,12 @@ export const CommentableGrid = ({
   const commentsRef = useRef(null);
   const itemRefs = useRef(new Map());
 
-  /**
-   * Функция для получения элемента, на который нужно вернуться после закрытия панели комментариев.
-   */
+  // Возвращает элемент, к которому возвращается фокус после закрытия комментариев.
   const getReturnElement = useCallback(
     () => itemRefs.current.get(commentTarget?.id),
     [commentTarget?.id]
   );
 
-  /**
-   * Хук для взаимодействия с панелью комментариев.
-   */
   const { handleClose } = useCommentsPanelInteraction({
     isOpen: Boolean(commentTarget),
     onClose: onCloseComments,
@@ -51,13 +48,20 @@ export const CommentableGrid = ({
       {items.map((item) => (
         <div
           key={item.id}
-          ref={(node) => {
-            if (node) {
-              itemRefs.current.set(item.id, node);
-            } else {
-              itemRefs.current.delete(item.id);
+          ref={
+            /**
+             * Сохраняет узел элемента и удаляет его при размонтировании.
+             *
+             * @param {HTMLElement|null} node - Узел элемента сетки
+             */
+            (node) => {
+              if (node) {
+                itemRefs.current.set(item.id, node);
+              } else {
+                itemRefs.current.delete(item.id);
+              }
             }
-          }}
+          }
         >
           {renderItem({
             item,

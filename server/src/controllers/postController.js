@@ -1,4 +1,5 @@
 const fs = require('node:fs/promises');
+
 const postService = require('../services/postService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
@@ -7,12 +8,14 @@ const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 
-/**
- * Контроллер для работы с постами
- */
 const postController = {
   /**
-   * Получение постов пользователя
+   * Возвращает посты пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getUserPosts: async (req, res, next) => {
     try {
@@ -34,7 +37,12 @@ const postController = {
   },
 
   /**
-   * Получение поста по ID для кнопки "Поделиться"
+   * Возвращает пост по идентификатору для кнопки «Поделиться».
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getPostById: async (req, res, next) => {
     try {
@@ -51,7 +59,12 @@ const postController = {
   },
 
   /**
-   * Создание поста
+   * Создает пост.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   createPost: async (req, res, next) => {
     try {
@@ -64,13 +77,20 @@ const postController = {
   },
 
   /**
-   * Загрузка изображения или видео для поста.
+   * Загружает изображение или видео для поста.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadMedia: async (req, res, next) => {
     const createdFiles = [];
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     try {
@@ -101,7 +121,9 @@ const postController = {
 
       let metadata = null;
 
-      /** Проверяем видео, пока оно ещё в закрытой директории */
+      /**
+       * Проверяет видео, пока файл находится в закрытом каталоге.
+       */
       if (mediaType === 'video') {
         metadata = await mediaService.getMetadata(stagingPath, 'video');
 
@@ -118,7 +140,9 @@ const postController = {
         }
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       const mediaPath = await mediaStorageService.publish(req.file);
 
       createdFiles.push(mediaPath);
@@ -199,7 +223,9 @@ const postController = {
           })
         );
       }
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -218,7 +244,12 @@ const postController = {
   },
 
   /**
-   * Обновление поста
+   * Обновляет пост.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updatePost: async (req, res, next) => {
     try {
@@ -236,7 +267,12 @@ const postController = {
   },
 
   /**
-   * Обновление приватности постов
+   * Обновляет приватность постов.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updatePostPrivacy: async (req, res, next) => {
     try {
@@ -252,7 +288,12 @@ const postController = {
   },
 
   /**
-   * Удаление поста
+   * Удаляет пост.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deletePost: async (req, res, next) => {
     try {
@@ -269,7 +310,12 @@ const postController = {
   },
 
   /**
-   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять новость
+   * Удаляет загруженные медиафайлы, если пользователь отменил создание.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {

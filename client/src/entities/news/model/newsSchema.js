@@ -1,9 +1,11 @@
 import { z } from 'zod';
+
 import { CommentsListSchema } from '../../comment';
 import { LikeSchema } from '../../like';
 import { UserSchema } from '../../user';
+
 /**
- * Схема новости
+ * Описывает новость.
  */
 export const NewsSchema = z.object({
   id: z.number(),
@@ -36,6 +38,6 @@ export const NewsSchema = z.object({
 });
 
 /**
- * Схема списка новостей
+ * Описывает список новостей.
  */
 export const NewsListSchema = z.array(NewsSchema);

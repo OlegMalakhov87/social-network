@@ -2,7 +2,12 @@ const userVideoLibraryService = require('../services/userVideoLibraryService');
 
 const userVideoLibraryController = {
   /**
-   * Получить мою библиотеку видео
+   * Возвращает библиотеку видео текущего пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getMyVideoLibrary: async (req, res, next) => {
     try {
@@ -21,7 +26,12 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Получить библиотеку выбранного пользователя
+   * Возвращает библиотеку выбранного пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getUserVideosLibrary: async (req, res, next) => {
     try {
@@ -42,7 +52,12 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Добавить видео в библиотеку
+   * Добавляет видео в библиотеку.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   addToVideoLibrary: async (req, res, next) => {
     try {
@@ -59,7 +74,12 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Обновить запись в библиотеке (избранное)
+   * Обновляет признак избранного в библиотеке.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateFavoriteVideo: async (req, res, next) => {
     try {
@@ -78,7 +98,12 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Увеличить счетчик просмотров видео в библиотеке
+   * Увеличивает счетчик просмотров видео в библиотеке.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   incrementViewsCount: async (req, res, next) => {
     try {
@@ -93,7 +118,12 @@ const userVideoLibraryController = {
   },
 
   /**
-   * Удалить видео из библиотеки
+   * Удаляет видео из библиотеки.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteVideoFromLibrary: async (req, res, next) => {
     try {

@@ -6,22 +6,22 @@ import {
   required,
 } from '../../../shared/lib';
 import { IconButton, TextArea } from '../../../shared/ui';
-import { handleKeyboardClick } from '../../../shared/utils';
+
 import style from './MessageForm.module.css';
 
 /**
- * Форма для добавления сообщения
- * @param {Object} props - пропсы компонента
- * @param {Object} props.partnerId - ID партнера
- * @param {Function} props.sendMessage - функция для отправки сообщения
- * @returns {React.ReactNode} - компонент MessageForm
+ * Отображает форму отправки сообщения.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {number} props.partnerId - Идентификатор собеседника
+ * @param {Function} props.onSubmit - Отправляет сообщение
+ * @returns {JSX.Element} Форма сообщения
  */
-export const MessageForm = ({ partnerId, onSubmit, currentUser }) => {
+export const MessageForm = ({ partnerId, onSubmit }) => {
   const notify = useNotify();
 
-  /** Форма для добавления комментария с валидацией */
   const form = useForm({
-    initialValues: { content: null, author: currentUser },
+    initialValues: { content: '' },
     rules: (values) => ({
       content: [
         required('Напишите сообщение'),
@@ -31,7 +31,12 @@ export const MessageForm = ({ partnerId, onSubmit, currentUser }) => {
     }),
     onSubmit: async (values) => {
       try {
-        await onSubmit?.(partnerId, values);
+        const content = values.content?.trim();
+        if (!content) return;
+        const sent = await onSubmit(partnerId, content);
+        if (sent === false) {
+          return;
+        }
         form.reset();
       } catch (error) {
         notify.error(getApiErrorDisplay(error, 'Ошибка отправки сообщения'));
@@ -40,9 +45,24 @@ export const MessageForm = ({ partnerId, onSubmit, currentUser }) => {
     },
   });
 
-  /** Функция для обработки нажатия клавиши Enter или Space.*/
+  /**
+   * Отправляет форму по клавише Enter или пробелу.
+   *
+   * @param {KeyboardEvent} event - Событие клавиатуры
+   * @returns {void}
+   */
   const handleKeyDown = (event) => {
-    handleKeyboardClick(event, form.submit);
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+
+      if (!form.isSubmitting) {
+        form.submit(event);
+      }
+    }
   };
 
   return (

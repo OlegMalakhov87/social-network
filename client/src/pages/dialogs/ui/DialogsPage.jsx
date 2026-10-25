@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+
 import {
   useDialogs,
   useDialogsActions,
@@ -16,25 +17,33 @@ import {
 import { classNames } from '../../../shared/utils';
 import { ChatGrid, DialogsGrid } from '../../../widgets/dialogs-list';
 import { VideoPlayer } from '../../../widgets/video-player';
+
 import style from './DialogsPage.module.css';
 
-/** Страница диалогов – отображает список диалогов и чат с собеседником. */
-
+/**
+ * Отображает страницу диалогов.
+ *
+ * @returns {JSX.Element} Разметка страницы.
+ */
 export const DialogsPage = () => {
   const { userId: userParam } = useParams();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showMobileDialogs, setShowMobileDialogs] = useState(true);
   const [messageVideo, setMessageVideo] = useState(null);
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
+  const parsedUserId = Number(userParam);
+
+  const partnerId =
+    userParam && Number.isSafeInteger(parsedUserId) && parsedUserId > 0
+      ? parsedUserId
+      : null;
+
+  // Читает общую сущность из sessionStorage.
   const { getSharedEntity, clearSharedEntity } = useShareEntity({});
 
-  /** Получение данных о диалогах. */
   const {
     dialogs,
-    currentUser,
+    currentUserId,
     isLoading: dialogsLoading,
     isLoadingMore: dialogsLoadingMore,
     hasMore: dialogsHasMore,
@@ -43,7 +52,20 @@ export const DialogsPage = () => {
     refetch: refetchDialogs,
   } = useDialogs({ searchQuery });
 
-  /** Получение данных о сообщениях. */
+  const dialogUser =
+    dialogs.find((dialog) => dialog.user.id === partnerId)?.user ?? null;
+
+  const {
+    user: loadedUser,
+    isLoading: userLoading,
+    error: userError,
+  } = useProfile(partnerId && !dialogUser ? partnerId : null);
+
+  const selectedUser =
+    dialogUser ?? (loadedUser?.id === partnerId ? loadedUser : null);
+
+  const showMobileDialogs = partnerId === null;
+
   const {
     messages,
     isLoading: messagesLoading,
@@ -60,7 +82,6 @@ export const DialogsPage = () => {
     toggleLike,
   } = useMessages({ partnerId: selectedUser?.id ?? null });
 
-  /** Действия над диалогами и сообщениями. */
   const {
     sendMessage,
     deleteMessage,
@@ -78,72 +99,55 @@ export const DialogsPage = () => {
     clearSharedEntity
   );
 
-  /** Получение данных о пользователе. */
-  const {
-    user: loadedUser,
-    isLoading: userLoading,
-    error: userError,
-  } = useProfile(userParam && !selectedUser ? Number(userParam) : null);
-
-  /** Проверка онлайн статуса собеседника. */
   const onlineMap = useOnline(selectedUser?.id);
   const partnerOnline = onlineMap.get(selectedUser?.id) ?? false;
 
-  /** Установка выбранного пользователя. */
-  useEffect(() => {
-    if (!userParam) {
-      setSelectedUser(null);
-      setShowMobileDialogs(true);
-      return;
-    }
-    if (dialogsLoading) return;
-    const found = dialogs.find((d) => d.user.id === Number(userParam))?.user;
-    if (found) {
-      setSelectedUser(found);
-      setShowMobileDialogs(false);
-      return;
-    }
-    if (loadedUser) {
-      setSelectedUser(loadedUser);
-      setShowMobileDialogs(false);
-    }
-  }, [userParam, dialogs, dialogsLoading, loadedUser]);
-
-  /** Отправка общего поста, новости, комментария, фото, видео, трека и сообщения. */
+  // Отправляет общий пост, новость, комментарий, фото, видео, трек или сообщение.
   useEffect(() => {
     if (selectedUser?.id) {
       sendSharedEntity(selectedUser.id);
     }
   }, [selectedUser?.id, sendSharedEntity]);
 
-  /** Обработчик выбора пользователя. */
+  /**
+   * Выбирает собеседника и открывает диалог.
+   *
+   * @param {Object} user - Данные собеседника
+   * @returns {void}
+   */
   const handleSelect = useCallback(
     (user) => {
       if (!user?.id) return;
-      setSelectedUser(user);
+
       navigate(`/messages/${user.id}`);
-      setShowMobileDialogs(false);
       setSearchQuery('');
     },
     [navigate]
   );
 
-  /** Обработчик кнопки назад. */
+  /**
+   * Возвращается к списку диалогов.
+   *
+   * @returns {void}
+   */
   const handleBack = useCallback(() => {
-    setShowMobileDialogs(true);
     navigate('/messages');
   }, [navigate]);
 
-  /** Обработчик открытия модального окна с видео. */
+  /**
+   * Открывает видео сообщения.
+   *
+   * @param {Object} video - Данные видео
+   * @returns {void}
+   */
   const handleOpenVideo = useCallback((video) => setMessageVideo(video), []);
-  /** Обработчик закрытия модального окна с видео. */
+
   const handleCloseVideo = useCallback(() => setMessageVideo(null), []);
 
   return (
     <ErrorBoundary>
       <PageLayout title="Сообщения">
         <div className={style.page}>
-          {/* Панель диалогов */}
           <SectionCard
             className={classNames(
               style.dialogsCol,
@@ -169,7 +173,6 @@ export const DialogsPage = () => {
             />
           </SectionCard>
 
-          {/* Панель чата */}
           <SectionCard
             className={classNames(
               style.chatCol,
@@ -178,7 +181,7 @@ export const DialogsPage = () => {
           >
             <ChatGrid
               messages={messages}
-              currentUserId={currentUser?.id}
+              currentUserId={currentUserId}
               selectedUser={selectedUser}
               isLoadingMessages={messagesLoading}
               isLoadingMore={messagesLoadingMore}

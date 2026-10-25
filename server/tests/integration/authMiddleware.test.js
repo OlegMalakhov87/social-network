@@ -7,7 +7,7 @@ const { sequelize, User, RefreshSession } = require('../../db/models');
 
 const { authMiddleware } = require('../../src/middleware/auth/authMiddleware');
 
-// Запрещаем запуск в рабочей базе.
+// Запрещает запуск в рабочей базе.
 if (
   process.env.NODE_ENV !== 'test' ||
   sequelize.getDatabaseName() !== 'socialnet_test'

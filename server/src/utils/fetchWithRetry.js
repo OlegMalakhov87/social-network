@@ -1,22 +1,17 @@
 /**
- * Выполняет fetch с повторными попытками при временных сетевых ошибках.
+ * Повторяет запрос fetch при временной сетевой ошибке и ответе 5xx.
  *
- * Повторяет запрос при:
- * - сетевых ошибках (EAI_AGAIN, ECONNRESET, ENOTFOUND, fetch failed)
- * - ответах 5xx
- *
- * Не повторяет при:
- * - 4xx (клиентская ошибка — повтор не поможет)
- * - AbortError (запрос отменён)
+ * Повторяет запрос при ошибках EAI_AGAIN, ECONNRESET, ENOTFOUND и fetch failed, а также при ответах 5xx.
+ * Не повторяет запрос при ответе 4xx и при отмене AbortError.
  *
  * @param {string} url - URL запроса
- * @param {Object} [options={}] - опции fetch
- * @param {Object} [retryConfig={}]
- * @param {number} [retryConfig.retries=3] - количество повторных попыток
- * @param {number} [retryConfig.delay=500] - начальная задержка в мс
- * @param {number} [retryConfig.maxDelay=5000] - максимальная задержка
- * @param {number} [retryConfig.backoff=2] - множитель экспоненциальной задержки
- * @returns {Promise<Response>}
+ * @param {Object} [options={}] - Параметры fetch
+ * @param {Object} [retryConfig={}] - Параметры повтора
+ * @param {number} [retryConfig.retries=3] - Число повторов
+ * @param {number} [retryConfig.delay=500] - Начальная задержка в миллисекундах
+ * @param {number} [retryConfig.maxDelay=5000] - Максимальная задержка в миллисекундах
+ * @param {number} [retryConfig.backoff=2] - Множитель задержки
+ * @returns {Promise<Response>} Ответ fetch.
  */
 const fetchWithRetry = async (
   url,

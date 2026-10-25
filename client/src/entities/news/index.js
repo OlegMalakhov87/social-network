@@ -1,11 +1,11 @@
-export * from './api/newsApi'; // API для новостей.
+export * from './api/newsApi'; // Выполняет запросы новостей.
 
-export { getNewsActions } from './lib/getNewsActions'; // Функция для получения действий для новости.
-export { normalizeNews } from './lib/normalizeNews'; // Функция для нормализации данных новости.
+export { getNewsActions } from './lib/getNewsActions'; // Возвращает действия новости.
+export { normalizeNews } from './lib/normalizeNews'; // Приводит новость к формату карточки.
 
-export { CATEGORY_OPTIONS, NEWS_TYPES } from './config/newsTypes'; // Мапа для выбора категории новости и массив типов новостей.
+export { CATEGORY_OPTIONS, NEWS_TYPES } from './config/newsTypes'; // Хранит типы новостей и варианты категорий.
 
-export * from './model/newsSchema'; // Схема для новостей.
-export { CATEGORIES } from './model/newsTabs'; // Мапа для выбора категории новостей.
+export * from './model/newsSchema'; // Описывает схемы новости.
+export { CATEGORIES } from './model/newsTabs'; // Хранит категории новостей.
 
-export { News } from './ui/News'; // Компонент для отображения карточки новости.
+export { News } from './ui/News'; // Отображает карточку новости.

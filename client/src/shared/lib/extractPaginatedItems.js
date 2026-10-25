@@ -1,4 +1,4 @@
-/** Ключи массивов в типичных ответах API (порядок важен). */
+/** Хранит ключи массивов ответа API. Порядок проверки важен. */
 const LIST_KEYS = [
   'items',
   'users',
@@ -15,11 +15,10 @@ const LIST_KEYS = [
 ];
 
 /**
- * Достаёт массив элементов и pagination из ответа сервера.
- * 
+ * Извлекает элементы и сведения о страницах из ответа сервера.
  *
- * @param {Object|null|undefined} data - ответ сервера
- * @returns {{ items: Array, pagination: Object }} - массив элементов и pagination
+ * @param {Object|Array|null|undefined} data - Ответ сервера
+ * @returns {{ items: Array, pagination: Object }} Элементы и сведения о страницах.
  */
 export const extractPaginatedItems = (data) => {
   if (!data) {

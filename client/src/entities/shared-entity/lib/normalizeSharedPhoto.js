@@ -1,5 +1,8 @@
 /**
- * Нормализует пост-фото для SharedEntityCard.
+ * Приводит фотографию к карточке общей сущности.
+ *
+ * @param {Object} photo - Фотография
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedPhoto = (photo) => ({
   id: photo.id,

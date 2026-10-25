@@ -1,13 +1,15 @@
 import { Button, Tabs } from '../../../shared/ui';
+
 import style from './SettingsPage.module.css';
 
 /**
- * Навигация по разделам настроек: вертикальные кнопки на десктопе, Tabs на мобильных.
+ * Отображает навигацию настроек.
  *
- * @param {Object} props
- * @param {Array} props.items - массив объектов с id, label и icon
- * @param {string} props.activeTab - id активного раздела
- * @param {Function} props.onChange - функция для изменения активного раздела
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{id: string, label: string, icon: string}>} props.items - Разделы настроек
+ * @param {string} props.activeTab - Идентификатор активного раздела
+ * @param {Function} props.onChange - Обработчик смены раздела
+ * @returns {JSX.Element} Разметка навигации.
  */
 export const SettingsNav = ({ items, activeTab, onChange }) => {
   return (

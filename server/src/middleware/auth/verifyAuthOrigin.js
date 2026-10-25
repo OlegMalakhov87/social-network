@@ -1,11 +1,12 @@
 const { createError } = require('../../utils/createError');
 
 /**
- * Проверяет источник запроса.
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- * @returns {void}
+ * Проверяет, что источник запроса совпадает с адресом клиента.
+ *
+ * @param {import('express').Request} req - Запрос Express
+ * @param {import('express').Response} res - Ответ Express
+ * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+ * @returns {void} Ничего не возвращает.
  */
 const verifyAuthOrigin = (req, res, next) => {
   const allowedOrigin = process.env.CLIENT_URL;

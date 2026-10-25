@@ -1,6 +1,16 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
+/**
+ * Проверяет обязательную строку заданной длины.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const requiredText = (field, min, max, message) =>
   body(field)
     .isString()
@@ -14,7 +24,7 @@ const requiredText = (field, min, max, message) =>
     .withMessage(message);
 
     /**
-     * Валидация для создания видео
+     * Проверяет поля нового видео.
      */
 const validateCreateVideo = [
   requiredText('title', 1, 100, 'Некорректный длина заголовка'),

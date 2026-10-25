@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
@@ -24,26 +25,40 @@ import {
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для получения и управления треками на странице музыки с бесконечным скроллом.
+ * Возвращает ленту треков и изменяет её локально.
  *
- * @param {Object|string} params
- * @param {Object} params
- * @param {string} [params.filter='all'] - фильтр
- * @param {string} [params.searchQuery=''] - поисковый запрос
- * @param {string} [params.sortKey='dateDesc'] - ключ сортировки
- * @returns {Object} - объект с данными о треках
+ * @param {Object} params - Параметры запроса
+ * @param {string} params.filter - Фильтр ленты
+ * @param {string} params.searchQuery - Поисковый запрос
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {{
+ *   tracks: Array<Object>,
+ *   currentUser: Object|null,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   hasMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   refetch: Function,
+ *   toggleLike: Function,
+ *   addTrack: Function,
+ *   updateTrack: Function,
+ *   deleteTrack: Function,
+ *   addToLibrary: Function,
+ *   deleteFromLibrary: Function,
+ *   updateGlobalPlaysCount: Function,
+ *   updateCommentsCount: Function
+ * }} Треки и действия
  */
 export const useMusic = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
 
-  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [filter, searchQuery, sortKey, currentUserId],
     [filter, searchQuery, sortKey, currentUserId]
   );
 
-  /** Получение общей ленты треков с бесконечным скроллом */
   const {
     items: tracksItems,
     setItems: setTracksItems,
@@ -54,6 +69,15 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     loadMore,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу треков.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница треков
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
@@ -72,7 +96,6 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     deps: scrollDeps,
   });
 
-  /** Оптимистическое управление библиотекой треков */
   const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
     setItems: setTracksItems,
     addFn: addTrackToLibrary,
@@ -80,7 +103,6 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     entityType: 'tracks',
   });
 
-  /** Оптимистическое управление лайками треков */
   const toggleLike = useOptimisticLike({
     setItems: setTracksItems,
     addLikeFn: addLikeApi,
@@ -89,7 +111,6 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     targetType: 'tracks',
   });
 
-  /** Оптимистическое управление счётчиком прослушиваний треков */
   const { incrementWithApi: updateGlobalPlaysCount } = useOptimisticCounter({
     items: tracksItems,
     setItems: setTracksItems,
@@ -97,7 +118,6 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     updateFn: incrementTrackPlaysCount,
   });
 
-  /** Оптимистическое управление добавлением, редактированием и удалением треков */
   const {
     add: addTrack,
     edit: updateTrack,
@@ -110,10 +130,14 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     deleteFn: deleteTrackApi,
   });
 
-  /** Оптимистическое управление счётчиком комментариев треков */
   const updateCommentsCount = useOptimisticCommentCount(setTracksItems);
 
-  /** Нормализация треков */
+  /**
+   * Нормализует трек и очищает идентификатор библиотеки профиля.
+   *
+   * @param {Object} item - Трек
+   * @returns {Object} Нормализованный трек
+   */
   const normalizeTracksFn = useCallback(
     (item) => ({
       ...normalizeTracks(item),
@@ -122,13 +146,11 @@ export const useMusic = ({ filter, searchQuery, sortKey }) => {
     []
   );
 
-  /** Нормализованные треки */
   const tracks = useNormalizedData({
     items: tracksItems,
     normalizeFn: normalizeTracksFn,
   });
 
-  /** Возвращаемые значения */
   return {
     tracks,
     currentUser,

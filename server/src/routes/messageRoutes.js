@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const {
   validateCreateMessage,
 } = require('../middleware/validation/validateCreateMessage');
@@ -11,10 +12,10 @@ const { authMiddleware } = require('../middleware/auth/authMiddleware');
 
 const messageRoutes = Router();
 
-// Получить список диалогов
+// Возвращает список диалогов.
 messageRoutes.get('/dialogs', authMiddleware, messageController.getDialogs);
 
-// Получить переписку с выбранным собеседником
+// Возвращает переписку с выбранным собеседником.
 messageRoutes.get(
   '/conversation/:partnerId',
   validateIdParam('partnerId'),
@@ -22,7 +23,7 @@ messageRoutes.get(
   messageController.getConversation
 );
 
-// Получить сообщение по ID (для кнопки "Поделиться")
+// Возвращает сообщение по идентификатору для кнопки «Поделиться».
 messageRoutes.get(
   '/:messageId/shared',
   validateIdParam('messageId'),
@@ -30,7 +31,7 @@ messageRoutes.get(
   messageController.getMessageById
 );
 
-// Отправить сообщение собеседнику
+// Отправляет сообщение собеседнику.
 messageRoutes.post(
   '/send',
   validateCreateMessage,
@@ -38,7 +39,7 @@ messageRoutes.post(
   messageController.sendMessage
 );
 
-// Обновить сообщение (владелец сообщения)
+// Обновляет сообщение владельца.
 messageRoutes.patch(
   '/:messageId/edit',
   validateIdParam('messageId'),
@@ -47,10 +48,10 @@ messageRoutes.patch(
   messageController.updateMessage
 );
 
-// Отметить сообщения как прочитанные
+// Отмечает сообщения как прочитанные.
 messageRoutes.patch('/read', authMiddleware, messageController.markAsRead);
 
-// Скрыть сообщение (удалить у себя)
+// Скрывает сообщение у текущего пользователя.
 messageRoutes.patch(
   '/:messageId/hide',
   validateIdParam('messageId'),
@@ -58,7 +59,7 @@ messageRoutes.patch(
   messageController.hideMessage
 );
 
-// Очистить чат (удалить всю переписку с пользователем у себя)
+// Очищает переписку с пользователем у текущего пользователя.
 messageRoutes.patch(
   '/clear/:receiverId',
   validateIdParam('receiverId'),

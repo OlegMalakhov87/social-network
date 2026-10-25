@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 
 /**
- * Хук для нормализации массива данных.
+ * Возвращает нормализованный массив данных.
  *
- * @param {Object} params
- * @param {Array} params.items - сырые данные с сервера
- * @param {Function} params.normalizeFn - функция нормализации одного элемента
- * @param {number|string} [params.userId] - ID текущего пользователя
- * @returns {Array} - нормализованный массив
+ * @param {Object} params - Параметры нормализации
+ * @param {Array} params.items - Исходные элементы
+ * @param {Function} params.normalizeFn - Нормализует один элемент
+ * @param {number|string|null} [params.userId=null] - Идентификатор текущего пользователя
+ * @returns {Array} Нормализованные элементы.
  */
 export const useNormalizedData = ({ items, normalizeFn, userId = null }) => {
   return useMemo(() => {

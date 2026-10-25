@@ -8,15 +8,15 @@ import { AUTH_MESSAGE_TYPES } from './authRefreshMessages';
 /**
  * Создаёт координатор обмена сообщениями авторизации.
  *
- * @param {Object} options
- * @param {() => string | null} options.getToken - функция для получения токена
- * @param {() => Promise<{ token: string }>} options.refreshAuth - функция для обновления токена
- * @param {(credentials: Object) => Promise<Object>} options.loginUser - функция для авторизации пользователя
- * @param {(formData: Object) => Promise<Object>} options.registerUser - функция для регистрации пользователя
- * @param {(sessionId: string) => Promise<void>} options.logoutUser - функция для завершения сессии
- * @param {() => Promise<void>} options.onSessionLogout - функция для выполнения после завершения сессии
- * @param {() => Promise<void>} options.onSessionChanged - функция для выполнения после изменения сессии
- * @returns {Object}
+ * @param {Object} options - Настройки координатора
+ * @param {Function} options.getToken - Возвращает маркер доступа
+ * @param {Function} options.refreshAuth - Обновляет маркер доступа
+ * @param {Function} options.loginUser - Авторизует пользователя
+ * @param {Function} options.registerUser - Регистрирует пользователя
+ * @param {Function} options.logoutUser - Завершает сессию на сервере
+ * @param {Function} [options.onSessionLogout] - Обработчик выхода из сессии
+ * @param {Function} [options.onSessionChanged] - Обработчик смены сессии
+ * @returns {Object} Методы координатора
  */
 export const createAuthRefreshCoordinator = ({
   getToken,
@@ -33,7 +33,10 @@ export const createAuthRefreshCoordinator = ({
   let disposed = false;
 
   /**
-   * Обработчик входящих сообщений
+   * Обрабатывает входящее сообщение другой вкладки.
+   *
+   * @param {Object} message - Сообщение авторизации
+   * @returns {void}
    */
   const handleMessage = (message) => {
     if (
@@ -82,9 +85,7 @@ export const createAuthRefreshCoordinator = ({
 
   const unsubscribe = channel.subscribe(handleMessage);
 
-  /**
-   * Освобождает ресурсы координатора.
-   */
+  /** Освобождает ресурсы координатора. */
   const dispose = () => {
     if (disposed) return;
 
@@ -93,10 +94,11 @@ export const createAuthRefreshCoordinator = ({
     channel.close();
   };
 
-  /** Выполняет операцию под общей блокировкой авторизации
+  /**
+   * Выполняет операцию под общей блокировкой авторизации.
    *
-   * @param {() => Promise<any>} operation
-   * @returns {Promise<any>}
+   * @param {Function} operation - Операция авторизации
+   * @returns {Promise<*>} Результат операции
    */
   const runLocked = (operation) => {
     if (disposed) {
@@ -114,10 +116,11 @@ export const createAuthRefreshCoordinator = ({
     });
   };
 
-  /** Публикует сообщение о изменении сессии
+  /**
+   * Публикует изменение сессии для других вкладок.
    *
-   * @param {Object} result
-   * @returns {Object}
+   * @param {Object} result - Результат входа
+   * @returns {Object} Исходный результат
    */
   const publishSessionChanged = (result) => {
     const claims = getAccessTokenClaims(result?.token);
@@ -142,10 +145,10 @@ export const createAuthRefreshCoordinator = ({
     return result;
   };
 
-  /** Обновление refresh-сессии. */
+  /** Обновляет сессию под общей блокировкой. */
   const refreshSession = () => runLocked(refreshAuth);
 
-  /** Завершает серверную сессию и уведомляет другие вкладки. */
+  /** Завершает сессию на сервере и уведомляет другие вкладки. */
   const endSession = () => {
     const claims = getAccessTokenClaims(getToken());
 
@@ -169,7 +172,12 @@ export const createAuthRefreshCoordinator = ({
     });
   };
 
-  /** Авторизация пользователя. */
+  /**
+   * Авторизует пользователя и сообщает о новой сессии.
+   *
+   * @param {Object} credentials - Почта и пароль
+   * @returns {Promise<Object>} Результат входа
+   */
   const loginSession = (credentials) =>
     runLocked(async () => {
       const result = await loginUser(credentials);
@@ -177,7 +185,12 @@ export const createAuthRefreshCoordinator = ({
       return publishSessionChanged(result);
     });
 
-  /** Регистрация пользователя. */
+  /**
+   * Регистрирует пользователя и сообщает о новой сессии.
+   *
+   * @param {Object} formData - Данные нового пользователя
+   * @returns {Promise<Object>} Результат регистрации
+   */
   const registerSession = (formData) =>
     runLocked(async () => {
       const result = await registerUser(formData);
@@ -188,10 +201,9 @@ export const createAuthRefreshCoordinator = ({
   /**
    * Уведомляет другие вкладки об отзыве текущей сессии.
    *
-   * Серверный logout не выполняется: сессия уже
-   * признана недействительной.
+   * Выход на сервере не выполняется: сессия уже недействительна.
    *
-   * @param {string} token
+   * @param {string} token - Маркер доступа
    * @returns {void}
    */
   const notifySessionRevoked = (token) => {

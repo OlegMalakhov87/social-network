@@ -1,8 +1,9 @@
 /**
- * Возвращает параметры StatusBadge
+ * Возвращает значок дружбы.
  *
  * @param {string} status - Статус дружбы
  * @param {string} direction - Направление дружбы
+ * @returns {{ status: string, label: string }|null} Значок дружбы
  */
 export const getFriendshipBadge = (status, direction) => {
   switch (status) {
@@ -39,9 +40,7 @@ export const getFriendshipBadge = (status, direction) => {
   }
 };
 
-/**
- * Мапа для получения варианта бейджа дружбы
- */
+/** Хранит варианты значка дружбы. */
 export const FRIENDSHIP_BADGE_VARIANT = {
   success: 'success',
   warning: 'warning',

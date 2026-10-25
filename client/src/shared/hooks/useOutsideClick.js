@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 const EMPTY_IGNORE_SELECTORS = [];
 
 /**
- * Вызывает callback при клике вне указанного элемента.
+ * Вызывает обработчик при щелчке вне элемента.
  *
- * @param {React.RefObject<HTMLElement>} ref - реф на элемент
- * @param {Function} onOutsideClick - функция вызывается при клике вне элемента
- * @param {boolean} [enabled=true] - включен ли хук
- * @param {Object} [options] - дополнительные опции
- * @param {string[]} [options.ignoreSelectors=[]] - селекторы, клики по которым игнорируются
+ * @param {import('react').RefObject<HTMLElement>} ref - Ссылка на элемент
+ * @param {Function} onOutsideClick - Обработчик щелчка вне элемента
+ * @param {boolean} [enabled=true] - Наблюдение включено
+ * @param {Object} [options={}] - Дополнительные параметры
+ * @param {string[]} [options.ignoreSelectors=[]] - Селекторы, щелчки по которым игнорируются
+ * @returns {void}
  */
 export const useOutsideClick = (
   ref,
@@ -24,6 +25,12 @@ export const useOutsideClick = (
   useEffect(() => {
     if (!enabled) return;
 
+    /**
+     * Вызывает внешний обработчик, если щелчок произошёл вне элемента.
+     *
+     * @param {MouseEvent} event - Событие щелчка
+     * @returns {void}
+     */
     const handleMouseDown = (event) => {
       if (!ref.current) return;
 

@@ -1,4 +1,4 @@
-export { useContentFilter } from './model/useContentFilter'; // Хук для фильтрации и сортировки контента пользователя по вкладкам
-export { useLibraryResource } from './model/useLibraryResource'; // Хук для управления ресурсами библиотеки
-export { useOnline } from './model/useOnline'; // Хук для отслеживания онлайн-статусов пользователей
-export { useProfile } from './model/useProfile'; // Хук для получения данных о пользователе и управления статусом дружбы
+export { useContentFilter } from './model/useContentFilter'; // Возвращает материалы профиля по активной вкладке.
+export { useLibraryResource } from './model/useLibraryResource'; // Обновляет библиотеку, отметки и счётчики.
+export { useOnline } from './model/useOnline'; // Возвращает статусы присутствия пользователей.
+export { useProfile } from './model/useProfile'; // Возвращает данные профиля и обновляет статус дружбы.

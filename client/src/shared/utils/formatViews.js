@@ -1,8 +1,8 @@
 /**
- * Форматирует количество просмотров/прослушиваний в сокращённую строку.
+ * Сокращает большое количество просмотров.
  *
- * @param {number} views - количество
- * @returns {string} - форматированное значение
+ * @param {number} views - Количество просмотров
+ * @returns {string} Сокращённое количество или «0».
  */
 export const formatViews = (views) => {
   if (views == null || isNaN(views)) return '0';

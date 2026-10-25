@@ -2,32 +2,29 @@ const ffmpeg = require('fluent-ffmpeg');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
+
 const { STAGING_ROOT } = require('../../config/mediaUploadConfig');
 const mediaStorageService = require('./mediaStorageService');
 const { createError } = require('../utils/createError');
 
 /**
- * Сервис генерации короткого превью видео формата MP4
- * (для воспроизведения короткого ролика при наведении курсора на карточку видео),
- * и обложки видео формата JPG (для отображения обложки видео в списке видео).
+ * Создает короткое превью MP4 и обложку JPG для карточки видео.
  */
 const videoPreviewService = {
   /**
    * Генерирует короткое превью из исходного видео.
    *
-   * @param {string} videoPath - путь к исходному видео
-   * @param {number} duration - длительность видео
-   * @returns {Promise<string>} - путь к созданному preview
+   * @param {string} videoPath - Путь к исходному видео
+   * @param {number} duration - Длительность в секундах
+   * @returns {Promise<string>} Путь к созданному preview.
    */
   async generatePreview(videoPath, duration) {
     if (!videoPath) {
       throw createError('Путь к видео не указан', 400, 'VIDEO_PATH_REQUIRED');
     }
 
-    /** Преобразуем путь к абсолютному. */
     const absoluteVideoPath = path.resolve(videoPath);
 
-    /** Проверяем существование исходного видео. */
     try {
       await fs.access(absoluteVideoPath);
     } catch {
@@ -51,7 +48,7 @@ const videoPreviewService = {
     /** Максимальная длительность превью — 5 секунд. */
     const previewDuration = Math.min(5, duration);
 
-    /** Начинаем с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд. */
+    /** Начинает с времени, которое составляет 25% от длительности видео или с начала видео, если длительность видео меньше 5 секунд. */
     const startTime = Math.max(
       0,
       Math.min(duration * 0.25, duration - previewDuration)
@@ -101,9 +98,9 @@ const videoPreviewService = {
   /**
    * Генерирует обложку видео из исходного видео.
    *
-   * @param {string} videoPath - путь к исходному видео
-   * @param {number} duration - длительность видео
-   * @returns {Promise<string>} - путь к созданной обложке
+   * @param {string} videoPath - Путь к исходному видео
+   * @param {number} duration - Длительность в секундах
+   * @returns {Promise<string>} Путь к созданной обложке.
    */
   async generateThumbnail(videoPath, duration) {
     if (!videoPath) {

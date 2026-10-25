@@ -1,11 +1,12 @@
 /**
- * Определяет конфигурацию кнопки действий с дружбой.
+ * Возвращает конфигурацию кнопки дружбы.
  *
- * @param {Object} params
- * @param {Object} [params.user] - пользователь
- * @param {Function} [params.onFollow] - функция для отправки заявки в друзья
- * @param {Function} [params.onUnfollow] - функция для удаления заявки в друзья
- * @param {Function} [params.onAccept] - функция для принятия заявки в друзья
+ * @param {Object} params - Параметры кнопки
+ * @param {Object} [params.user] - Пользователь
+ * @param {Function} [params.onFollow] - Обработчик заявки в друзья
+ * @param {Function} [params.onUnfollow] - Обработчик удаления из друзей
+ * @param {Function} [params.onAccept] - Обработчик принятия заявки
+ * @returns {Object|null} Конфигурация кнопки
  */
 export const getFriendshipButtonConfig = ({
   user,

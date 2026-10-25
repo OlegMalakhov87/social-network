@@ -1,24 +1,26 @@
 import { classNames } from '../../../utils';
+
 import styles from './Button.module.css';
 
 /**
- * Универсальная кнопка приложения.
+ * Отображает кнопку.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children - Содержимое кнопки.
- * @param {'button'|'submit'|'reset'} [props.type='button'] - Тип кнопки.
- * @param {'primary'|'secondary'|'outline'|'ghost'|'danger'|'success'} [props.variant='primary'] - Вариант оформления.
- * @param {'sm'|'md'|'lg'} [props.size='md'] - Размер кнопки.
- * @param {boolean} [props.fullWidth=false] - Растянуть кнопку на всю ширину.
- * @param {boolean} [props.loading=false] - Показывать состояние загрузки.
- * @param {boolean} [props.disabled=false] - Заблокировать кнопку.
- * @param {string} [props.hoverText] - Текст при наведении.
- * @param {React.ReactNode} [props.leftIcon] - Иконка слева.
- * @param {React.ReactNode} [props.rightIcon] - Иконка справа.
- * @param {Function} [props.onClick] - Обработчик нажатия.
- * @param {string} [props.className] - Дополнительный CSS класс.
- * @param {string} [props.ariaLabel] - aria-label для кнопки.
- * @param {string} [props.ariaCurrent] - aria-current для кнопки.
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое кнопки
+ * @param {'button'|'submit'|'reset'} [props.type='button'] - Тип кнопки
+ * @param {'primary'|'secondary'|'outline'|'ghost'|'danger'|'success'} [props.variant='primary'] - Вариант оформления
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - Размер кнопки
+ * @param {boolean} [props.fullWidth=false] - Растягивание на всю ширину
+ * @param {boolean} [props.loading=false] - Признак загрузки
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {string} [props.hoverText] - Текст при наведении
+ * @param {React.ReactNode} [props.leftIcon] - Иконка слева
+ * @param {React.ReactNode} [props.rightIcon] - Иконка справа
+ * @param {Function} [props.onClick] - Обработчик нажатия
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @param {string} [props.ariaLabel] - Значение атрибута aria-label
+ * @param {string} [props.ariaCurrent] - Значение атрибута aria-current
+ * @returns {JSX.Element} Кнопка.
  */
 
 export const Button = ({

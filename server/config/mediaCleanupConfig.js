@@ -1,7 +1,6 @@
-const path = require('node:path');
 const { Video, Post, News, Music, User } = require('../db/models');
 
-/** Конфигурация очистки медиафайлов */
+/** Задает сущности и поля, по которым ищутся используемые медиафайлы. */
 const MEDIA_CLEANUP_CONFIG = {
   entities: [
     {

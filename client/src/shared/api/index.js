@@ -1,3 +1,3 @@
-export { api } from './api'; // API для взаимодействия с сервером
-export { setupAxiosInterceptors } from './apiAxios'; // Axios клиент для взаимодействия с сервером и настройка интерцепторов
-export { authAxios } from './authAxios'; // Axios клиент для операций с refresh-сессией
+export { api } from './api'; // Выполняет запросы HTTP к серверу.
+export { setupAxiosInterceptors } from './apiAxios'; // Настраивает перехватчики Axios для обновления сессии.
+export { authAxios } from './authAxios'; // Выполняет запросы обновления сессии без автоматического повтора.

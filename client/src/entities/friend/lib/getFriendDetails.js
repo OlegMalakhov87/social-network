@@ -1,12 +1,11 @@
 import { calculateAge } from '../../../shared/utils';
 
 /**
- * Возвращает информацию о друге
+ * Возвращает сведения о друге.
  *
- * @param {Object} friend - данные друга
- * @returns {Array<Object>} - массив информации о друге
+ * @param {Object} friend - Данные друга
+ * @returns {Array<Object>} Сведения о друге
  */
-
 export const getFriendDetails = (friend) => {
   if (!friend) return [];
   return [

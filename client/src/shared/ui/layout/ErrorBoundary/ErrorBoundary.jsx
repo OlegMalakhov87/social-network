@@ -1,18 +1,18 @@
 import { Component } from 'react';
+
 import { Button, Card } from '../../../ui';
+
 import styles from './ErrorBoundary.module.css';
 
 /**
- * Компонент-перехватчик ошибок React.
+ * Перехватывает ошибку отрисовки и показывает запасной экран.
  *
- * Перехватывает ошибки рендера дочерних компонентов
- * и отображает запасной интерфейс вместо падения всего приложения.
+ * Не перехватывает ошибки в асинхронном коде, обработчиках событий и сетевых запросах.
  *
- * Не перехватывает:
- * - ошибки в async функциях
- * - ошибки в обработчиках событий
- * - ошибки запросов fetch/axios
- *
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Дочерние элементы
+ * @param {Function} [props.onReset] - Обработчик сброса ошибки
+ * @returns {JSX.Element} Запасной экран или дочерние элементы.
  * @extends Component
  */
 export class ErrorBoundary extends Component {
@@ -27,10 +27,10 @@ export class ErrorBoundary extends Component {
   }
 
   /**
-   * Обновление состояния после возникновения ошибки.
+   * Возвращает состояние после ошибки отрисовки.
    *
-   * @param {Error} error
-   * @returns {{hasError:boolean,error:Error}}
+   * @param {Error} error - Ошибка отрисовки
+   * @returns {{hasError: boolean, error: Error}} Состояние с признаком ошибки.
    */
   static getDerivedStateFromError(error) {
     return {
@@ -40,13 +40,11 @@ export class ErrorBoundary extends Component {
   }
 
   /**
-   * Логирование ошибки.
+   * Записывает ошибку отрисовки в консоль.
    *
-   * Здесь позже можно подключить Sentry,
-   * LogRocket или собственный backend.
-   *
-   * @param {Error} error
-   * @param {React.ErrorInfo} errorInfo
+   * @param {Error} error - Ошибка отрисовки
+   * @param {React.ErrorInfo} errorInfo - Сведения React о компоненте
+   * @returns {void}
    */
   componentDidCatch(error, errorInfo) {
     console.error('=== ERROR ===');
@@ -55,7 +53,9 @@ export class ErrorBoundary extends Component {
   }
 
   /**
-   * Сброс ошибки.
+   * Сбрасывает ошибку и заново отрисовывает дочерние элементы.
+   *
+   * @returns {void}
    */
   handleReset = () => {
     this.setState((prev) => ({

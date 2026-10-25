@@ -1,14 +1,14 @@
-export * from './api/friendsApi'; // API - функции
+export * from './api/friendsApi'; // Выполняет запросы друзей.
 
-export * from './lib/getEmptyState'; // Функция для получения заголовка и описания для пустой страницы друзей
-export { getFriendDetails } from './lib/getFriendDetails'; // Функция для получения информации о друге
+export * from './lib/getEmptyState'; // Возвращает заголовок и описание пустого списка друзей.
+export { getFriendDetails } from './lib/getFriendDetails'; // Возвращает сведения о друге.
 export {
   FRIENDSHIP_BADGE_VARIANT,
   getFriendshipBadge,
-} from './lib/getFriendshipBadge'; // Функция для получения конфигурации значка дружбы
-export { getFriendshipButtonConfig } from './lib/getFriendshipButtonConfig'; // Функция для управления кнопками дружбы
-export { normalizeFriends } from './lib/normalizeFriends'; // Функция для нормализации данных друзей
+} from './lib/getFriendshipBadge'; // Возвращает значок дружбы и его варианты.
+export { getFriendshipButtonConfig } from './lib/getFriendshipButtonConfig'; // Возвращает конфигурацию кнопки дружбы.
+export { normalizeFriends } from './lib/normalizeFriends'; // Приводит друга к формату карточки.
 
-export * from './model/friendsTab'; // Мапа для выбора вкладки друзей и категории друга
+export * from './model/friendsTab'; // Хранит категории друзей.
 
-export { Friend } from './ui/Friend'; // Компонент для отображения карточки друга
+export { Friend } from './ui/Friend'; // Отображает карточку друга.

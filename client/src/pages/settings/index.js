@@ -1,2 +1,2 @@
-export { SettingsPage } from './ui/SettingsPage'; // Компонент страницы настроек
-export {SettingsNav} from './ui/SettingsNav'; // Компонент навигации настроек
+export { SettingsPage } from './ui/SettingsPage'; // Отображает страницу настроек.
+export { SettingsNav } from './ui/SettingsNav'; // Отображает навигацию настроек.

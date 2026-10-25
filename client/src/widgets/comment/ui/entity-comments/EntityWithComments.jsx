@@ -1,19 +1,22 @@
 import { useCallback, useRef } from 'react';
+
 import { CommentsSection } from '../..';
 import { useCommentsPanelInteraction } from '../../../../shared/hooks';
+
 import styles from './EntityWithComments.module.css';
 
 /**
- * Компонент для отображения сущности с комментариями.
+ * Отображает сущность вместе с панелью комментариев.
  *
- * @param {Object} props
- * @param {Object} props.entity - сущность.
- * @param {string} props.targetType - тип сущности.
- * @param {Function} props.renderEntity - функция для рендера сущности.
- * @param {boolean} props.isOpen - флаг открытия панели комментариев.
- * @param {Function} props.onClose - функция для закрытия панели комментариев.
- * @param {Object} props.currentUser - текущий пользователь.
- * @param {Function} props.onCommentChange - функция для изменения комментариев.
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.entity - Комментируемая сущность
+ * @param {string} props.targetType - Тип сущности
+ * @param {Function} props.renderEntity - Отрисовка сущности
+ * @param {boolean} props.isOpen - Признак открытой панели комментариев
+ * @param {Function} props.onClose - Обработчик закрытия панели комментариев
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Function} props.onCommentChange - Обработчик изменения комментариев
+ * @returns {JSX.Element} Разметка сущности.
  */
 export const EntityWithComments = ({
   entity,
@@ -27,14 +30,9 @@ export const EntityWithComments = ({
   const entityRef = useRef(null);
   const commentsRef = useRef(null);
 
-  /**
-   * Функция для получения элемента, на который нужно вернуться после закрытия панели комментариев.
-   */
+  // Возвращает сущность, к которой возвращается фокус после закрытия комментариев.
   const getReturnElement = useCallback(() => entityRef.current, []);
 
-  /**
-   * Хук для взаимодействия с панелью комментариев.
-   */
   const { handleClose } = useCommentsPanelInteraction({
     isOpen,
     onClose,

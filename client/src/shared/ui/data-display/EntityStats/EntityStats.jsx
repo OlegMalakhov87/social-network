@@ -1,13 +1,15 @@
 import { Stat } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import styles from './EntityStats.module.css';
 
 /**
- * Панель статистики сущности.
+ * Отображает показатели сущности.
  *
- * @param {Object} props
- * @param {Object[]} props.items - массив статистики
- * @param {string} [props.className=''] - дополнительный класс
+ * @param {Object} props - Свойства компонента
+ * @param {Object[]} [props.items=[]] - Показатели с иконкой, значением и подписью
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element|null} Показатели или пустой результат без них.
  */
 
 export const EntityStats = ({ items = [], className = '' }) => {

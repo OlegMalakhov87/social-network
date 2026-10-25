@@ -1,15 +1,17 @@
 import { classNames } from '../../../utils';
+
 import styles from './SegmentedControl.module.css';
 
 /**
- * Сегментированный переключатель.
+ * Переключает один вариант из нескольких.
  *
- * @param {Object} props
- * @param {Array<{value:string,label:string,icon?:string}>} props.options - массив опций (значение, текст, иконка)
- * @param {string} props.value - значение выбранной опции
- * @param {(value:string)=>void} props.onChange - функция изменения выбранной опции
- * @param {boolean} [props.disabled=false] - заблокирован ли переключатель
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{value: string, label: string, icon?: string}>} props.options - Варианты со значением, текстом и иконкой
+ * @param {string} props.value - Значение выбранного варианта
+ * @param {(value: string) => void} props.onChange - Обработчик смены варианта
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @returns {JSX.Element} Переключатель вариантов.
  */
 
 export const SegmentedControl = ({

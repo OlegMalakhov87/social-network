@@ -1,31 +1,33 @@
 import { IconButton, Image } from '../../../shared/ui';
+
 import style from './AudioPlayer.module.css';
 
 /**
- * Презентационный компонент панели аудиоплеера.
- * @param {Object} props
- * @param {Object} props.currentTrack - текущий трек
- * @param {boolean} props.isPlaying - воспроизводится ли текущий трек
- * @param {number} props.volume - громкость воспроизведения
- * @param {boolean} props.isMuted - включен ли звук
- * @param {number} props.progress - прогресс воспроизведения
- * @param {number} props.currentTime - текущее время воспроизведения
- * @param {number} props.duration - общая длительность трека
- * @param {Function} props.formatTime - функция форматирования времени
- * @param {boolean} props.isLoading - загружается ли текущий трек
- * @param {string} props.error - сообщение об ошибке
- * @param {Function} props.onTogglePlay - функция переключения воспроизведения
- * @param {Function} props.onSeekPercent - функция изменения прогресса воспроизведения
- * @param {Function} props.onNext - функция переключения на следующий трек
- * @param {Function} props.onPrev - функция переключения на предыдущий трек
- * @param {Function} props.onSetRepeat - функция изменения режима повторения
- * @param {Function} props.onToggleShuffle - функция переключения режима перемешивания
- * @param {Function} props.onVolumeChange - функция изменения громкости
- * @param {Function} props.onToggleMute - функция переключения звука
- * @param {Function} props.onClose - функция закрытия плеера
- * @param {string} props.repeat - режим повторения
- * @param {boolean} props.shuffle - режим перемешивания
- * @returns {JSX.Element|null} возвращает разметку плеера или null, если нет трека
+ * Отображает панель аудиоплеера.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Object|null} props.currentTrack - Текущий трек
+ * @param {boolean} props.isPlaying - Признак воспроизведения текущего трека
+ * @param {number} props.volume - Громкость от 0 до 1
+ * @param {boolean} props.isMuted - Признак отключённого звука
+ * @param {number} props.progress - Доля воспроизведения от 0 до 1
+ * @param {number} props.currentTime - Текущая позиция в секундах
+ * @param {number} props.duration - Длительность трека в секундах
+ * @param {Function} props.formatTime - Форматирование времени
+ * @param {boolean} props.isLoading - Признак загрузки трека
+ * @param {string|null} props.error - Текст ошибки воспроизведения
+ * @param {Function} [props.onTogglePlay] - Обработчик паузы и воспроизведения
+ * @param {Function} [props.onSeekPercent] - Обработчик перемотки
+ * @param {Function} [props.onNext] - Обработчик перехода к следующему треку
+ * @param {Function} [props.onPrev] - Обработчик перехода к предыдущему треку
+ * @param {Function} [props.onSetRepeat] - Обработчик смены режима повтора
+ * @param {Function} [props.onToggleShuffle] - Обработчик перемешивания очереди
+ * @param {Function} [props.onVolumeChange] - Обработчик изменения громкости
+ * @param {Function} [props.onToggleMute] - Обработчик включения и отключения звука
+ * @param {Function} [props.onClose] - Обработчик закрытия плеера
+ * @param {string} props.repeat - Режим повтора: off, one или all
+ * @param {boolean} props.shuffle - Признак перемешивания очереди
+ * @returns {JSX.Element|null} Разметка плеера.
  */
 export const AudioPlayer = ({
   currentTrack,
@@ -50,20 +52,34 @@ export const AudioPlayer = ({
   repeat,
   shuffle,
 }) => {
-  /** Обработчик действий (нажатий кнопок) */
+  /**
+   * Останавливает всплытие и вызывает переданный обработчик.
+   *
+   * @param {Function} handler - Обработчик действия
+   * @returns {Function} Обработчик нажатия.
+   */
   const handleAction = (handler) => (e) => {
     e?.stopPropagation();
     handler?.();
   };
 
-  /** Обработчик изменения прогресса воспроизведения */
+  /**
+   * Перематывает воспроизведение по положению ползунка.
+   *
+   * @param {Object} e - Событие изменения ползунка
+   */
   const handleProgressChange = (e) => {
     e?.stopPropagation();
     const nextPercent = Number(e.target.value) / 100;
+    // Ограничивает позицию диапазоном от 0 до 1.
     onSeekPercent?.(Math.max(0, Math.min(1, nextPercent)));
   };
 
-  /** Обработчик изменения громкости */
+  /**
+   * Меняет громкость по положению ползунка.
+   *
+   * @param {Object} e - Событие изменения ползунка
+   */
   const handleVolumeChange = (e) => {
     e?.stopPropagation();
     onVolumeChange?.(parseFloat(e.target.value));

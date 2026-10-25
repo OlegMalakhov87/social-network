@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectUser } from '../../../entities/auth';
 import {
   clearChatApi,
@@ -10,18 +11,23 @@ import {
 import { parseApiError } from '../../../shared/lib';
 
 /**
- * Хук действий с сообщениями – предоставляет функции отправки, удаления (скрытия),
- * редактирования, очистки чата и отправки общей сущности.
+ * Отправляет, изменяет и скрывает сообщения и очищает чат.
  *
- * @param {Function} addOptimistic – добавить временное сообщение в стейт
- * @param {Function} replaceOptimistic – заменить временное сообщение реальным
- * @param {Function} removeOptimistic – удалить сообщение из стейта (оптимистично)
- * @param {Function} updateMessageInState – обновить поля сообщения (например, после редактирования)
- * @param {Function} refetchDialogs – перезапросить список диалогов
- * @param {Function} refetchMessages – перезапросить список сообщений текущего диалога
- * @param {Function} getSharedEntity – получить расшаренную сущность из sessionStorage
- * @param {Function} clearSharedEntity – очистить расшаренную сущность из sessionStorage
- * @returns {Object} - объект с функциями действий
+ * @param {Function} addOptimistic - Добавляет временное сообщение
+ * @param {Function} replaceOptimistic - Заменяет временное сообщение
+ * @param {Function} removeOptimistic - Удаляет сообщение из списка
+ * @param {Function} updateMessageInState - Обновляет поля сообщения
+ * @param {Function} refetchDialogs - Повторяет загрузку диалогов
+ * @param {Function} refetchMessages - Повторяет загрузку сообщений
+ * @param {Function} getSharedEntity - Читает сохранённую сущность
+ * @param {Function} clearSharedEntity - Удаляет сохранённую сущность
+ * @returns {{
+ *   sendMessage: Function,
+ *   deleteMessage: Function,
+ *   updateMessage: Function,
+ *   sendSharedEntity: Function,
+ *   clearChat: Function
+ * }} Действия над сообщениями
  */
 export const useDialogsActions = (
   addOptimistic,
@@ -37,15 +43,17 @@ export const useDialogsActions = (
   const currentUserId = currentUser?.id;
 
   /**
-   * Отправить сообщение партнёру (оптимистично).
-   * @param {number} partnerId – ID получателя
-   * @param {string} text – текст сообщения
+   * Отправляет сообщение и показывает его до ответа сервера.
+   *
+   * @param {number} partnerId - Идентификатор получателя
+   * @param {string} content - Текст сообщения
+   * @returns {Promise<boolean>} Результат отправки
    */
   const sendMessage = useCallback(
     async (partnerId, content) => {
       if (!currentUserId || !content) return false;
 
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${crypto.randomUUID()}`;
 
       const optimisticMsg = {
         id: tempId,
@@ -61,12 +69,11 @@ export const useDialogsActions = (
       try {
         const result = await sendMessageApi(partnerId, content.trim());
 
-        // Заменяем временное сообщение реальным
         replaceOptimistic?.(tempId, result);
         refetchDialogs?.();
         return true;
       } catch (error) {
-        // Удаляем временное сообщение при ошибке
+        // Удаляет временное сообщение, если отправка не удалась.
         replaceOptimistic?.(tempId, null);
         throw parseApiError(error, 'Ошибка отправки сообщения');
       }
@@ -75,8 +82,10 @@ export const useDialogsActions = (
   );
 
   /**
-   * Скрыть сообщение от текущего пользователя (оптимистично).
-   * @param {number} messageId – ID сообщения
+   * Скрывает сообщение у текущего пользователя.
+   *
+   * @param {number} messageId - Идентификатор сообщения
+   * @returns {Promise<boolean>} Результат скрытия
    */
   const deleteMessage = useCallback(
     async (messageId) => {
@@ -98,9 +107,11 @@ export const useDialogsActions = (
   );
 
   /**
-   * Редактировать своё сообщение (оптимистично).
-   * @param {number} messageId – ID сообщения
-   * @param {string} newText – новый текст
+   * Изменяет текст своего сообщения.
+   *
+   * @param {number} messageId - Идентификатор сообщения
+   * @param {string} content - Новый текст
+   * @returns {Promise<boolean>} Результат изменения
    */
   const updateMessage = useCallback(
     async (messageId, content) => {
@@ -126,8 +137,10 @@ export const useDialogsActions = (
   );
 
   /**
-   * Очистить свой чат с пользователем (скрывает все сообщения от текущего пользователя).
-   * @param {number} partnerId – ID собеседника
+   * Скрывает все сообщения чата у текущего пользователя.
+   *
+   * @param {number} partnerId - Идентификатор собеседника
+   * @returns {Promise<boolean>} Результат очистки
    */
   const clearChat = useCallback(
     async (partnerId) => {
@@ -148,8 +161,10 @@ export const useDialogsActions = (
   );
 
   /**
-   * Отправить расшаренную сущность.
-   * @param {number} partnerId – ID получателя
+   * Отправляет ранее сохранённую сущность.
+   *
+   * @param {number} partnerId - Идентификатор получателя
+   * @returns {Promise<boolean>} Результат отправки
    */
   const sendSharedEntity = useCallback(
     async (partnerId) => {
@@ -159,7 +174,7 @@ export const useDialogsActions = (
 
       if (!sharedEntity) return false;
 
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${crypto.randomUUID()}`;
 
       const optimisticMsg = {
         id: tempId,
@@ -174,12 +189,11 @@ export const useDialogsActions = (
       try {
         const result = await sendMessageApi(partnerId, sharedEntity);
         replaceOptimistic?.(tempId, result);
+        clearSharedEntity?.();
         return true;
       } catch (error) {
         replaceOptimistic?.(tempId, null);
         throw parseApiError(error, 'Ошибка отправки сообщения');
-      } finally {
-        clearSharedEntity?.();
       }
     },
     [

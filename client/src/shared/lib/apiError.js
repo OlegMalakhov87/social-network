@@ -1,16 +1,16 @@
 /**
- * Преобразует ответ axios в структуру для rejectWithValue и форм.
+ * Преобразует ошибку Axios в сообщение и ошибки полей.
  *
- * @param {Error} error - Ошибка axios.
- * @param {string} fallback - Сообщение ошибки по умолчанию.
- * @returns {Object} - Объект с сообщением ошибки и полями ошибки.
+ * @param {Error|Object|null|undefined} error - Ошибка Axios или уже разобранный объект
+ * @param {string} [fallback='Ошибка запроса'] - Запасное сообщение
+ * @returns {{ message: string, fieldErrors?: Object }} Сообщение и ошибки полей, если они есть.
  */
 export const parseApiError = (error, fallback = 'Ошибка запроса') => {
   if (!error) {
     return { message: fallback };
   }
 
-  // Ошибка уже нормализована
+  // Возвращает прежнее сообщение, если ошибка уже разобрана.
   if (
     typeof error === 'object' &&
     error !== null &&
@@ -47,11 +47,11 @@ export const parseApiError = (error, fallback = 'Ошибка запроса') =
 };
 
 /**
- * Получает текст ошибки для toast / Alert.
+ * Возвращает текст ошибки для уведомления.
  *
- * @param {Error} error - Ошибка axios.
- * @param {string} fallback - Сообщение ошибки по умолчанию.
- * @returns {string} - Текст ошибки.
+ * @param {Error|Object|string|null|undefined} error - Ошибка Axios, объект или строка
+ * @param {string} [fallback='Неизвестная ошибка'] - Запасное сообщение
+ * @returns {string} Текст ошибки.
  */
 export const getApiErrorDisplay = (error, fallback = 'Неизвестная ошибка') => {
   if (!error) return fallback;
@@ -63,11 +63,11 @@ export const getApiErrorDisplay = (error, fallback = 'Неизвестная о�
 };
 
 /**
- * Сообщение для Redux state.error из payload thunk.
+ * Возвращает сообщение ошибки из данных Redux.
  *
- * @param {Object} payload - payload thunk.
- * @param {string} fallback - Сообщение ошибки по умолчанию.
- * @returns {string} - Текст ошибки.
+ * @param {Object|string|null|undefined} payload - Данные результата
+ * @param {string} [fallback='Неизвестная ошибка'] - Запасное сообщение
+ * @returns {string} Текст ошибки.
  */
 export const apiErrorMessageFromPayload = (
   payload,

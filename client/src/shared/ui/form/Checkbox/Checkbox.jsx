@@ -1,19 +1,21 @@
 import { classNames } from '../../../utils';
+
 import style from './Checkbox.module.css';
 
 /**
- * Универсальный компонент чекбокса с подписью.
+ * Отображает флажок с подписью.
  *
- * @param {Object} props
- * @param {string} props.id - уникальный идентификатор (обязательно для связи с label)
- * @param {React.ReactNode} props.label - текст подписи
- * @param {string} [props.description] - дополнительное описание под заголовком
- * @param {boolean} props.checked - состояние чекбокса
- * @param {Function} props.onChange - обработчик изменения состояния
- * @param {boolean} [props.disabled=false] - заблокирован ли чекбокс
- * @param {'center'|'start'} [props.align='center'] - выравнивание чекбокса относительно подписи
- * @param {string} [props.name] - имя поля формы
- * @param {string} [props.className] - дополнительный CSS-класс
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.id - Идентификатор для связи с подписью
+ * @param {React.ReactNode} props.label - Текст подписи
+ * @param {string} [props.description] - Дополнительное описание под заголовком
+ * @param {boolean} props.checked - Признак выбранного флажка
+ * @param {Function} props.onChange - Обработчик изменения
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {'center'|'start'|'end'} [props.align='center'] - Выравнивание флажка относительно подписи
+ * @param {string} [props.name] - Имя поля формы
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Флажок с подписью.
  */
 export const Checkbox = ({
   id,

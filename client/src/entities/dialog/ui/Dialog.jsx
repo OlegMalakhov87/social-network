@@ -1,14 +1,17 @@
 import { EntityMeta, StatusBadge, Text } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
+
 import style from './Dialog.module.css';
 
 /**
- * Компонент отображения диалога.
- * @param {Object} props
- * @param {Object} props.user - объект пользователя
- * @param {boolean} props.isActive - флаг активности диалога
- * @param {Function} props.onSelect - функция для выбора диалога
- * @param {Object} props.lastMessage - объект последнего сообщения
+ * Отображает карточку диалога.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.user - Пользователь.
+ * @param {boolean} props.isActive - Признак выбранного диалога.
+ * @param {Function} props.onSelect - Обработчик выбора диалога.
+ * @param {Object} [props.lastMessage] - Последнее сообщение.
+ * @returns {JSX.Element} Разметка карточки.
  */
 export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
   return (
@@ -29,7 +32,7 @@ export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
           lastMessage ? (
             <Text variant="caption" className={style.lastMessageText}>
               {lastMessage.isOwn ? 'Вы: ' : ''}
-              {lastMessage.text}
+              {lastMessage.content}
             </Text>
           ) : (
             <Text variant="caption">Нет сообщений</Text>
@@ -38,7 +41,7 @@ export const Dialog = ({ user, isActive, onSelect, lastMessage }) => {
       />
       <div className={style.rightColumn}>
         <Text variant="caption" className={style.timeText}>
-          {lastMessage && formatDate(lastMessage.date)}
+          {lastMessage && formatDate(lastMessage.createdAt)}
         </Text>
         <StatusBadge status={user.online ? 'online' : 'offline'} size="sm" />
       </div>

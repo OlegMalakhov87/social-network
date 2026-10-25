@@ -1,6 +1,6 @@
-export { PhotosTab } from './ui/user-photo/PhotosTab'; // Вкладка "Фото"
-export { PostsTab } from './ui/user-post/PostsTab'; // Вкладка "Посты"
-export { TracksTab } from './ui/user-tracks/TracksTab'; // Вкладка "Музыка"
-export { VideosTab } from './ui/user-video/VideosTab'; // Вкладка "Видео"
+export { PhotosTab } from './ui/user-photo/PhotosTab'; // Отображает вкладку фотографий.
+export { PostsTab } from './ui/user-post/PostsTab'; // Отображает вкладку постов.
+export { TracksTab } from './ui/user-tracks/TracksTab'; // Отображает вкладку треков.
+export { VideosTab } from './ui/user-video/VideosTab'; // Отображает вкладку видео.
 
-export { getProfileTabContent, PROFILE_TABS_MAP } from './model/profileTabs'; // Функция и мапа для получения контента выбранной вкладки
+export { getProfileTabContent, PROFILE_TABS_MAP } from './model/profileTabs'; // Возвращает содержимое вкладки и список вкладок профиля.

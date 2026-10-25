@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import {
   fetchMyMusicLibrary,
   fetchUserMusicLibrary,
@@ -8,25 +9,32 @@ import { useInfiniteScroll, useNormalizedData } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для получения треков библиотеки пользователя.
+ * Возвращает треки библиотеки пользователя.
  *
- * @param {Object} params - параметры запроса
- * @param {number|null} params.profileUserId - ID пользователя
- * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Object} - объект с данными о треках библиотеки пользователя
+ * @param {Object} params - Параметры запроса
+ * @param {number|null} params.profileUserId - Идентификатор пользователя
+ * @param {boolean} params.isOwnProfile - Признак своего профиля
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {{
+ *   tracks: Array<Object>,
+ *   hasMore: boolean,
+ *   isLoading: boolean,
+ *   loadMore: Function,
+ *   isLoadingMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   refetch: Function,
+ *   setTracksItems: Function
+ * }} Треки библиотеки и состояние загрузки
  */
 export const useUserMusicLibrary = ({
   profileUserId,
   isOwnProfile,
   sortKey,
 }) => {
-  /** Зависимости для скролла */
   const scrollDeps = useMemo(
     () => [profileUserId, sortKey],
     [profileUserId, sortKey]
   );
-  /** Получение треков библиотеки пользователя с бесконечным скроллом. */
   const {
     items: tracksItems,
     setItems: setTracksItems,
@@ -37,6 +45,15 @@ export const useUserMusicLibrary = ({
     loadMore,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу библиотеки треков.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница треков
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!profileUserId || profileUserId <= 0) {
         return { items: [], hasMore: false };
@@ -52,15 +69,11 @@ export const useUserMusicLibrary = ({
     deps: scrollDeps,
   });
 
-  /** Нормализация треков. */
   const tracks = useNormalizedData({
     items: tracksItems,
     normalizeFn: normalizeTracks,
   });
 
-  /**
-   * Возвращаем объект с данными о треках библиотеки пользователя.
-   */
   return {
     tracks,
     hasMore,

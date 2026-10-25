@@ -2,12 +2,10 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     static associate({ User, Like }) {
-      // Отправил сообщение
       this.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
-      //Получил сообщение
       this.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
 
-      // Лайки сообщения
+      // Связывает отметки по типу цели, без внешнего ключа.
       this.hasMany(Like, {
         foreignKey: 'targetId',
         constraints: false,

@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+
 const {
   UserMusicLibrary,
   Music,
@@ -6,11 +8,12 @@ const {
   Comment,
   Friend,
 } = require('../../db/models');
-const { Op } = require('sequelize');
 const { sequelize } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
-/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: [['createdAt', 'DESC']],
   dateAsc: [['createdAt', 'ASC']],
@@ -18,19 +21,16 @@ const SORT_MAP = {
   viewsAsc: [['playsCount', 'ASC']],
 };
 
-/**
- * Сервис для работы с библиотекой треков пользователя.
- */
-
 const userMusicLibraryService = {
   /**
-   * Получить мою библиотеку треков
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.currentUserId - ID пользователя
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество треков на странице
-   * @param {string} params.sortKey - Ключ сортировки
-   * @returns {Promise<Object>}
+   * Возвращает библиотеку треков текущего пользователя.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async getMyMusicLibrary({
     currentUserId,
@@ -112,14 +112,15 @@ const userMusicLibraryService = {
   },
 
   /**
-   * Получить библиотеку треков конкретного пользователя
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.profileUserId - ID пользователя, библиотеку которого запрашивают
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество треков на странице
-   * @param {string} params.sortKey - Ключ сортировки
-   * @returns {Promise<Object>}
+   * Возвращает библиотеку треков выбранного пользователя.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.profileUserId - Идентификатор владельца профиля
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async getUserMusicLibrary({
     profileUserId,
@@ -246,10 +247,11 @@ const userMusicLibraryService = {
     };
   },
   /**
-   * Добавить трек в библиотеку
-   * @param {number} currentUserId - ID пользователя
-   * @param {number} trackId - ID трека
-   * @returns {Promise<Object>}
+   * Добавляет трек в библиотеку.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} trackId - Идентификатор трека
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async addToMusicLibrary(currentUserId, trackId) {
     const track = await Music.findByPk(trackId, { attributes: ['id'] });
@@ -289,11 +291,12 @@ const userMusicLibraryService = {
   },
 
   /**
-   * Обновить запись в библиотеке (избранное)
-   * @param {number} currentUserId - ID пользователя
-   * @param {number} libraryId - ID записи в библиотеке
-   * @param {boolean} isFavorite - Состояние избранного
-   * @returns {Promise<Object>}
+   * Обновляет признак избранного в библиотеке.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} libraryId - Идентификатор записи библиотеки
+   * @param {boolean} isFavorite - Признак избранного
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updateFavoriteTrack(currentUserId, libraryId, isFavorite) {
     const [affectedCount, updatedRows] = await UserMusicLibrary.update(
@@ -317,9 +320,10 @@ const userMusicLibraryService = {
   },
 
   /**
-   * Увеличить счетчик прослушиваний трека в библиотеке
-   * @param {number} libraryId - ID записи в библиотеке
-   * @returns {Promise<Object>}
+   * Увеличивает счетчик прослушиваний трека в библиотеке.
+   *
+   * @param {number} libraryId - Идентификатор записи библиотеки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async incrementPlaysCount(libraryId) {
     const libraryItem = await UserMusicLibrary.findByPk(libraryId);
@@ -353,10 +357,11 @@ const userMusicLibraryService = {
   },
 
   /**
-   * Удалить трек из библиотеки
-   * @param {number} currentUserId - ID пользователя
-   * @param {number} libraryId - ID записи в библиотеке
-   * @returns {Promise<Object>}
+   * Удаляет трек из библиотеки.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} libraryId - Идентификатор записи библиотеки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async deleteMusicFromLibrary(currentUserId, libraryId) {
     const deletedCount = await UserMusicLibrary.destroy({

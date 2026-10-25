@@ -2,15 +2,16 @@ import { api } from '../../../shared/api';
 import { VideoSchema, VideosListSchema } from '../model/videoSchema';
 
 /**
- * Получить все публичные видео с возможностью фильтрации по категории и поиску.
- * @param {Object} params - параметры запроса
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество видео на странице
- * @param {string} params.filter - фильтр по категории
- * @param {string} [params.q] - поисковый запрос
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
+ * Возвращает публичные видео с фильтром и поиском.
+ *
+ * @param {Object} params - Параметры запроса
+ * @param {number} params.page - Номер страницы
+ * @param {number} params.limit - Количество видео на странице
+ * @param {string} params.filter - Фильтр категории
+ * @param {string} [params.q] - Поисковый запрос
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {Promise<{ videos: Object[], pagination: Object }>} Видео и пагинация
  */
 export const fetchVideosApi = async ({
   page,
@@ -37,9 +38,10 @@ export const fetchVideosApi = async ({
 };
 
 /**
- * Загрузить новое видео.
- * @param {Object} formData – поля видео
- * @returns {Promise<Object>} { video }
+ * Загружает новое видео.
+ *
+ * @param {Object} formData - Поля видео
+ * @returns {Promise<Object>} Видео
  */
 export const addVideoApi = async (formData) => {
   const response = await api.post('/videos/add', formData);
@@ -47,10 +49,11 @@ export const addVideoApi = async (formData) => {
 };
 
 /**
- * Загрузить медиа файл для видео.
- * @param {FormData} formData - формат данных медиа файла
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { videoUrl }
+ * Загружает файл видео.
+ *
+ * @param {FormData} formData - Файл видео
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadVideoApi = async (formData, config) => {
   const response = await api.post('/videos/upload-video', formData, config);
@@ -58,10 +61,11 @@ export const uploadVideoApi = async (formData, config) => {
 };
 
 /**
- * Загрузить медиа файл для обложки видео.
- * @param {FormData} formData - формат данных медиа файла
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { thumbnailUrl }
+ * Загружает обложку видео.
+ *
+ * @param {FormData} formData - Файл обложки
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadVideoThumbnailApi = async (formData, config) => {
   const response = await api.post('/videos/upload-thumbnail', formData, config);
@@ -69,10 +73,11 @@ export const uploadVideoThumbnailApi = async (formData, config) => {
 };
 
 /**
- * Загрузить медиа файл для превью видео.
- * @param {FormData} formData - формат данных медиа файла
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { previewUrl }
+ * Загружает превью видео.
+ *
+ * @param {FormData} formData - Файл превью
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadVideoPreviewApi = async (formData, config) => {
   const response = await api.post('/videos/upload-preview', formData, config);
@@ -80,10 +85,11 @@ export const uploadVideoPreviewApi = async (formData, config) => {
 };
 
 /**
- * Обновить видео.
- * @param {number} videoId - ID видео
- * @param {Object} updates - поля видео
- * @returns {Promise<Object>} { video }
+ * Обновляет видео.
+ *
+ * @param {number} videoId - Идентификатор видео
+ * @param {Object} updates - Поля видео
+ * @returns {Promise<Object>} Видео
  */
 export const updateVideoApi = async (videoId, updates) => {
   const response = await api.put(`/videos/${videoId}/update`, updates);
@@ -91,9 +97,10 @@ export const updateVideoApi = async (videoId, updates) => {
 };
 
 /**
- * Обновить приватность видео.
- * @param {boolean} isPublic - видимость видео
- * @returns {Promise<Object>} { message, videos }
+ * Обновляет приватность видео.
+ *
+ * @param {boolean} isPublic - Признак публичности видео
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updateVideosPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/videos/update-privacy`, { isPublic });
@@ -101,9 +108,10 @@ export const updateVideosPrivacyApi = async (isPublic) => {
 };
 
 /**
- * Инкрементировать счетчик просмотров видео.
- * @param {number} videoId - ID видео
- * @returns {Promise<Object>} { success, viewsCount }
+ * Увеличивает счётчик просмотров видео.
+ *
+ * @param {number} videoId - Идентификатор видео
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const incrementVideoViewsCountApi = async (videoId) => {
   const response = await api.patch(`/videos/${videoId}/views`);
@@ -111,9 +119,10 @@ export const incrementVideoViewsCountApi = async (videoId) => {
 };
 
 /**
- * Удалить видео.
- * @param {number} videoId - ID видео
- * @returns {Promise<Object>} { message, videoId }
+ * Удаляет видео.
+ *
+ * @param {number} videoId - Идентификатор видео
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteVideoApi = async (videoId) => {
   const response = await api.delete(`/videos/${videoId}/delete`);
@@ -121,9 +130,10 @@ export const deleteVideoApi = async (videoId) => {
 };
 
 /**
- * Удалить (очистка мусора) загруженные медиа файлы.
- * @param {Object} data - данные медиа файлов (videoUrl, previewUrl, thumbnailUrl)
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженные файлы видео.
+ *
+ * @param {Object} data - Адреса видео, превью и обложки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedVideoApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-video', { data });
@@ -131,9 +141,10 @@ export const deleteUploadedVideoApi = async (data) => {
 };
 
 /**
- * Удалить загруженные медиа превью.
- * @param {Object} data - данные превью
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженные превью видео.
+ *
+ * @param {Object} data - Данные превью
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedPreviewApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-preview', {
@@ -143,9 +154,10 @@ export const deleteUploadedPreviewApi = async (data) => {
 };
 
 /**
- * Удалить загруженные медиа thumbnail.
- * @param {Object} data - данные thumbnail
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженные обложки видео.
+ *
+ * @param {Object} data - Данные обложки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedThumbnailApi = async (data) => {
   const response = await api.delete('/videos/delete-uploaded-thumb', {

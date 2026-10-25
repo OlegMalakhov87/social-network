@@ -1,8 +1,4 @@
-/**
- * Конфигурация полей формы редактирования профиля.
- *
- * @returns {Array<Object>} - массив полей формы
- */
+/** Задаёт поля формы профиля. */
 export const PROFILE_SETTINGS_CONFIG = [
   {
     key: 'name',

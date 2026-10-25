@@ -1,9 +1,11 @@
 import style from './EntityContent.module.css';
 
 /**
- * Универсальный контейнер контента сущности.
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент сущности
+ * Отображает содержимое сущности.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое сущности
+ * @returns {JSX.Element|null} Содержимое или пустой результат без него.
  */
 
 export const EntityContent = ({ children }) => {

@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { constants } = require('node:fs');
 const { randomUUID } = require('node:crypto');
+
 const {
   MEDIA_ROOT,
   STAGING_ROOT,
@@ -13,10 +14,10 @@ const { createError } = require('../utils/createError');
 /**
  * Публикует готовый файл в публичное хранилище.
  *
- * @param {string} sourcePath - абсолютный путь исходного файла
- * @param {string} destinationDir - абсолютный путь целевой директории
- * @param {string} extension - расширение файла, включая точку
- * @returns {Promise<string>} абсолютный путь опубликованного файла
+ * @param {string} sourcePath - Путь к исходному файлу
+ * @param {string} destinationDir - Каталог назначения
+ * @param {string} extension - Расширение файла
+ * @returns {Promise<string>} Абсолютный путь опубликованного файла.
  */
 async function publishFile(sourcePath, destinationDir, extension) {
   const filename = `${randomUUID()}${extension}`;
@@ -34,10 +35,10 @@ async function publishFile(sourcePath, destinationDir, extension) {
       mode: 0o700,
     });
 
-    // Копируем в закрытую директорию на той же файловой системе.
+    // Копирует в закрытую директорию на той же файловой системе.
     await fs.copyFile(sourcePath, temporaryPath, constants.COPYFILE_EXCL);
 
-    // Атомарно публикуем полностью готовый файл.
+    // Атомарно публикует полностью готовый файл.
     await fs.link(temporaryPath, destinationPath);
 
     published = true;
@@ -81,11 +82,12 @@ async function publishFile(sourcePath, destinationDir, extension) {
   }
 }
 
-/** Проверка, что путь находится внутри корневой директории
+/**
+ * Проверка, что путь находится внутри корневой директории.
  *
- * @param {string} root - Корневая директория
- * @param {string} target - Путь для проверки
- * @returns {boolean} - true, если путь находится внутри корневой директории, false в противном случае
+ * @param {string} root - Абсолютный путь корневого каталога
+ * @param {string} target - Проверяемый абсолютный путь
+ * @returns {boolean} Признак пути внутри корневого каталога.
  */
 const isInside = (root, target) => {
   const relative = path.relative(root, target);
@@ -98,14 +100,12 @@ const isInside = (root, target) => {
   );
 };
 
-/**
- * Сервис для публикации медиа файлов
- */
 const mediaStorageService = {
-  /** Публикация медиа файла
+  /**
+   * Публикация медиа файла.
    *
-   * @param {Object} file - Загруженный медиа файл
-   * @returns {Promise<string>} - Путь к публикации файла
+   * @param {Object} file - Загруженный файл
+   * @returns {Promise<string>} Путь к публикации файла.
    */
   async publish(file) {
     if (!file?.path || !file.mediaType || !file.safeExtension) {
@@ -147,7 +147,6 @@ const mediaStorageService = {
       file.safeExtension
     );
 
-    // Сохраняем совместимость с объектом Multer.
     file.path = destinationPath;
     file.filename = path.basename(destinationPath);
     file.destination = destinationDir;
@@ -158,9 +157,9 @@ const mediaStorageService = {
   /**
    * Публикует файл, сгенерированный сервером.
    *
-   * @param {string} sourcePath - путь к готовому файлу
-   * @param {'preview'|'thumbnail'} type - тип производного файла
-   * @returns {Promise<string>} абсолютный путь опубликованного файла
+   * @param {string} sourcePath - Путь к исходному файлу
+   * @param {'preview'|'thumbnail'} type - Тип файла
+   * @returns {Promise<string>} Абсолютный путь опубликованного файла.
    */
   async publishGeneratedFile(sourcePath, type) {
     const destinations = {

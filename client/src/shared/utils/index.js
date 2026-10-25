@@ -1,14 +1,12 @@
-export { calculateAge } from './calculateAge'; // Утилита расчета возраста
-export { classNames } from './classNames'; // Утилита объединения классов
-export { formatCityTime } from './formatCityTime'; // Утилита форматирования времени в указанной таймзоне
-export { formatDate } from './formatDate'; // Утилита форматирования даты
-export { formatDateForInput } from './formatDateForInput'; // Утилита форматирования даты для input
-export { formatDuration } from './formatDuration'; // Утилита форматирования длительности
-export { formatPhone } from './formatPhone'; // Утилита форматирования телефонного номера
-export { formatRelativeTime } from './formatRelativeTime'; // Утилита форматирования относительного времени
-export { formatSize } from './formatSize'; // Утилита форматирования размеров файлов
-export { formatViews } from './formatViews'; // Утилита форматирования просмотров
-export { isPlayable } from './isPlayable'; // Утилита проверки воспроизводимости сущности
-export { handleKeyboardClick } from './keyboardClick'; // Утилита обработки клавиатурных событий
-export { linkifyText } from './linkifyText'; // Утилита форматирования ссылок
-export { parseSharedEntity } from './parseSharedEntity'; // Утилита парсинга расшаренной сущности
+export { calculateAge } from './calculateAge'; // Возвращает возраст в полных годах.
+export { classNames } from './classNames'; // Объединяет имена классов CSS в одну строку.
+export { formatDate } from './formatDate'; // Форматирует дату с учётом давности.
+export { formatDateForInput } from './formatDateForInput'; // Возвращает дату для поля ввода.
+export { formatDuration } from './formatDuration'; // Форматирует длительность в часы, минуты и секунды.
+export { formatPhone } from './formatPhone'; // Форматирует номер телефона.
+export { formatSize } from './formatSize'; // Форматирует размер файла.
+export { formatViews } from './formatViews'; // Сокращает большое количество просмотров.
+export { isPlayable } from './isPlayable'; // Проверяет, можно ли воспроизвести сущность.
+export { handleKeyboardClick } from './keyboardClick'; // Вызывает обработчик при нажатии Enter или пробела.
+export { linkifyText } from './linkifyText'; // Превращает адреса URL в тексте в ссылки.
+export { parseSharedEntity } from './parseSharedEntity'; // Разбирает переданную сущность из строки JSON или объекта.

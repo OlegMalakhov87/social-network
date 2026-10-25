@@ -2,10 +2,9 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Like extends Model {
     static associate({ User, Post, Music, Video, News, Comment, Message }) {
-      // Пользователь, который поставил лайк
       this.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-      // Полиморфная связь с целевой сущностью
+      // Связывает отметку с записью, треком, видео, новостью, комментарием или сообщением без внешнего ключа.
       this.belongsTo(Post, {
         foreignKey: 'targetId',
         constraints: false,

@@ -1,7 +1,8 @@
 /**
- * Получение заголовка для пустой страницы друзей.
- * @param {string} filter - фильтр друзей
- * @returns {string} - заголовок
+ * Возвращает заголовок пустого списка друзей.
+ *
+ * @param {string} filter - Фильтр друзей
+ * @returns {string} Заголовок
  */
 export const getEmptyTitle = (filter) => {
   switch (filter) {
@@ -19,9 +20,10 @@ export const getEmptyTitle = (filter) => {
 };
 
 /**
- * Получение описания для пустой страницы друзей.
- * @param {string} filter - фильтр друзей
- * @returns {string} описание
+ * Возвращает описание пустого списка друзей.
+ *
+ * @param {string} filter - Фильтр друзей
+ * @returns {string} Описание
  */
 export const getEmptyDescription = (filter) => {
   switch (filter) {

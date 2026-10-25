@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo } from 'react';
+
 import { useEscapeKey, useOutsideClick } from './';
 
 /**
- * Хук для взаимодействия с панелью комментариев.
+ * Закрывает панель комментариев и возвращает прокрутку к исходному элементу.
  *
- * @param {Object} props
- * @param {boolean} props.isOpen - флаг открытия панели комментариев.
- * @param {Function} props.onClose - функция для закрытия панели комментариев.
- * @param {RefObject} props.panelRef - ref на панель комментариев.
- * @param {Function} props.getReturnElement - функция для получения элемента, на который нужно вернуться после закрытия панели комментариев.
- * @returns {Object} объект с функцией для закрытия панели комментариев.
+ * @param {Object} props - Параметры панели
+ * @param {boolean} props.isOpen - Панель открыта
+ * @param {Function} props.onClose - Закрывает панель
+ * @param {import('react').RefObject} props.panelRef - Ссылка на панель
+ * @param {Function} props.getReturnElement - Возвращает элемент для возврата прокрутки
+ * @returns {{ handleClose: Function }} Обработчик закрытия панели.
  */
 export const useCommentsPanelInteraction = ({
   isOpen,
@@ -19,6 +20,11 @@ export const useCommentsPanelInteraction = ({
 }) => {
   const modalOverlaySelector = useMemo(() => ['[data-modal-overlay]'], []);
 
+  /**
+   * Закрывает панель и прокручивает страницу к исходному элементу.
+   *
+   * @returns {void}
+   */
   const handleClose = useCallback(() => {
     onClose?.();
 
@@ -33,8 +39,7 @@ export const useCommentsPanelInteraction = ({
   useEscapeKey(handleClose, isOpen, true);
 
   useOutsideClick(panelRef, handleClose, isOpen, {
-    // Когда открыт ConfirmDialog внутри панели, клики по modal overlay
-    // не должны схлопывать всю панель комментариев.
+    // Игнорирует щелчки по наложению, пока внутри панели открыто окно подтверждения.
     ignoreSelectors: modalOverlaySelector,
   });
 

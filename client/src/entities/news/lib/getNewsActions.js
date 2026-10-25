@@ -1,17 +1,17 @@
 import { formatViews } from '../../../shared/utils';
 
 /**
- * Формирует массив действий для карточки новости.
+ * Возвращает действия новости.
  *
- * @param {Object} params - параметры
- * @param {Object} params.news - данные новости
- * @param {Object} params.currentUser - текущий пользователь
- * @param {Function} params.toggleLike - функция для лайка/дизлайка новости (id: номер новости, isLiked: boolean)
- * @param {Function} params.toggleComments - функция для открытия комментариев новости
- * @param {Function} params.onDelete - функция для удаления новости
- * @param {Function} params.onUpdate - функция для обновления новости
- * @param {Function} params.onShare - переход на страницу сообщений для передачи новости
- * @returns {Array<Object>} - массив действий для карточки новости
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.news - Новость
+ * @param {Object} params.currentUser - Текущий пользователь
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.toggleComments] - Обработчик комментариев
+ * @param {Function} [params.onDelete] - Обработчик удаления
+ * @param {Function} [params.onUpdate] - Обработчик обновления
+ * @param {Function} [params.onShare] - Обработчик отправки
+ * @returns {Array<Object>} Действия новости
  */
 export const getNewsActions = ({
   news,

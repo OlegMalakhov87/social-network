@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+
 import { apiErrorMessageFromPayload } from '../../../shared/lib';
 import { getAccessTokenClaims } from '../lib/accessToken';
 import {
@@ -11,29 +12,35 @@ import {
   updateUser,
 } from './authThunks';
 
-/** Начальное состояние авторизации.*/
+/** Хранит начальное состояние авторизации. */
 const initialState = {
-  user: null, // пользователь
-  token: null, // токен авторизации
-  isCheckingAuth: true, // проверка авторизации при загрузке страницы
-  isAuthenticated: false, // авторизован или нет
-  status: 'idle', // состояние авторизации
-  error: null, // ошибка авторизации
-  authCheckRequestId: null, // идентификатор запроса проверки авторизации
-  authMutationRequestId: null, // идентификатор запроса мутации авторизации
-  pendingSessionLogouts: [], // события logout, полученные во время checkAuth
-  isLoggingOut: false, // флаг для определения, идет ли процесс выхода из сессии
+  user: null,
+  token: null,
+  isCheckingAuth: true, // Идёт проверка авторизации при загрузке страницы.
+  isAuthenticated: false,
+  status: 'idle',
+  error: null,
+  authCheckRequestId: null,
+  authMutationRequestId: null,
+  pendingSessionLogouts: [], // Хранит события выхода, полученные во время checkAuth.
+  isLoggingOut: false,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    /** Обновление access token без изменения данных пользователя. */
+    /**
+     * Обновляет маркер доступа без изменения данных пользователя.
+     *
+     * @param {Object} state - Состояние авторизации
+     * @param {Object} action - Действие Redux
+     * @returns {void}
+     */
     setAccessToken(state, action) {
       const { token, expectedToken } = action.payload ?? {};
 
-      // Обновлять можно только существующую авторизацию.
+      // Обновляет маркер доступа только у текущей авторизации.
       if (
         !state.isAuthenticated ||
         state.isLoggingOut ||
@@ -62,7 +69,13 @@ const authSlice = createSlice({
       state.token = token;
     },
 
-    /** Учитываем события только во время checkAuth. */
+    /**
+     * Учитывает события выхода только во время checkAuth.
+     *
+     * @param {Object} state - Состояние авторизации
+     * @param {Object} action - Действие Redux
+     * @returns {void}
+     */
     sessionLogoutObserved(state, action) {
       if (state.authCheckRequestId === null) {
         return;
@@ -82,7 +95,12 @@ const authSlice = createSlice({
       }
     },
 
-    /** Выход пользователя.*/
+    /**
+     * Сбрасывает авторизацию пользователя.
+     *
+     * @param {Object} state - Состояние авторизации
+     * @returns {void}
+     */
     logout(state) {
       state.user = null;
       state.token = null;
@@ -96,7 +114,12 @@ const authSlice = createSlice({
       state.isLoggingOut = false;
     },
 
-    /**Очистить ошибку.*/
+    /**
+     * Очищает ошибку авторизации.
+     *
+     * @param {Object} state - Состояние авторизации
+     * @returns {void}
+     */
     clearError(state) {
       state.error = null;
     },
@@ -104,7 +127,7 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      /** Авторизация пользователя.*/
+      /** Обрабатывает авторизацию пользователя. */
       .addCase(login.pending, (state, action) => {
         state.status = 'loading';
         state.error = null;
@@ -138,7 +161,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Регистрация пользователя.*/
+      /** Обрабатывает регистрацию пользователя. */
       .addCase(register.pending, (state, action) => {
         state.status = 'loading';
         state.error = null;
@@ -172,7 +195,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Проверка авторизации пользователя.*/
+      /** Обрабатывает проверку авторизации. */
       .addCase(checkAuth.pending, (state, action) => {
         state.status = 'loading';
         state.isCheckingAuth = true;
@@ -231,7 +254,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Обновление профиля пользователя.*/
+      /** Обрабатывает обновление профиля. */
       .addCase(updateUser.pending, (state) => {
         state.status = 'loading';
       })
@@ -247,7 +270,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Удаление профиля пользователя.*/
+      /** Обрабатывает удаление профиля. */
       .addCase(deleteUser.pending, (state) => {
         state.status = 'loading';
       })
@@ -268,7 +291,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Обновление пароля пользователя.*/
+      /** Обрабатывает обновление пароля. */
       .addCase(changePassword.pending, (state) => {
         state.status = 'loading';
       })
@@ -284,7 +307,7 @@ const authSlice = createSlice({
         );
       })
 
-      /** Завершение текущей серверной сессии.*/
+      /** Обрабатывает завершение сессии на сервере. */
       .addCase(logoutSession.pending, (state) => {
         state.status = 'loading';
         state.error = null;

@@ -1,4 +1,5 @@
 const ffmpeg = require('fluent-ffmpeg');
+
 const { createError } = require('../utils/createError');
 
 const MEDIA_TYPES = {
@@ -6,16 +7,13 @@ const MEDIA_TYPES = {
   audio: 'audio',
 };
 
-/**
- * Сервис для получения метаданных медиафайла.
- */
 const mediaService = {
   /**
    * Получает и проверяет метаданные медиафайла.
    *
-   * @param {string} filePath - путь к файлу
-   * @param {'video'|'audio'} mediaType - ожидаемый тип медиа
-   * @returns {Promise<{ duration: number, size: number }>}
+   * @param {string} filePath - Путь к файлу
+   * @param {'video'|'audio'} [mediaType='video'] - Тип медиа
+   * @returns {Promise<{ duration: number, size: number }>} Длительность и размер файла.
    */
   async getMetadata(filePath, mediaType = 'video') {
     if (!filePath) {

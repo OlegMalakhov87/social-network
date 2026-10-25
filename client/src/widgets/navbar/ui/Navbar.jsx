@@ -1,12 +1,14 @@
 import { NavLink } from 'react-router-dom';
+
 import { NAV_ITEMS } from '..';
 import { classNames } from '../../../shared/utils';
+
 import style from './Navbar.module.css';
 
 /**
- * Боковая панель навигации(ссылки на основные разделы сайта).
+ * Отображает боковую панель навигации по основным разделам.
  *
- * @returns {React.ReactNode}
+ * @returns {JSX.Element} Разметка панели.
  */
 export const Navbar = () => {
   return (

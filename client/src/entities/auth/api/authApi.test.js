@@ -1,17 +1,14 @@
 import { authAxios } from '../../../shared/api/authAxios';
 import { refreshAuth } from './authApi';
 
-// Подменяем HTTP-клиент, чтобы тесты не обращались
-// к настоящему backend.
+// Подменяет HTTP-клиент, чтобы тесты не обращались к настоящему серверу.
 jest.mock('../../../shared/api/authAxios', () => ({
   authAxios: {
     post: jest.fn(),
   },
 }));
 
-/**
- * Promise, завершением которого управляет сам тест.
- */
+/** Создаёт Promise, завершением которого управляет тест. */
 const createDeferred = () => {
   let resolve;
   let reject;

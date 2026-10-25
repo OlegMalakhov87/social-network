@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import { Video } from '../../../../entities/video';
 import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
@@ -7,37 +8,40 @@ import {
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
 import { EntityWithComments } from '../../../comment';
+
 import styles from './VideosTab.module.css';
 
 /**
- * Вкладка с сеткой видео.
- * @param {Object} props
- * @param {Array} props.videos - массив видео
- * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isOwnProfile - владелец профиля
- * @param {boolean} props.isLoading - флаг общей загрузки видео
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы видео
- * @param {string} props.error - ошибка
- * @param {string} props.mode - режим отображения
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.addToLibrary - добавить видео в библиотеку
- * @param {Function} props.deleteFromLibrary - удалить видео из библиотеки
- * @param {Function} props.updateLibraryViewsCount - обновить счетчик просмотров (профиль / библиотека)
- * @param {Function} props.updateGlobalViewsCount - глобальный счётчик просмотров
- * @param {Function} props.onPlayVideo - открыть видеоплеер (передаётся объект video)
- * @param {Function} [props.onVideoStart] - регистрация колбэка при старте воспроизведения (как setOnTrackStart)
- * @param {Object} props.currentVideo - текущее видео
- * @param {boolean} props.isPlaying - флаг воспроизведения текущего видео
- * @param {Function} props.toggleFavorite - удалить/добавить в избранное
- * @param {Function} props.toggleComments - открыть комментарии/закрыть комментарии для видео.
- * @param {Object} props.commentTarget - целевой объект для комментариев.
- * @param {Function} props.onCloseComments - закрыть комментарии.
- * @param {Function} props.onCommentChange - изменить комментарии.
- * @param {Function} props.onRetry - повторить загрузку
- * @param {boolean} props.hasMore - флаг наличия следующей страницы видео
- * @param {Function} props.loadMore - функция для загрузки следующей страницы видео
- * @param {Function} props.updateVideo - обновить видео
- * @param {Function} props.deleteVideo - удалить видео
+ * Отображает вкладку с сеткой видео.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.videos=[]] - Список видео
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {boolean} props.isOwnProfile - Признак собственного профиля
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {string} props.mode - Режим отображения
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.addToLibrary - Обработчик добавления видео в библиотеку
+ * @param {Function} props.deleteFromLibrary - Обработчик удаления видео из библиотеки
+ * @param {Function} [props.updateLibraryViewsCount] - Обработчик счётчика просмотров в библиотеке
+ * @param {Function} [props.updateGlobalViewsCount] - Обработчик общего счётчика просмотров
+ * @param {Function} props.onPlayVideo - Обработчик открытия видео
+ * @param {Function} [props.onVideoStart] - Обработчик старта воспроизведения
+ * @param {Object} props.currentVideo - Текущее видео
+ * @param {boolean} props.isPlaying - Признак воспроизведения текущего видео
+ * @param {Function} props.toggleFavorite - Обработчик переключения избранного
+ * @param {Function} props.toggleComments - Обработчик открытия и закрытия комментариев
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Function} props.onCommentChange - Обработчик изменения комментариев
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.updateVideo - Обработчик обновления видео
+ * @param {Function} props.deleteVideo - Обработчик удаления видео
+ * @returns {JSX.Element} Разметка вкладки.
  */
 export const VideosTab = ({
   videos = [],
@@ -68,22 +72,26 @@ export const VideosTab = ({
   deleteVideo,
 }) => {
   const videosRef = useRef(videos);
+  // Оставляет в эффекте актуальный список без повторной подписки на каждый ответ.
   videosRef.current = videos;
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных видео.
   const isRefetching = isLoading && videos.length > 0;
 
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Счётчик просмотров при старте воспроизведения в модальном плеере */
   useEffect(() => {
     if (typeof onVideoStart !== 'function') return;
 
+    /**
+     * Увеличивает счётчик просмотров запущенного видео.
+     *
+     * @param {Object} video - Запущенное видео
+     */
     onVideoStart((video) => {
       if (!video?.id) return;
 

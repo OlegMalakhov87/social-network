@@ -1,14 +1,17 @@
 import { classNames } from '../../../utils';
+
 import styles from './Chip.module.css';
 
 /**
- * Кнопка-фильтр (например, вкладки категорий).
- * @param {Object} props
- * @param {Object} props.item - объект категории с полями { id, name }
- * @param {string} props.filter - текущий активный фильтр
- * @param {Function} props.onChangeButtonFilter - колбэк при выборе (получает id категории)
- * @param {boolean} [props.disabled=false] - заблокирован ли фильтр
- * @param {string} [props.ariaLabel] - aria-label для кнопки
+ * Переключает фильтр.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.item - Категория с идентификатором и названием
+ * @param {string} props.filter - Идентификатор активного фильтра
+ * @param {Function} props.onChangeButtonFilter - Обработчик выбора, получает идентификатор категории
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {string} [props.ariaLabel] - Значение атрибута aria-label
+ * @returns {JSX.Element|null} Кнопка фильтра или пустой результат без категории.
  */
 export const Chip = ({
   item,

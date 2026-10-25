@@ -9,22 +9,22 @@ import {
   Text,
 } from '../../../shared/ui';
 import { isPlayable } from '../../../shared/utils';
+
 import style from './SharedEntityCard.module.css';
 
 /**
- * Универсальная карточка расшаренной сущности в сообщении..
+ * Отображает карточку общей сущности в сообщении.
  *
- * @param {Object} props
- * @param {Object} props.entity - данные сущности (приведенные к единому формату)
- * @param {Function} props.onPlayMedia - колбэк для воспроизведения медиа (видео/аудио)
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.entity - Общая сущность.
+ * @param {Function} props.onPlayMedia - Обработчик воспроизведения.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 export const SharedEntityCard = ({ entity, onPlayMedia }) => {
   if (!entity) return null;
 
-  /** Получаем маппинг статистики для сущности. */
   const statsItems = getStatsItems(entity);
 
-  /** Определяем, является ли сущность воспроизводимой (видео/аудио). */
   const playable = isPlayable(entity);
 
   return (
@@ -37,7 +37,7 @@ export const SharedEntityCard = ({ entity, onPlayMedia }) => {
       }
       content={
         <EntityContent>
-          {/* Рендер медиа в зависимости от типа */}
+          {/* Отрисовывает медиа по типу сущности. */}
           {entity.mediaUrl && (
             <div className={style.mediaWrapper}>
               {playable ? (

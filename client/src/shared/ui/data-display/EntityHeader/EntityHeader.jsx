@@ -1,17 +1,17 @@
 import { classNames } from '../../../utils';
+
 import style from './EntityHeader.module.css';
 
 /**
- * Универсальный header карточки.
+ * Отображает заголовок сущности.
  *
- * Используется внутри BaseCard.
- *
- * @param {Object} props
- * @param {React.ReactNode} [props.children] - контент заголовка
- * @param {React.ReactNode} [props.leftSlot] - левое поле заголовка
- * @param {React.ReactNode} [props.rightSlot] - правое поле заголовка
- * @param {React.ReactNode} [props.bottomSlot] - блок под основной строкой заголовка
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} [props.leftSlot] - Левая область заголовка
+ * @param {React.ReactNode} [props.rightSlot] - Правая область заголовка
+ * @param {React.ReactNode} [props.bottomSlot] - Область под основной строкой
+ * @param {React.ReactNode} [props.children] - Содержимое заголовка
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Заголовок сущности.
  */
 export const EntityHeader = ({
   leftSlot,

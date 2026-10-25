@@ -1,25 +1,28 @@
 import { useEffect, useRef } from 'react';
+
 import { getApiErrorDisplay } from '../../../lib';
 import { Button, Image, Text } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import style from './FileInput.module.css';
 
 /**
- * Универсальный компонент для загрузки файлов.
+ * Принимает файл и показывает ход загрузки.
  *
- * @param {Object} props
- * @param {string} props.accept - допустимые MIME-типы (например, 'image/jpeg,image/png')
- * @param {string} [props.label] - текст лейбла
- * @param {string} [props.hint] - текст подсказки
- * @param {string} [props.buttonText='Выбрать файл'] - текст кнопки
- * @param {string} [props.preview] - URL превью (для изображений/видео)
- * @param {boolean} [props.isUploading=false] - состояние загрузки
- * @param {string} [props.progress] - прогресс загрузки (0-100)
- * @param {string} [props.error] - текст ошибки
- * @param {boolean} [props.disabled=false] - заблокирован ли компонент
- * @param {Function} props.onChange - обработчик выбора файла
- * @param {boolean} [props.required=false] - обязательное поле
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.accept - Допустимые типы MIME
+ * @param {string} [props.label] - Подпись поля
+ * @param {string} [props.hint] - Текст подсказки
+ * @param {string} [props.buttonText='Выбрать файл'] - Текст кнопки
+ * @param {string} [props.preview] - Адрес предварительного просмотра
+ * @param {boolean} [props.isUploading=false] - Признак загрузки
+ * @param {number} [props.progress] - Ход загрузки от 0 до 100
+ * @param {Error|Object|string} [props.error] - Ошибка загрузки
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {Function} [props.onChange] - Обработчик выбора файла
+ * @param {boolean} [props.required=false] - Признак обязательного поля
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Поле выбора файла.
  */
 export const FileInput = ({
   accept,
@@ -51,6 +54,12 @@ export const FileInput = ({
     }
   };
 
+  /**
+   * Передаёт событие выбора файла наружному обработчику.
+   *
+   * @param {Event} e - Событие изменения поля
+   * @returns {void}
+   */
   const handleChange = (e) => {
     onChange?.(e);
   };
@@ -73,7 +82,6 @@ export const FileInput = ({
       </label>
 
       <div className={style.container}>
-        {/* Превью (если есть) */}
         {preview && (
           <div className={style.preview}>
             {accept.startsWith('video/') ? (
@@ -84,7 +92,6 @@ export const FileInput = ({
           </div>
         )}
 
-        {/* Кнопка загрузки */}
         <Button
           variant="secondary"
           size="sm"
@@ -96,7 +103,6 @@ export const FileInput = ({
           {isUploading ? 'Загрузка...' : buttonText}
         </Button>
 
-        {/* Прогресс-бар (если есть) */}
         {isUploading && progress !== undefined && (
           <div className={style.progressBar}>
             <div
@@ -109,7 +115,6 @@ export const FileInput = ({
           </div>
         )}
 
-        {/* Скрытый input */}
         <input
           ref={inputRef}
           type="file"
@@ -120,7 +125,6 @@ export const FileInput = ({
         />
       </div>
 
-      {/* Ошибка */}
       {error && (
         <Text variant="caption" className={style.error}>
           {getApiErrorDisplay(error, 'Ошибка загрузки файла')}

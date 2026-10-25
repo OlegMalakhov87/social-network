@@ -3,62 +3,49 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      //Обращение напрямую без this
-      // Посты пользователя
+      // Обращается к классу модели напрямую, потому что метод статический.
       User.hasMany(models.Post, { foreignKey: 'userId', as: 'posts' });
 
-      // Музыка пользователя
       User.hasMany(models.Music, { foreignKey: 'uploadedBy', as: 'tracks' });
 
-      // Видео пользователя
       User.hasMany(models.Video, { foreignKey: 'uploadedBy', as: 'videos' });
 
-      // Новости пользователя
       User.hasMany(models.News, { foreignKey: 'uploadedBy', as: 'news' });
 
-      // Временные медиа файлы пользователя
       User.hasMany(models.TemporaryMedia, {
         foreignKey: 'userId',
         as: 'temporaryMedia',
       });
 
-      // Refresh-сессии пользователя
       User.hasMany(models.RefreshSession, {
         foreignKey: 'userId',
         as: 'refreshSessions',
       });
 
-      // Отправленные сообщения
       User.hasMany(models.Message, {
         foreignKey: 'senderId',
         as: 'sentMessages',
       });
 
-      // Полученные сообщения
       User.hasMany(models.Message, {
         foreignKey: 'receiverId',
         as: 'receivedMessages',
       });
 
-      // Лайки пользователя
       User.hasMany(models.Like, { foreignKey: 'userId', as: 'likes' });
 
-      // Комментарии пользователя
       User.hasMany(models.Comment, { foreignKey: 'userId', as: 'comments' });
 
-      // Друзья (исходящие запросы)
       User.hasMany(models.Friend, {
         foreignKey: 'userId',
         as: 'sentFriendRequests',
       });
 
-      // Друзья (входящие запросы)
       User.hasMany(models.Friend, {
         foreignKey: 'friendId',
         as: 'receivedFriendRequests',
       });
 
-      // Медиа в библиотеке пользователя (many-to-many)
       User.belongsToMany(models.Music, {
         through: models.UserMusicLibrary,
         foreignKey: 'userId',
@@ -72,7 +59,6 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'videoId',
         as: 'videoLibrary',
       });
-      // Промежуточные таблицы
       User.hasMany(models.UserMusicLibrary, {
         foreignKey: 'userId',
         as: 'musicLibraryItems',

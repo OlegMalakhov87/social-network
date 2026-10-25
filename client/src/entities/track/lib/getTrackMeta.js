@@ -1,10 +1,11 @@
 import { formatDate, formatSize } from '../../../shared/utils';
 
 /**
- * Подготавливает данные для отображения TrackMeta.
+ * Возвращает сведения для карточки трека.
  *
- * @param {Object} track - данные трека
- * @param {string} mode - режим отображения
+ * @param {Object} track - Трек
+ * @param {string} mode - Режим отображения
+ * @returns {{ details: Array<Object>, dates: Object }} Сведения о треке
  */
 export const getTrackMeta = (track, mode) => {
   return {

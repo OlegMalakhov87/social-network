@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
+
 import { Button } from '../../../shared/ui';
 import { classNames } from '../../../shared/utils';
+
 import style from './ScrollToTopButton.module.css';
 
 /**
- * Плавающая кнопка "Прокрутить наверх".
- * Появляется при скролле вниз на 400px.
+ * Отображает кнопку прокрутки наверх.
+ * Показывает кнопку после смещения страницы более чем на 400 пикселей.
+ *
+ * @returns {JSX.Element} Разметка кнопки.
  */
 export const ScrollToTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);

@@ -1,16 +1,17 @@
 import { Alert, Button } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import style from './ErrorBanner.module.css';
 
 /**
- * Универсальный баннер ошибки с кнопкой повтора.
- * Идеально подходит для состояния "Ошибка, но данные есть" или ошибки дозагрузки.
+ * Отображает ошибку и кнопку повтора.
  *
- * @param {Object} props
+ * @param {Object} props - Свойства компонента
  * @param {string} [props.title='Ошибка загрузки'] - Заголовок ошибки
  * @param {string} [props.message] - Текст ошибки
- * @param {Function} [props.onRetry] - Функция повторного запроса
+ * @param {Function} [props.onRetry] - Обработчик повтора запроса
  * @param {string} [props.className] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Сообщение об ошибке.
  */
 export const ErrorBanner = ({
   title = 'Ошибка загрузки',

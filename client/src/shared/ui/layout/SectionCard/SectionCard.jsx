@@ -1,25 +1,21 @@
 import { forwardRef } from 'react';
+
 import { Card } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import style from './SectionCard.module.css';
 
 /**
- * Универсальная секция страницы.
+ * Отображает раздел страницы с заголовком и содержимым.
  *
- * Используется для разделов:
- * - Посты
- * - Фото
- * - Видео
- * - Музыка
- * - Друзья
- * - Настройки
- *
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент секции
- * @param {string} [props.title] - заголовок секции
- * @param {string} [props.subtitle] - подзаголовок секции
- * @param {React.ReactNode} [props.actions] - действия над секцией (кнопки, формы, etc.)
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {string} [props.title] - Заголовок раздела
+ * @param {string} [props.subtitle] - Подзаголовок раздела
+ * @param {React.ReactNode} [props.actions] - Действия в заголовке раздела
+ * @param {React.ReactNode} props.children - Содержимое раздела
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {React.Ref<HTMLElement>} ref - Ссылка на карточку
+ * @returns {JSX.Element} Раздел страницы.
  */
 export const SectionCard = forwardRef(
   ({ title, subtitle, actions, children, className = '' }, ref) => {

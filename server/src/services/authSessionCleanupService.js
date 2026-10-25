@@ -1,14 +1,16 @@
 const { Op } = require('sequelize');
+
 const { RefreshSession } = require('../../db/models');
 
 const authSessionCleanupService = {
   /**
-   * Удаляет истёкшие refresh-сессии.
-   * История UsedRefreshTokens удаляется через ON DELETE CASCADE.
+   * Удаляет истекшие сессии обновления.
    *
-   * @param {Object} [options]
-   * @param {import('sequelize').Transaction} [options.transaction]
-   * @returns {Promise<number>} Количество удалённых сессий.
+   * История использованных маркеров удаляется каскадом ON DELETE CASCADE.
+   *
+   * @param {Object} [options] - Параметры удаления
+   * @param {import('sequelize').Transaction} [options.transaction] - Транзакция Sequelize
+   * @returns {Promise<number>} Число удаленных сессий.
    */
   async cleanupExpired({ transaction } = {}) {
     return RefreshSession.destroy({

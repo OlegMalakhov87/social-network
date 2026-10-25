@@ -2,14 +2,15 @@ import { api } from '../../../shared/api';
 import { UsersListSchema } from '../../user';
 
 /**
- * Получить список всех пользователей со статусом связи.
- * @param {Object} params - параметры запроса
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {string} params.filter - фильтр
- * @param {string} [params.q] - поисковый запрос
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<{users: UsersListSchema, pagination}} {users, pagination}
+ * Возвращает пользователей со статусом связи.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {string} [params.filter] - Фильтр категории
+ * @param {string} [params.q] - Поисковый запрос
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ users: Object[], pagination: Object }>} Пользователи и пагинация
  */
 export const fetchFriendsApi = async ({
   page,
@@ -35,9 +36,10 @@ export const fetchFriendsApi = async ({
 };
 
 /**
- * Отправить заявку в друзья.
- * @param {number} friendId – ID пользователя, которому отправляем заявку
- * @returns {Promise<Object>} { friendshipId, friendshipStatus, friendshipDirection }
+ * Отправляет заявку в друзья.
+ *
+ * @param {number} friendId - Идентификатор пользователя
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const sendFriendRequest = async (friendId) => {
   const response = await api.post(`/friends/requests`, {
@@ -47,9 +49,10 @@ export const sendFriendRequest = async (friendId) => {
 };
 
 /**
- * Принять заявку в друзья.
- * @param {number} friendshipId - ID заявки
- * @returns {Promise<Object>} { friendshipId, friendshipStatus, friendshipDirection }
+ * Принимает заявку в друзья.
+ *
+ * @param {number} friendshipId - Идентификатор заявки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const acceptFriendRequest = async (friendshipId) => {
   const response = await api.patch(`/friends/${friendshipId}/accept`);
@@ -57,9 +60,10 @@ export const acceptFriendRequest = async (friendshipId) => {
 };
 
 /**
- * Заблокировать пользователя.
- * @param {number} friendId - ID пользователя
- * @returns {Promise<Object>} { message }
+ * Блокирует пользователя.
+ *
+ * @param {number} friendId - Идентификатор пользователя
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const blockUser = async (friendId) => {
   const response = await api.patch(`/friends/block`, { friendId });
@@ -67,9 +71,10 @@ export const blockUser = async (friendId) => {
 };
 
 /**
- * Удалить из друзей, разблокировать, отменить заявку на дружбу
- * @param {number} friendshipId - ID заявки
- * @returns {Promise<Object>} { message}
+ * Отклоняет заявку, удаляет из друзей или снимает блокировку.
+ *
+ * @param {number} friendshipId - Идентификатор заявки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const rejectFriendRequest = async (friendshipId) => {
   const response = await api.delete(`/friends/${friendshipId}/reject`);

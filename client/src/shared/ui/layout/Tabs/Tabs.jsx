@@ -1,14 +1,16 @@
 import { Chip } from '../../../ui';
+
 import styles from './Tabs.module.css';
 
 /**
- * Универсальные вкладки для панели инструментов.
+ * Переключает вкладки.
  *
- * @param {Object} props
- * @param {Array<Object>} props.items - массив вкладок (идентификатор, текст, иконка)
- * @param {string} props.value - значение выбранной вкладки
- * @param {Function} props.onChange - функция изменения выбранной вкладки
- * @param {boolean} [props.disabled=false] - заблокированы ли вкладки
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{id: string, label: string, icon?: React.ReactNode}>} [props.items=[]] - Вкладки с идентификатором, текстом и иконкой
+ * @param {string} props.value - Идентификатор выбранной вкладки
+ * @param {Function} props.onChange - Обработчик смены вкладки
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @returns {JSX.Element} Вкладки.
  */
 
 export const Tabs = ({ items = [], value, onChange, disabled = false }) => {

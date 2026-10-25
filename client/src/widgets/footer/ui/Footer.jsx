@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom';
+
 import { EntityHeader, Text } from '../../../shared/ui';
 import {
   COMPANY_LINKS,
   LEGAL_LINKS,
   PRODUCT_LINKS,
 } from '../config/footerConfig';
-import style from './Footer.module.css';
 import { FooterBrand } from './FooterBrand';
 import { FooterContacts } from './FooterContacts';
 import { FooterLinks } from './FooterLinks';
 import { ScrollToTopButton } from './ScrollToTopButton';
 
+import style from './Footer.module.css';
+
 /**
- * Футер сайта с информацией о компании, продукте, контактах и ссылках на legals
- * показывает информацию о компании, продукте, контактах и ссылках на legals
+ * Отображает нижнюю панель с разделами компании, продукта и контактов.
  *
- *
- * @returns {React.ReactNode}
+ * @returns {JSX.Element} Разметка панели.
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();

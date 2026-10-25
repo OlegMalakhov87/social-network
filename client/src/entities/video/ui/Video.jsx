@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { getVideoActions, VideoMeta } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -13,22 +14,24 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Карточка одного видео.
- * @param {Object} props - пропсы компонента
- * @param {Object} props.video - данные видео
- * @param {Object} props.currentUser - данные текущего пользователя
- * @param {boolean} props.isOwnProfile - флаг владельца профиля
- * @param {boolean} props.isPlaying - флаг проигрывается видео true/false
- * @param {Object} props.currentVideo - данные текущего видео
- * @param {string} props.mode - режим отображения
- * @param {Function} props.onPlay - функция для воспроизведения видео
- * @param {Function} props.toggleLike - функция для лайка/дизлайка видео
- * @param {Function} props.toggleFavorite - функция для добавления/удаления из избранного
- * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к видео
- * @param {Function} props.updateVideo - функция для обновления видео
- * @param {Function} props.deleteVideo - функция для удаления видео
- * @param {Function} props.addToLibrary - функция для добавления видео в библиотеку
- * @param {Function} props.deleteFromLibrary - функция для удаления видео из библиотеки
+ * Отображает карточку видео.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.video - Видео.
+ * @param {Object} props.currentUser - Текущий пользователь.
+ * @param {boolean} props.isOwnProfile - Признак своего профиля.
+ * @param {Object} props.currentVideo - Текущее видео.
+ * @param {boolean} props.isPlaying - Признак воспроизведения.
+ * @param {string} props.mode - Режим отображения.
+ * @param {Function} props.onPlay - Обработчик воспроизведения.
+ * @param {Function} props.addToLibrary - Обработчик добавления в библиотеку.
+ * @param {Function} props.deleteFromLibrary - Обработчик удаления из библиотеки.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.toggleFavorite - Обработчик избранного.
+ * @param {Function} props.toggleComments - Обработчик комментариев.
+ * @param {Function} props.updateVideo - Обработчик обновления.
+ * @param {Function} props.deleteVideo - Обработчик удаления.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 
 export const Video = ({
@@ -52,17 +55,13 @@ export const Video = ({
 
   if (!video?.id) return null;
 
-  /** Флаг владельца видео. */
   const isOwn = video.uploadedBy === currentUser?.id;
 
-  /** Флаг отображения избранного. */
   const showFavorite = mode === 'profile' && isOwnProfile && video.isInLibrary;
 
-  /** Флаг отключения кнопки. */
   const disabledButton =
     mode === 'profile' && isOwnProfile && !video.isInLibrary;
 
-  /** Конфигурация элементов управления карточкой видео. */
   const actions = getVideoActions({
     video,
     isOwn,
@@ -74,7 +73,6 @@ export const Video = ({
     disabledButton,
   });
 
-  /** Обработчик подтверждения удаления видео. */
   const handleConfirmDelete = async () => {
     try {
       await deleteVideo?.(video.id);

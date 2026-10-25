@@ -1,8 +1,8 @@
 /**
- * Преобразует сырой объект пользователя с сервера в формат для FriendCard.
+ * Приводит пользователя с сервера к формату карточки друга.
  *
- * @param {Object} user – один пользователь из ответа API
- * @returns {Object} – плоский объект друга
+ * @param {Object} user - Пользователь с сервера
+ * @returns {Object} Друг карточки
  */
 export function normalizeFriends(user) {
   if (!user || typeof user !== 'object') return user;

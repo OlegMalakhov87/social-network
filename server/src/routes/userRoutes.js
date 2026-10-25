@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const userController = require('../controllers/userController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
@@ -19,7 +20,7 @@ const {
 
 const userRoutes = Router();
 
-// Получить данные о пользователе и статусе дружбы
+// Возвращает профиль пользователя и статус дружбы.
 userRoutes.get(
   '/:userId/with-friendship-status',
   validateIdParam('userId'),
@@ -27,14 +28,14 @@ userRoutes.get(
   userController.getUserProfileWithFriendshipStatus
 );
 
-// Проверка онлайн статуса пользователей
+// Проверяет онлайн-статус пользователей.
 userRoutes.post(
   '/online-status',
   authMiddleware,
   userController.checkOnlineBulk
 );
 
-// Загрузка аватара пользователя
+// Загружает аватар пользователя.
 userRoutes.post(
   '/upload-avatar',
   authMiddleware,
@@ -44,7 +45,7 @@ userRoutes.post(
   userController.uploadAvatar
 );
 
-// Обновление пользователя
+// Обновляет профиль пользователя.
 userRoutes.put(
   '/update',
   authMiddleware,
@@ -52,7 +53,7 @@ userRoutes.put(
   userController.updateUser
 );
 
-// Обновление приватности пользователя
+// Обновляет приватность пользователя.
 userRoutes.patch(
   '/update-privacy',
   authMiddleware,
@@ -60,7 +61,7 @@ userRoutes.patch(
   userController.updatePrivacy
 );
 
-// Изменение пароля пользователя
+// Меняет пароль пользователя.
 userRoutes.patch(
   '/change-password',
   authMiddleware,
@@ -68,10 +69,10 @@ userRoutes.patch(
   userController.changePassword
 );
 
-// Удаление пользователя
+// Удаляет пользователя.
 userRoutes.delete('/delete', authMiddleware, userController.deleteUser);
 
-// Удаление загруженного аватара
+// Удаляет загруженный аватар.
 userRoutes.delete(
   '/delete-uploaded-avatar',
   authMiddleware,

@@ -2,7 +2,12 @@ const commentService = require('../services/commentService');
 
 const commentController = {
   /**
-   * Получение комментариев для конкретной сущности
+   * Возвращает комментарии сущности.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getAllCommentsTarget: async (req, res, next) => {
     try {
@@ -25,7 +30,12 @@ const commentController = {
   },
 
   /**
-   * Получение комментария по ID
+   * Возвращает комментарий по идентификатору.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getCommentById: async (req, res, next) => {
     try {
@@ -38,7 +48,12 @@ const commentController = {
   },
 
   /**
-   * Создание комментария
+   * Создает комментарий.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   createComment: async (req, res, next) => {
     try {
@@ -54,7 +69,12 @@ const commentController = {
   },
 
   /**
-   * Обновление комментария
+   * Обновляет комментарий.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateComment: async (req, res, next) => {
     try {
@@ -72,7 +92,12 @@ const commentController = {
   },
 
   /**
-   * Удаление комментария
+   * Удаляет комментарий.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteComment: async (req, res, next) => {
     try {

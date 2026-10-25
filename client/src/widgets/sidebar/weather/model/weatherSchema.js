@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Схема ответа API погоды.
+ * Проверяет ответ API погоды.
  */
 export const WeatherSchema = z.object({
   city: z.string(),

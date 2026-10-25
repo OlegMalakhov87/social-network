@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { getPostActions } from '..';
 import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -15,23 +16,25 @@ import {
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
+
 import styles from './Post.module.css';
 
 /**
- * Карточка поста.
- * @param {Object} props - параметры
- * @param {Object} props.post - данные поста
- * @param {Object} props.currentUser - данные текущего пользователя
- * @param {Object} props.targetUser - данные выбранного пользователя
- * @param {Function} props.onShareEntity - функция для расшаривания поста
- * @param {Function} props.onPlay - функция для воспроизведения видео поста
- * @param {Function} props.toggleLike - функция для лайка/дизлайка поста
- * @param {Function} props.onDelete - функция для удаления поста
- * @param {Function} props.onUpdate - функция для обновления поста
- * @param {Function} props.toggleComments - функция для открытия комментариев поста
- * @param {Object} props.currentPost - текущий пост
- * @param {boolean} props.isPlaying - воспроизводится ли пост
- * @returns {JSX.Element} - компонент карточки поста
+ * Отображает карточку поста.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.post - Пост.
+ * @param {Object} props.currentUser - Текущий пользователь.
+ * @param {Object} props.targetUser - Выбранный пользователь.
+ * @param {Function} props.onShareEntity - Обработчик отправки поста.
+ * @param {Function} props.onPlay - Обработчик воспроизведения.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @param {Function} props.onUpdate - Обработчик обновления.
+ * @param {Function} props.toggleComments - Обработчик комментариев.
+ * @param {Object} props.currentPost - Текущий пост.
+ * @param {boolean} props.isPlaying - Признак воспроизведения.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 export const Post = ({
   post,
@@ -57,7 +60,6 @@ export const Post = ({
 
   if (!post?.id) return null;
 
-  /** Конфигурация элементов управления карточкой поста. */
   const actions = getPostActions({
     post,
     currentUser,
@@ -68,7 +70,6 @@ export const Post = ({
     onShare: () => onShareEntity(post),
   });
 
-  /** Обработчик переключения раскрытия текста поста. */
   const handleToggleExpand = () => {
     if (!expanded && !hasViewed) {
       setHasViewed(true);
@@ -76,7 +77,6 @@ export const Post = ({
     toggle();
   };
 
-  /** Обработчик подтверждения удаления поста. */
   const handleConfirmDelete = async () => {
     try {
       await onDelete?.(post.id);

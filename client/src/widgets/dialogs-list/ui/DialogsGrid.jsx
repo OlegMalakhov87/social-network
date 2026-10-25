@@ -1,20 +1,23 @@
 import { Dialog } from '../../../entities/dialog';
 import { useInfiniteScrollTrigger } from '../../../shared/hooks';
 import { ContentState, InfiniteScrollFooter } from '../../../shared/ui';
+
 import styles from './DialogsGrid.module.css';
 
 /**
- * Сетка списка диалогов.
- * @param {Object} props
- * @param {Array} props.dialogs - массив { user, lastMessage }
- * @param {Function} props.onSelect - колбэк выбора (возвращает функцию)
- * @param {number} props.selectedUserId - ID выбранного пользователя
- * @param {boolean} props.isLoading - флаг загрузки
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей порции
- * @param {Error} props.error - ошибка
- * @param {boolean} props.hasMore - флаг наличия следующей порции
- * @param {Function} props.loadMore - колбэк загрузки следующей порции
- * @param {Function} props.onRetry - колбэк повторной загрузки
+ * Отображает список диалогов с подгрузкой при прокрутке.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{user: Object, lastMessage: Object}>} [props.dialogs=[]] - Список диалогов
+ * @param {Function} props.onSelect - Обработчик выбора диалога
+ * @param {number} props.selectedUserId - Идентификатор выбранного пользователя
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @returns {JSX.Element} Разметка списка.
  */
 export const DialogsGrid = ({
   dialogs = [],
@@ -27,7 +30,6 @@ export const DialogsGrid = ({
   loadMore,
   onRetry,
 }) => {
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,

@@ -1,4 +1,4 @@
-/** Массив типов постов */
+/** Хранит типы постов. */
 export const POST_TYPES = [
   { value: 'text', label: 'Текст', icon: '📝' },
   { value: 'image', label: 'Изображение', icon: '🖼️' },

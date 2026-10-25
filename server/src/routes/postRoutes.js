@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const postController = require('../controllers/postController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
@@ -21,7 +22,7 @@ const {
 
 const postRoutes = Router();
 
-// Получение постов пользователя
+// Возвращает посты пользователя.
 postRoutes.get(
   '/:userId',
   validateIdParam('userId'),
@@ -29,7 +30,7 @@ postRoutes.get(
   postController.getUserPosts
 );
 
-// Получение поста по id для shared поста
+// Возвращает пост по идентификатору для общего доступа.
 postRoutes.get(
   '/:postId/shared',
   validateIdParam('postId'),
@@ -37,7 +38,7 @@ postRoutes.get(
   postController.getPostById
 );
 
-// Создание поста
+// Создает пост.
 postRoutes.post(
   '/add',
   authMiddleware,
@@ -45,7 +46,7 @@ postRoutes.post(
   postController.createPost
 );
 
-// Загрузка медиа файла для поста
+// Загружает медиафайл поста.
 postRoutes.post(
   '/upload-media',
   authMiddleware,
@@ -55,7 +56,7 @@ postRoutes.post(
   postController.uploadMedia
 );
 
-// Обновление поста (владелец)
+// Обновляет пост владельца.
 postRoutes.put(
   '/:postId/update',
   validateIdParam('postId'),
@@ -64,7 +65,7 @@ postRoutes.put(
   postController.updatePost
 );
 
-// Обновление приватности постов
+// Обновляет приватность постов.
 postRoutes.patch(
   '/update-privacy',
   authMiddleware,
@@ -72,7 +73,7 @@ postRoutes.patch(
   postController.updatePostPrivacy
 );
 
-// Удаление поста (владелец)
+// Удаляет пост владельца.
 postRoutes.delete(
   '/:postId/delete',
   validateIdParam('postId'),
@@ -80,7 +81,7 @@ postRoutes.delete(
   postController.deletePost
 );
 
-// Удаление (очистка мусора) загруженных медиа файлов
+// Удаляет загруженные медиафайлы.
 postRoutes.delete(
   '/delete-uploaded-media',
   authMiddleware,

@@ -1,24 +1,21 @@
 import { Button, Modal } from '../..';
+
 import styles from './ConfirmDialog.module.css';
 
 /**
- * Диалог подтверждения действия.
+ * Запрашивает подтверждение действия.
  *
- * Используется для удаления,
- * выхода из аккаунта,
- * отмены изменений,
- * очистки данных и других опасных действий.
- *
- * @param {Object} props
- * @param {boolean} props.isOpen - открыт ли диалог
- * @param {Function} props.onClose - функция закрытия диалога
- * @param {Function} props.onConfirm - функция подтверждения действия
- * @param {string} [props.title='Подтверждение'] - заголовок диалога
- * @param {string} [props.description] - описание действия
- * @param {string} [props.confirmText='Подтвердить'] - текст кнопки подтверждения
- * @param {string} [props.cancelText='Отмена'] - текст кнопки отмены
- * @param {'danger'|'primary'} [props.confirmVariant='danger'] - вариант кнопки подтверждения
- * @param {boolean} [props.loading=false] - загружается ли действие
+ * @param {Object} props - Свойства компонента
+ * @param {boolean} props.isOpen - Признак открытого окна
+ * @param {Function} props.onClose - Обработчик закрытия
+ * @param {Function} props.onConfirm - Обработчик подтверждения
+ * @param {string} [props.title='Подтверждение'] - Заголовок окна
+ * @param {string} [props.description=''] - Описание действия
+ * @param {string} [props.confirmText='Подтвердить'] - Текст кнопки подтверждения
+ * @param {string} [props.cancelText='Отмена'] - Текст кнопки отмены
+ * @param {'danger'|'primary'} [props.confirmVariant='danger'] - Вариант кнопки подтверждения
+ * @param {boolean} [props.loading=false] - Признак выполнения действия
+ * @returns {JSX.Element} Окно подтверждения.
  */
 export const ConfirmDialog = ({
   isOpen,

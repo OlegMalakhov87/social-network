@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom';
+
 import { Text } from '../../../shared/ui';
+
 import style from './FooterLinks.module.css';
 
 /**
- * Универсальный компонент для секций ссылок в футере(ссылки на страницы компании, продукта и других разделов).
+ * Отображает группу ссылок нижней панели.
  *
- * @param {Object} props
- * @param {string} props.title - заголовок секции
- * @param {Array<{label: string, path: string}>} props.links - массив ссылок
- *
- * @returns {React.ReactNode}
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.title - Заголовок группы
+ * @param {Array<{label: string, path: string}>} props.links - Ссылки группы
+ * @returns {JSX.Element} Разметка группы.
  */
 export const FooterLinks = ({ title, links }) => {
   return (

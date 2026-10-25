@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('node:path');
-const { Op } = require('sequelize');
+
 const { TemporaryMedia } = require('../../db/models');
 const { MEDIA_CLEANUP_CONFIG } = require('../../config/mediaCleanupConfig');
 const {
@@ -10,17 +10,20 @@ const {
 } = require('../../config/mediaUploadConfig');
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
+/** Задает срок жизни файла во временном каталоге: 24 часа. */
 const STAGING_FILE_TTL =
-  24 * 60 * 60 * 1000; /** Время жизни staging-файла — 24 часа */
+  24 * 60 * 60 * 1000;
+/** Задает срок жизни неиспользуемого файла: 2 дня. */
 const ORPHAN_FILE_TTL =
-  48 * 60 * 60 * 1000; /** Время жизни orphan-файла — 2 дня */
+  48 * 60 * 60 * 1000;
 
 /**
  * Извлекает URL из значения поля.
  *
- * Поддерживает:
- * - string
- * - array
+ * Поддерживает строку и массив строк.
+ *
+ * @param {*} value - Значение поля
+ * @returns {string[]} Список URL.
  */
 const extractUrls = (value) => {
   if (typeof value === 'string') {
@@ -38,6 +41,9 @@ const extractUrls = (value) => {
  * Проверяет, находится ли файл внутри разрешённой директории.
  *
  * Это дополнительная защита перед удалением.
+ *
+ * @param {string} filePath - Путь к файлу
+ * @returns {boolean} Признак пути внутри каталога медиа.
  */
 const isInsideMediaRoot = (filePath) => {
   const root = path.resolve(MEDIA_ROOT);
@@ -46,15 +52,11 @@ const isInsideMediaRoot = (filePath) => {
   return target.startsWith(`${root}${path.sep}`);
 };
 
-/**
- * Сервис для очистки медиафайлов из директорий:
- *  - MEDIA_ROOT
- *  - STAGING_ROOT
- *  - PUBLISH_STAGING_ROOT
- */
 const mediaCleanupService = {
   /**
    * Собирает абсолютные пути файлов, используемыми сущностями в БД.
+   *
+   * @returns {Promise<Object>} Результат операции.
    */
   async collectUsedFiles() {
     const usedFiles = new Set();
@@ -91,7 +93,7 @@ const mediaCleanupService = {
         }
       }
     }
-    // Учитываем временные медиа, которые ещё не привязаны к сущностям.
+    // Учитывает временные медиа, которые ещё не привязаны к сущностям.
     const temporaryMedia = await TemporaryMedia.findAll({
       attributes: ['url'],
       raw: true,
@@ -110,10 +112,10 @@ const mediaCleanupService = {
   },
 
   /**
-   * Рекурсивно получает все файлы из uploads/.
+   * Возвращает все файлы каталога, включая вложенные.
    *
-   * @param {string} directory - директория для поиска
-   * @returns {Promise<string[]>} абсолютные пути файлов
+   * @param {string} [directory=MEDIA_ROOT] - Каталог поиска
+   * @returns {Promise<string[]>} Абсолютные пути файлов.
    */
   async getAllFiles(directory = MEDIA_ROOT) {
     const files = [];
@@ -142,6 +144,7 @@ const mediaCleanupService = {
   /**
    * Удаляет неиспользуемые orphan-файлы, из директории MEDIA_ROOT.
    *
+   * @returns {Promise<Object>} Результат операции.
    */
   async cleanup() {
     console.log('[MediaCleanup] Старт очистки...');
@@ -232,10 +235,12 @@ const mediaCleanupService = {
   },
 
   /**
-   * Удаляет устаревшие файлы из закрытых
-   * staging-директорий: STAGING_ROOT, PUBLISH_STAGING_ROOT.
+   * Удаляет устаревшие файлы из закрытых.
    *
+   * staging-директорий: STAGING_ROOT, PUBLISH_STAGING_ROOT.
    * Не затрагивает публичный MEDIA_ROOT.
+   *
+   * @returns {Promise<Object>} Результат операции.
    */
   async cleanupStaging() {
     console.log('[StagingCleanup] Старт очистки...');

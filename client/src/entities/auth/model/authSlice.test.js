@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import { getAccessTokenClaims } from '../lib/accessToken';
 import authReducer, { logout, setAccessToken } from './authSlice';
 import { login, logoutSession } from './authThunks';
@@ -7,7 +8,12 @@ const SESSION_A = '11111111-1111-4111-8111-111111111111';
 const SESSION_B = '22222222-2222-4222-8222-222222222222';
 
 /**
- * Создает токен авторизации для тестирования.
+ * Создаёт маркер доступа для проверки.
+ *
+ * @param {number} userId - Идентификатор пользователя
+ * @param {string} sessionId - Идентификатор сессии
+ * @param {number} [version=1] - Версия маркера
+ * @returns {string} Маркер доступа
  */
 const createToken = (userId, sessionId, version = 1) => {
   const encode = (value) =>
@@ -31,9 +37,7 @@ const createToken = (userId, sessionId, version = 1) => {
   ].join('.');
 };
 
-/**
- * Создает авторизованный store для тестирования.
- */
+/** Создаёт авторизованное состояние Redux для проверки. */
 const createAuthenticatedStore = () => {
   const store = configureStore({
     reducer: { auth: authReducer },

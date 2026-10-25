@@ -1,9 +1,11 @@
 import { useSelector } from 'react-redux';
+
 import { useAudioPlayer, AudioPlayer } from '../../audio-player';
 
 /**
- * Подключает состояние Redux и методы контекста к UI-компоненту {@link AudioPlayer}.
- * @returns {JSX.Element} возвращает разметку плеера
+ * Передаёт состояние Redux и управление воспроизведением в панель аудиоплеера.
+ *
+ * @returns {JSX.Element} Разметка плеера.
  */
 export const AudioPlayerContainer = () => {
   const {

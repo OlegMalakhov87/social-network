@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import './style/App.css';
 
-// Pages
+// Обмен в реальном времени
+import { AppWebSocket } from './realtime/AppWebSocket';
+
+// Страницы
 import { DialogsPage } from '../pages/dialogs';
 import { FriendsPage } from '../pages/friends';
 import { MusicPage } from '../pages/music';
@@ -12,7 +14,7 @@ import { ProfilePage } from '../pages/profile';
 import { SettingsPage } from '../pages/settings';
 import { VideosPage } from '../pages/videos';
 
-// Widgets
+// Виджеты
 import {
   AudioPlayerContainer,
   AudioPlayerProvider,
@@ -23,10 +25,10 @@ import { AppShellSkeleton } from '../widgets/layout';
 import { Navbar } from '../widgets/navbar';
 import { Sidebar } from '../widgets/sidebar';
 
-// Features
+// Сценарии
 import { LoginForm, RegisterForm } from '../features/auth';
 
-// Shared
+// Общие модули
 import {
   applyThemePreference,
   DARK_MEDIA_QUERY,
@@ -35,7 +37,7 @@ import {
 } from '../shared/lib';
 import { PageLoader, ToastProvider } from '../shared/ui';
 
-// Redux
+// Состояние
 import {
   checkAuth,
   selectIsAuthenticated,
@@ -43,6 +45,16 @@ import {
   selectIsAuthReady,
 } from '../entities/auth';
 
+import './style/App.css';
+
+/**
+ * Отображает маршруты приложения.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.searchQuery - Поисковый запрос
+ * @param {Function} props.setSearchQuery - Обработчик изменения запроса
+ * @returns {JSX.Element} Разметка маршрутов.
+ */
 const AppRoutes = ({ searchQuery, setSearchQuery }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isAuthenticatedAndReady = useSelector(selectIsAuthenticatedAndReady);
@@ -65,6 +77,7 @@ const AppRoutes = ({ searchQuery, setSearchQuery }) => {
 
   return (
     <div className="app_wrapper">
+      <AppWebSocket />
       <header className="header">
         <Header onSearchChange={setSearchQuery} />
       </header>
@@ -106,6 +119,11 @@ const AppRoutes = ({ searchQuery, setSearchQuery }) => {
   );
 };
 
+/**
+ * Отображает приложение.
+ *
+ * @returns {JSX.Element} Разметка приложения.
+ */
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useDispatch();
@@ -124,6 +142,12 @@ const App = () => {
       }
     };
 
+    /**
+     * Применяет сохранённую тему при изменении хранилища.
+     *
+     * @param {StorageEvent} event - Событие хранилища
+     * @returns {void}
+     */
     const handleStorageChange = (event) => {
       if (event.key === 'theme') {
         applyStoredTheme();

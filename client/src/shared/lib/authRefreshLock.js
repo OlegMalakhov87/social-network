@@ -1,16 +1,13 @@
 /**
- * Название блокировки для обмена сообщениями между вкладками.
+ * Хранит имя блокировки обновления сессии.
  */
-
 const AUTH_REFRESH_LOCK = 'socialnet:auth-refresh';
 
 /**
- * Выполняет операцию под эксклюзивной блокировкой,
- * общей для вкладок одного origin.
+ * Выполняет операцию под исключительной блокировкой вкладок одного источника.
  *
- * @template T
- * @param {() => Promise<T>} operation - Операция для выполнения под блокировкой
- * @returns {Promise<T>} - Promise с результатом операции
+ * @param {Function} operation - Возвращает промис операции
+ * @returns {Promise<*>} Результат операции.
  */
 export const withAuthRefreshLock = (operation) => {
   if (!navigator.locks?.request) {

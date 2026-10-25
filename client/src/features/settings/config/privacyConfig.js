@@ -3,6 +3,7 @@ import { updateTracksPrivacyApi } from '../../../entities/track';
 import { updateUserPrivacyApi } from '../../../entities/user';
 import { updateVideosPrivacyApi } from '../../../entities/video';
 
+/** Задаёт параметры приватности профиля, записей, треков и видео. */
 export const PRIVACY_SETTINGS_CONFIG = [
   {
     key: 'profile',

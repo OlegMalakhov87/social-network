@@ -1,25 +1,29 @@
 import { forwardRef, useState } from 'react';
+
 import { Text } from '../../../ui';
 import { classNames, formatPhone } from '../../../utils';
+
 import styles from './Input.module.css';
 
 /**
- * Универсальный компонент поля ввода.
+ * Отображает поле ввода и форматирует телефон, если тип равен tel.
  *
- * @param {Object} props
- * @param {string} [props.label] - текст лейбла
- * @param {string} [props.error] - текст ошибки
- * @param {string} [props.helperText] - текст подсказки
- * @param {React.ReactNode} [props.leftIcon] - иконка слева
- * @param {React.ReactNode} [props.rightIcon] - иконка справа
- * @param {boolean} [props.fullWidth=true] - полная ширина
- * @param {boolean} [props.multiline=false] - textarea
- * @param {number} [props.rows=3] - количество строк
- * @param {string} [props.type='text'] - тип поля
- * @param {boolean} [props.disabled=false] - активное поле или нет
- * @param {boolean} [props.required=false] - обязательное поле или нет
- * @param {Function} [props.onChange] - функция onChange из form.register
- * @param {Object} [props.props] - остальные пропсы
+ * @param {Object} props - Свойства компонента
+ * @param {string} [props.label] - Подпись поля
+ * @param {string} [props.error] - Текст ошибки
+ * @param {string} [props.helperText] - Текст подсказки
+ * @param {React.ReactNode} [props.leftIcon] - Иконка слева
+ * @param {React.ReactNode} [props.rightIcon] - Иконка справа
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @param {boolean} [props.fullWidth=false] - Растягивание на всю ширину
+ * @param {boolean} [props.multiline=false] - Многострочный ввод
+ * @param {number} [props.rows=3] - Количество строк
+ * @param {string} [props.type='text'] - Тип поля
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {boolean} [props.required=false] - Признак обязательного поля
+ * @param {Function} [props.onChange] - Обработчик изменения значения
+ * @param {React.Ref} ref - Ссылка на элемент
+ * @returns {JSX.Element} Поле ввода.
  */
 
 export const Input = forwardRef(

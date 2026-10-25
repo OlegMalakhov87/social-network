@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { getTrackActions, TrackMeta } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -13,24 +14,26 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Карточка одного трека.
- * @param {Object} props - пропсы компонента
- * @param {Object} props.track - объект трека
- * @param {Array} props.allTracks - все треки текущего контекста (для очереди)
- * @param {Object} props.currentTrack - текущий играющий трек
- * @param {boolean} props.isPlaying - проигрывается ли трек сейчас (true/false)
- * @param {Object} props.currentUser - данные текущего пользователя
- * @param {boolean} props.isOwnProfile - владелец профиля
- * @param {string} props.mode - режим отображения
- * @param {Function} props.onPlay - функция для начать воспроизведение
- * @param {Function} props.togglePlay - функция для переключения play/pause текущего трека
- * @param {Function} props.addToLibrary - функция для добавления трека в библиотеку
- * @param {Function} props.deleteFromLibrary - функция для удаления трека из библиотеки
- * @param {Function} props.toggleFavorite - функция для добавления/удаления трека из избранного
- * @param {Function} props.toggleLike - функция для лайка/дизлайка трека
- * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к треку
- * @param {Function} props.updateTrack - функция для обновления трека
- * @param {Function} props.onDelete - функция для удаления трека
+ * Отображает карточку трека.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.track - Трек.
+ * @param {Array<Object>} props.allTracks - Треки очереди.
+ * @param {Object} props.currentTrack - Текущий трек.
+ * @param {boolean} props.isPlaying - Признак воспроизведения.
+ * @param {Object} props.currentUser - Текущий пользователь.
+ * @param {boolean} props.isOwnProfile - Признак своего профиля.
+ * @param {string} props.mode - Режим отображения.
+ * @param {Function} props.onPlay - Обработчик воспроизведения.
+ * @param {Function} props.togglePlay - Обработчик паузы.
+ * @param {Function} props.addToLibrary - Обработчик добавления в библиотеку.
+ * @param {Function} props.deleteFromLibrary - Обработчик удаления из библиотеки.
+ * @param {Function} props.toggleFavorite - Обработчик избранного.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.toggleComments - Обработчик комментариев.
+ * @param {Function} props.updateTrack - Обработчик обновления.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 
 export const Track = ({
@@ -56,17 +59,13 @@ export const Track = ({
 
   if (!track?.id) return null;
 
-  /** Флаг владельца трека. */
   const isOwn = track.uploadedBy === currentUser?.id;
 
-  /** Флаг отображения избранного. */
   const showFavorite = mode === 'profile' && isOwnProfile && track.isInLibrary;
 
-  /** Флаг отключения кнопки. */
   const disabledButton =
     mode === 'profile' && isOwnProfile && !track.isInLibrary;
 
-  /** Обработчик воспроизведения трека. */
   const handlePlay = () => {
     if (currentTrack?.id === track.id) {
       togglePlay?.();
@@ -75,7 +74,6 @@ export const Track = ({
     }
   };
 
-  /** Конфигурация элементов управления карточкой трека. */
   const actions = getTrackActions({
     track,
     isOwn,
@@ -87,7 +85,6 @@ export const Track = ({
     disabledButton,
   });
 
-  /** Обработчик подтверждения удаления трека. */
   const handleConfirmDelete = async () => {
     try {
       await onDelete?.(track?.id);

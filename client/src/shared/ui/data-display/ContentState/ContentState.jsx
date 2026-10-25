@@ -1,22 +1,22 @@
 import { getApiErrorDisplay } from '../../../lib';
 import { Alert, Button, ContentEmptyState, PageLoader } from '../../../ui';
+
 import style from './ContentState.module.css';
 
 /**
- * Универсальное состояние загрузки контента.
+ * Показывает загрузку, ошибку, пустое состояние или содержимое.
  *
- * Показывает:Loader → Error → Empty → Children
- *
- * @param {Object} props
- * @param {boolean} props.loading - флаг загрузки
- * @param {string|null} props.error - сообщение об ошибке
- * @param {boolean} props.isEmpty - флаг пустого состояния
- * @param {string} props.emptyTitle - заголовок пустого состояния
- * @param {string} props.emptyDescription - описание пустого состояния
- * @param {string} [props.emptyIcon] - иконка пустого состояния
- * @param {string} [props.loadingMessage] - сообщение загрузки
- * @param {Function} [props.onRetry] - функция повтора запроса
- * @param {React.ReactNode} props.children - дочерние элементы
+ * @param {Object} props - Свойства компонента
+ * @param {boolean} [props.loading=false] - Признак загрузки
+ * @param {Error|Object|string|null} [props.error=null] - Ошибка загрузки
+ * @param {boolean} [props.isEmpty=false] - Признак пустого состояния
+ * @param {string} [props.emptyTitle] - Заголовок пустого состояния
+ * @param {string} [props.emptyDescription] - Описание пустого состояния
+ * @param {string} [props.emptyIcon] - Иконка пустого состояния
+ * @param {string} [props.loadingMessage='Загрузка...'] - Текст загрузки
+ * @param {Function} [props.onRetry] - Обработчик повтора запроса
+ * @param {React.ReactNode} props.children - Содержимое после загрузки
+ * @returns {React.ReactNode} Загрузка, ошибка, пустое состояние или содержимое.
  */
 export const ContentState = ({
   loading = false,

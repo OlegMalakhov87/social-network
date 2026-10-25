@@ -1,3 +1,3 @@
-export { useFileUpload } from './model/useFileUpload'; // Хук для загрузки файлов
+export { useFileUpload } from './model/useFileUpload'; // Загружает файл и очищает временную копию.
 
-export * from './config/mediaConfigs'; // Конфигурации для загрузки файлов
+export * from './config/mediaConfigs'; // Задаёт конфигурации загрузки медиафайлов.

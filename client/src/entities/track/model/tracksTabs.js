@@ -1,4 +1,4 @@
-/** Мапа для выбора вкладки треков*/
+/** Хранит вкладки жанров треков. */
 export const GENRE_TABS = [
   { id: 'all', label: 'Все', icon: '🎵' },
   { id: 'rock', label: 'Рок', icon: '🎸' },
@@ -9,7 +9,7 @@ export const GENRE_TABS = [
   { id: 'other', label: 'Другое', icon: '🌐' },
 ];
 
-/** Мапа для выбора жанра трека*/
+/** Хранит варианты жанра трека. */
 export const CATEGORY_OPTIONS = [
   { value: '', label: 'Выберите жанр' },
   { value: 'rock', label: 'Рок' },

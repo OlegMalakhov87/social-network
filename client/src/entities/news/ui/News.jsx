@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { CATEGORIES, getNewsActions } from '..';
 import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -16,24 +17,25 @@ import {
   Text,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
+
 import styles from './News.module.css';
 
 /**
- * Компонент для отображения карточки новости.
+ * Отображает карточку новости.
  *
- * @param {Object} props - параметры
- * @param {Object} props.news - данные новости
- * @param {Object} props.currentUser - данные текущего пользователя
- * @param {Function} props.onShareEntity - функция для отображения расшаренной новости
- * @param {Function} props.toggleLike - функция для лайка/дизлайка новости
- * @param {Function} props.onReadMore - функция для чтения новости
- * @param {Function} props.toggleComments - функция для открытия комментариев новости
- * @param {Function} props.onDelete - функция для удаления новости
- * @param {Function} props.onUpdate - функция для обновления новости
- * @param {Function} props.onPlay - функция для воспроизведения видео новости
- * @param {Object} props.currentNews - текущая новость
- * @param {boolean} props.isPlaying - воспроизводится ли новость
- * @returns {JSX.Element} - компонент карточки новости
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.news - Новость.
+ * @param {Object} props.currentUser - Текущий пользователь.
+ * @param {Function} props.onShareEntity - Обработчик отправки новости.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.onReadMore - Обработчик чтения новости.
+ * @param {Function} props.toggleComments - Обработчик комментариев.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @param {Function} props.onUpdate - Обработчик обновления.
+ * @param {Function} props.onPlay - Обработчик воспроизведения.
+ * @param {Object} props.currentNews - Текущая новость.
+ * @param {boolean} props.isPlaying - Признак воспроизведения.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 
 export const News = ({
@@ -60,7 +62,6 @@ export const News = ({
 
   if (!news?.id) return null;
 
-  /** Конфигурация элементов управления карточкой новости. */
   const actions = getNewsActions({
     news,
     currentUser,
@@ -71,7 +72,6 @@ export const News = ({
     onShare: () => onShareEntity(news),
   });
 
-  /** Обработчик переключения раскрытия текста новости. */
   const handleToggleExpand = () => {
     if (!expanded && !hasViewed) {
       onReadMore?.(news.id);
@@ -80,7 +80,6 @@ export const News = ({
     toggle();
   };
 
-  /** Обработчик подтверждения удаления новости. */
   const handleConfirmDelete = async () => {
     try {
       await onDelete?.(news.id);

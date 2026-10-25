@@ -1,8 +1,9 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для обновления избранного
+ * Проверяет признак избранного.
  */
 const validateFavoriteUpdate = [
   body('isFavorite')

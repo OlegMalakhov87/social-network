@@ -1,14 +1,14 @@
 import { Loading } from '../..';
+
 import style from './PageLoader.module.css';
 
 /**
- * Полноэкранный загрузчик страницы.
+ * Отображает загрузку страницы.
  *
- * Используется на уровне страниц и крупных разделов приложения.
- *
- * @param {Object} props
- * @param {string} props.message - текст загрузки
- * @param {React.ReactNode} [props.children] - контент ниже загрузчика
+ * @param {Object} props - Свойства компонента
+ * @param {string} [props.message='Загрузка...'] - Текст загрузки
+ * @param {React.ReactNode} [props.children=null] - Содержимое под индикатором
+ * @returns {JSX.Element} Загрузка страницы.
  */
 export const PageLoader = ({ message = 'Загрузка...', children = null }) => {
   return (

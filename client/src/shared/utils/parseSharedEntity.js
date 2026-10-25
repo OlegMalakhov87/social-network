@@ -1,16 +1,14 @@
 /**
- * Безопасно парсит расшаренную сущность из строки или объекта.
+ * Разбирает переданную сущность из строки JSON или объекта.
  *
- * @param {string|Object} data - строка JSON или готовый объект
- * @returns {Object|null} - распарсенный объект или null
+ * @param {string|Object|null|undefined} data - Строка JSON или объект
+ * @returns {Object|null} Разобранная сущность или null.
  */
 export const parseSharedEntity = (data) => {
   if (!data) return null;
 
-  // Уже объект — возвращаем как есть
   if (typeof data === 'object') return data;
 
-  // Строка — парсим
   if (typeof data === 'string') {
     try {
       return JSON.parse(data);

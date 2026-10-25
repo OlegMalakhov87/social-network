@@ -7,7 +7,12 @@ const {
 
 const widgetController = {
   /**
-   * Получить погоду по координатам из браузера.
+   * Возвращает погоду по координатам запроса.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getWeather: async (req, res, next) => {
     try {

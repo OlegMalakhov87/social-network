@@ -4,7 +4,12 @@ const { setRefreshCookie, clearRefreshCookie } = require('../utils/authCookie');
 
 const authController = {
   /**
-   * Получение информации о текущем пользователе
+   * Возвращает данные текущего пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getMe: async (req, res, next) => {
     try {
@@ -17,7 +22,12 @@ const authController = {
   },
 
   /**
-   * Регистрация пользователя
+   * Регистрирует пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   register: async (req, res, next) => {
     try {
@@ -38,7 +48,12 @@ const authController = {
   },
 
   /**
-   * Вход в систему
+   * Выполняет вход.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   login: async (req, res, next) => {
     try {
@@ -60,7 +75,12 @@ const authController = {
   },
 
   /**
-   * Обновление пользовательской авторизации.
+   * Обновляет маркер доступа.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   refresh: async (req, res, next) => {
     try {
@@ -87,9 +107,13 @@ const authController = {
   },
 
   /**
-   * Завершение пользовательской сессии.
+   * Завершает сессию.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
-
   logout: async (req, res, next) => {
     try {
       const currentRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];

@@ -1,13 +1,15 @@
 import { classNames } from '../../../utils';
+
 import styles from './ButtonGroup.module.css';
 
 /**
- * Контейнер для группы кнопок.
+ * Выравнивает группу кнопок.
  *
- * @param {Object} props - параметры запроса
- * @param {React.ReactNode} props.children - контент кнопок
- * @param {'start'|'end'|'center'} [props.align='end'] - выравнивание кнопок
- * @param {string} [props.className] - дополнительный класс
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Кнопки группы
+ * @param {'start'|'end'|'center'} [props.align='end'] - Выравнивание кнопок
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Группа кнопок.
  */
 
 export const ButtonGroup = ({ children, align = 'end', className }) => {

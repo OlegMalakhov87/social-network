@@ -1,8 +1,12 @@
 const { param } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация ID в параметрах
+ * Возвращает цепочку проверки целочисленного параметра маршрута.
+ *
+ * @param {string} paramName - Имя параметра маршрута
+ * @returns {import('express').RequestHandler[]} Промежуточные обработчики проверки.
  */
 const validateIdParam = (paramName) => [
   param(paramName)

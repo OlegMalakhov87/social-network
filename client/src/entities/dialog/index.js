@@ -1,11 +1,12 @@
-export * from './api/dialogApi'; // API для работы с диалогами
+export * from './api/dialogApi'; // Выполняет запросы диалогов.
 
-export { getMessageActions } from './lib/getMessageActions'; // формирование действий для сообщения
-export { normalizeDialogs } from './lib/normalizeDialog';
-export { normalizeMessages } from './lib/normalizeMessage'; // нормализация сообщения
+export { getMessageActions } from './lib/getMessageActions'; // Возвращает действия сообщения.
+export { publishNewMessage, subscribeNewMessage } from './lib/messageEvents'; // Публикует новое сообщение и подписывает обработчик.
+export { normalizeDialogs } from './lib/normalizeDialog'; // Приводит диалог к формату карточки.
+export { normalizeMessages } from './lib/normalizeMessage'; // Приводит сообщение к формату карточки.
 
-export * from './model/dialogsSchema'; // схема диалога
-export * from './model/messageSchema'; // схема сообщения
+export * from './model/dialogsSchema'; // Описывает схемы диалогов.
+export * from './model/messageSchema'; // Описывает схемы сообщений.
 
-export { Dialog } from './ui/Dialog'; // карточка для отображения диалога
-export { Message } from './ui/Message'; // карточка для отображения сообщения
+export { Dialog } from './ui/Dialog'; // Отображает карточку диалога.
+export { Message } from './ui/Message'; // Отображает карточку сообщения.

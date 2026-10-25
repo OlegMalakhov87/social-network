@@ -1,8 +1,8 @@
 /**
- * Нормализует объект сообщения в объект SharedEntityCard.
+ * Приводит сообщение к карточке общей сущности.
  *
- * @param {Object} message - объект сообщения.
- * @returns {Object} - объект нормализованного сообщения.
+ * @param {Object} message - Сообщение
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedMessage = (message) => ({
   id: message.id,

@@ -1,10 +1,9 @@
 /**
- * Возвращает пропсы для вкладки "Посты".
+ * Возвращает свойства вкладки постов.
  *
- * @param {Object} ctx - контекст компонента
- * @returns {Object} - пропсы для вкладки "Посты"
+ * @param {Object} ctx - Контекст вкладки
+ * @returns {Object} Свойства вкладки постов
  */
-
 export const getPostsTabProps = (ctx) => ({
   posts: ctx.items,
   currentUser: ctx.currentUser,

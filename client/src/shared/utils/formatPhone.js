@@ -1,8 +1,8 @@
 /**
- * Форматирует телефонный номер в формате +7 (XXX) XXX-XX-XX.
+ * Форматирует номер телефона.
  *
- * @param {string} value - Телефонный номер
- * @returns {string} - Форматированный телефонный номер
+ * @param {string} value - Номер телефона
+ * @returns {string} Номер в формате +7 и групп цифр или его заполненное начало.
  */
 export const formatPhone = (value) => {
   const digits = value.replace(/\D/g, '');

@@ -1,17 +1,18 @@
 import { NewsListSchema, NewsSchema } from '..';
 import { api } from '../../../shared/api';
-/**
- * Получить все новости с возможностью фильтрации по категории и поиску.
- * @param {Object} params - параметры запроса
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {string} params.sortKey - ключ сортировки
- * @param {string} params.filter - фильтр по категории
- * @param {string} [params.q] - поисковый запрос
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<{news: NewsListSchema, pagination}} {news, pagination}
- */
 
+/**
+ * Возвращает новости с фильтром и поиском.
+ *
+ * @param {Object} params - Параметры запроса
+ * @param {number} params.page - Номер страницы
+ * @param {number} params.limit - Количество на странице
+ * @param {string} params.sortKey - Ключ сортировки
+ * @param {string} params.filter - Фильтр категории
+ * @param {string} [params.q] - Поисковый запрос
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ news: Object[], pagination: Object }>} Новости и пагинация
+ */
 export const fetchNewsApi = async ({
   page,
   limit,
@@ -37,9 +38,10 @@ export const fetchNewsApi = async ({
 };
 
 /**
- * Поделиться новостью (для кнопки поделиться).
- * @param {number} newsId
- * @returns {Promise<{news: NewsSchema}} news
+ * Возвращает новость по идентификатору.
+ *
+ * @param {number} newsId - Идентификатор новости
+ * @returns {Promise<Object>} Новость
  */
 export const fetchNewsById = async (newsId) => {
   const response = await api.get(`/news/${newsId}/shared`);
@@ -47,9 +49,10 @@ export const fetchNewsById = async (newsId) => {
 };
 
 /**
- * Добавить новость.
- * @param {Object} data - поля новости
- * @returns {Promise<{news: NewsSchema}} news
+ * Добавляет новость.
+ *
+ * @param {Object} formData - Поля новости
+ * @returns {Promise<Object>} Новость
  */
 export const addNewsApi = async (formData) => {
   const response = await api.post('/news/add', formData);
@@ -57,10 +60,11 @@ export const addNewsApi = async (formData) => {
 };
 
 /**
- * Загрузить медиа файл для новости.
- * @param {FormData} formData - формат данных медиа файла
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { newsUrl }
+ * Загружает медиафайл новости.
+ *
+ * @param {FormData} formData - Медиафайл новости
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadNewsMediaApi = async (formData, config) => {
   const response = await api.post('/news/upload-media', formData, config);
@@ -68,10 +72,11 @@ export const uploadNewsMediaApi = async (formData, config) => {
 };
 
 /**
- * Обновить новость.
- * @param {number} newsId - ID новости
- * @param {Object} updates - поля новости
- * @returns {Promise<{news: NewsSchema}} news
+ * Обновляет новость.
+ *
+ * @param {number} newsId - Идентификатор новости
+ * @param {Object} updates - Поля новости
+ * @returns {Promise<Object>} Новость
  */
 export const updateNewsApi = async (newsId, updates) => {
   const response = await api.put(`/news/${newsId}/update`, updates);
@@ -79,9 +84,10 @@ export const updateNewsApi = async (newsId, updates) => {
 };
 
 /**
- * Обновить счетчик просмотров новости.
- * @param {number} newsId - ID новости
- * @returns {Promise<Object>}  { success, viewsCount }
+ * Обновляет счётчик просмотров новости.
+ *
+ * @param {number} newsId - Идентификатор новости
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updateNewsViewsCountApi = async (newsId) => {
   const response = await api.patch(`/news/${newsId}/views`);
@@ -89,9 +95,10 @@ export const updateNewsViewsCountApi = async (newsId) => {
 };
 
 /**
- * Удалить новость по ID.
- * @param {number} newsId - ID новости
- * @returns {Promise<Object>} { message, newsId }
+ * Удаляет новость по идентификатору.
+ *
+ * @param {number} newsId - Идентификатор новости
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteNewsApi = async (newsId) => {
   const response = await api.delete(`/news/${newsId}/delete`);
@@ -99,9 +106,10 @@ export const deleteNewsApi = async (newsId) => {
 };
 
 /**
- * Удалить (очистка мусора) загруженные медиа файлы.
- * @param {Object} data - данные новости
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженные медиафайлы новости.
+ *
+ * @param {Object} data - Данные новости
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedNewsApi = async (data) => {
   const response = await api.delete('/news/delete-uploaded-media', { data });

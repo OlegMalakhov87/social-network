@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
- * Скролл к верху страницы при переходе на новую страницу.
+ * Прокручивает страницу к началу при смене адреса.
  *
- * @returns {null}
+ * @returns {null} Ничего не отрисовывает.
  */
 export const ScrollToTop = () => {
   const { pathname } = useLocation();

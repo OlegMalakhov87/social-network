@@ -2,15 +2,16 @@ import { CommentSchema, CommentsListSchema } from '..';
 import { api } from '../../../shared/api';
 
 /**
- * Получить комментарии для конкретной сущности.
- * @param {Object} params - параметры запроса
- * @param {string} params.targetType – 'posts' | 'tracks' | 'videos' | 'news'
- * @param {number} params.targetId - ID сущности
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {string} params.sortKey - ключ сортировки
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { comments, pagination }
+ * Возвращает комментарии сущности.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {string} [params.targetType] - Тип сущности
+ * @param {number} [params.targetId] - Идентификатор сущности
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ comments: Object[], pagination: Object }>} Комментарии и пагинация
  */
 export const fetchCommentsApi = async ({
   targetType,
@@ -31,9 +32,10 @@ export const fetchCommentsApi = async ({
 };
 
 /**
- * Получить комментарий по ID (для кнопки поделиться).
- * @param {number} commentId - ID комментария
- * @returns {Promise<Object>} { comment }
+ * Возвращает комментарий по идентификатору.
+ *
+ * @param {number} commentId - Идентификатор комментария
+ * @returns {Promise<Object>} Комментарий
  */
 export const fetchCommentById = async (commentId) => {
   const response = await api.get(`/comments/${commentId}/shared`);
@@ -41,9 +43,10 @@ export const fetchCommentById = async (commentId) => {
 };
 
 /**
- * Добавить комментарий.
- * @param {Object} data - данные комментария
- * @returns {Promise<Object>} { comment }
+ * Добавляет комментарий.
+ *
+ * @param {Object} data - Данные комментария
+ * @returns {Promise<Object>} Комментарий
  */
 export const addCommentApi = async (data) => {
   const response = await api.post(`/comments/add`, data);
@@ -51,10 +54,11 @@ export const addCommentApi = async (data) => {
 };
 
 /**
- * Изменить комментарий по ID.
- * @param {number} commentId - ID комментария
- * @param {Object}  updates - поля комментария
- * @returns {Promise<Object>} { comment }
+ * Обновляет комментарий по идентификатору.
+ *
+ * @param {number} commentId - Идентификатор комментария
+ * @param {Object} updates - Поля комментария
+ * @returns {Promise<Object>} Комментарий
  */
 export const updateCommentApi = async (commentId, updates) => {
   const response = await api.patch(`/comments/${commentId}/update`, updates);
@@ -62,9 +66,10 @@ export const updateCommentApi = async (commentId, updates) => {
 };
 
 /**
- * Удалить комментарий по ID
- * @param {number} commentId - ID комментария
- * @returns {Promise<Object>} { message, commentId }
+ * Удаляет комментарий по идентификатору.
+ *
+ * @param {number} commentId - Идентификатор комментария
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteCommentApi = async (commentId) => {
   const response = await api.delete(`/comments/${commentId}/delete`);

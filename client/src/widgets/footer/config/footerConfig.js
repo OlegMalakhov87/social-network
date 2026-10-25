@@ -1,8 +1,4 @@
-/**
- * Конфигурация футера приложения.
- * Вынесена отдельно для удобства поддержки и переиспользования.
- */
-
+/** Содержит ссылки на социальные сети. */
 export const SOCIAL_LINKS = [
   { label: 'Twitter', url: 'https://twitter.com', icon: '𝕏' },
   { label: 'GitHub', url: 'https://github.com', icon: 'GitHub' },
@@ -10,6 +6,7 @@ export const SOCIAL_LINKS = [
   { label: 'YouTube', url: 'https://youtube.com', icon: 'YouTube' },
 ];
 
+/** Содержит ссылки раздела компании. */
 export const COMPANY_LINKS = [
   { label: 'О нас', path: '/about' },
   { label: 'Команда', path: '/team' },
@@ -18,6 +15,7 @@ export const COMPANY_LINKS = [
   { label: 'Карьера', path: '/careers' },
 ];
 
+/** Содержит ссылки раздела продукта. */
 export const PRODUCT_LINKS = [
   { label: 'Возможности', path: '/features' },
   { label: 'Безопасность', path: '/security' },
@@ -26,12 +24,14 @@ export const PRODUCT_LINKS = [
   { label: 'Roadmap', path: '/roadmap' },
 ];
 
+/** Содержит юридические ссылки. */
 export const LEGAL_LINKS = [
   { label: 'Политика конфиденциальности', path: '/privacy' },
   { label: 'Условия использования', path: '/terms' },
   { label: 'Cookies', path: '/cookies' },
 ];
 
+/** Содержит контактные данные. */
 export const CONTACT_INFO = [
   { icon: '📍', text: 'г. Смоленск' },
   {

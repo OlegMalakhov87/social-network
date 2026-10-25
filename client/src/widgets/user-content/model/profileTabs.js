@@ -6,7 +6,7 @@ import {
   getVideosTabProps,
 } from '../../../entities/user';
 
-/** Мапа для получения пропсов для выбранной вкладки */
+/** Хранит вкладки профиля и функции подготовки их свойств. */
 const PROFILE_TABS = {
   posts: {
     id: 'posts',
@@ -38,16 +38,16 @@ const PROFILE_TABS = {
   },
 };
 
-/** Массив вкладок для Toolbar и для поиска вкладки по id */
+/** Содержит вкладки профиля для панели инструментов и поиска по идентификатору. */
 export const PROFILE_TABS_MAP = Object.values(PROFILE_TABS);
 
 /**
- * Возвращает компонент активной вкладки профиля.
+ * Возвращает содержимое активной вкладки профиля.
  *
- * @param {Object} params - пропсы
- * @param {string} params.activeTab - активная вкладка
- * @param {Object} params.tabProps - пропсы для вкладки
- * @returns {JSX.Element|null} - компонент активной вкладки
+ * @param {Object} params - Параметры вкладки
+ * @param {string} [params.activeTab='posts'] - Идентификатор активной вкладки
+ * @param {Object} [params.tabProps={}] - Свойства активной вкладки
+ * @returns {JSX.Element|null} Разметка активной вкладки.
  */
 export const getProfileTabContent = ({
   activeTab = 'posts',

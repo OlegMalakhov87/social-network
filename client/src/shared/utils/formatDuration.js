@@ -1,8 +1,8 @@
 /**
- * Форматирует длительность в секундах в строку вида "ч:мм:сс" или "м:сс".
+ * Форматирует длительность в часы, минуты и секунды.
  *
- * @param {number} seconds - время в секундах
- * @returns {string} - форматированное время
+ * @param {number} seconds - Длительность в секундах
+ * @returns {string} Строка вида «ч:мм:сс», «м:сс» или «0:00».
  */
 export const formatDuration = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00';

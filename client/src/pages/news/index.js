@@ -1,1 +1,1 @@
-export { NewsPage } from './ui/NewsPage'; // Страница новостей
+export { NewsPage } from './ui/NewsPage'; // Отображает страницу новостей.

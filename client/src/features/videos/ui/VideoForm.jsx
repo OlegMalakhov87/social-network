@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+
 import { VIDEO_CONFIG } from '..';
 import { CATEGORY_OPTIONS } from '../../../entities/video';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -23,20 +24,27 @@ import {
   VIDEO_UPLOAD_CONFIG,
   useFileUpload,
 } from '../../file-upload';
+
 /**
- * Форма добавления/редактирования видео.
+ * Отображает форму добавления и редактирования видео.
  *
- * @param {Object} props - пропсы компонента
- * @param {Object} [props.initialData] - данные видео для редактирования
- * @param {Function} props.onClose - функция для закрытия формы
- * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Object} props - Свойства компонента
+ * @param {Object} [props.initialData={}] - Данные видео для редактирования
+ * @param {Function} props.onClose - Закрывает форму
+ * @param {Function} props.onSubmit - Отправляет форму
+ * @returns {JSX.Element} Форма видео
  */
 export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
   const isCancellingRef = useRef(false);
 
-  /** Обработчик отправки формы */
+  /**
+   * Отправляет видео и закрепляет загруженные файлы.
+   *
+   * @param {Object} values - Значения формы
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (values) => {
     try {
       await onSubmit(values, isEdit, initialData?.id);
@@ -51,7 +59,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       throw error;
     }
 
-    // С этого момента сохранение на сервере уже успешно.
+    // Сохранение на сервере уже завершилось успешно.
     const usedUrls = [values.videoUrl, values.previewUrl, values.thumbnailUrl];
 
     const results = await Promise.all([
@@ -75,7 +83,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     onClose?.();
   };
 
-  /** Форма для добавления/редактирования видео с валидацией */
   const form = useForm({
     initialValues: {
       title: initialData?.title ?? null,
@@ -116,7 +123,6 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSubmit: handleSubmit,
   });
 
-  /** Хук для загрузки видео */
   const videoUpload = useFileUpload(VIDEO_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('videoUrl', data.videoUrl);
@@ -125,8 +131,7 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
       form.setValue('duration', data.duration);
       form.setValue('size', data.size);
 
-      // Предыдущие пользовательские обложка и превью
-      // больше не используются после замены основного видео.
+      // Предыдущие обложка и предварительный просмотр больше не нужны после замены видео.
       void Promise.all([
         thumbnailUpload.cleanupUploadedFile(),
         previewUpload.cleanupUploadedFile(),
@@ -141,36 +146,30 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     },
   });
 
-  /** Хук для загрузки обложки */
   const thumbnailUpload = useFileUpload(VIDEO_THUMBNAIL_CONFIG, {
     onSuccess: (data) => {
       form.setValue('thumbnailUrl', data.thumbnailUrl);
     },
   });
 
-  /** Хук для загрузки превью */
   const previewUpload = useFileUpload(VIDEO_PREVIEW_CONFIG, {
     onSuccess: (data) => {
       form.setValue('previewUrl', data.previewUrl);
     },
   });
 
-  /** Флаг загрузки */
   const isUploading =
     videoUpload.isUploading ||
     thumbnailUpload.isUploading ||
     previewUpload.isUploading;
 
-  /** Обработчик закрытия формы */
   const handleCancel = async () => {
     if (isCancellingRef.current || form.isSubmitting) return;
 
     isCancellingRef.current = true;
 
     try {
-      // Сначала инвалидируем запросы и очищаем UI.
-      // Это защищает от применения ответа загрузки
-      // после начала закрытия формы.
+      // Сбрасывает загрузку до очистки, чтобы ответ не попал в закрытую форму.
       videoUpload.reset();
       thumbnailUpload.reset();
       previewUpload.reset();

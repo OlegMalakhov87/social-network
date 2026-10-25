@@ -5,21 +5,21 @@ const LIGHT_THEME = 'light';
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
 
 /**
- * Получает сохранённую тему из localStorage.
+ * Возвращает сохранённое предпочтение темы.
  *
- * @returns {string} - Сохранённая тема пользователя
+ * @returns {string} Сохранённая тема или системная тема.
  */
 export const getStoredThemePreference = () =>
   localStorage.getItem(THEME_STORAGE_KEY) || SYSTEM_THEME;
 
 /**
- * Определяет тему на основе предпочтения пользователя и состояния медиа-запроса.
+ * Выбирает тёмную или светлую тему по предпочтению и системной настройке.
  *
- * @param {string} themePreference - Предпочитаемая тема пользователя
- * @param {MediaQueryList} mediaQueryList - Медиа-запрос для определения темы
- * @returns {string}
+ * @param {string} themePreference - Предпочтение пользователя
+ * @param {MediaQueryList} mediaQueryList - Системная цветовая схема
+ * @returns {string} Имя применённой темы.
  */
-export const resolveTheme = (themePreference, mediaQueryList) => {
+const resolveTheme = (themePreference, mediaQueryList) => {
   if (themePreference === SYSTEM_THEME) {
     return mediaQueryList.matches ? DARK_THEME : LIGHT_THEME;
   }
@@ -28,11 +28,11 @@ export const resolveTheme = (themePreference, mediaQueryList) => {
 };
 
 /**
- * Применяет тему к DOM-элементам.
+ * Применяет тему к документу и сохраняет предпочтение.
  *
- * @param {string} themePreference - Предпочитаемая тема пользователя
- * @param {MediaQueryList} mediaQueryList - Медиа-запрос для определения темы
- * @returns {void}
+ * @param {string} themePreference - Предпочтение пользователя
+ * @param {MediaQueryList} [mediaQueryList=window.matchMedia('(prefers-color-scheme: dark)')] - Системная цветовая схема
+ * @returns {string} Имя применённой темы.
  */
 export const applyThemePreference = (
   themePreference,
@@ -49,4 +49,4 @@ export const applyThemePreference = (
   return resolvedTheme;
 };
 
-export { DARK_MEDIA_QUERY, SYSTEM_THEME, THEME_STORAGE_KEY };
+export { DARK_MEDIA_QUERY, SYSTEM_THEME };

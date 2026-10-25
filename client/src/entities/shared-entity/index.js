@@ -1,13 +1,11 @@
-export { isPlayable } from '../../shared/utils/isPlayable'; // Определяет, является ли сущность воспроизводимой (видео/аудио).
-export { parseSharedEntity } from '../../shared/utils/parseSharedEntity'; // Парсит строку JSON в объект SharedEntity.
-export { normalizeSharedComment } from './lib/normalizeSharedComment'; // Нормализует объект комментария в объект SharedEntityCard.
-export { normalizeSharedMessage } from './lib/normalizeSharedMessage'; // Нормализует объект сообщения в объект SharedEntityCard.
-export { normalizeSharedNews } from './lib/normalizeSharedNews'; // Нормализует объект новости в объект SharedEntityCard.
-export { normalizeSharedPhoto } from './lib/normalizeSharedPhoto'; // Нормализует объект фотографии в объект SharedEntityCard.
-export { normalizeSharedPost } from './lib/normalizeSharedPost'; // Нормализует объект поста в объект SharedEntityCard.
-export { normalizeSharedTrack } from './lib/normalizeSharedTrack'; // Нормализует объект трека в объект SharedEntityCard.
-export { normalizeSharedVideo } from './lib/normalizeSharedVideo'; // Нормализует объект видео в объект SharedEntityCard.
+export { isPlayable } from '../../shared/utils/isPlayable'; // Проверяет, воспроизводится ли сущность.
+export { parseSharedEntity } from '../../shared/utils/parseSharedEntity'; // Приводит строку JSON к объекту общей сущности.
+export { normalizeSharedComment } from './lib/normalizeSharedComment'; // Приводит комментарий к карточке общей сущности.
+export { normalizeSharedMessage } from './lib/normalizeSharedMessage'; // Приводит сообщение к карточке общей сущности.
+export { normalizeSharedNews } from './lib/normalizeSharedNews'; // Приводит новость к карточке общей сущности.
+export { normalizeSharedPhoto } from './lib/normalizeSharedPhoto'; // Приводит фотографию к карточке общей сущности.
+export { normalizeSharedPost } from './lib/normalizeSharedPost'; // Приводит пост к карточке общей сущности.
 
-export { getStatsItems } from './model/getStatsItems'; // Получает маппинг статистики для сущности.
+export { getStatsItems } from './model/getStatsItems'; // Возвращает показатели статистики сущности.
 
-export { SharedEntityCard } from './ui/SharedEntityCard'; // Компонент SharedEntityCard.
+export { SharedEntityCard } from './ui/SharedEntityCard'; // Отображает карточку общей сущности.

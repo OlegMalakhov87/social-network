@@ -1,4 +1,4 @@
-export { useDialogs } from './model/useDialogs'; // Хук для работы с диалогами
-export { useDialogsActions } from './model/useDialogsActions'; // Хук для работы с действиями диалогов
-export { useMessages } from './model/useMessages'; // Хук для работы с сообщениями
-export { MessageForm } from './ui/MessageForm'; // Компонент для формы сообщений
+export { useDialogs } from './model/useDialogs'; // Возвращает список диалогов и статусы собеседников.
+export { useDialogsActions } from './model/useDialogsActions'; // Отправляет, изменяет и скрывает сообщения и очищает чат.
+export { useMessages } from './model/useMessages'; // Возвращает сообщения диалога и обновляет их локально.
+export { MessageForm } from './ui/MessageForm'; // Отображает форму отправки сообщения.

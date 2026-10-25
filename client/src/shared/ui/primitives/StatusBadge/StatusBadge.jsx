@@ -1,14 +1,16 @@
 import { classNames } from '../../../utils';
+
 import style from './StatusBadge.module.css';
 
 /**
- * Универсальный бейдж статуса.
+ * Отображает значок статуса.
  *
- * @param {Object} props
- * @param {'online'|'offline'|'success'|'warning'|'error'|'info'} props.status - статус
- * @param {string} props.label - лейбл статуса
- * @param {'sm'|'md'|'lg'} [props.size='md'] - размер статуса
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {'online'|'offline'|'success'|'warning'|'error'|'info'} [props.status='offline'] - Статус: в сети, не в сети, успех, предупреждение, ошибка или сведения
+ * @param {string} [props.label] - Подпись статуса
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - Размер значка
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Значок статуса.
  */
 export const StatusBadge = ({
   status = 'offline',

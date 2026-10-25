@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { getFriendshipButtonConfig } from '../../../entities/friend';
 import {
   getProfileActions,
@@ -19,21 +20,21 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Карточка профиля пользователя.
+ * Отображает карточку профиля пользователя.
  *
- * @param {Object} props
- * @param {Object|null} props.targetUser - пользователь, профиль которого отображается.
- * @param {Object|null} props.currentUser - текущий пользователь.
- * @param {boolean} props.isOwnProfile - флаг владельца профиля.
- * @param {Error|null} props.error - ошибка.
- * @param {Function} props.refetchUser - функция для обновления данных пользователя.
- * @param {Function} props.onFollow - функция для подписания на пользователя.
- * @param {Function} props.onUnfollow - функция для отписки от пользователя.
- * @param {Function} props.onAccept - функция для принятия запроса на дружбу.
- * @param {Function} props.onUnlock - функция для разблокировки пользователя.
- * @param {Function} props.onBlock - функция для блокировки пользователя.
+ * @param {Object} props - Свойства компонента
+ * @param {Object|null} props.targetUser - Пользователь открытого профиля
+ * @param {Object|null} props.currentUser - Текущий пользователь
+ * @param {boolean} props.isOwnProfile - Признак собственного профиля
+ * @param {Error|string|null} props.error - Ошибка загрузки профиля
+ * @param {Function} props.refetchUser - Обработчик повторной загрузки профиля
+ * @param {Function} props.onFollow - Обработчик подписки на пользователя
+ * @param {Function} props.onUnfollow - Обработчик отписки от пользователя
+ * @param {Function} props.onAccept - Обработчик принятия запроса в друзья
+ * @param {Function} props.onUnlock - Обработчик снятия блокировки
+ * @param {Function} [props.onBlock] - Обработчик блокировки пользователя
+ * @returns {JSX.Element} Разметка карточки.
  */
-
 export const Profile = ({
   targetUser,
   currentUser,
@@ -49,10 +50,8 @@ export const Profile = ({
   const navigate = useNavigate();
   const [showBlockDialog, setShowBlockDialog] = useState(false);
 
-  /** Отображения полей с данными пользователя */
   const infoFields = useMemo(() => getProfileFields(targetUser), [targetUser]);
 
-  /** Кнопка действий дружбы */
   const friendshipButton = getFriendshipButtonConfig({
     user: targetUser,
     onFollow,
@@ -62,7 +61,11 @@ export const Profile = ({
     onBlock: () => setShowBlockDialog(true),
   });
 
-  /** Обработчик перхода на страницу диалогов */
+  /**
+   * Открывает переписку с выбранным пользователем.
+   *
+   * @param {Object} [e] - Событие нажатия
+   */
   const handleSendMessage = useCallback(
     (e) => {
       e?.preventDefault?.();
@@ -73,14 +76,12 @@ export const Profile = ({
     [currentUser?.id, targetUser?.id, navigate]
   );
 
-  /** Действия профиля */
   const actions = getProfileActions({
     isOwnProfile,
     friendshipButton,
     onSendMessage: handleSendMessage,
   });
 
-  /** Обработчик подтверждения блокировки */
   const handleConfirmBlock = () => {
     onBlock?.(targetUser.id);
     setShowBlockDialog(false);

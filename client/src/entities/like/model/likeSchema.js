@@ -1,7 +1,9 @@
 import { z } from 'zod';
+
 import { UserSchema } from '../../user';
+
 /**
- * Схема лайка
+ * Описывает лайк.
  */
 export const LikeSchema = z.object({
   id: z.number(),
@@ -19,6 +21,6 @@ export const LikeSchema = z.object({
 });
 
 /**
- * Схема списка лайков
+ * Описывает список лайков.
  */
 export const LikesListSchema = z.array(LikeSchema);

@@ -1,9 +1,10 @@
 import { z } from 'zod';
+
 import { LikeSchema } from '../../like';
 import { UserSchema } from '../../user';
 
 /**
- * Схема комментария
+ * Описывает комментарий.
  */
 export const CommentSchema = z.object({
   id: z.number(),
@@ -23,6 +24,6 @@ export const CommentSchema = z.object({
 });
 
 /**
- * Схема списка комментариев
+ * Описывает список комментариев.
  */
 export const CommentsListSchema = z.array(CommentSchema);

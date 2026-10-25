@@ -1,14 +1,16 @@
 import { classNames } from '../../../utils';
+
 import styles from './Stat.module.css';
 
 /**
- * Один показатель статистики.
+ * Отображает один показатель.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.icon - иконка статистики
- * @param {string|number} props.value - значение статистики
- * @param {string} [props.label] - лейбл статистики
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} [props.icon] - Иконка показателя
+ * @param {string|number} props.value - Значение показателя
+ * @param {string} [props.label] - Подпись показателя
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Показатель.
  */
 
 export const Stat = ({ icon, value, label, className = '' }) => {

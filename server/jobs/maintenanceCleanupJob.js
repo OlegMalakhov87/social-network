@@ -1,14 +1,17 @@
 const cron = require('node-cron');
+
 const mediaCleanupService = require('../src/services/mediaCleanupService');
 const temporaryMediaService = require('../src/services/temporaryMediaService');
 const messageService = require('../src/services/messageService');
 const newsService = require('../src/services/newsService');
 const authSessionCleanupService = require('../src/services/authSessionCleanupService');
 
-/** Обёртка с изоляцией ошибок
+/**
+ * Выполняет задачу очистки и изолирует ее ошибку от остальных задач.
+ *
  * @param {string} name - Название задачи
- * @param {function} task - Функция задачи
- * @returns {Promise<{name: string, success: boolean, result?: any, error?: string}>} - Результат выполнения задачи
+ * @param {Function} task - Функция задачи
+ * @returns {Promise<{name: string, success: boolean, result?: *, error?: string}>} Результат задачи.
  */
 const runTask = async (name, task) => {
   const start = Date.now();
@@ -24,18 +27,16 @@ const runTask = async (name, task) => {
   }
 };
 
-/** Флаг для предотвращения одновременного запуска нескольких очисток - false */
+/** Запрещает параллельный запуск очистки. */
 let isRunning = false;
 
 /**
- * Запуск очистки временных файлов, удаленных сообщений,
- * архивации устаревших новостей, а также медиафайлов из директорий:
- *  - MEDIA_ROOT
- *  - STAGING_ROOT
- *  - PUBLISH_STAGING_ROOT
+ * Запускает ежедневную очистку в 20:30.
  *
- * Очистка происходит в 20:30 ежедневно.
+ * Очищает временные файлы, удаленные сообщения, истекшие сессии обновления,
+ * устаревшие новости и медиафайлы в MEDIA_ROOT, STAGING_ROOT и PUBLISH_STAGING_ROOT.
  *
+ * @returns {void} Ничего не возвращает.
  */
 const startMaintenanceAndCleanupJob = () => {
   cron.schedule('30 20 * * *', async () => {
@@ -44,7 +45,7 @@ const startMaintenanceAndCleanupJob = () => {
       return;
     }
 
-    // Блокируем параллельный запуск очистки
+    // Блокирует параллельный запуск очистки.
     isRunning = true;
 
     console.log('='.repeat(50));
@@ -93,7 +94,7 @@ const startMaintenanceAndCleanupJob = () => {
       console.log(`[Maintenance] Завершено: ${new Date().toLocaleString()}`);
       console.log('='.repeat(50));
     } finally {
-      // Разрешаем следующий запуск независимо от результата текущего
+      // Разрешает следующий запуск независимо от результата текущего.
       isRunning = false;
     }
   });

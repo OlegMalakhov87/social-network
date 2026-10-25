@@ -35,9 +35,7 @@ import {
   minImageResolution,
 } from '../../../shared/lib/mediaValidators';
 
-/**
- * Конфигурация загрузки аватара профиля.
- */
+/** Задаёт правила загрузки аватара профиля. */
 export const AVATAR_UPLOAD_CONFIG = {
   accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
@@ -54,9 +52,7 @@ export const AVATAR_UPLOAD_CONFIG = {
   fieldName: 'avatarUrl',
 };
 
-/**
- * Конфигурация загрузки изображения для поста.
- */
+/** Задаёт правила загрузки изображения для поста. */
 export const POST_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
@@ -77,9 +73,7 @@ export const POST_IMAGE_UPLOAD_CONFIG = {
   fieldName: 'postUrl',
 };
 
-/**
- * Конфигурация загрузки видео для поста.
- */
+/** Задаёт правила загрузки видео для поста. */
 export const POST_VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
@@ -97,9 +91,7 @@ export const POST_VIDEO_UPLOAD_CONFIG = {
   mediaFields: ['postUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
-/**
- * Конфигурация загрузки изображения для новости.
- */
+/** Задаёт правила загрузки изображения для новости. */
 export const NEWS_IMAGE_UPLOAD_CONFIG = {
   accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
@@ -120,9 +112,7 @@ export const NEWS_IMAGE_UPLOAD_CONFIG = {
   fieldName: 'newsUrl',
 };
 
-/**
- * Конфигурация загрузки видео для новости.
- */
+/** Задаёт правила загрузки видео для новости. */
 export const NEWS_VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
@@ -140,9 +130,7 @@ export const NEWS_VIDEO_UPLOAD_CONFIG = {
   mediaFields: ['newsUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
-/**
- * Конфигурация загрузки обложки видео.
- */
+/** Задаёт правила загрузки обложки видео. */
 export const VIDEO_THUMBNAIL_CONFIG = {
   accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
@@ -163,9 +151,7 @@ export const VIDEO_THUMBNAIL_CONFIG = {
   fieldName: 'thumbnailUrl',
 };
 
-/**
- * Конфигурация загрузки превью видео.
- */
+/** Задаёт правила загрузки предварительного просмотра видео. */
 export const VIDEO_PREVIEW_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
@@ -182,9 +168,7 @@ export const VIDEO_PREVIEW_CONFIG = {
   fieldName: 'previewUrl',
 };
 
-/**
- * Конфигурация загрузки видео.
- */
+/** Задаёт правила загрузки видео. */
 export const VIDEO_UPLOAD_CONFIG = {
   accept: 'video/mp4,video/webm,video/quicktime',
   validators: composeValidators([
@@ -202,9 +186,7 @@ export const VIDEO_UPLOAD_CONFIG = {
   mediaFields: ['videoUrl', 'previewUrl', 'thumbnailUrl'],
 };
 
-/**
- * Конфигурация загрузки обложки альбома (трека).
- */
+/** Задаёт правила загрузки обложки альбома. */
 export const ALBUM_COVER_CONFIG = {
   accept: 'image/jpg,image/jpeg,image/png,image/webp',
   validators: composeValidators([
@@ -225,9 +207,7 @@ export const ALBUM_COVER_CONFIG = {
   fieldName: 'coverUrl',
 };
 
-/**
- * Конфигурация загрузки аудиотрека.
- */
+/** Задаёт правила загрузки аудиотрека. */
 export const TRACK_UPLOAD_CONFIG = {
   accept: 'audio/mpeg,audio/ogg,audio/wav,audio/flac',
   validators: composeValidators([

@@ -1,1 +1,1 @@
-export { ProfilePage } from './ui/ProfilePage'; // Страница профиля пользователя
+export { ProfilePage } from './ui/ProfilePage'; // Отображает страницу профиля.

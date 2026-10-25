@@ -1,10 +1,9 @@
 import axios from 'axios';
+
 import { API_URL } from '../config';
 
 /**
- * Axios-клиент для операций с refresh-сессией.
- *
- * Не использует interceptors автоматического обновления токенов.
+ * Выполняет запросы обновления сессии и не обновляет маркер доступа автоматически.
  */
 export const authAxios = axios.create({
   baseURL: API_URL,

@@ -1,7 +1,8 @@
 /**
- * Преобразует трек с сервера в формат компонента Track / AudioPlayer.
- * @param {Object} raw - трек из ответа сервера
- * @returns {Object} - нормализованные данные трека
+ * Приводит трек с сервера к формату карточки.
+ *
+ * @param {Object} raw - Трек с сервера
+ * @returns {Object} Трек карточки
  */
 export const normalizeTracks = (raw) => {
   if (!raw || typeof raw !== 'object') {

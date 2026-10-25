@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+
 const {
   sequelize,
   Music,
@@ -6,14 +8,15 @@ const {
   Comment,
   UserMusicLibrary,
 } = require('../../db/models');
-const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
 
-/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
@@ -21,7 +24,9 @@ const SORT_MAP = {
   viewsAsc: { field: 'playsCount', direction: 'ASC' },
 };
 
-/** Поля трека, которые можно обновлять */
+/**
+ * Перечисляет поля трека, которые можно обновлять.
+ */
 const MUSIC_FIELDS = [
   'title',
   'artist',
@@ -37,15 +42,16 @@ const MUSIC_FIELDS = [
 
 const musicService = {
   /**
-   * Получение публичной ленты треков и поиск
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество треков на странице
-   * @param {string} params.category - Категория трека
-   * @param {string} params.q - Поисковый запрос
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {string} params.sortKey - Ключ сортировки
-   * @returns {Promise<Object>} - Объект с результатом
+   * Возвращает публичную ленту треков и результат поиска.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} params.category - Категория
+   * @param {string} params.q - Строка поиска
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async getMusic({
     page = 1,
@@ -141,10 +147,11 @@ const musicService = {
   },
 
   /**
-   * Создание нового трека
-   * @param {number} currentUserId - ID пользователя, создающего трек
+   * Создает трек.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object} musicData - Данные трека
-   * @returns {Promise<Object>} - Объект с результатом
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async createMusic(currentUserId, musicData) {
     const media = [
@@ -201,10 +208,12 @@ const musicService = {
   },
 
   /**
-   * Обновление приватности треков
-   * @param {number} currentUserId - ID пользователя, обновляющего треки
-   * @param {boolean} isPublic - Приватность треков
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет приватность треков.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} params - Параметры вызова
+   * @param {boolean} params.isPublic - Признак публичности
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updateMusicPrivacy(currentUserId, { isPublic }) {
     const [affectedCount] = await Music.update(
@@ -222,11 +231,12 @@ const musicService = {
   },
 
   /**
-   * Обновление трека (владелец)
-   * @param {number} trackId - ID трека
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updates - Обновляемые данные
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет трек владельца.
+   *
+   * @param {number} trackId - Идентификатор трека
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updates - Данные обновления
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updateMusic(trackId, currentUserId, updates) {
     return sequelize.transaction(async (transaction) => {
@@ -294,9 +304,10 @@ const musicService = {
   },
 
   /**
-   * Инкремент счетчика проигрываний
-   * @param {number} trackId - ID трека
-   * @returns {Promise<Object>} - Объект с результатом
+   * Увеличивает счетчик прослушиваний.
+   *
+   * @param {number} trackId - Идентификатор трека
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async incrementPlaysCount(trackId) {
     await Music.increment('playsCount', {
@@ -308,10 +319,11 @@ const musicService = {
   },
 
   /**
-   * Удаление трека (владелец)
-   * @param {number} trackId - ID трека
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - Объект с результатом
+   * Удаляет трек владельца.
+   *
+   * @param {number} trackId - Идентификатор трека
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async deleteMusic(trackId, currentUserId) {
     const track = await Music.findOne({

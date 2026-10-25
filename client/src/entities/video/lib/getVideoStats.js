@@ -1,10 +1,10 @@
 import { formatDate, formatSize, formatViews } from '../../../shared/utils';
 
 /**
- * Формирует массив статистики для отображения в VideoPlayer.
+ * Возвращает статистику видео.
  *
- * @param {Object} video - данные видео
- * @returns {Array<Object>} - массив статистики
+ * @param {Object} video - Видео
+ * @returns {Array<Object>} Статистика видео
  */
 export const getVideoStats = (video) => {
   if (!video) return [];

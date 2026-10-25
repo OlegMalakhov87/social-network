@@ -1,8 +1,4 @@
-/**
- * Конфигурация полей формы смены пароля.
- *
- * @returns {Array<Object>} - массив полей формы
- */
+/** Задаёт поля формы смены пароля. */
 export const CHANGE_PASSWORD_SETTINGS_CONFIG = [
   {
     key: 'currentPassword',

@@ -1,27 +1,46 @@
 import { formatViews } from '../../../shared/utils';
 
 /**
- * Базовая статистика для любой сущности.
+ * Возвращает показатель лайков.
+ *
+ * @param {Object} entity - Общая сущность
+ * @returns {Array<{ icon: string, value: string }>} Показатель лайков
  */
 const LIKES_STATS = (entity) => [
   { icon: '❤️', value: formatViews(entity.stats?.likesCount ?? 0) },
 ];
 
+/**
+ * Возвращает показатель комментариев.
+ *
+ * @param {Object} entity - Общая сущность
+ * @returns {Array<{ icon: string, value: string }>} Показатель комментариев
+ */
 const COMMENTS_STATS = (entity) => [
   { icon: '💬', value: formatViews(entity.stats?.commentsCount ?? 0) },
 ];
 
+/**
+ * Возвращает показатель просмотров.
+ *
+ * @param {Object} entity - Общая сущность
+ * @returns {Array<{ icon: string, value: string }>} Показатель просмотров
+ */
 const VIEWS_STATS = (entity) => [
   { icon: '👁️', value: formatViews(entity.stats?.viewsCount ?? 0) },
 ];
 
+/**
+ * Возвращает показатель прослушиваний.
+ *
+ * @param {Object} entity - Общая сущность
+ * @returns {Array<{ icon: string, value: string }>} Показатель прослушиваний
+ */
 const PLAYS_STATS = (entity) => [
   { icon: '▶', value: formatViews(entity.stats?.playsCount ?? 0) },
 ];
 
-/**
- * Маппинг статистики для сущности.
- */
+/** Хранит показатели по типу сущности. */
 const STATS_MAP = {
   post: (entity) => [...LIKES_STATS(entity), ...COMMENTS_STATS(entity)],
   photo: (entity) => [...LIKES_STATS(entity), ...COMMENTS_STATS(entity)],
@@ -45,10 +64,10 @@ const STATS_MAP = {
 };
 
 /**
- * Получает массив элементов статистики для сущности.
+ * Возвращает показатели статистики сущности.
  *
- * @param {Object} entity - нормализованная сущность
- * @returns {Array} - массив { icon, value }
+ * @param {Object} entity - Общая сущность
+ * @returns {Array<{ icon: string, value: string }>} Показатели статистики
  */
 export const getStatsItems = (entity) => {
   if (!entity?.type) return [];

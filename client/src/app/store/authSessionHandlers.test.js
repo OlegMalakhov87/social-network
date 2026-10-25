@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import authReducer from '../../entities/auth/model/authSlice';
 import {
   checkAuth,
@@ -10,9 +11,15 @@ import { createAuthSessionHandlers } from './authSessionHandlers';
 const SESSION_A = '11111111-1111-4111-8111-111111111111';
 const SESSION_B = '22222222-2222-4222-8222-222222222222';
 
-// Создаём тестовый JWT.
-// Подпись фиктивная: здесь мы только декодируем claims,
-// а не проверяем криптографическую подпись.
+/**
+ * Создаёт тестовый JWT.
+ *
+ * Оставляет подпись фиктивной: декодирует claims и не проверяет её.
+ *
+ * @param {number} userId - Идентификатор пользователя
+ * @param {string} sessionId - Идентификатор сессии
+ * @returns {string} Тестовый JWT.
+ */
 const createTestToken = (userId, sessionId) => {
   const now = Math.floor(Date.now() / 1000);
 
@@ -139,12 +146,12 @@ describe('authSessionHandlers', () => {
 
     const requestId = 'pending-auth-check';
 
-    // Начинается восстановление авторизации.
+    // Начинает восстановление авторизации.
     store.dispatch(checkAuth.pending(requestId, undefined));
 
     expect(store.getState().auth.authCheckRequestId).toBe(requestId);
 
-    // Другая вкладка создаёт новую сессию.
+    // Создаёт новую сессию в другой вкладке.
     const { onSessionChanged } = createAuthSessionHandlers(store);
 
     onSessionChanged({
@@ -152,7 +159,7 @@ describe('authSessionHandlers', () => {
       sessionId: SESSION_B,
     });
 
-    // Старый запрос завершился уже после смены сессии.
+    // Завершает старый запрос после смены сессии.
     store.dispatch(
       checkAuth.fulfilled(
         {
@@ -184,12 +191,12 @@ describe('authSessionHandlers', () => {
       password: 'test-password',
     };
 
-    // Login ещё выполняется.
+    // Продолжает выполнение входа.
     store.dispatch(login.pending(requestId, credentials));
 
     expect(store.getState().auth.authMutationRequestId).toBe(requestId);
 
-    // Из другой вкладки приходит SESSION_CHANGED.
+    // Принимает SESSION_CHANGED из другой вкладки.
     const { onSessionChanged } = createAuthSessionHandlers(store);
 
     onSessionChanged({
@@ -197,7 +204,7 @@ describe('authSessionHandlers', () => {
       sessionId: SESSION_B,
     });
 
-    // Поздний ответ от старого login.
+    // Возвращает поздний ответ прежнего входа.
     store.dispatch(
       login.fulfilled(
         {
@@ -230,12 +237,12 @@ describe('authSessionHandlers', () => {
       password: 'test-password',
     };
 
-    // Регистрация началась.
+    // Начинает регистрацию.
     store.dispatch(register.pending(requestId, formData));
 
     expect(store.getState().auth.authMutationRequestId).toBe(requestId);
 
-    // Другая вкладка создала новую сессию.
+    // Создаёт новую сессию в другой вкладке.
     const { onSessionChanged } = createAuthSessionHandlers(store);
 
     onSessionChanged({
@@ -243,7 +250,7 @@ describe('authSessionHandlers', () => {
       sessionId: SESSION_B,
     });
 
-    // Старый запрос регистрации завершился позже.
+    // Завершает прежнюю регистрацию после смены сессии.
     store.dispatch(
       register.fulfilled(
         {
@@ -275,20 +282,18 @@ describe('authSessionHandlers', () => {
 
     const requestId = 'pending-new-session-check';
 
-    // Начинаем восстановление авторизации.
+    // Начинает восстановление авторизации.
     store.dispatch(checkAuth.pending(requestId, undefined));
 
     const { onSessionLogout } = createAuthSessionHandlers(store);
 
-    // Другая вкладка сообщает о выходе
-    // из старой сессии AAA.
+    // Сообщает о выходе из старой сессии в другой вкладке.
     onSessionLogout({
       userId: 15,
       sessionId: SESSION_A,
     });
 
-    // Наш checkAuth успешно восстановил
-    // другую сессию BBB.
+    // Восстанавливает другую сессию проверкой авторизации.
     store.dispatch(
       checkAuth.fulfilled(
         {

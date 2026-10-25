@@ -2,11 +2,13 @@ import { api } from '../../../../shared/api';
 import { WeatherSchema } from '../model/weatherSchema';
 
 /**
- * Получить погоду по адресу пользователя.
+ * Запрашивает погоду по координатам.
  *
- * @param {Object} params - параметры запроса
- * @param {AbortSignal} signal - сигнал отмены запроса
- * @returns {Promise<Object>} - данные о погоде
+ * @param {Object} params - Параметры запроса
+ * @param {number} params.lat - Широта
+ * @param {number} params.lon - Долгота
+ * @param {AbortSignal} signal - Сигнал отмены запроса
+ * @returns {Promise<Object>} Данные о погоде.
  */
 export const fetchWeatherApi = async (params, signal) => {
   const response = await api.get('/widgets/weather', {

@@ -1,5 +1,8 @@
 /**
- * Нормализует объект поста для SharedEntityCard / sessionStorage.
+ * Приводит пост к карточке общей сущности.
+ *
+ * @param {Object} post - Пост
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedPost = (post) => ({
   id: post.id,

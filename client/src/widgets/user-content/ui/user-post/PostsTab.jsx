@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+
 import { Post } from '../../../../entities/post';
 import { normalizeSharedPost } from '../../../../entities/shared-entity';
 import { useShareEntity } from '../../../../features/shared-entities';
@@ -9,31 +10,35 @@ import {
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
 import { EntityWithComments } from '../../../comment';
+
 import styles from './PostsTab.module.css';
 
 /**
- * Вкладка с сеткой постов.
- * @param {Object} props
- * @param {Array} props.posts - массив постов
- * @param {Object} props.currentUser - текущий пользователь
- * @param {Object} props.targetUser - выбранный пользователь
- * @param {boolean} props.isOwnProfile - владелец профиля(да или нет)
- * @param {boolean} props.isLoading - загружен пост или нет
- * @param {string|null} props.error - ошибка
- * @param {Function} props.onPlayPost - воспроизведение поста
- * @param {Object} props.currentPost - текущий пост
- * @param {boolean} props.isPlaying - воспроизводится ли пост
- * @param {Function} props.toggleLike - лайк/дизлайк
- * @param {Function} props.deletePost - удалить пост
- * @param {Function} props.toggleComments - открыть комментарии / закрыть комментарии
- * @param {Object} props.commentTarget - целевой тип и id комментариев
- * @param {Function} props.onCloseComments - закрыть комментарии
- * @param {Function} props.onCommentChange - изменить количество комментариев
- * @param {Function} props.onRetry - повторить загрузку
- * @param {boolean} props.hasMore - есть ли еще посты для загрузки
- * @param {Function} props.loadMore - функция для загрузки следующей страницы постов
+ * Отображает вкладку с сеткой постов.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.posts=[]] - Список постов
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Object} props.targetUser - Пользователь открытого профиля
+ * @param {boolean} props.isOwnProfile - Признак собственного профиля
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {Function} props.onPlayPost - Обработчик воспроизведения поста
+ * @param {Object} props.currentPost - Текущий пост
+ * @param {boolean} props.isPlaying - Признак воспроизведения поста
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.deletePost - Обработчик удаления поста
+ * @param {Function} props.updatePost - Обработчик обновления поста
+ * @param {Function} props.toggleComments - Обработчик открытия и закрытия комментариев
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Function} props.onCommentChange - Обработчик изменения количества комментариев
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @returns {JSX.Element} Разметка вкладки.
  */
-
 export const PostsTab = ({
   posts = [],
   currentUser,
@@ -58,20 +63,18 @@ export const PostsTab = ({
 }) => {
   const navigate = useNavigate();
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
   const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedPost,
     onSuccess: () => navigate('/messages'),
   });
 
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных постах.
   const isRefetching = isLoading && posts.length > 0;
 
   return (

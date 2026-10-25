@@ -1,1 +1,1 @@
-export { MusicPage } from './ui/MusicPage'; // Страница музыки
+export { MusicPage } from './ui/MusicPage'; // Отображает страницу музыки.

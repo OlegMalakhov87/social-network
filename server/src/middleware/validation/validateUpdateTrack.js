@@ -1,6 +1,16 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
+/**
+ * Проверяет необязательную строку заданной длины.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const optionalText = (field, min, max, message) =>
   body(field)
     .optional()
@@ -15,7 +25,7 @@ const optionalText = (field, min, max, message) =>
     .withMessage(message);
 
 /**
- * Валидация для обновления трека
+ * Проверяет поля обновления трека.
  */
 const validateUpdateTrack = [
   optionalText('title', 1, 100, 'Некорректный заголовок'),

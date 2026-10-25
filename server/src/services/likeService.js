@@ -10,7 +10,9 @@ const {
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
-/** Маппинг типов сущностей на модели и типы в БД */
+/**
+ * Сопоставляет тип сущности с моделью Sequelize.
+ */
 const TARGET_TYPES = {
   posts: {
     model: Post,
@@ -43,10 +45,16 @@ const TARGET_TYPES = {
   },
 };
 
-/**
- * Сервис для работы с лайками
- */
 const likeService = {
+  /**
+   * Создает лайк сущности.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {string} params.targetType - Тип сущности
+   * @param {number} params.targetId - Идентификатор сущности
+   * @returns {Promise<Object>} Результат операции.
+   */
   async addLike({ currentUserId, targetType, targetId }) {
     const target = TARGET_TYPES[targetType];
     if (!target) {
@@ -91,12 +99,13 @@ const likeService = {
   },
 
   /**
-   * Удалить лайк у сущности
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
+   * Удаляет лайк сущности.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
    * @param {string} params.targetType - Тип сущности
-   * @param {number} params.targetId - ID сущности
-   * @returns {Promise<Object>}
+   * @param {number} params.targetId - Идентификатор сущности
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async deleteLike({ currentUserId, targetType, targetId }) {
     const target = TARGET_TYPES[targetType];

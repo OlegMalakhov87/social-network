@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
+
 import { SettingsSection, THEME_OPTIONS } from '..';
 import { applyThemePreference, getStoredThemePreference } from '../../../shared/lib';
 import { Alert, SegmentedControl } from '../../../shared/ui';
+
 import style from './SettingsForm.module.css';
 
 /**
- * Компонент формы настроек внешнего вида.
+ * Отображает настройки внешнего вида.
+ *
+ * @returns {JSX.Element} Настройки темы
  */
 export const AppearanceSettings = () => {
   const [theme, setTheme] = useState(() => getStoredThemePreference());

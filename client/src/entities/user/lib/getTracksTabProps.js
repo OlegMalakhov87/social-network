@@ -1,10 +1,9 @@
 /**
- * Возвращает пропсы для вкладки "Треки".
+ * Возвращает свойства вкладки треков.
  *
- * @param {Object} ctx - контекст компонента
- * @returns {Object} - пропсы для вкладки "Треки"
+ * @param {Object} ctx - Контекст вкладки
+ * @returns {Object} Свойства вкладки треков
  */
-
 export const getTracksTabProps = (ctx) => ({
   currentUser: ctx.currentUser,
   targetUser: ctx.targetUser,

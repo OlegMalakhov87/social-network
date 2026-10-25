@@ -2,14 +2,15 @@ import { PostSchema, PostsListSchema } from '..';
 import { api } from '../../../shared/api';
 
 /**
- * Получить посты пользователя.
- * @param {Object} params - параметры
- * @param {number} params.userId - ID пользователя
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {string} params.sortKey - ключ сортировки
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<Object>} { posts, pagination }
+ * Возвращает посты пользователя.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.userId] - Идентификатор пользователя
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ posts: Object[], pagination: Object }>} Посты и пагинация
  */
 export const fetchPostsApi = async ({
   userId,
@@ -33,9 +34,10 @@ export const fetchPostsApi = async ({
 };
 
 /**
- * Получить пост по ID (для кнопки поделиться).
- * @param {number} postId - ID поста
- * @returns {Promise<Object>} { post }
+ * Возвращает пост по идентификатору.
+ *
+ * @param {number} postId - Идентификатор поста
+ * @returns {Promise<Object>} Пост
  */
 export const fetchPostById = async (postId) => {
   const response = await api.get(`/posts/${postId}/shared`);
@@ -43,9 +45,10 @@ export const fetchPostById = async (postId) => {
 };
 
 /**
- * Добавить пост.
- * @param {Object} data - поля поста
- * @returns {Promise<Object>} { post }
+ * Добавляет пост.
+ *
+ * @param {Object} data - Поля поста
+ * @returns {Promise<Object>} Пост
  */
 export const addPostApi = async (data) => {
   const response = await api.post('/posts/add', data);
@@ -53,10 +56,11 @@ export const addPostApi = async (data) => {
 };
 
 /**
- * Загрузить медиа файл для поста.
- * @param {FormData} formData - формат данных медиа файла
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { postUrl }
+ * Загружает медиафайл поста.
+ *
+ * @param {FormData} formData - Медиафайл поста
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadPostMediaApi = async (formData, config) => {
   const response = await api.post('/posts/upload-media', formData, config);
@@ -64,10 +68,11 @@ export const uploadPostMediaApi = async (formData, config) => {
 };
 
 /**
- * Обновить пост по ID.
- * @param {number} postId - ID поста
- * @param {Object} updates - поля поста
- * @returns {Promise<Object>} { post }
+ * Обновляет пост по идентификатору.
+ *
+ * @param {number} postId - Идентификатор поста
+ * @param {Object} updates - Поля поста
+ * @returns {Promise<Object>} Пост
  */
 export const updatePostApi = async (postId, updates) => {
   const response = await api.put(`/posts/${postId}/update`, updates);
@@ -75,9 +80,10 @@ export const updatePostApi = async (postId, updates) => {
 };
 
 /**
- * Обновить приватность постов.
- * @param {boolean} isPublic - видимость постов
- * @returns {Promise<Object>} { message, posts }
+ * Обновляет приватность постов.
+ *
+ * @param {boolean} isPublic - Признак публичности постов
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updatePostsPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/posts/update-privacy`, { isPublic });
@@ -85,9 +91,10 @@ export const updatePostsPrivacyApi = async (isPublic) => {
 };
 
 /**
- * Удалить пост по ID.
- * @param {number} postId - ID поста
- * @returns {Promise<Object>} { message, postId }
+ * Удаляет пост по идентификатору.
+ *
+ * @param {number} postId - Идентификатор поста
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deletePostApi = async (postId) => {
   const response = await api.delete(`/posts/${postId}/delete`);
@@ -95,9 +102,10 @@ export const deletePostApi = async (postId) => {
 };
 
 /**
- * Удалить (очистка мусора) загруженные медиа файлы.
- * @param {Object} data - данные поста
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженные медиафайлы поста.
+ *
+ * @param {Object} data - Данные поста
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedPostApi = async (data) => {
   const response = await api.delete('/posts/delete-uploaded-media', { data });

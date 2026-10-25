@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 /**
  * Блокирует прокрутку страницы.
  *
- * @param {boolean} [locked=true] - заблокировать прокрутку страницы
+ * @param {boolean} [locked=true] - Прокрутка заблокирована
+ * @returns {void}
  */
 export function useLockBodyScroll(locked = true) {
   useEffect(() => {

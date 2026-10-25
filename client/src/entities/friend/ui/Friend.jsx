@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import {
   getFriendDetails,
   getFriendshipBadge,
@@ -19,16 +20,16 @@ import {
 } from '../../../shared/ui';
 
 /**
- * Карточка пользователя.
+ * Отображает карточку друга.
  *
- * @param {Object} props - параметры
- * @param {Object} props.friend - данные друга
- * @param {Function} props.onFollow - обработчик нажатия на кнопку "Добавить в друзья"
- * @param {Function} props.onUnfollow - обработчик нажатия на кнопку "Убрать из друзей"
- * @param {Function} props.onAccept - обработчик нажатия на кнопку "Принять заявку"
- * @param {Function} props.onUnlock - обработчик нажатия на кнопку "Разблокировать"
- * @param {Function} props.onBlock - обработчик нажатия на кнопку "Заблокировать"
- * @returns {JSX.Element} - компонент карточки друга.
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.friend - Друг.
+ * @param {Function} props.onFollow - Обработчик заявки в друзья.
+ * @param {Function} props.onUnfollow - Обработчик удаления из друзей.
+ * @param {Function} props.onAccept - Обработчик принятия заявки.
+ * @param {Function} props.onUnlock - Обработчик снятия блокировки.
+ * @param {Function} props.onBlock - Обработчик блокировки.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 export const Friend = ({
   friend,
@@ -41,12 +42,10 @@ export const Friend = ({
   const navigate = useNavigate();
   const [showBlockDialog, setShowBlockDialog] = useState(false);
 
-  /** Информация о друге */
   const friendDetails = useMemo(() => getFriendDetails(friend), [friend]);
 
   if (!friend?.id) return null;
 
-  /** Конфигурация кнопки дружбы */
   const friendshipButton = getFriendshipButtonConfig({
     user: friend,
     onFollow,
@@ -56,18 +55,15 @@ export const Friend = ({
     onBlock: () => setShowBlockDialog(true),
   });
 
-  /** Конфигурация значка дружбы */
   const friendshipBadge = getFriendshipBadge(
     friend.friendshipStatus,
     friend.friendshipDirection
   );
 
-  /** Обработчик открытия профиля */
   const handleOpenProfile = () => {
     navigate(`/profile/${friend.id}`);
   };
 
-  /** Обработчик подтверждения блокировки */
   const handleConfirmBlock = () => {
     onBlock?.(friend.id);
     setShowBlockDialog(false);
@@ -103,7 +99,7 @@ export const Friend = ({
               subtitle={friend.nickname ? `@${friend.nickname}` : null}
               badge={
                 <Badge size="sm" variant="secondary">
-                  {friend.online ? 'online' : 'offline'}
+                  {friend.online ? 'В сети' : 'Не в сети'}
                 </Badge>
               }
             />

@@ -1,10 +1,11 @@
 /**
- * Действия на карточке профиля (дружба + сообщение).
+ * Возвращает действия карточки профиля.
  *
- * @param {Object} params
- * @param {boolean} params.isOwnProfile - является ли профиль своим
- * @param {Object|null} params.friendshipButton - конфигурация кнопки дружбы из getFriendshipButtonConfig
- * @param {Function} [params.onSendMessage] - функция для отправки сообщения
+ * @param {Object} params - Параметры действий
+ * @param {boolean} params.isOwnProfile - Признак своего профиля
+ * @param {Object|null} params.friendshipButton - Конфигурация кнопки дружбы
+ * @param {Function} [params.onSendMessage] - Обработчик отправки сообщения
+ * @returns {Array<Object>} Действия профиля
  */
 export const getProfileActions = ({
   isOwnProfile,

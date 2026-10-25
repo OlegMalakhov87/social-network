@@ -14,11 +14,11 @@ const {
 
 const weatherService = {
   /**
-   * Получить название города по координатам.
+   * Возвращает название города по координатам.
    *
-   * @param {number} lat - широта
-   * @param {number} lon - долгота
-   * @returns {Promise<string>} - название города
+   * @param {number} lat - Широта
+   * @param {number} lon - Долгота
+   * @returns {Promise<string>} Название города.
    */
   async getCityName(lat, lon) {
     try {
@@ -38,7 +38,12 @@ const weatherService = {
       const data = await response.json();
       const address = data?.address || null;
 
-      /** Вспомогательная функция для очистки названия города. */
+      /**
+       * Удаляет служебные фрагменты из названия города.
+       *
+       * @param {string} name - Название
+       * @returns {string|null} Очищенное название или null.
+       */
       const cleanCity = (name) => {
         if (!name) return null;
         return name
@@ -60,7 +65,6 @@ const weatherService = {
           null
       );
 
-      /** Возвращаем очищенное название города. */
       return city;
     } catch (error) {
       console.warn('Геокодирование не удалось:', error.message);
@@ -69,26 +73,25 @@ const weatherService = {
   },
 
   /**
-   * Получить погоду по координатам.
+   * Возвращает погоду по координатам.
    *
-   * @param {number} lat - широта
-   * @param {number} lon - долгота
-   * @returns {Promise<Object>} - объект с погодой
+   * @param {number} lat - Широта
+   * @param {number} lon - Долгота
+   * @returns {Promise<Object>} Объект с погодой.
    */
   async getWeatherByCoords(lat, lon) {
-    /** Проверяем, что координаты валидны. */
     if (!isValidLatitude(lat) || !isValidLongitude(lon)) {
       throw createError('Некорректные координаты', 400, 'INVALID_COORDS');
     }
 
-    // Округление координат для стабильного ключа кэша
+    // Округление координат для стабильного ключа кэша.
     const roundedLat = lat.toFixed(2);
     const roundedLon = lon.toFixed(2);
 
     /** Ключ для кэша погоды. */
     const cacheKey = `weather:coords:${roundedLat},${roundedLon}`;
 
-    /** Проверяем, есть ли данные в кэше. */
+    /** Проверяет, есть ли данные в кэше. */
     const cached = await redis.get(cacheKey);
 
     /** Если данные есть в кэше, возвращаем их. */
@@ -97,14 +100,14 @@ const weatherService = {
     /** Ключ для кэша названия города. */
     const cityCacheKey = `city:${roundedLat},${roundedLon}`;
 
-    /** Получаем название города из кэша. */
+    /** Получает название города из кэша. */
     let cityLabel = await redis.get(cityCacheKey);
 
     /** Если название города не в кэше, получаем его из сервиса геокодирования. */
     if (!cityLabel) {
       cityLabel = await this.getCityName(lat, lon);
 
-      /** Если название города получено, сохраняем его в кэш. */
+      /** Если название города получено, сохраняет его в кэш. */
       if (cityLabel)
         await redis.setex(cityCacheKey, CACHE_TTL_24_HOURS, cityLabel);
     }
@@ -132,19 +135,16 @@ const weatherService = {
       throw createError('Не удалось получить погоду', 502, 'WEATHER_API_ERROR');
     }
 
-    /** Получаем данные из ответа. */
     const data = await response.json();
     const current = data.current;
     const daily = data.daily;
 
-    /** Получаем информацию о погоде из маппинга WEATHER_CODES. */
     const weatherInfo = getWeatherDisplay(
       current.weather_code,
       current.is_day,
       WEATHER_CODES
     );
 
-    /** Формируем результат. */
     const result = {
       city: cityLabel || 'Текущее местоположение',
       temp: Math.round(current.temperature_2m),
@@ -158,7 +158,7 @@ const weatherService = {
       updatedAt: new Date().toISOString(),
     };
 
-    /** Сохраняем результат в кэш. */
+    /** Сохраняет результат в кэш. */
     await redis.setex(cacheKey, CACHE_TTL_1_HOUR, JSON.stringify(result));
 
     return result;

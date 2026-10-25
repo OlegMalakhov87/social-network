@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+
 import { CATEGORIES } from '../../../entities/news';
 import { useCommentsPanel } from '../../../features/comments';
 import { NewsForm, useNews } from '../../../features/news';
@@ -17,15 +18,15 @@ import { NewsList } from '../../../widgets/news-list';
 import { VideoPlayer } from '../../../widgets/video-player';
 
 /**
- * Страница новостей – отображает каталог новостей с фильтрацией, поиском и сортировкой.
+ * Отображает страницу новостей.
+ *
+ * @returns {JSX.Element} Разметка страницы.
  */
-
 export const NewsPage = () => {
   const [showNewsForm, setShowNewsForm] = useState(null);
   const [newsVideo, setNewsVideo] = useState(null);
   const onVideoStartRef = useRef(null);
 
-  /** Управление фильтрацией и сортировкой */
   const {
     filter,
     searchQuery,
@@ -38,7 +39,6 @@ export const NewsPage = () => {
     initialSort: 'dateDesc',
   });
 
-  /** Получение данных о новостях */
   const {
     news,
     currentUser,
@@ -61,34 +61,61 @@ export const NewsPage = () => {
     sortKey,
   });
 
-  /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
     useCommentsPanel('news', sortKey, filter, currentPage);
 
-  /** Получение функции для обновления количества комментариев открытой вкладки */
+  /**
+   * Обновляет число комментариев открытой записи.
+   *
+   * @param {number} delta - Изменение числа комментариев
+   * @returns {boolean} Признак обновления.
+   */
   const handleCommentChange = useCallback(
     (delta) => updateCommentsCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для открытия модального окна с видео */
+  /**
+   * Открывает видео новости в плеере.
+   *
+   * @param {Object|Function} video - Данные видео или обработчик
+   * @returns {void}
+   */
   const handleOpenNewsVideo = useCallback((video) => {
     if (!video || typeof video === 'function') return;
     setNewsVideo(video);
   }, []);
 
+  /**
+   * Сохраняет обработчик запуска видео.
+   *
+   * @param {Function} handler - Обработчик запуска
+   * @returns {void}
+   */
   const setOnVideoStart = useCallback((handler) => {
     onVideoStartRef.current = handler;
   }, []);
 
+  /**
+   * Запускает воспроизведение видео.
+   *
+   * @param {Object} video - Данные видео
+   * @returns {void}
+   */
   const handleVideoPlayStart = useCallback((video) => {
     onVideoStartRef.current?.(video);
   }, []);
 
-  /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setNewsVideo(null), []);
 
-  /** Обработчик для отправки формы */
+  /**
+   * Отправляет форму новости.
+   *
+   * @param {Object} values - Данные формы
+   * @param {boolean} isEdit - Признак редактирования
+   * @param {number|undefined} newsId - Идентификатор новости
+   * @returns {Promise<void>}
+   */
   const handleFormSubmit = useCallback(
     async (values, isEdit, newsId) => {
       if (isEdit && newsId) {
@@ -101,7 +128,6 @@ export const NewsPage = () => {
     [addNews, updateNews]
   );
 
-  /** Обработчик для закрытия формы */
   const handleCloseForm = useCallback(() => {
     setShowNewsForm(null);
   }, []);
@@ -122,7 +148,6 @@ export const NewsPage = () => {
           )
         }
       >
-        {/* Панель фильтров и поиска */}
         <SectionCard>
           <Toolbar
             tabs={CATEGORIES}
@@ -168,7 +193,6 @@ export const NewsPage = () => {
           />
         </SectionCard>
 
-        {/* Модальное окно с формой добавления/редактирования новости */}
         {showNewsForm && currentUser && (
           <NewsForm
             key={
@@ -181,7 +205,6 @@ export const NewsPage = () => {
           />
         )}
 
-        {/* Модальное окно с видео */}
         {newsVideo && (
           <VideoPlayer
             video={newsVideo}

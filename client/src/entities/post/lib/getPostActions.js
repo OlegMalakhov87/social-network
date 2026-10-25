@@ -1,15 +1,15 @@
 /**
- * Конфигурация элементов управления карточкой поста.
+ * Возвращает действия поста.
  *
- * @param {Object} params - параметры
- * @param {Object} params.post - данные поста
- * @param {Object} params.currentUser - данные текущего пользователя
- * @param {Function} params.toggleLike - функция для лайка/дизлайка поста
- * @param {Function} params.toggleComments - функция для открытия комментариев поста
- * @param {Function} params.onDelete - функция для удаления поста
- * @param {Function} params.onShare - переход на страницу сообщений для передачи поста
- * @param {Function} params.onUpdate - функция для обновления поста
- * @returns {Array<Object>} - массив действий для карточки поста
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.post - Пост
+ * @param {Object} params.currentUser - Текущий пользователь
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.toggleComments] - Обработчик комментариев
+ * @param {Function} [params.onDelete] - Обработчик удаления
+ * @param {Function} [params.onShare] - Обработчик отправки
+ * @param {Function} [params.onUpdate] - Обработчик обновления
+ * @returns {Array<Object>} Действия поста
  */
 export const getPostActions = ({
   post,

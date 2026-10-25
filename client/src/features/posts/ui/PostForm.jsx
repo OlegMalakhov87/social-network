@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+
 import { POST_TYPES } from '../../../entities/post';
 import { useForm, useNotify } from '../../../shared/hooks';
 import {
@@ -23,15 +24,14 @@ import {
 } from '../../file-upload';
 
 /**
- * Форма создания/редактирования поста. Используется для создания и редактирования постов.
- * Поддерживает типы: text, image, video.
- * Поддерживает видимость: public, friends, private.
+ * Отображает форму добавления и редактирования поста.
  *
- * @param {Object} props - пропсы компонента
- * @param {Object} [props.initialData] - данные поста для редактирования
- * @param {Function} props.onClose - функция для закрытия формы
- * @param {Function} props.onSubmit - функция для отправки формы
- * @param {Object} props.currentUser - текущий пользователь
+ * @param {Object} props - Свойства компонента
+ * @param {Object} [props.initialData={}] - Данные поста для редактирования
+ * @param {Function} props.onClose - Закрывает форму
+ * @param {Function} props.onSubmit - Отправляет форму
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @returns {JSX.Element} Форма поста
  */
 export const PostForm = ({
   initialData = {},
@@ -44,7 +44,12 @@ export const PostForm = ({
   const notify = useNotify();
   const isCancellingRef = useRef(false);
 
-  /** Обработчик отправки формы */
+  /**
+   * Отправляет пост и закрепляет загруженные файлы.
+   *
+   * @param {Object} values - Значения формы
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (values) => {
     try {
       await onSubmit?.(values, isEdit, initialData?.id);
@@ -58,7 +63,7 @@ export const PostForm = ({
       throw error;
     }
 
-    // С этого момента сохранение на сервере уже успешно.
+    // Сохранение на сервере уже завершилось успешно.
     const usedUrls = [values.postUrl, values.previewUrl, values.thumbnailUrl];
 
     const results = await Promise.all([
@@ -77,7 +82,6 @@ export const PostForm = ({
     onClose?.();
   };
 
-  /** Форма для создания/редактирования поста с валидацией*/
   const form = useForm({
     initialValues: {
       userId: currentUser?.id,
@@ -90,6 +94,13 @@ export const PostForm = ({
       pinned: initialData?.pinned ?? false,
       author: currentUser,
     },
+    /**
+     * Возвращает правила полей по типу поста.
+     *
+     * @param {Object} values - Значения формы
+     * @param {string} values.type - Тип поста
+     * @returns {Object} Правила полей
+     */
     rules: (values) => ({
       text:
         values.type === 'text'
@@ -119,7 +130,6 @@ export const PostForm = ({
     onSubmit: handleSubmit,
   });
 
-  /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(POST_IMAGE_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('postUrl', data.postUrl);
@@ -128,7 +138,6 @@ export const PostForm = ({
     },
   });
 
-  /** Хук для загрузки видео */
   const videoUpload = useFileUpload(POST_VIDEO_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('postUrl', data.postUrl);
@@ -145,19 +154,21 @@ export const PostForm = ({
     },
   });
 
-  /** Флаг загрузки */
   const isUploading = imageUpload.isUploading || videoUpload.isUploading;
 
-  /** Активный загрузчик */
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
 
-  /** Конфигурация загрузки */
   const activeConfig =
     form.values.type === 'video'
       ? POST_VIDEO_UPLOAD_CONFIG
       : POST_IMAGE_UPLOAD_CONFIG;
 
-  /** Обработчик изменения типа поста */
+  /**
+   * Меняет тип поста и удаляет временный файл предыдущего типа.
+   *
+   * @param {string} value - Новый тип поста
+   * @returns {Promise<void>}
+   */
   const handleTypeChange = async (value) => {
     setIsChangingType(true);
 
@@ -188,15 +199,12 @@ export const PostForm = ({
     }
   };
 
-  /** Обработчик закрытия формы */
   const handleCancel = async () => {
     if (isCancellingRef.current || form.isSubmitting) return;
 
     isCancellingRef.current = true;
 
-    // Сначала инвалидируем запросы и очищаем UI.
-    // Это защищает от применения ответа загрузки
-    // после начала закрытия формы.
+    // Сбрасывает загрузку до очистки, чтобы ответ не попал в закрытую форму.
     videoUpload.reset();
     imageUpload.reset();
 
@@ -224,7 +232,6 @@ export const PostForm = ({
       size="md"
     >
       <form onSubmit={form.submit}>
-        {/* Выбор типа поста */}
         <SegmentedControl
           options={POST_TYPES}
           disabled={form.isSubmitting || isUploading || isChangingType}
@@ -232,7 +239,6 @@ export const PostForm = ({
           onChange={handleTypeChange}
         />
 
-        {/* Поле ввода сообщения */}
         <TextArea
           {...form.register('text')}
           placeholder="Поделитесь своими новостями"
@@ -240,7 +246,6 @@ export const PostForm = ({
           disabled={form.isSubmitting || isUploading || isChangingType}
         />
 
-        {/* Динамическое поле для URL */}
         {form.values.type !== 'text' && (
           <FileInput
             accept={activeConfig.accept}
@@ -260,7 +265,6 @@ export const PostForm = ({
           />
         )}
 
-        {/* Выбор видимости */}
         <Checkbox
           id="isPublic "
           name="isPublic"
@@ -276,7 +280,6 @@ export const PostForm = ({
           disabled={form.isSubmitting || isUploading || isChangingType}
         />
 
-        {/* Кнопки действий: Отмена, Сохранить, Добавить */}
         <ButtonGroup>
           <Button
             variant="secondary"

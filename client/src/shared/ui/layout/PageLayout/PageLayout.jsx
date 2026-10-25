@@ -1,18 +1,18 @@
 import { classNames } from '../../../utils';
+
 import styles from './PageLayout.module.css';
 
 /**
- * Универсальный шаблон страницы.
+ * Отображает заголовок и содержимое страницы.
  *
- * Используется всеми основными страницами приложения.
- *
- * @param {Object} props
- * @param {string} props.title - заголовок страницы
- * @param {string} [props.description] - описание страницы
- * @param {React.ReactNode} [props.actions] - действия над страницей (кнопки, формы, etc.)
- * @param {React.ReactNode} props.children - контент страницы
- * @param {boolean} [props.centered=false] - центрировать контент
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.title - Заголовок страницы
+ * @param {string} [props.description] - Описание страницы
+ * @param {React.ReactNode} [props.actions] - Действия в заголовке страницы
+ * @param {React.ReactNode} props.children - Содержимое страницы
+ * @param {boolean} [props.centered=false] - Признак центрирования содержимого
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Разметка страницы.
  */
 export const PageLayout = ({
   title,

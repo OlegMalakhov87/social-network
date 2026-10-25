@@ -1,17 +1,16 @@
 import { EmptyState } from '../../../ui';
+
 import style from './ContentEmptyState.module.css';
 
 /**
- * Универсальное пустое состояние для вкладок и страниц.
+ * Отображает пустое состояние раздела.
  *
- * Используется внутри ProfilePage, LibraryPage,
- * FriendsPage, SearchPage и других разделов.
- *
- * @param {Object} props
- * @param {string} props.icon - иконка пустого состояния
- * @param {string} props.title - заголовок пустого состояния
- * @param {string} props.description - описание пустого состояния
- * @param {React.ReactNode} props.action - действие для пустого состояния
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.icon - Иконка пустого состояния
+ * @param {string} props.title - Заголовок пустого состояния
+ * @param {string} props.description - Описание пустого состояния
+ * @param {React.ReactNode} [props.action] - Действие под сообщением
+ * @returns {JSX.Element} Пустое состояние раздела.
  */
 export const ContentEmptyState = ({ icon, title, description, action }) => {
   return (

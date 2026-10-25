@@ -1,13 +1,14 @@
 import styles from './EntityDates.module.css';
 
 /**
- * Универсальный блок дат сущности.
+ * Отображает даты сущности.
  *
- * @param {Object} props
- * @param {string} props.label
- * @param {string} props.value
- * @param {string} [props.secondaryLabel]
- * @param {string} [props.secondaryValue]
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.label - Подпись даты
+ * @param {string} props.value - Значение даты
+ * @param {string} [props.secondaryLabel] - Подпись второй даты
+ * @param {string} [props.secondaryValue] - Значение второй даты
+ * @returns {JSX.Element|null} Даты или пустой результат без основной даты.
  */
 
 export const EntityDates = ({

@@ -1,13 +1,15 @@
 import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
+
 import { PageLoader } from '../../../ui';
 
 /**
- * Приватный маршрут.
+ * Показывает содержимое только вошедшему пользователю.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент маршрута
- * @param {string} props.redirectTo - URL, на который перенаправлять при неаутентификации
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое маршрута
+ * @param {string} [props.redirectTo='/login'] - Адрес перехода без входа
+ * @returns {React.ReactNode} Содержимое, загрузка или переход на другой адрес.
  */
 export const PrivateRoute = ({ children, redirectTo = '/login' }) => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);

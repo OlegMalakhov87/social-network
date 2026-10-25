@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { News } from '../../../entities/news';
 import { normalizeSharedNews } from '../../../entities/shared-entity';
 import { useShareEntity } from '../../../features/shared-entities';
@@ -10,33 +11,35 @@ import {
   InfiniteScrollFooter,
 } from '../../../shared/ui';
 import { EntityWithComments } from '../../comment';
+
 import styles from './NewsList.module.css';
 
-/** Список новостей
+/**
+ * Отображает список новостей с подгрузкой при прокрутке.
  *
- * @param {Object} props
- * @param {Array} props.news - массив новостей
- * @param {Object} props.currentUser - текущий пользователь
- * @param {Function} props.toggleComments - функция для открытия/закрытия панели комментариев
- * @param {Object} props.commentTarget - целевая сущность для комментирования
- * @param {Function} props.onCloseComments - функция для закрытия панели комментариев
- * @param {Function} props.onCommentChange - функция для изменения комментариев
- * @param {Function} props.toggleLike - функция для лайка/дизлайка новости
- * @param {boolean} props.isLoading - флаг загрузки новостей
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы новостей
- * @param {Error} props.error - ошибка загрузки новостей
- * @param {Function} props.onVideoStart - функция для установки функции начала воспроизведения видео
- * @param {Function} props.onPlayNews - функция для открытия новости
- * @param {Object} props.currentNews - текущая новость
- * @param {boolean} props.isPlaying - флаг воспроизведения видео
- * @param {boolean} props.hasMore - флаг наличия следующей страницы новостей
- * @param {Function} props.loadMore - функция для загрузки следующей страницы новостей
- * @param {Function} props.onRetry - функция для перезагрузки новостей
- * @param {Function} props.updateViewsCount - функция для обновления количества просмотров новости
- * @param {Function} props.deleteNews - функция для удаления новости
- * @param {Function} props.updateNews - функция для обновления новости
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.news=[]] - Список новостей
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Function} props.toggleComments - Обработчик открытия и закрытия комментариев
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Function} props.onCommentChange - Обработчик изменения комментариев
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {Function} [props.onVideoStart] - Обработчик старта воспроизведения
+ * @param {Function} props.onPlayNews - Обработчик открытия новости
+ * @param {Object} props.currentNews - Текущая новость
+ * @param {boolean} props.isPlaying - Признак воспроизведения
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {Function} [props.updateViewsCount] - Обработчик счётчика просмотров
+ * @param {Function} props.deleteNews - Обработчик удаления новости
+ * @param {Function} props.updateNews - Обработчик обновления новости
+ * @returns {JSX.Element} Разметка списка.
  */
-
 export const NewsList = ({
   news = [],
   currentUser,
@@ -60,30 +63,33 @@ export const NewsList = ({
   updateNews,
 }) => {
   const newsRef = useRef(news);
+  // Оставляет в эффекте актуальный список без повторной подписки на каждый ответ.
   newsRef.current = news;
 
   const navigate = useNavigate();
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
   const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedNews,
     onSuccess: () => navigate('/messages'),
   });
 
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных новостях.
   const isRefetching = isLoading && news.length > 0;
 
-  /** Счётчик просмотров при старте воспроизведения в модальном плеере */
   useEffect(() => {
     if (typeof onVideoStart !== 'function') return;
 
+    /**
+     * Увеличивает счётчик просмотров запущенного ролика.
+     *
+     * @param {Object} video - Запущенный ролик
+     */
     onVideoStart((video) => {
       if (!video?.id) return;
 

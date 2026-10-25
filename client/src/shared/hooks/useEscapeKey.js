@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 
 /**
- * Функция для выполнения callback при нажатии Escape.
+ * Вызывает обработчик при нажатии Escape.
  *
- * @param {Function} onEscape - функция для выполнения действия при нажатии Escape
- * @param {boolean} [enabled=true] - активен ли обработчик
- * @param {boolean} [ignoreWhenModalOpen=false] -
- * игнорировать Escape, если открыт Modal
+ * @param {Function} onEscape - Обработчик нажатия Escape
+ * @param {boolean} [enabled=true] - Обработчик активен
+ * @param {boolean} [ignoreWhenModalOpen=false] - Игнорирует Escape, если открыто модальное наложение
+ * @returns {void}
  */
 export function useEscapeKey(
   onEscape,
@@ -16,6 +16,12 @@ export function useEscapeKey(
   useEffect(() => {
     if (!enabled) return;
 
+    /**
+     * Вызывает внешний обработчик, если нажата Escape и нет модального наложения.
+     *
+     * @param {KeyboardEvent} event - Событие клавиатуры
+     * @returns {void}
+     */
     const handleKeyDown = (event) => {
       if (event.key !== 'Escape') return;
 

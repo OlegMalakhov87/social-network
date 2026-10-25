@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+
 import { SettingsNav } from '..';
 import { selectUser } from '../../../entities/auth';
 import {
@@ -17,22 +18,27 @@ import {
   SectionCard,
   Text,
 } from '../../../shared/ui';
+
 import style from './SettingsPage.module.css';
 
 /**
- * Компонент страницы настроек.
+ * Отображает страницу настроек.
+ *
+ * @returns {JSX.Element} Разметка страницы.
  */
-
 export const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const currentUser = useSelector(selectUser);
 
-  /**  Состояние загрузки всей страницы */
   if (!currentUser) {
     return <PageLoader message="Загружаем страницу настроек..." />;
   }
 
-  /** Рендерит контент в зависимости от активной вкладки */
+  /**
+   * Отображает содержимое активной вкладки.
+   *
+   * @returns {JSX.Element} Разметка вкладки.
+   */
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':

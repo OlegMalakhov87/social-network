@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/** Мапа с константами ошибок геолокации. */
+/** Содержит коды и тексты ошибок геолокации. */
 const GEOLOCATION_ERRORS = {
   PERMISSION_DENIED: {
     code: 'PERMISSION_DENIED',
@@ -26,7 +26,13 @@ const GEOLOCATION_ERRORS = {
   },
 };
 
-/** Вспомогательная функция для получения ошибки геолокации. */
+/**
+ * Возвращает описание ошибки геолокации.
+ *
+ * @param {Object} error - Ошибка геолокации браузера
+ * @param {number} [error.code] - Числовой код ошибки
+ * @returns {{ code: string, message: string }} Код и текст ошибки.
+ */
 const getGeolocationError = (error) => {
   switch (error?.code) {
     case 1:
@@ -43,56 +49,63 @@ const getGeolocationError = (error) => {
   }
 };
 
-/** Константа с опциями геолокации. */
+/** Задаёт точность, время ожидания и срок актуальности координат. */
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: false,
   timeout: 10000,
   maximumAge: 10 * 60 * 1000,
 };
 
-/** Хук для получения координат пользователя из браузера. */
+/**
+ * Возвращает координаты пользователя из браузера.
+ *
+ * @returns {{
+ *   coords: { latitude: number, longitude: number }|null,
+ *   isLoadingLocation: boolean,
+ *   errorLocation: { code: string, message: string }|null,
+ *   requestLocation: Function
+ * }} Координаты, состояние загрузки и повторный запрос.
+ */
 export const useGeolocation = () => {
   const [coords, setCoords] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
 
-  /** Счётчик запросов. */
+  // Отличает актуальный запрос от устаревшего.
   const requestIdRef = useRef(0);
 
-  /** Запрос геолокации. */
+  /**
+   * Запрашивает текущие координаты.
+   *
+   * @returns {void}
+   */
   const requestLocation = useCallback(() => {
     const requestId = ++requestIdRef.current;
 
-    /** Проверка доступности геолокации. */
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setError(GEOLOCATION_ERRORS.UNSUPPORTED);
       setStatus('error');
       return;
     }
 
-    /** Установка статуса загрузки. */
     setStatus('loading');
     setError(null);
 
-    /** Запрос геолокации. */
     navigator.geolocation.getCurrentPosition(
       (position) => {
         if (requestId !== requestIdRef.current) return;
 
-        /** Установка координат. */
         setCoords({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
 
-        /** Установка статуса успешного запроса. */
         setStatus('success');
         setError(null);
       },
       (geoError) => {
         if (requestId !== requestIdRef.current) return;
 
-        /** Установка ошибки. */
         setError(getGeolocationError(geoError));
         setStatus('error');
       },
@@ -100,16 +113,15 @@ export const useGeolocation = () => {
     );
   }, []);
 
-  /** Запрос геолокации при монтировании. */
   useEffect(() => {
     requestLocation();
 
     return () => {
+      // Игнорирует ответ после размонтирования.
       requestIdRef.current += 1;
     };
   }, [requestLocation]);
 
-  /** Возвращаем данные геолокации. */
   return {
     coords,
     isLoadingLocation: status === 'loading',

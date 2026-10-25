@@ -3,13 +3,11 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Video extends Model {
     static associate({ User, UserVideoLibrary, Like, Comment }) {
-      // Кто загрузил оригинал
       this.belongsTo(User, {
         foreignKey: 'uploadedBy',
         as: 'uploader',
       });
 
-      // У кого в библиотеке
       this.belongsToMany(User, {
         through: UserVideoLibrary,
         foreignKey: 'videoId',
@@ -17,13 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'usersInLibrary',
       });
 
-      // Промежуточная таблица
       this.hasMany(UserVideoLibrary, {
         foreignKey: 'videoId',
         as: 'libraryItems',
       });
 
-      // Лайки и комментарии
+      // Связывает отметки и комментарии по типу цели, без внешнего ключа.
       this.hasMany(Like, {
         foreignKey: 'targetId',
         constraints: false,

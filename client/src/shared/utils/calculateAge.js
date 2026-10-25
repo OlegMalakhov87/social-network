@@ -1,8 +1,8 @@
 /**
- * Вычисляет возраст по дате рождения.
+ * Возвращает возраст в полных годах.
  *
- * @param {string} birthday - дата рождения
- * @returns {number|null} - возраст или null при некорректных данных
+ * @param {string} birthday - Дата рождения
+ * @returns {number|null} Полных лет или null, если дата пуста или некорректна.
  */
 export const calculateAge = (birthday) => {
   if (!birthday) return null;

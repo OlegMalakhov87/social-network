@@ -1,11 +1,12 @@
 const Parser = require('rss-parser');
 const { Op } = require('sequelize');
+
 const { News, NewsIngestionRecord } = require('../../db/models');
 const { NEWS_SOURCES_CONFIG } = require('../../config/newsSourcesConfig');
 const { NEWS_AUTOMATION_CONFIG } = require('../../config/newsAutomationConfig');
 
 /**
- * RSS-парсер с таймаутом сетевого запроса и User-Agent приложения.
+ * Задает разбор RSS с таймаутом и заголовком User-Agent приложения.
  */
 const parser = new Parser({
   timeout: 10000,
@@ -17,12 +18,13 @@ const parser = new Parser({
 });
 
 /**
- * Безопасно преобразует дату из RSS в Date.
+ * Преобразует дату RSS в Date.
+ *
  * Некорректные или отсутствующие значения превращаются в null,
  * чтобы не передавать Invalid Date дальше в ingestion pipeline.
  *
- * @param {string|null|undefined} value - Дата в формате ISO 8601 или RFC 822
- * @returns {Date|null}
+ * @param {string|null|undefined} value - Значение поля
+ * @returns {Date|null} Дата или null.
  */
 const parseDate = (value) => {
   if (!value) {
@@ -34,23 +36,22 @@ const parseDate = (value) => {
 
 /**
  * Формирует составной ключ источника и внешнего ID.
+ *
  * Используется для O(1)-проверок через Set при batch-фильтрации.
  *
- * @param {string} source - Источник новостей
- * @param {string} externalId - Внешний ID новости
- * @returns {string} - Составной ключ источника и внешнего ID
+ * @param {string} source - Источник новости
+ * @param {string} externalId - Внешний идентификатор
+ * @returns {string} Составной ключ источника и внешнего ID.
  */
 const getSourceExternalIdKey = (source, externalId) =>
   `${source}\u0000${externalId}`;
 
-/**
- * Сервис для получения новых новостей из RSS-лент.
- */
 const newsIngestionService = {
   /**
-   * Получить RSS-ленту одного источника
-   * @param {Object} source - Источник новостей
-   * @returns {Promise<Object>} - RSS-лента
+   * Возвращает RSS-ленту одного источника.
+   *
+   * @param {Object} source - Источник новости
+   * @returns {Promise<Object>} RSS-лента.
    */
   async fetchFeed(source) {
     try {
@@ -103,13 +104,13 @@ const newsIngestionService = {
    * Возвращает terminal-кандидатов, которые больше нельзя обрабатывать:
    * - published — уже опубликованы;
    * - rejected — уже отклонены редактором;
-   * - failed с исчерпанным maxAttempts — больше не ретраятся.
+   * - failed с исчерпанным maxAttempts — больше не повторяются.
    *
-   * failed с attempts < maxAttempts намеренно НЕ возвращаются,
+   * failed с attempts < maxAttempts намеренно не возвращаются,
    * чтобы следующий запуск мог повторить их обработку.
    *
-   * @param {Object[]} candidates - Массив кандидатов
-   * @returns {Promise<Set<string>>} - Множество ключей, где ключ - это source и externalId
+   * @param {Object[]} candidates - Кандидаты на публикацию
+   * @returns {Promise<Set<string>>} Множество ключей, где ключ - это source и externalId.
    */
   async getProcessedKeys(candidates) {
     if (!candidates.length) {
@@ -165,8 +166,8 @@ const newsIngestionService = {
    * Эта проверка дополняет NewsIngestionRecord и защищает от повторного
    * создания News даже при несогласованном ingestion state.
    *
-   * @param {Object[]} candidates - Массив кандидатов
-   * @returns {Promise<{externalIdKeys: Set<string>, externalUrls: Set<string>}>} - Множества ключей, где ключ - это source и externalId и внешних URL-ов
+   * @param {Object[]} candidates - Кандидаты на публикацию
+   * @returns {Promise<{externalIdKeys: Set<string>, externalUrls: Set<string>}>} Множества ключей source и externalId и внешних URL.
    */
   async getDuplicateKeys(candidates) {
     if (!candidates.length) {
@@ -218,7 +219,9 @@ const newsIngestionService = {
   },
 
   /**
-   * Получить новые статьи из всех источников
+   * Возвращает новые статьи из всех источников.
+   *
+   * @returns {Promise<Object>} Результат операции.
    */
   async fetchCandidates() {
     const candidates = [];
@@ -227,7 +230,7 @@ const newsIngestionService = {
       const result = await this.fetchFeed(source);
       if (!result) continue;
 
-      // Получаем и нормализуем RSS items всех доступных источников.
+      // Получает и нормализует RSS items всех доступных источников.
       for (const item of result.feed.items ?? []) {
         const candidate = this.normalizeItem(item, result.source);
 
@@ -248,7 +251,7 @@ const newsIngestionService = {
       return [];
     }
 
-    // Исключаем terminal-кандидатов по истории ingestion.
+    // Исключает terminal-кандидатов по истории ingestion.
     const processedKeys = await this.getProcessedKeys(candidates);
 
     const unprocessedCandidates = candidates.filter(
@@ -261,7 +264,7 @@ const newsIngestionService = {
       return [];
     }
 
-    // Дополнительно исключаем новости, уже существующие в News.
+    // Дополнительно исключает новости, уже существующие в News.
     const duplicateKeys = await this.getDuplicateKeys(unprocessedCandidates);
 
     const newCandidates = unprocessedCandidates.filter(

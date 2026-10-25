@@ -1,21 +1,19 @@
-const { Friend, User } = require('../../db/models');
 const { Op } = require('sequelize');
+
+const { Friend, User } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
-/**
- * Сервис для работы с дружбой.
- */
 const friendService = {
   /**
-   * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя.
+   * Возвращает пользователей со статусом дружбы.
    *
-   * @param {Object} params
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} [params.page=1] - номер страницы
-   * @param {number} [params.limit=30] - количество на странице
-   * @param {string} [params.category='all'] - категория
-   * @param {string} [params.q=''] - поисковый запрос
-   * @returns {Promise<Object>} { users, pagination }
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.category='all'] - Категория
+   * @param {string} [params.q=''] - Строка поиска
+   * @returns {Promise<Object>} { users, pagination }.
    */
   async getUsersWithFriendshipStatus({
     currentUserId,
@@ -35,7 +33,7 @@ const friendService = {
       ];
     }
 
-    // --- Фильтрация по категориям через подзапросы ---
+    // --- Фильтрация по категориям через подзапросы ---.
 
     if (category === 'friends') {
       const friendIds = await Friend.findAll({
@@ -216,11 +214,12 @@ const friendService = {
   },
 
   /**
-   * Отправить заявку в друзья
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.friendId - ID пользователя, которому отправляем заявку
-   * @returns {Promise<Object>} { friendshipId, status, direction }
+   * Отправляет заявку в друзья.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.friendId - Идентификатор пользователя в заявке
+   * @returns {Promise<Object>} { friendshipId, status, direction }.
    */
   async sendRequest({ currentUserId, friendId }) {
     if (currentUserId === friendId) {
@@ -274,11 +273,12 @@ const friendService = {
   },
 
   /**
-   * Принять заявку в друзья
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.friendshipId - ID заявки
-   * @returns {Promise<Object>} { friendshipId, status }
+   * Принимает заявку в друзья.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.friendshipId - Идентификатор заявки
+   * @returns {Promise<Object>} { friendshipId, status }.
    */
   async acceptRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
@@ -302,11 +302,12 @@ const friendService = {
   },
 
   /**
-   * Удалить из друзей, разблокировать, отменить заявку на дружбу
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.friendshipId - ID заявки
-   * @returns {Promise<Object>} { message, friendshipId }
+   * Удаляет дружбу, снимает блокировку или отменяет заявку.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.friendshipId - Идентификатор заявки
+   * @returns {Promise<Object>} { message, friendshipId }.
    */
   async rejectRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
@@ -318,11 +319,12 @@ const friendService = {
   },
 
   /**
-   * Заблокировать пользователя
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.friendId - ID пользователя, которого блокируем
-   * @returns {Promise<Object>} { message, friendshipId }
+   * Блокирует пользователя.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.friendId - Идентификатор пользователя в заявке
+   * @returns {Promise<Object>} { message, friendshipId }.
    */
   async blockUser({ currentUserId, friendId }) {
     if (currentUserId === friendId) {

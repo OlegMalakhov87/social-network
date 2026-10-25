@@ -2,7 +2,12 @@ const userMusicLibraryService = require('../services/userMusicLibraryService');
 
 const userMusicLibraryController = {
   /**
-   * Получить мою библиотеку треков
+   * Возвращает библиотеку треков текущего пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getMyMusicLibrary: async (req, res, next) => {
     try {
@@ -21,7 +26,12 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Получить библиотеку выбранного пользователя
+   * Возвращает библиотеку выбранного пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getUserMusicLibrary: async (req, res, next) => {
     try {
@@ -42,7 +52,12 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Добавить трек в библиотеку
+   * Добавляет трек в библиотеку.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   addToMusicLibrary: async (req, res, next) => {
     try {
@@ -59,7 +74,12 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Обновить запись в библиотеке (избранное)
+   * Обновляет признак избранного в библиотеке.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateFavoriteTrack: async (req, res, next) => {
     try {
@@ -78,7 +98,12 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Увеличить счетчик прослушиваний трека в библиотеке
+   * Увеличивает счетчик прослушиваний трека в библиотеке.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   incrementPlaysCount: async (req, res, next) => {
     try {
@@ -93,7 +118,12 @@ const userMusicLibraryController = {
   },
 
   /**
-   * Удалить трек из библиотеки
+   * Удаляет трек из библиотеки.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteMusicFromLibrary: async (req, res, next) => {
     try {

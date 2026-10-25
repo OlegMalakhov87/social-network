@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+
 const {
   sequelize,
   Post,
@@ -6,7 +8,6 @@ const {
   Like,
   Comment,
 } = require('../../db/models');
-const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
@@ -14,7 +15,9 @@ const {
 } = require('../utils/deleteEntityWithRelations');
 const { validateMedia } = require('../utils/validateMedia');
 
-/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
@@ -22,7 +25,9 @@ const SORT_MAP = {
   viewsAsc: { field: 'likesCount', direction: 'ASC' },
 };
 
-/** Поля поста, которые можно обновлять */
+/**
+ * Перечисляет поля поста, которые можно обновлять.
+ */
 const POST_FIELDS = [
   'text',
   'type',
@@ -35,14 +40,15 @@ const POST_FIELDS = [
 
 const postService = {
   /**
-   * Получение постов пользователя
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.targetUserId - ID пользователя
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество постов на странице
-   * @param {string} params.sortKey - Ключ сортировки
-   * @returns {Promise<Object>} - Объект с постами и пагинацией
+   * Возвращает посты пользователя.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.targetUserId - Идентификатор выбранного пользователя
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} Объект с постами и пагинацией.
    */
   async getUserPosts({
     targetUserId,
@@ -121,10 +127,11 @@ const postService = {
   },
 
   /**
-   * Получение поста по ID для кнопки "Поделиться"
-   * @param {number} postId - ID поста
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - Объект с постом
+   * Возвращает пост по идентификатору для кнопки «Поделиться».
+   *
+   * @param {number} postId - Идентификатор поста
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} Объект с постом.
    */
   async getPostById(postId, currentUserId) {
     const post = await Post.findByPk(postId, {
@@ -150,10 +157,11 @@ const postService = {
   },
 
   /**
-   * Создание поста (текущий пользователь является автором)
-   * @param {number} currentUserId - ID текущего пользователя
+   * Создает пост от имени текущего пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object} postData - Данные поста
-   * @returns {Promise<Object>} - Объект с созданным постом
+   * @returns {Promise<Object>} Объект с созданным постом.
    */
   async createPost(currentUserId, postData) {
     validateMedia({
@@ -213,10 +221,12 @@ const postService = {
   },
 
   /**
-   * Обновление приватности постов
-   * @param {number} currentUserId - ID пользователя, обновляющего посты
-   * @param {boolean} isPublic - Приватность постов
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет приватность постов.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} params - Параметры вызова
+   * @param {boolean} params.isPublic - Признак публичности
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updatePostPrivacy(currentUserId, { isPublic }) {
     const [affectedCount] = await Post.update(
@@ -235,11 +245,12 @@ const postService = {
   },
 
   /**
-   * Обновление поста (владелец)
-   * @param {number} postId - ID поста
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updateData - Данные для обновления
-   * @returns {Promise<Object>} - Объект с обновленным постом
+   * Обновляет пост владельца.
+   *
+   * @param {number} postId - Идентификатор поста
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updateData - Данные обновления
+   * @returns {Promise<Object>} Объект с обновленным постом.
    */
   async updatePost(postId, currentUserId, updateData) {
     return sequelize.transaction(async (transaction) => {
@@ -277,6 +288,12 @@ const postService = {
       const nextType = dbUpdates.type ?? post.type;
       const typeChanged = nextType !== post.type;
 
+      /**
+       * Возвращает следующий URL поля с учетом обновления.
+       *
+       * @param {string} fieldName - Имя поля
+       * @returns {string|null} Следующий URL поля.
+       */
       const getNextUrl = (fieldName) => {
         if (Object.hasOwn(dbUpdates, fieldName)) {
           return dbUpdates[fieldName];
@@ -350,10 +367,11 @@ const postService = {
   },
 
   /**
-   * Удаление поста (владелец)
-   * @param {number} postId - ID поста
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - Объект с сообщением об удалении
+   * Удаляет пост владельца.
+   *
+   * @param {number} postId - Идентификатор поста
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} Объект с сообщением об удалении.
    */
   async deletePost(postId, currentUserId) {
     const post = await Post.findOne({

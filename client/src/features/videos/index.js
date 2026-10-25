@@ -1,4 +1,4 @@
-export { VIDEO_CONFIG } from './config/videoConfig'; // Конфигурация видео формы
-export { useUserVideoLibrary } from './model/useUserVideoLibrary'; // Хук для получения видео библиотеки пользователя
-export { useVideos } from './model/useVideo'; // Хук для получения видео
-export { VideoForm } from './ui/VideoForm'; // Форма добавления/редактирования видео
+export { VIDEO_CONFIG } from './config/videoConfig'; // Задаёт поля формы видео.
+export { useUserVideoLibrary } from './model/useUserVideoLibrary'; // Возвращает видео библиотеки пользователя.
+export { useVideos } from './model/useVideo'; // Возвращает ленту видео и изменяет её локально.
+export { VideoForm } from './ui/VideoForm'; // Отображает форму добавления и редактирования видео.

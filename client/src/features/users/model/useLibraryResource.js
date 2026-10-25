@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
   addTrackToLibrary,
@@ -20,20 +21,26 @@ import {
 } from '../../../shared/hooks';
 
 /**
- * Хук для управления библиотекой и лайками/счётчиками для вкладок «Музыка» и «Видео».
+ * Обновляет библиотеку, отметки и счётчики музыки или видео.
  *
- * @param {Object} params - параметры запроса
- * @param {Array} params.items - массив элементов
- * @param {number} params.userId - ID пользователя
- * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
- * @param {Function} params.setItems - функция для установки массива элементов
- * @param {boolean} params.isTracks - является ли текущая вкладка вкладкой «Музыка»
- * @param {boolean} params.isVideos - является ли текущая вкладка вкладкой «Видео»
- * @param {string} params.currentTab - название текущей вкладки
- * @param {string} params.activeTab - название активной вкладки
- * @param {Function} params.getAddStateTransform - функция для получения состояния добавления элемента
- * @param {Function} params.getRemoveStateTransform - функция для получения состояния удаления элемента
- * @returns {Object} - объект с функциями для управления библиотекой и лайками/счётчиками
+ * @param {Object} params - Параметры библиотеки
+ * @param {Array<Object>} params.items - Элементы библиотеки
+ * @param {number} params.userId - Идентификатор пользователя
+ * @param {boolean} params.isOwnProfile - Признак своего профиля
+ * @param {Function} params.setItems - Обновляет список элементов
+ * @param {boolean} params.isTracks - Признак вкладки музыки
+ * @param {boolean} params.isVideos - Признак вкладки видео
+ * @param {string|null} params.currentTab - Текущая вкладка библиотеки
+ * @param {string} params.activeTab - Активная вкладка профиля
+ * @param {Function|null} params.getAddStateTransform - Поля при добавлении в библиотеку
+ * @param {Function|null} params.getRemoveStateTransform - Поля при удалении из библиотеки
+ * @returns {{
+ *   toggleLikeItem: Function,
+ *   addToLibrary: Function,
+ *   deleteFromLibrary: Function,
+ *   incrementCounter: Function,
+ *   toggleFavoriteItem: Function
+ * }} Действия библиотеки
  */
 export const useLibraryResource = ({
   items,
@@ -48,19 +55,16 @@ export const useLibraryResource = ({
   getRemoveStateTransform,
 }) => {
   const isActive = Boolean(items) && Boolean(setItems);
-  /** Функция для получения состояния добавления элемента (меняем только для своего профиля) */
   const mapOnAdd = useCallback(
     () => (isOwnProfile ? (getAddStateTransform?.() ?? {}) : {}),
     [isOwnProfile, getAddStateTransform]
   );
 
-  /** Функция для получения состояния удаления элемента (меняем только для своего профиля) */
   const mapOnRemove = useCallback(
     () => (isOwnProfile ? (getRemoveStateTransform?.() ?? {}) : {}),
     [isOwnProfile, getRemoveStateTransform]
   );
 
-  /** Хук для управления библиотекой */
   const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
     setItems: isActive ? setItems : () => {},
     addFn: currentTab
@@ -77,7 +81,6 @@ export const useLibraryResource = ({
     mapOnRemove,
   });
 
-  /** Хук для управления лайками */
   const toggleLikeItem = useOptimisticLike({
     setItems,
     addLikeFn: addLikeApi,
@@ -86,7 +89,6 @@ export const useLibraryResource = ({
     targetType: activeTab === 'photos' ? 'posts' : activeTab,
   });
 
-  /** Хук для управления счётчиками */
   const { incrementWithApi: incrementCounter } = useOptimisticCounter({
     items: isActive ? items : [],
     setItems: isActive ? setItems : () => {},
@@ -99,7 +101,6 @@ export const useLibraryResource = ({
     targetType: currentTab ? (isVideos ? 'videos' : 'tracks') : null,
   });
 
-  /** Хук для управления избранным */
   const toggleFavoriteItem = useOptimisticFavorite({
     setItems: isActive ? setItems : () => {},
     updateFavoriteFn: currentTab

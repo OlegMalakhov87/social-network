@@ -2,10 +2,11 @@ import { api } from '../../../shared/api';
 import { LikeSchema } from '../model/likeSchema';
 
 /**
- * Поставить лайк сущности.
- * @param {string} targetType - тип сущности
- * @param {number} targetId - ID сущности
- * @returns {Promise<Object>} { like, likesCount }
+ * Ставит лайк сущности.
+ *
+ * @param {string} targetType - Тип сущности
+ * @param {number} targetId - Идентификатор сущности
+ * @returns {Promise<{ like: Object, likesCount: number }>} Лайк и число лайков
  */
 export const addLikeApi = async (targetType, targetId) => {
   const response = await api.post(`/likes/${targetType}/${targetId}/add`);
@@ -16,10 +17,11 @@ export const addLikeApi = async (targetType, targetId) => {
 };
 
 /**
- * Убрать лайк с сущности.
- * @param {string} targetType - тип сущности
- * @param {number} targetId - ID сущности
- * @returns {Promise<Object>} { message, targetType, targetId, likesCount }
+ * Снимает лайк с сущности.
+ *
+ * @param {string} targetType - Тип сущности
+ * @param {number} targetId - Идентификатор сущности
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteLikeApi = async (targetType, targetId) => {
   const response = await api.delete(`/likes/${targetType}/${targetId}/delete`);

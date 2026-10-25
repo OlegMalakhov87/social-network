@@ -1,19 +1,20 @@
 import { Text } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import styles from './RichText.module.css';
 
 /**
- * Рендер текста с сохранением абзацев и переносов.
+ * Отображает текст с абзацами и переносами строк.
  *
- * @param {Object} props
- * @param {string} props.text - исходный текст
- * @param {'h1'|'h2'|'h3'|'h4'|'body1'|'body2'|'caption'|'inherit'} [props.variant='body1'] - типографический вариант
- * @param {boolean} [props.linkify=false] - преобразовывать URL в ссылки
- * @param {string} [props.className=''] - класс контейнера
- * @param {string} [props.paragraphClassName=''] - класс абзацев
- * @param {string} [props.emptyText=''] - текст-заглушка, если `text` пустой
- * @param {React.Ref} [props.ref=null] - ref для контейнера
- * @returns {React.ReactNode} - компонент RichText
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.text - Исходный текст
+ * @param {'h1'|'h2'|'h3'|'h4'|'body1'|'body2'|'caption'|'inherit'} [props.variant='body1'] - Вариант оформления
+ * @param {boolean} [props.linkify=false] - Преобразование адресов URL в ссылки
+ * @param {string} [props.className=''] - CSS-класс контейнера
+ * @param {string} [props.paragraphClassName=''] - CSS-класс абзацев
+ * @param {string} [props.emptyText=''] - Текст, если исходный текст пуст
+ * @param {React.Ref} [props.ref] - Ссылка на контейнер
+ * @returns {JSX.Element|null} Текст или пустой результат.
  */
 export const RichText = ({
   text,

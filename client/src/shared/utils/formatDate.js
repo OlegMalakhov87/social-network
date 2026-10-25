@@ -4,10 +4,10 @@ const ONE_DAY_MS = 86_400_000;
 const ONE_YEAR_MS = 31_536_000_000;
 
 /**
- * Форматирует временну́ю метку в читаемую строку с учётом давности.
+ * Форматирует дату с учётом давности.
  *
- * @param {number|string} timestamp - timestamp в миллисекундах или ISO-строка
- * @returns {string} - форматированная дата
+ * @param {number|string} timestamp - Метка времени в миллисекундах или строка даты
+ * @returns {string} Время, краткая дата или пустая строка.
  */
 export const formatDate = (timestamp) => {
   if (!timestamp) return '';

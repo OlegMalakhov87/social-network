@@ -1,12 +1,11 @@
 import { calculateAge } from '../../../shared/utils';
 
 /**
- * Функция для отображения полей с данными пользователя на странице профиля.
+ * Возвращает поля профиля.
  *
- * @param {Object} user - данные пользователя
- * @returns {Array<Object>} - массив характеристик
+ * @param {Object} user - Данные пользователя
+ * @returns {Array<Object>} Поля профиля
  */
-
 export const getProfileFields = (user) => {
   if (!user || user?.canSeeFullProfile === false) return [];
   return [

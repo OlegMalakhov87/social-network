@@ -1,17 +1,20 @@
 import { forwardRef } from 'react';
+
 import { classNames, linkifyText } from '../../../utils';
+
 import style from './Text.module.css';
 
 /**
- * Универсальный текстовый компонент.
+ * Отображает текст выбранного вида.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент текста
- * @param {'h1'|'h2'|'h3'|'h4'|'body1'|'body2'|'caption'|'inherit'} [props.variant='body1'] - типографический вариант
- * @param {boolean} [props.linkify=false] - преобразовывать ли URL в ссылки
- * @param {string} [props.className=''] - дополнительный CSS класс
- * @param {string} [props.as] - переопределение HTML-тега (по умолчанию зависит от variant)
- * @returns {React.ReactNode} - компонент Text
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое текста
+ * @param {'h1'|'h2'|'h3'|'h4'|'body1'|'body2'|'caption'|'inherit'} [props.variant='body1'] - Вариант оформления
+ * @param {boolean} [props.linkify=false] - Преобразование адресов URL в ссылки
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {string} [props.as] - HTML-тег вместо варианта оформления
+ * @param {React.Ref} ref - Ссылка на элемент
+ * @returns {JSX.Element|null} Текст или пустой результат без содержимого.
  */
 export const Text = forwardRef(
   (
@@ -27,7 +30,7 @@ export const Text = forwardRef(
   ) => {
     if (!children) return null;
 
-    // Маппинг варианта на HTML-тег по умолчанию
+    // Сопоставляет вариант оформления с HTML-тегом.
     const tagMap = {
       h1: 'h1',
       h2: 'h2',

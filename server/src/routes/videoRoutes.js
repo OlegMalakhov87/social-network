@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const videoController = require('../controllers/videoController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
@@ -21,10 +22,10 @@ const {
 
 const videoRoutes = Router();
 
-// Публичная лента и поиск (объединено)
+// Возвращает публичную ленту и результат поиска.
 videoRoutes.get('/', authMiddleware, videoController.getVideos);
 
-// Создание видео
+// Создает видео.
 videoRoutes.post(
   '/add',
   authMiddleware,
@@ -32,7 +33,7 @@ videoRoutes.post(
   videoController.createVideo
 );
 
-// Загрузка видео файла
+// Загружает видеофайл.
 videoRoutes.post(
   '/upload-video',
   authMiddleware,
@@ -42,7 +43,7 @@ videoRoutes.post(
   videoController.uploadVideo
 );
 
-// Загрузка обложки видео файла
+// Загружает обложку видео.
 videoRoutes.post(
   '/upload-thumbnail',
   authMiddleware,
@@ -52,7 +53,7 @@ videoRoutes.post(
   videoController.uploadThumbnail
 );
 
-// Загрузка превью видео файла
+// Загружает превью видео.
 videoRoutes.post(
   '/upload-preview',
   authMiddleware,
@@ -62,7 +63,7 @@ videoRoutes.post(
   videoController.uploadPreview
 );
 
-// Обновление видео (владелец)
+// Обновляет видео владельца.
 videoRoutes.put(
   '/:videoId/update',
   validateIdParam('videoId'),
@@ -71,7 +72,7 @@ videoRoutes.put(
   videoController.updateVideo
 );
 
-// Обновление приватности видео
+// Обновляет приватность видео.
 videoRoutes.patch(
   '/update-privacy',
   authMiddleware,
@@ -79,7 +80,7 @@ videoRoutes.patch(
   videoController.updateVideoPrivacy
 );
 
-// Инкремент счетчика просмотров видео
+// Увеличивает счетчик просмотров.
 videoRoutes.patch(
   '/:videoId/views',
   validateIdParam('videoId'),
@@ -87,7 +88,7 @@ videoRoutes.patch(
   videoController.incrementViewsCount
 );
 
-// Удаление видео (владелец)
+// Удаляет видео владельца.
 videoRoutes.delete(
   '/:videoId/delete',
   validateIdParam('videoId'),
@@ -95,21 +96,21 @@ videoRoutes.delete(
   videoController.deleteVideo
 );
 
-// Удаление (очистка мусора) загруженных медиа файлов
+// Удаляет загруженные медиафайлы.
 videoRoutes.delete(
   '/delete-uploaded-video',
   authMiddleware,
   videoController.deleteUploadedMedia
 );
 
-// Удаление загруженных медиа превью
+// Удаляет загруженное превью.
 videoRoutes.delete(
   '/delete-uploaded-preview',
   authMiddleware,
   videoController.deleteUploadedPreview
 );
 
-// Удаление загруженных медиа thumbnail
+// Удаляет загруженную обложку.
 videoRoutes.delete(
   '/delete-uploaded-thumb',
   authMiddleware,

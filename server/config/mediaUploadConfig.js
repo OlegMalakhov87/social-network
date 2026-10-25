@@ -1,12 +1,13 @@
 const path = require('node:path');
 const os = require('node:os');
 
-/** Корневая директория с пользовательскими медиафайлами */
+/** Задает корневой каталог пользовательских медиафайлов. */
 const MEDIA_ROOT = path.resolve(__dirname, '../uploads');
 
 /**
- * Корневая папка для временных (staging) медиафайлов.
- * Берётся из MEDIA_STAGING_DIR или используется системный tmpdir.
+ * Задает корневой каталог временных медиафайлов.
+ *
+ * Использует MEDIA_STAGING_DIR или системный временный каталог как запасное значение.
  */
 const STAGING_ROOT = path.resolve(
   process.env.MEDIA_STAGING_DIR ||
@@ -14,16 +15,22 @@ const STAGING_ROOT = path.resolve(
 );
 
 /**
- * Промежуточная папка для атомарной публикации:
- * сюда файлы копируются, отсюда — перемещаются в MEDIA_ROOT.
- * Расположена рядом с MEDIA_ROOT, но скрыта (начинается с точки).
+ * Задает скрытый каталог атомарной публикации рядом с MEDIA_ROOT.
+ *
+ * Файлы сначала копируются сюда и только затем перемещаются в MEDIA_ROOT.
  */
 const PUBLISH_STAGING_ROOT = path.resolve(
   path.dirname(MEDIA_ROOT),
   '.media-publish-staging'
 );
 
-/** Проверка, что target находится внутри root */
+/**
+ * Проверяет, что путь находится внутри корневого каталога.
+ *
+ * @param {string} root - Абсолютный путь корневого каталога
+ * @param {string} target - Проверяемый абсолютный путь
+ * @returns {boolean} Признак того, что путь не выходит за корень.
+ */
 const isWithin = (root, target) => {
   const relative = path.relative(root, target);
 
@@ -53,7 +60,7 @@ if (conflict) {
   );
 }
 
-/** Конфигурация путей для загрузки медиа файлов */
+/** Задает каталоги загрузки медиафайлов. */
 const UPLOAD_DESTINATIONS = {
   avatarUrl: 'avatars',
   thumbnailUrl: 'videos/thumbnails',
@@ -71,7 +78,7 @@ const UPLOAD_DESTINATIONS = {
   audioUrl: 'music/tracks',
 };
 
-/** Конфигурация MIME типов для загрузки медиа файлов */
+/** Задает допустимые MIME-типы загружаемых медиафайлов. */
 const UPLOAD_MIME_CONFIG = {
   avatarUrl: ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'],
 

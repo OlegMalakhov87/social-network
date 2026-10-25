@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import { CommentsListSchema } from '../../comment';
 import { LikeSchema } from '../../like';
 import { UserSchema } from '../../user';
 
 /**
- * Схема трека
+ * Описывает трек.
  */
 export const TrackSchema = z.object({
   id: z.number(),
@@ -44,6 +45,6 @@ export const TrackSchema = z.object({
 });
 
 /**
- * Схема списка треков
+ * Описывает список треков.
  */
 export const TracksListSchema = z.array(TrackSchema);

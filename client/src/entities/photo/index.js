@@ -1,3 +1,3 @@
-export { getPhotoActions } from './lib/getPhotoActions'; // Функция для получения действий для фотографии
+export { getPhotoActions } from './lib/getPhotoActions'; // Возвращает действия фотографии.
 
-export { Photo } from './ui/Photo'; // Компонент для отображения карточки фотографии
+export { Photo } from './ui/Photo'; // Отображает карточку фотографии.

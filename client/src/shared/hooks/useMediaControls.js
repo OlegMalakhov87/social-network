@@ -5,22 +5,36 @@ import {
   useRef,
   useState,
 } from 'react';
+
 import { formatDuration } from '../utils';
 
 /**
- * Хук для управления HTMLMediaElement.
- * Инкапсулирует подписку на события, перемотку, громкость и синхронизацию состояния.
+ * Управляет воспроизведением, громкостью и источником медиаэлемента.
  *
- * @param {Object} params
- * @param {React.RefObject<HTMLMediaElement>} params.mediaRef - реф на аудио/видео элемент
- * @param {number} [params.stateVolume] - громкость из внешнего store
- * @param {boolean} [params.stateMuted] - mute из внешнего store
- * @param {boolean} [params.autoPlay] - автовоспроизведение при смене mediaElement
- * @param {Object} [params.options={}] - дополнительные настройки
- * @param {Function} [params.options.onEnd] - колбэк при окончании трека
- * @param {Function} [params.options.onPlay] - колбэк при событии play
- * @param {Function} [params.options.onStateChange] - колбэк при изменении состояния
- * @returns {Object} - объект с методами управления, volume и isMuted
+ * @param {Object} params - Параметры управления
+ * @param {import('react').RefObject<HTMLMediaElement>} params.mediaRef - Ссылка на аудио или видео
+ * @param {number} [params.stateVolume] - Громкость из внешнего состояния
+ * @param {boolean} [params.stateMuted] - Признак без звука из внешнего состояния
+ * @param {boolean} [params.autoPlay] - Запускает воспроизведение при смене элемента
+ * @param {Object} [params.options={}] - Дополнительные обработчики
+ * @param {Function} [params.options.onEnd] - Вызывается в конце воспроизведения
+ * @param {Function} [params.options.onPlay] - Вызывается при начале воспроизведения
+ * @param {Function} [params.options.onStateChange] - Получает изменение состояния
+ * @returns {{
+ *   play: Function,
+ *   pause: Function,
+ *   toggle: Function,
+ *   seekPercent: Function,
+ *   changeVolume: Function,
+ *   toggleMute: Function,
+ *   setSource: Function,
+ *   clearSource: Function,
+ *   playOnMedia: Function,
+ *   formatDuration: Function,
+ *   isMediaReady: boolean,
+ *   volume: number,
+ *   isMuted: boolean
+ * }} Методы управления, готовность элемента, громкость и признак без звука.
  */
 export const useMediaControls = ({
   mediaRef,
@@ -35,51 +49,48 @@ export const useMediaControls = ({
   const [volume, setVolume] = useState(stateVolume ?? 1);
   const [isMuted, setIsMuted] = useState(stateMuted ?? false);
 
-  /** Обновление громкости из внешнего store */
+  // Применяет громкость из внешнего состояния.
   useEffect(() => {
     if (stateVolume !== undefined) setVolume(stateVolume);
   }, [stateVolume]);
 
-  /** Обновление состояния громкости из внешнего store */
+  // Применяет признак без звука из внешнего состояния.
   useEffect(() => {
     if (stateMuted !== undefined) setIsMuted(stateMuted);
   }, [stateMuted]);
 
-  /** Установка mediaElement при монтировании */
+  // Запоминает текущий медиаэлемент.
   useLayoutEffect(() => {
     if (!mediaRef?.current) return;
     setMediaElement(mediaRef.current);
   }, [mediaRef]);
 
-  /** Установка громкости и состояния громкости при изменении */
+  // Применяет громкость и признак без звука к медиаэлементу.
   useEffect(() => {
     if (!mediaElement) return;
     mediaElement.volume = volume;
     mediaElement.muted = isMuted;
   }, [mediaElement, volume, isMuted]);
 
-  /** Реф на колбэк при окончании трека */
+  // Хранит актуальный обработчик окончания, чтобы не подписываться заново.
   const onEndRef = useRef(onEnd);
 
-  /** Обновление колбэка при изменении */
   useEffect(() => {
     onEndRef.current = onEnd;
   }, [onEnd]);
 
-  /** Реф на колбэк при воспроизведении трека */
+  // Хранит актуальный обработчик начала воспроизведения, чтобы не подписываться заново.
   const onPlayExtraRef = useRef(onPlayExtra);
 
-  /** Обновление колбэка при изменении */
   useEffect(() => {
     onPlayExtraRef.current = onPlayExtra;
   }, [onPlayExtra]);
 
-  /** Обновление состояния при изменении времени воспроизведения */
+  // Синхронизирует состояние воспроизведения с событиями медиаэлемента.
   useEffect(() => {
     const media = mediaElement;
     if (!media) return;
 
-    /** Обработчик изменении времени воспроизведения */
     const onTimeUpdate = () => {
       const currentTime = media.currentTime;
       const duration = media.duration || 0;
@@ -90,27 +101,22 @@ export const useMediaControls = ({
       });
     };
 
-    /** Обработчик воспроизведения трека */
     const onPlay = () => {
       onStateChange?.({ isPlaying: true, isLoading: false });
       onPlayExtraRef.current?.();
     };
 
-    /** Обработчик паузы трека */
     const onPause = () => onStateChange?.({ isPlaying: false });
 
-    /** Обработчик загрузки метаданных трека */
     const onLoadedMetadata = () => {
       onStateChange?.({ duration: media.duration || 0, isLoading: false });
     };
 
-    /** Обработчик окончания трека */
     const onEnded = () => {
       onStateChange?.({ isPlaying: false });
       onEndRef.current?.();
     };
 
-    /** Обработчик ошибки загрузки трека */
     const onError = () => {
       onStateChange?.({
         isLoading: false,
@@ -118,10 +124,8 @@ export const useMediaControls = ({
       });
     };
 
-    /** Обработчик начала загрузки трека */
     const onLoadStart = () => onStateChange?.({ isLoading: true, error: null });
 
-    /** Обработчик загрузки трека */
     const onCanPlay = () => onStateChange?.({ isLoading: false });
 
     if (autoPlay) {
@@ -153,7 +157,11 @@ export const useMediaControls = ({
     };
   }, [mediaElement, onStateChange, autoPlay]);
 
-  /** Воспроизведение трека */
+  /**
+   * Запускает воспроизведение.
+   *
+   * @returns {Promise<void>}
+   */
   const play = useCallback(async () => {
     if (!mediaElement) return;
     try {
@@ -165,19 +173,32 @@ export const useMediaControls = ({
     }
   }, [mediaElement, onStateChange]);
 
-  /** Пауза трека */
+  /**
+   * Ставит воспроизведение на паузу.
+   *
+   * @returns {void}
+   */
   const pause = useCallback(() => {
     mediaElement?.pause();
   }, [mediaElement]);
 
-  /** Переключение воспроизведения/паузы */
+  /**
+   * Переключает воспроизведение и паузу.
+   *
+   * @returns {Promise<void>}
+   */
   const toggle = useCallback(async () => {
     if (!mediaElement) return;
     if (mediaElement.paused) await play();
     else pause();
   }, [mediaElement, play, pause]);
 
-  /** Перемотка на определенный процент */
+  /**
+   * Перематывает воспроизведение на долю длительности.
+   *
+   * @param {number} percent - Доля от 0 до 1
+   * @returns {void}
+   */
   const seekPercent = useCallback(
     (percent) => {
       if (!mediaElement || !mediaElement.duration) return;
@@ -188,7 +209,12 @@ export const useMediaControls = ({
     [mediaElement, onStateChange]
   );
 
-  /** Изменение громкости */
+  /**
+   * Меняет громкость и снимает беззвучие при значении больше нуля.
+   *
+   * @param {number} vol - Громкость от 0 до 1
+   * @returns {void}
+   */
   const changeVolume = useCallback(
     (vol) => {
       const v = Math.max(0, Math.min(1, vol));
@@ -203,7 +229,11 @@ export const useMediaControls = ({
     [isMuted, onStateChange]
   );
 
-  /** Переключение мута (вкл/выкл) */
+  /**
+   * Переключает беззвучие.
+   *
+   * @returns {void}
+   */
   const toggleMute = useCallback(() => {
     setIsMuted((muted) => {
       const next = !muted;
@@ -212,7 +242,12 @@ export const useMediaControls = ({
     });
   }, [onStateChange]);
 
-  /** Установка источника (URL) */
+  /**
+   * Назначает адрес источника и сбрасывает позицию.
+   *
+   * @param {string} url - Адрес источника
+   * @returns {boolean} Признак назначенного источника.
+   */
   const setSource = useCallback(
     (url) => {
       const media = mediaElement ?? mediaRef?.current;
@@ -226,7 +261,11 @@ export const useMediaControls = ({
     [mediaElement, mediaRef]
   );
 
-  /** Очистка источника */
+  /**
+   * Удаляет источник и останавливает воспроизведение.
+   *
+   * @returns {void}
+   */
   const clearSource = useCallback(() => {
     const media = mediaElement ?? mediaRef?.current;
     if (!media) return;
@@ -237,7 +276,11 @@ export const useMediaControls = ({
     media.load();
   }, [mediaElement, mediaRef]);
 
-  /** Воспроизведение трека на медиа элементе */
+  /**
+   * Запускает воспроизведение на текущем медиаэлементе.
+   *
+   * @returns {Promise<void>}
+   */
   const playOnMedia = useCallback(async () => {
     const media = mediaElement ?? mediaRef?.current;
     if (!media) return;

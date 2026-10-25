@@ -1,20 +1,22 @@
 import { Image } from '../..';
 import { classNames, handleKeyboardClick } from '../../../utils';
+
 import styles from './Avatar.module.css';
 
 /**
- * Универсальный компонент аватара пользователя.
+ * Отображает аватар пользователя и индикатор присутствия.
  *
- * @param {Object} props
- * @param {string} props.src - URL изображения.
- * @param {string} [props.fallback='/user.jpg'] - Запасное изображение.
- * @param {string} [props.alt='Avatar'] - Альтернативный текст.
- * @param {'xs'|'sm'|'md'|'lg'|'xl'} [props.size='md'] - Размер аватара.
- * @param {'circle'|'rounded'|'square'} [props.variant='circle'] - Форма.
- * @param {'online'|'offline'|'busy'|'away'|null} [props.status=null] - Статус пользователя.
- * @param {boolean} [props.clickable=false] - Делает аватар кликабельным.
- * @param {Function} [props.onClick] - Обработчик клика.
- * @param {string} [props.className] - Дополнительный CSS-класс.
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.src - Адрес изображения
+ * @param {string} [props.fallback='/user.jpg'] - Запасное изображение
+ * @param {string} [props.alt='Аватар'] - Альтернативный текст
+ * @param {'xs'|'sm'|'md'|'lg'|'xl'} [props.size='md'] - Размер аватара
+ * @param {'circle'|'rounded'|'square'} [props.variant='circle'] - Форма аватара
+ * @param {'online'|'offline'|'busy'|'away'|null} [props.status=null] - Присутствие: в сети, не в сети, занят или отошёл
+ * @param {boolean} [props.clickable=false] - Признак доступности нажатия
+ * @param {Function} [props.onClick=() => {}] - Обработчик нажатия
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Разметка аватара.
  */
 export const Avatar = ({
   src,

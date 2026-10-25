@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+
 import { GENRE_TABS } from '../../../entities/track';
 import { useCommentsPanel } from '../../../features/comments';
 import { TrackForm, useMusic } from '../../../features/tracks';
@@ -17,13 +18,13 @@ import { useAudioPlayer } from '../../../widgets/audio-player';
 import { TracksTab } from '../../../widgets/user-content';
 
 /**
- * Страница музыки с фильтрацией и сортировкой, формой добавления трека, списком треков и панелью комментариев.
+ * Отображает страницу музыки.
+ *
+ * @returns {JSX.Element} Разметка страницы.
  */
-
 export const MusicPage = () => {
   const [showTrackForm, setShowTrackForm] = useState(false);
 
-  /** Управление фильтрацией и сортировкой */
   const {
     filter,
     searchQuery,
@@ -33,7 +34,6 @@ export const MusicPage = () => {
     handleFilterChange,
   } = useFilterControls({ initialFilter: 'all', initialSort: 'dateDesc' });
 
-  /** Получение данных о треках */
   const {
     tracks,
     currentUser,
@@ -54,21 +54,31 @@ export const MusicPage = () => {
     updateCommentsCount,
   } = useMusic({ filter, searchQuery, sortKey });
 
-  /** Управление аудиоплеером */
   const { playTrack, setOnTrackStart, isPlaying, currentTrack, togglePlay } =
     useAudioPlayer();
 
-  /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
     useCommentsPanel('tracks', sortKey, filter, currentPage);
 
-  /** Получение функции для обновления количества комментариев открытой вкладки */
+  /**
+   * Обновляет число комментариев открытой записи.
+   *
+   * @param {number} delta - Изменение числа комментариев
+   * @returns {boolean} Признак обновления.
+   */
   const handleCommentChange = useCallback(
     (delta) => updateCommentsCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для отправки формы */
+  /**
+   * Отправляет форму трека.
+   *
+   * @param {Object} values - Данные формы
+   * @param {boolean} isEdit - Признак редактирования
+   * @param {number|undefined} trackId - Идентификатор трека
+   * @returns {Promise<void>}
+   */
   const handleFormSubmit = useCallback(
     async (values, isEdit, trackId) => {
       if (isEdit && trackId) {
@@ -81,7 +91,6 @@ export const MusicPage = () => {
     [addTrack, updateTrack]
   );
 
-  /** Обработчик для закрытия формы */
   const handleCloseForm = useCallback(() => {
     setShowTrackForm(null);
   }, []);

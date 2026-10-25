@@ -1,13 +1,11 @@
-export * from './apiError'; // Функции для обработки API ошибок валидации
-export { apiFetchItems } from './apiFetchItems'; // Функция для получения данных с сервера
-export { createAuthRefreshChannel } from './authRefreshChannel'; // Создаёт канал обмена сообщениями между вкладками
-export { withAuthRefreshLock } from './authRefreshLock'; // Выполняет операцию под эксклюзивной блокировкой
-export { createAbortableFetch } from './createAbortableFetch'; // Функция для создания запроса с отменой
-export { createNotifier } from './createNotifier'; // Функция для создания уведомления
-export { extractPaginatedItems } from './extractPaginatedItems'; // Функция для извлечения данных с пагинацией
-export * from './fieldValidators'; // Валидаторы для строковых полей
-export * from './fileValidators'; // Валидаторы для файлов
-export * from './mediaValidators'; // Валидаторы для медиа-контента
-export { sortItems } from './sortItems'; // Функция для сортировки данных
-export * from './theme'; // Работа с темой приложения
-export { unwrapApiEntity } from './unwrapApiEntity'; // Разворачивает вложенную сущность из ответа API
+export * from './apiError'; // Преобразует ошибки API в сообщение и ошибки полей.
+export { apiFetchItems } from './apiFetchItems'; // Возвращает страницу элементов с сервера.
+export { createAuthRefreshChannel } from './authRefreshChannel'; // Обменивается сообщениями об авторизации между вкладками.
+export { withAuthRefreshLock } from './authRefreshLock'; // Выполняет операцию под исключительной блокировкой вкладок.
+export { createAbortableFetch } from './createAbortableFetch'; // Создаёт контроллер отмены для последовательных запросов.
+export { createNotifier } from './createNotifier'; // Создаёт методы показа уведомлений.
+export { extractPaginatedItems } from './extractPaginatedItems'; // Извлекает элементы и сведения о страницах из ответа сервера.
+export * from './fieldValidators'; // Проверяет строковые поля формы.
+export * from './fileValidators'; // Проверяет файлы перед загрузкой.
+export * from './mediaValidators'; // Проверяет длительность, разрешение и соотношение сторон медиафайлов.
+export * from './theme'; // Сохраняет предпочтение темы и применяет его к документу.

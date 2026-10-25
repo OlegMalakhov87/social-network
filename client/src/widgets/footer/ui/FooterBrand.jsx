@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
+
 import { Image, Text } from '../../../shared/ui';
 import { SOCIAL_LINKS } from '../config/footerConfig';
+
 import style from './FooterBrand.module.css';
 
 /**
- * Бренд компании в футере(логотип и описание компании, ссылки на социальные сети).
+ * Отображает бренд, описание и ссылки на социальные сети.
  *
- * @returns {React.ReactNode}
+ * @returns {JSX.Element} Разметка бренда.
  */
 export const FooterBrand = () => (
   <div className={style.brand}>

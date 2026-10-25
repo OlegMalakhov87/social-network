@@ -1,5 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+
 import { PROFILE_SETTINGS_CONFIG, SettingsSection } from '..';
 import { updateUser } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -24,20 +25,21 @@ import {
 } from '../../../shared/ui';
 import { classNames, formatDateForInput } from '../../../shared/utils';
 import { AVATAR_UPLOAD_CONFIG, useFileUpload } from '../../file-upload';
+
 import style from './SettingsForm.module.css';
 
 /**
- * Компонент формы редактирования профиля.
+ * Отображает форму редактирования профиля.
  *
- * @param {Object} props
- * @param {Object} props.currentUser - текущий пользователь.
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @returns {JSX.Element} Форма профиля
  */
 export const EditProfileForm = ({ currentUser }) => {
   const dispatch = useDispatch();
   const notify = useNotify();
   const navigate = useNavigate();
 
-  /** Форма для редактирования профиля */
   const form = useForm({
     initialValues: {
       name: currentUser?.name ?? null,
@@ -102,14 +104,13 @@ export const EditProfileForm = ({ currentUser }) => {
     },
   });
 
-  /** Хук для загрузки фото */
   const avatarUpload = useFileUpload(AVATAR_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('avatarUrl', data.avatarUrl);
     },
   });
 
-  /** Очистка загруженного файла при отмене */
+  // Удаляет незакреплённый файл перед сбросом формы.
   const handleCancel = async () => {
     try {
       const isCleaned = await avatarUpload.cleanupUploadedFile();

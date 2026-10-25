@@ -1,5 +1,5 @@
 /**
- * Типы сообщений для обмена токенами между вкладками.
+ * Хранит типы сообщений авторизации между вкладками.
  */
 export const AUTH_MESSAGE_TYPES = Object.freeze({
   SESSION_LOGOUT: 'SESSION_LOGOUT',

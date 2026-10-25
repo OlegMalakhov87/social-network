@@ -1,21 +1,19 @@
 const { Router } = require('express');
+
 const userVideoLibraryController = require('../controllers/userVideoLibraryController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
-const {
-  validateFavoriteUpdate,
-} = require('../middleware/validation/validateFavoriteUpdate');
 
 const userVideoLibraryRoutes = Router();
 
-// Получить мою библиотеку видео
+// Возвращает библиотеку видео текущего пользователя.
 userVideoLibraryRoutes.get(
   '/',
   authMiddleware,
   userVideoLibraryController.getMyVideoLibrary
 );
 
-// Получить библиотеку выбранного пользователя
+// Возвращает библиотеку выбранного пользователя.
 userVideoLibraryRoutes.get(
   '/:userId',
   validateIdParam('userId'),
@@ -23,7 +21,7 @@ userVideoLibraryRoutes.get(
   userVideoLibraryController.getUserVideosLibrary
 );
 
-// Добавить видео в библиотеку
+// Добавляет видео в библиотеку.
 userVideoLibraryRoutes.post(
   '/:videoId/add',
   validateIdParam('videoId'),
@@ -31,7 +29,7 @@ userVideoLibraryRoutes.post(
   userVideoLibraryController.addToVideoLibrary
 );
 
-// Обновить запись в библиотеке (избранное)
+// Обновляет признак избранного в библиотеке.
 userVideoLibraryRoutes.patch(
   '/:libraryId/favorite',
   validateIdParam('libraryId'),
@@ -39,7 +37,7 @@ userVideoLibraryRoutes.patch(
   userVideoLibraryController.updateFavoriteVideo
 );
 
-// Увеличить счетчик просмотров видео в библиотеке
+// Увеличивает счетчик просмотров видео в библиотеке.
 userVideoLibraryRoutes.patch(
   '/:libraryId/views',
   validateIdParam('libraryId'),
@@ -47,7 +45,7 @@ userVideoLibraryRoutes.patch(
   userVideoLibraryController.incrementViewsCount
 );
 
-// Удалить видео из библиотеки
+// Удаляет видео из библиотеки.
 userVideoLibraryRoutes.delete(
   '/:libraryId/delete',
   validateIdParam('libraryId'),

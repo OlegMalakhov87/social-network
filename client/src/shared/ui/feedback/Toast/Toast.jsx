@@ -1,13 +1,15 @@
 import { classNames } from '../../../utils';
+
 import styles from './Toast.module.css';
+
 /**
- * Компонент уведомления.
+ * Отображает всплывающее уведомление.
  *
- * @param {Object} props
- * @param {string} props.message - текст уведомления
- * @param {string} props.type - тип уведомления
- * @param {Function} props.onClose - функция закрытия уведомления
- *
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.message - Текст уведомления
+ * @param {'success'|'error'|'warning'|'info'} props.type - Тип уведомления
+ * @param {Function} props.onClose - Обработчик закрытия
+ * @returns {JSX.Element} Всплывающее уведомление.
  */
 
 export const Toast = ({ message, type, onClose }) => {

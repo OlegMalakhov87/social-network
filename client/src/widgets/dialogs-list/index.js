@@ -1,2 +1,2 @@
-export { ChatGrid } from './ui/ChatGrid'; // компонент для отображения списка сообщений в чате
-export { DialogsGrid } from './ui/DialogsGrid'; // компонент для отображения списка диалогов
+export { ChatGrid } from './ui/ChatGrid'; // Отображает переписку с выбранным пользователем.
+export { DialogsGrid } from './ui/DialogsGrid'; // Отображает список диалогов.

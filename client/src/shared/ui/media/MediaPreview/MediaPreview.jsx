@@ -1,34 +1,33 @@
 import { useEffect, useState } from 'react';
+
 import { Badge, IconButton, Image } from '../../../ui';
 import {
   classNames,
   formatDuration,
   handleKeyboardClick,
 } from '../../../utils';
+
 import styles from './MediaPreview.module.css';
 
 const PREVIEW_DELAY = 1000;
 
 /**
- * Универсальное превью медиа.
+ * Показывает изображение и предварительный просмотр видео после удержания курсора.
  *
- * Preview видео запускается только после того,
- * как пользователь непрерывно удерживает курсор
- * над медиа в течение PREVIEW_DELAY.
- *
- * @param {Object} props
- * @param {Object} [props.item] - объект с данными о медиа
- * @param {string} props.src - URL изображения
- * @param {string} [props.preview] - URL превью
- * @param {string} props.alt - альтернативный текст изображения
- * @param {Object} [props.currentItem] - объект с данными о текущем медиа
- * @param {boolean} [props.isPlaying] - если true, то превью воспроизводится
- * @param {Function} [props.onClick] - функция, вызываемая при клике
- * @param {string} [props.type] - тип медиа (image, video)
- * @param {boolean} [props.clickable] - если true, то превью является кликабельным
- * @param {string} [props.fallback] - URL изображения-заглушки
- * @param {string} [props.className] - класс для обертки
- * @param {boolean} [props.disabled] - если true, то превью является некликабельным
+ * @param {Object} props - Свойства компонента
+ * @param {Object} [props.item={}] - Данные медиа
+ * @param {Object} [props.currentItem] - Текущее воспроизводимое медиа
+ * @param {boolean} [props.isPlaying] - Признак воспроизведения
+ * @param {string} props.src - Адрес изображения
+ * @param {string} [props.preview] - Адрес предварительного просмотра
+ * @param {string} [props.alt] - Альтернативный текст
+ * @param {Function} [props.onClick] - Обработчик нажатия
+ * @param {string} [props.type='image'] - Тип медиа
+ * @param {boolean} [props.clickable=false] - Признак доступности нажатия
+ * @param {string} [props.fallback='/no-image-1200x720.png'] - Запасное изображение
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @returns {JSX.Element} Предварительный просмотр медиа.
  */
 export const MediaPreview = ({
   item = {},
@@ -53,11 +52,7 @@ export const MediaPreview = ({
 
   const isVideo = type === 'video';
 
-  /**
-   * Загружает превью видео только после того,
-   * как пользователь непрерывно удерживает курсор
-   * над медиа в течение PREVIEW_DELAY.
-   */
+  // Запускает предварительный просмотр видео после непрерывного удержания курсора в течение заданной задержки.
   useEffect(() => {
     if (!isHovered || !isVideo || disabled || playing) {
       setShouldLoadPreview(false);
@@ -74,18 +69,15 @@ export const MediaPreview = ({
     };
   }, [isHovered, isVideo, disabled, playing]);
 
-  /** Показывает fallback превью, если превью недоступно или есть ошибка. */
   const showPreviewFallback =
     isVideo && shouldLoadPreview && (!preview || previewError);
 
-  /** Показывает видео превью, если превью доступно и нет ошибки. */
   const showVideoPreview =
     isVideo && shouldLoadPreview && Boolean(preview) && !previewError;
 
-  /** Скрывает миниатюру, если загружено превью или отображается fallback. */
   const hideThumbnail = isVideo && (previewLoaded || showPreviewFallback);
 
-  /** Сбрасывает состояние ошибки и загрузки превью, если пользователь убрал курсор с медиа. */
+  // Сбрасывает ошибку и загрузку предварительного просмотра, когда курсор покидает медиа.
   useEffect(() => {
     if (!isHovered) {
       setPreviewError(false);
@@ -93,7 +85,7 @@ export const MediaPreview = ({
     }
   }, [isHovered]);
 
-  /** Сбрасывает состояние ошибки и загрузки превью, если изменился URL превью. */
+  // Сбрасывает ошибку и загрузку предварительного просмотра при смене его адреса.
   useEffect(() => {
     setPreviewError(false);
     setPreviewLoaded(false);

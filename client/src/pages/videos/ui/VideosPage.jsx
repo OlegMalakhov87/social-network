@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+
 import { CATEGORIES } from '../../../entities/video';
 import { useCommentsPanel } from '../../../features/comments';
 import { VideoForm, useVideos } from '../../../features/videos';
@@ -17,14 +18,15 @@ import { VideosTab } from '../../../widgets/user-content';
 import { VideoPlayer } from '../../../widgets/video-player';
 
 /**
- * Страница видео – отображает каталог видео с фильтрацией, поиском и сортировкой.
+ * Отображает страницу видео.
+ *
+ * @returns {JSX.Element} Разметка страницы.
  */
 export const VideosPage = () => {
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const onVideoStartRef = useRef(null);
 
-  /** Управление фильтрацией и сортировкой */
   const {
     filter,
     searchQuery,
@@ -34,7 +36,6 @@ export const VideosPage = () => {
     handleFilterChange,
   } = useFilterControls({ initialFilter: 'all', initialSort: 'dateDesc' });
 
-  /** Получение данных о видео */
   const {
     videos,
     currentUser,
@@ -55,34 +56,61 @@ export const VideosPage = () => {
     deleteVideo,
   } = useVideos({ filter, searchQuery, sortKey });
 
-  /** Управление панелью комментариев */
   const { commentTarget, handleCloseComments, onToggleComments } =
     useCommentsPanel('videos', sortKey, filter, currentPage);
 
-  /** Получение функции для обновления количества комментариев открытой вкладки */
+  /**
+   * Обновляет число комментариев открытой записи.
+   *
+   * @param {number} delta - Изменение числа комментариев
+   * @returns {boolean} Признак обновления.
+   */
   const handleCommentChange = useCallback(
     (delta) => updateCommentsCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для открытия модального окна с видео */
+  /**
+   * Открывает видео в плеере.
+   *
+   * @param {Object|Function} video - Данные видео или обработчик
+   * @returns {void}
+   */
   const handleOpenVideo = useCallback((video) => {
     if (!video || typeof video === 'function') return;
     setSelectedVideo(video);
   }, []);
 
+  /**
+   * Сохраняет обработчик запуска видео.
+   *
+   * @param {Function} handler - Обработчик запуска
+   * @returns {void}
+   */
   const setOnVideoStart = useCallback((handler) => {
     onVideoStartRef.current = handler;
   }, []);
 
+  /**
+   * Запускает воспроизведение видео.
+   *
+   * @param {Object} video - Данные видео
+   * @returns {void}
+   */
   const handleVideoPlayStart = useCallback((video) => {
     onVideoStartRef.current?.(video);
   }, []);
 
-  /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
-  /** Обработчик для отправки формы */
+  /**
+   * Отправляет форму видео.
+   *
+   * @param {Object} values - Данные формы
+   * @param {boolean} isEdit - Признак редактирования
+   * @param {number|undefined} videoId - Идентификатор видео
+   * @returns {Promise<void>}
+   */
   const handleFormSubmit = useCallback(
     async (values, isEdit, videoId) => {
       if (isEdit && videoId) {
@@ -95,7 +123,6 @@ export const VideosPage = () => {
     [addVideo, updateVideo]
   );
 
-  /** Обработчик для закрытия формы */
   const handleCloseForm = useCallback(() => {
     setShowVideoForm(null);
   }, []);
@@ -116,7 +143,6 @@ export const VideosPage = () => {
           )
         }
       >
-        {/* Панель фильтров и поиска */}
         <SectionCard>
           <Toolbar
             tabs={CATEGORIES}
@@ -165,7 +191,6 @@ export const VideosPage = () => {
           />
         </SectionCard>
 
-        {/* Модальное окно с формой добавления/редактирования видео */}
         {showVideoForm && currentUser && (
           <VideoForm
             key={
@@ -177,7 +202,6 @@ export const VideosPage = () => {
           />
         )}
 
-        {/* Модальное окно с видео */}
         {selectedVideo && (
           <VideoPlayer
             video={selectedVideo}

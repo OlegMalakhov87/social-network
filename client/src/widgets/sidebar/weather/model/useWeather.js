@@ -1,37 +1,43 @@
 import { useEffect, useState } from 'react';
+
 import { useAbortableRequest } from '../../../../shared/hooks';
 import { fetchWeatherApi } from '../api/weatherApi';
 
-/** Интервал обновления погоды в миллисекундах. */
+/** Задаёт интервал обновления погоды в миллисекундах. */
 const WEATHER_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 
-/** Базовая задержка повторных запросов погоды в миллисекундах. */
+/** Задаёт базовую задержку повторного запроса погоды в миллисекундах. */
 const RETRY_BASE_DELAY_MS = 5 * 60 * 1000;
-/** Максимальная задержка повторных запросов погоды в миллисекундах. */
+/** Задаёт верхний предел задержки повторного запроса погоды в миллисекундах. */
 const RETRY_MAX_DELAY_MS = 30 * 60 * 1000;
 
 /**
- * Хук для получения погоды по координатам пользователя из браузера.
+ * Возвращает погоду по координатам.
  *
- * @param {Object} params - параметры запроса
- * @param {number} params.lat - широта
- * @param {number} params.lon - долгота
- * @returns {Object} - { weather, isLoadingWeather, errorWeather, refetchWeather }
+ * @param {Object} params - Параметры запроса
+ * @param {number} [params.lat] - Широта
+ * @param {number} [params.lon] - Долгота
+ * @returns {{weather: Object|null, isLoadingWeather: boolean, errorWeather: Error|null, refetchWeather: Function}} Состояние погоды.
  */
 export const useWeather = (params) => {
   const { lat, lon } = params;
   const [retryCount, setRetryCount] = useState(0);
 
-  /** Проверяем, что координаты валидны. */
+  // Считает координаты пригодными, только если оба числа конечные.
   const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
 
-  /** Запрос данных о погоде. */
   const {
     data: weather,
     isLoading,
     error,
     execute: refetch,
   } = useAbortableRequest({
+    /**
+     * Запрашивает погоду, если координаты пригодны.
+     *
+     * @param {AbortSignal} signal - Сигнал отмены запроса
+     * @returns {Promise<Object|null>} Данные о погоде.
+     */
     fetcher: async (signal) => {
       if (!hasCoords) return null;
       return await fetchWeatherApi(
@@ -49,19 +55,16 @@ export const useWeather = (params) => {
     },
   });
 
-  /** Сброс retryCount при смене координат. */
   useEffect(() => {
     setRetryCount(0);
   }, [lat, lon]);
 
-  /** Сброс retryCount при успешном запросе. */
   useEffect(() => {
     if (weather) {
       setRetryCount(0);
     }
   }, [weather]);
 
-  /** Установка интервала обновления погоды. */
   useEffect(() => {
     if (!hasCoords) return;
     const intervalId = setInterval(
@@ -71,7 +74,7 @@ export const useWeather = (params) => {
     return () => clearInterval(intervalId);
   }, [hasCoords, refetch]);
 
-  /** Установка интервала повторных запросов погоды при ошибке. */
+  // Удваивает паузу между повторами и ограничивает её верхним пределом.
   useEffect(() => {
     if (!hasCoords || !error) return;
 

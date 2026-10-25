@@ -1,20 +1,19 @@
 import { forwardRef } from 'react';
+
 import { classNames } from '../../../utils';
+
 import styles from './Card.module.css';
 
 /**
-* Базовый контейнер карточки.
-
-* Отвечает только за внешний вид: фон, границы, скругления, тени, hover и внутренние отступы.
+ * Отображает карточку с фоном, границей, тенью и отступами.
  *
- * Вся структура карточки (Header, Content, Actions и т.д.)
- * строится внутри BaseCard.
- *
- * @param {Object} props 
- * @param {React.ReactNode} props.children - Содержимое карточки.
- * @param {boolean} [props.hover=false] - Добавляет эффект при наведении.
- * @param {boolean} [props.padding=true] - Внутренние отступы.
- * @param {string} [props.className=''] - Дополнительный CSS класс.
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое карточки
+ * @param {boolean} [props.hover=false] - Эффект при наведении
+ * @param {boolean} [props.padding=true] - Внутренние отступы
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {React.Ref<HTMLElement>} ref - Ссылка на элемент
+ * @returns {JSX.Element} Карточка.
  */
 
 export const Card = forwardRef(

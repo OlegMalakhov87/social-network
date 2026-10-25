@@ -1,8 +1,9 @@
 const { z } = require('zod');
 
 /**
- * Категории новостей
- * @type {Array<string>}
+ * Перечисляет допустимые категории новости.
+ *
+ * @type {string[]}
  */
 const NEWS_CATEGORIES = [
   'technology',
@@ -14,8 +15,7 @@ const NEWS_CATEGORIES = [
 ];
 
 /**
- * Схема для LLM
- * @type {z.ZodObject<{shouldPublish: z.ZodBoolean, title: z.ZodString, summary: z.ZodString, category: z.ZodEnum<NEWS_CATEGORIES>}>}
+ * Проверяет ответ модели: решение о публикации, заголовок, текст, категорию и причину.
  */
 const newsLlmSchema = z.object({
   shouldPublish: z.boolean(),

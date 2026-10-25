@@ -1,13 +1,25 @@
 import { useCallback, useMemo, useState } from 'react';
 
 /**
- * Универсальный хук для работы с формами.
+ * Хранит значения формы, проверяет поля и отправляет данные.
  *
- * @param {Object} params
- * @param {Object} params.initialValues - начальные значения формы
- * @param {Object|Function} [params.rules={}] - правила валидации (объект или функция от values)
- * @param {Function} params.onSubmit - функция для отправки формы
- * @returns {Object}
+ * @param {Object} params - Параметры формы
+ * @param {Object} params.initialValues - Начальные значения
+ * @param {Object|Function} [params.rules={}] - Правила проверки или функция от значений
+ * @param {Function} [params.onSubmit] - Отправляет проверенные значения
+ * @returns {{
+ *   values: Object,
+ *   errors: Object,
+ *   isValid: boolean,
+ *   isSubmitting: boolean,
+ *   setValue: Function,
+ *   onBlur: Function,
+ *   submit: Function,
+ *   register: Function,
+ *   reset: Function,
+ *   validate: Function,
+ *   validateField: Function
+ * }} Состояние формы и методы управления.
  */
 export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   const [values, setValues] = useState(initialValues);
@@ -19,7 +31,12 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     [rules, values]
   );
 
-  /** Валидация конкретного поля. */
+  /**
+   * Проверяет одно поле.
+   *
+   * @param {string} field - Имя поля
+   * @returns {boolean} Признак успешной проверки поля.
+   */
   const validateField = useCallback(
     (field) => {
       const validators = validationRules[field] || [];
@@ -38,7 +55,12 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     [validationRules, values]
   );
 
-  /** Валидация всей формы. */
+  /**
+   * Проверяет все поля.
+   *
+   * @param {Object} [vals=values] - Проверяемые значения
+   * @returns {boolean} Признак успешной проверки всех полей.
+   */
   const validate = useCallback(
     (vals = values) => {
       let valid = true;
@@ -63,20 +85,36 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     [validationRules, values]
   );
 
-  /** Изменение поля. */
+  /**
+   * Записывает значение поля.
+   *
+   * @param {string} field - Имя поля
+   * @param {*} value - Новое значение
+   * @returns {void}
+   */
   const setValue = useCallback((field, value) => {
     setValues((prev) => ({ ...prev, [field]: value }));
-    // Сбрасываем ошибку поля при изменении
+    // Сбрасывает ошибку поля при изменении.
     setFieldErrors((prev) => ({ ...prev, [field]: '' }));
   }, []);
 
-  /** Обработчик onBlur — валидирует поле при уходе с него. */
+  /**
+   * Проверяет поле при потере фокуса.
+   *
+   * @param {string} field - Имя поля
+   * @returns {boolean} Признак успешной проверки поля.
+   */
   const handleBlur = useCallback(
     (field) => validateField(field),
     [validateField]
   );
 
-  /** Сабмит формы. */
+  /**
+   * Проверяет форму и отправляет обрезанные значения.
+   *
+   * @param {Event} [e] - Событие отправки
+   * @returns {Promise<boolean>} Признак успешной отправки.
+   */
   const handleSubmit = useCallback(
     async (e) => {
       e?.preventDefault();
@@ -112,12 +150,30 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     [validate, onSubmit, isSubmitting, values, initialValues]
   );
 
-  /** Регистрация поля (для удобной привязки к инпутам). */
+  /**
+   * Связывает поле ввода со значением, ошибкой и обработчиками.
+   *
+   * @param {string} name - Имя поля
+   * @param {Object} [extra={}] - Дополнительные свойства поля
+   * @returns {{
+   *   name: string,
+   *   value: *,
+   *   error: string,
+   *   onChange: Function,
+   *   onBlur: Function
+   * }} Свойства поля ввода.
+   */
   const register = useCallback(
     (name, extra = {}) => ({
       name,
       value: values[name] ?? '',
       error: fieldErrors[name],
+      /**
+       * Записывает значение из события или переданное значение напрямую.
+       *
+       * @param {Event|*} e - Событие поля ввода или новое значение
+       * @returns {void}
+       */
       onChange: (e) => {
         const next =
           e != null && typeof e === 'object' && 'target' in e
@@ -131,7 +187,11 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     [values, fieldErrors, setValue, handleBlur]
   );
 
-  /** Сброс формы. */
+  /**
+   * Возвращает форму к начальным значениям.
+   *
+   * @returns {void}
+   */
   const reset = useCallback(() => {
     setValues(initialValues);
     setFieldErrors({});

@@ -1,4 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+
 import { parseApiError } from '../../../shared/lib';
 import {
   changePasswordApi,
@@ -7,7 +8,12 @@ import {
 } from '../../user';
 import { getCurrentUser } from '../api/authApi';
 
-/** Авторизация пользователя. */
+/**
+ * Авторизует пользователя.
+ *
+ * @param {Object} credentials - Почта и пароль
+ * @returns {Promise<{ user: Object, token: string }>} Пользователь и маркер доступа
+ */
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, thunkAPI) => {
@@ -21,7 +27,12 @@ export const login = createAsyncThunk(
   }
 );
 
-/** Регистрация пользователя. */
+/**
+ * Регистрирует пользователя.
+ *
+ * @param {Object} formData - Данные нового пользователя
+ * @returns {Promise<{ user: Object, token: string }>} Пользователь и маркер доступа
+ */
 export const register = createAsyncThunk(
   'auth/register',
   async (formData, thunkAPI) => {
@@ -35,12 +46,16 @@ export const register = createAsyncThunk(
   }
 );
 
-/** Восстановление авторизации при запуске приложения. */
+/**
+ * Восстанавливает авторизацию при запуске приложения.
+ *
+ * @returns {Promise<{ user: Object, token: string }>} Пользователь и маркер доступа
+ */
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, thunkAPI) => {
     try {
-      // Получаем новый access token через HttpOnly cookie.
+      // Запрашивает новый маркер доступа через HTTP-only cookie.
       const { coordinator } = thunkAPI.extra;
 
       const { token } = await coordinator.refreshSession();
@@ -49,7 +64,6 @@ export const checkAuth = createAsyncThunk(
         throw new Error('Сервер не вернул access token');
       }
 
-      // Получаем пользователя с новым access token.
       const { user } = await getCurrentUser(token);
 
       return { user, token };
@@ -59,7 +73,12 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-/** Обновление профиля пользователя */
+/**
+ * Обновляет профиль пользователя.
+ *
+ * @param {Object} userData - Данные профиля
+ * @returns {Promise<{ user: Object }>} Обновлённый пользователь
+ */
 export const updateUser = createAsyncThunk(
   'auth/updateUser',
   async (userData, thunkAPI) => {
@@ -72,7 +91,11 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-/** Удаление пользователя */
+/**
+ * Удаляет пользователя.
+ *
+ * @returns {Promise<boolean>} Признак удаления
+ */
 export const deleteUser = createAsyncThunk(
   'auth/deleteUser',
   async (_, thunkAPI) => {
@@ -85,7 +108,12 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-/** Обновление пароля текущего пользователя */
+/**
+ * Обновляет пароль текущего пользователя.
+ *
+ * @param {Object} credentials - Текущий и новый пароль
+ * @returns {Promise<Object>} Ответ сервера
+ */
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (credentials, thunkAPI) => {
@@ -99,7 +127,9 @@ export const changePassword = createAsyncThunk(
 );
 
 /**
- * Завершение текущей серверной сессии.
+ * Завершает текущую сессию на сервере.
+ *
+ * @returns {Promise<{ sessionChanged: boolean }>} Признак смены сессии
  */
 export const logoutSession = createAsyncThunk(
   'auth/logoutSession',

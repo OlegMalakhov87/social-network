@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Схема пользователя
+ * Описывает пользователя.
  */
 export const UserSchema = z.object({
   id: z.number(),
@@ -26,6 +26,6 @@ export const UserSchema = z.object({
 });
 
 /**
- * Схема списка пользователей
+ * Описывает список пользователей.
  */
 export const UsersListSchema = z.array(UserSchema);

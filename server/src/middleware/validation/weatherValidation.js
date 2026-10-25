@@ -1,8 +1,9 @@
 const { query } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для погоды
+ * Проверяет широту и долготу запроса.
  */
 const validateWeather = [
   query('lat')

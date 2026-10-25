@@ -1,23 +1,28 @@
 const multer = require('multer');
 
 /**
- * Middleware для обработки ошибок
+ * Отправляет ответ об ошибке и различает известные типы сбоев.
+ *
+ * @param {Error} err - Ошибка обработки запроса
+ * @param {import('express').Request} req - Запрос Express
+ * @param {import('express').Response} res - Ответ Express
+ * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+ * @returns {void} Ничего не возвращает.
  */
 const errorMiddleware = (err, req, res, next) => {
-  // Логируем ошибку в development окружении
+  // Пишет ошибку в журнал только в среде разработки.
   if (process.env.NODE_ENV === 'development') {
     console.error('Error:', err);
   }
 
-  // Кастомные ошибки из сервисов (createError)
+  // Отвечает ошибкой службы, если задан код состояния.
   if (err.statusCode) {
     return res.status(err.statusCode).json({
       error: err.message,
-      code: err.code || null, // Машинный код для фронтенда
+      code: err.code || null, // Подставляет null, если машинный код отсутствует.
     });
   }
 
-  // Sequelize ошибки валидации
   if (err.name === 'SequelizeValidationError') {
     const errors = err.errors.map((e) => ({
       field: e.path,
@@ -29,7 +34,6 @@ const errorMiddleware = (err, req, res, next) => {
     });
   }
 
-  // Sequelize ошибки уникальности
   if (err.name === 'SequelizeUniqueConstraintError') {
     const field = err.errors[0]?.path || 'поле';
     return res.status(409).json({
@@ -38,14 +42,12 @@ const errorMiddleware = (err, req, res, next) => {
     });
   }
 
-  // Sequelize ошибки внешнего ключа
   if (err.name === 'SequelizeForeignKeyConstraintError') {
     return res.status(400).json({
       error: 'Связанная запись не найдена',
     });
   }
 
-  // Ошибки JWT
   if (err.name === 'JsonWebTokenError') {
     return res
       .status(401)
@@ -58,12 +60,11 @@ const errorMiddleware = (err, req, res, next) => {
       .json({ error: 'Токен истек', code: 'TOKEN_EXPIRED' });
   }
 
-  // Ошибки multer
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: err.message, code: 'UPLOAD_ERROR' });
   }
 
-  // По умолчанию
+  // Отвечает кодом 500, если ошибка не распознана.
   res.status(500).json({
     error: 'Внутренняя ошибка сервера',
     code: 'INTERNAL_ERROR',

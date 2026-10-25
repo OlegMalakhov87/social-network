@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { getPhotoActions } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -13,16 +14,20 @@ import {
   MediaPreview,
 } from '../../../shared/ui';
 import { formatDate } from '../../../shared/utils';
+
 import styles from './Photo.module.css';
+
 /**
- * Компонент для отображения карточки фотографии.
- * @param {Object} props - пропсы компонента
- * @param {Object} props.photo - данные фотографии
- * @param {Object} props.currentUser - текущий пользователь
- * @param {Function} props.onShareEntity - функция для отображения сообщения о успешном сохранении фотографии
- * @param {Function} props.toggleLike - функция для лайка/дизлайка фотографии
- * @param {Function} props.onDelete - функция для удаления фотографии
- * @param {Function} props.toggleComments - функция для открытия/закрытия комментариев к фотографии
+ * Отображает карточку фотографии.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.photo - Фотография.
+ * @param {Object} props.currentUser - Текущий пользователь.
+ * @param {Function} props.onShareEntity - Обработчик отправки фотографии.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.toggleComments - Обработчик комментариев.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 export const Photo = ({
   photo,

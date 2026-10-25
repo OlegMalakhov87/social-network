@@ -102,7 +102,7 @@ test('commitMany сохраняет временную запись при от�
           { transaction }
         );
 
-        // Имитируем ошибку обновления профиля.
+        // Имитирует ошибку обновления профиля.
         throw new Error('PROFILE_UPDATE_FAILED');
       }),
       /PROFILE_UPDATE_FAILED/
@@ -191,7 +191,7 @@ test('commitMany запрещает фиксировать просроченн�
   });
 
   try {
-    // ARRANGE: регистрируем временный файл.
+    // Регистрирует временный файл.
     await temporaryMediaService.registerMany([
       {
         userId: user.id,
@@ -206,7 +206,7 @@ test('commitMany запрещает фиксировать просроченн�
 
     await TemporaryMedia.update({ expiresAt: expiredAt }, { where: { url } });
 
-    // ACT + ASSERT: попытка фиксации должна завершиться ошибкой.
+    // Фиксация завершается ошибкой.
     await assert.rejects(
       temporaryMediaService.commitMany(user.id, [
         { url, fieldName: 'avatarUrl' },
@@ -217,7 +217,7 @@ test('commitMany запрещает фиксировать просроченн�
       }
     );
 
-    // ASSERT: запись не должна быть удалена.
+    // Запись остаётся в базе.
     const media = await TemporaryMedia.findOne({
       where: { url },
     });
@@ -245,7 +245,7 @@ test('commitMany запрещает использовать медиафайл 
   });
 
   try {
-    // ARRANGE: файл зарегистрирован для аватара.
+    // Файл зарегистрирован для аватара.
     await temporaryMediaService.registerMany([
       {
         userId: user.id,
@@ -255,7 +255,7 @@ test('commitMany запрещает использовать медиафайл 
       },
     ]);
 
-    // ACT + ASSERT: пробуем использовать его для другого поля.
+    // Пытается использовать файл для другого поля.
     await assert.rejects(
       temporaryMediaService.commitMany(user.id, [
         { url, fieldName: 'postImage' },
@@ -266,7 +266,7 @@ test('commitMany запрещает использовать медиафайл 
       }
     );
 
-    // ASSERT: запись владельца должна сохраниться.
+    // Запись владельца сохраняется.
     const media = await TemporaryMedia.findOne({
       where: { url },
     });
@@ -326,7 +326,7 @@ test('commitMany удаляет временную запись после ус�
   });
 
   try {
-    // ARRANGE: регистрируем временный файл.
+    // Регистрирует временный файл.
     await temporaryMediaService.registerMany([
       {
         userId: user.id,
@@ -336,16 +336,16 @@ test('commitMany удаляет временную запись после ус�
       },
     ]);
 
-    // ACT: успешно фиксируем файл.
+    // Фиксирует файл.
     const committedRecords = await temporaryMediaService.commitMany(user.id, [
       { url, fieldName: 'avatarUrl' },
     ]);
 
-    // ASSERT: сервис вернул обработанную запись.
+    // Служба вернула обработанную запись.
     assert.equal(committedRecords.length, 1);
     assert.equal(committedRecords[0].url, url);
 
-    // ASSERT: временная запись удалена из базы.
+    // Временная запись удалена из базы.
     const media = await TemporaryMedia.findOne({
       where: { url },
     });
@@ -367,7 +367,7 @@ test('removeMany удаляет временный медиафайл польз
   });
 
   try {
-    // ARRANGE: регистрируем временный файл.
+    // Регистрирует временный файл.
     await temporaryMediaService.registerMany([
       {
         userId: user.id,
@@ -377,15 +377,15 @@ test('removeMany удаляет временный медиафайл польз
       },
     ]);
 
-    // ACT: отменяем временную загрузку.
+    // Отменяет временную загрузку.
     const result = await temporaryMediaService.removeMany(user.id, [
       { url, fieldName: 'avatarUrl' },
     ]);
 
-    // ASSERT: метод сообщил об удалении одной записи.
+    // Метод сообщает об удалении одной записи.
     assert.equal(result.deleted, 1);
 
-    // ASSERT: запись действительно отсутствует в PostgreSQL.
+    // Запись отсутствует в базе.
     const media = await TemporaryMedia.findOne({
       where: { url },
     });
@@ -414,7 +414,7 @@ test('removeMany не удаляет чужой временный медиаф�
       email: `remove-other-${uniqueId}@example.com`,
       passwordHash: await bcrypt.hash('test-password', 4),
     });
-    // ARRANGE: файл принадлежит owner.
+    // Файл принадлежит владельцу.
     await temporaryMediaService.registerMany([
       {
         userId: owner.id,
@@ -424,15 +424,15 @@ test('removeMany не удаляет чужой временный медиаф�
       },
     ]);
 
-    // ACT: другой пользователь пытается удалить файл.
+    // Другой пользователь пытается удалить файл.
     const result = await temporaryMediaService.removeMany(anotherUser.id, [
       { url, fieldName: 'avatarUrl' },
     ]);
 
-    // ASSERT: ни одна запись не удалена.
+    // Ни одна запись не удалена.
     assert.equal(result.deleted, 0);
 
-    // ASSERT: файл по-прежнему принадлежит владельцу.
+    // Файл по-прежнему принадлежит владельцу.
     const media = await TemporaryMedia.findOne({
       where: { url },
     });
@@ -461,7 +461,7 @@ test('cleanupExpired удаляет просроченные записи и с�
   });
 
   try {
-    // ARRANGE: создаём два временных медиафайла.
+    // Создает два временных медиафайла.
     await temporaryMediaService.registerMany([
       {
         userId: user.id,
@@ -483,17 +483,17 @@ test('cleanupExpired удаляет просроченные записи и с�
       { where: { url: expiredUrl } }
     );
 
-    // ACT: запускаем очистку.
+    // Запускает очистку.
     await temporaryMediaService.cleanupExpired();
 
-    // ASSERT: просроченная запись удалена.
+    // Просроченная запись удалена.
     const expiredMedia = await TemporaryMedia.findOne({
       where: { url: expiredUrl },
     });
 
     assert.equal(expiredMedia, null);
 
-    // ASSERT: действующая запись сохранена.
+    // Действующая запись сохранена.
     const activeMedia = await TemporaryMedia.findOne({
       where: { url: activeUrl },
     });

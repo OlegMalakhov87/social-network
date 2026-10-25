@@ -7,7 +7,9 @@ import {
   useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
 import { selectIsAuthenticated } from '../../../entities/auth';
+import { useMediaControls } from '../../../shared/hooks';
 import {
   clearPlayer,
   nextTrack,
@@ -17,18 +19,19 @@ import {
   toggleShuffle,
   updatePlayerState,
 } from '..';
-import { useMediaControls } from '../../../shared/hooks';
 
 /**
- * Контекст аудиоплеера. Предоставляет методы управления и текущее состояние плеера всем компонентам через {@link useAudioPlayer}.
- * @type {React.Context}
+ * Хранит состояние и управление аудиоплеером.
+ *
+ * @type {React.Context<Object|null>}
  */
 const AudioPlayerContext = createContext(null);
 
 /**
- * Хук для доступа к контексту аудиоплеера.
- * @returns {Object} методы и текущее состояние плеера
- * @throws {Error} если используется вне AudioPlayerProvider
+ * Возвращает состояние и управление аудиоплеером.
+ *
+ * @returns {Object} Состояние и методы плеера.
+ * @throws {Error} Выбрасывает ошибку вне провайдера аудиоплеера.
  */
 export const useAudioPlayer = () => {
   const context = useContext(AudioPlayerContext);
@@ -39,10 +42,11 @@ export const useAudioPlayer = () => {
 };
 
 /**
- * Провайдер аудиоплеера. Создаёт скрытый аудио-элемент, синхронизирует
- * Redux-состояние с DOM-событиями и предоставляет методы управления через контекст.
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент провайдера
+ * Предоставляет состояние и управление аудиоплеером.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Вложенная разметка
+ * @returns {JSX.Element} Разметка провайдера.
  */
 export const AudioPlayerProvider = ({ children }) => {
   const dispatch = useDispatch();
@@ -65,22 +69,22 @@ export const AudioPlayerProvider = ({ children }) => {
     volume,
     isMuted,
   } = useSelector((state) => state.audioPlayer);
-  /** Проверка авторизации */
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  /** Режим повтора */
   repeatRef.current = repeat;
 
-  /** Текущий трек */
   currentTrackRef.current = currentTrack;
 
-  /** Обработчик изменения состояния плеера */
+  /**
+   * Записывает состояние медиаэлемента в Redux.
+   *
+   * @param {Object} state - Состояние воспроизведения
+   */
   const stateChangeHandler = useCallback(
     (state) => dispatch(updatePlayerState(state)),
     [dispatch]
   );
 
-  /** Контролы медиа элемента */
   const mediaControls = useMediaControls({
     mediaRef: audioRef,
     stateVolume: volume,
@@ -96,6 +100,7 @@ export const AudioPlayerProvider = ({ children }) => {
         }
       },
       onPlay: () => {
+        // Сообщает о старте один раз за трек.
         if (!trackStartedRef.current && onTrackStartCallbackRef.current) {
           trackStartedRef.current = true;
           onTrackStartCallbackRef.current(currentTrackRef.current);
@@ -121,7 +126,7 @@ export const AudioPlayerProvider = ({ children }) => {
     isMediaReady,
   } = mediaControls;
 
-  /** Воспроизведение трека */
+  // Загружает источник один раз на трек и запускает воспроизведение.
   useEffect(() => {
     if (!isMediaReady || !currentTrack?.audioUrl) return;
     if (prevTrackId.current === currentTrack.id) return;
@@ -143,7 +148,7 @@ export const AudioPlayerProvider = ({ children }) => {
     playOnMedia();
   }, [currentTrack, isMediaReady, dispatch, setSource, playOnMedia]);
 
-  /** Очистка плеера */
+  // Очищает медиаэлемент, когда текущий трек отсутствует.
   useEffect(() => {
     if (currentTrack) return;
     clearSource();
@@ -152,7 +157,7 @@ export const AudioPlayerProvider = ({ children }) => {
     dispatch(updatePlayerState({ currentTime: 0, duration: 0, progress: 0 }));
   }, [currentTrack, clearSource, dispatch]);
 
-  // При выходе из аккаунта гарантированно останавливаем и закрываем плеер.
+  // Останавливает и закрывает плеер при выходе из аккаунта.
   useEffect(() => {
     if (wasAuthenticatedRef.current && !isAuthenticated) {
       clearSource();
@@ -165,7 +170,12 @@ export const AudioPlayerProvider = ({ children }) => {
     wasAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated, clearSource, dispatch]);
 
-  /** Воспроизведение трека */
+  /**
+   * Ставит выбранный трек в очередь и запускает воспроизведение.
+   *
+   * @param {Object} track - Трек для воспроизведения
+   * @param {Array<Object>} [trackList] - Очередь треков
+   */
   const playTrack = useCallback(
     (track, trackList) => {
       if (!track?.audioUrl) return;
@@ -180,23 +190,24 @@ export const AudioPlayerProvider = ({ children }) => {
     [dispatch]
   );
 
-  /** Воспроизведение трека */
   const play = useCallback(() => {
     if (!currentTrack?.audioUrl) return;
     mediaPlay();
   }, [currentTrack, mediaPlay]);
 
-  /** Пауза воспроизведения */
   const pause = useCallback(() => {
     mediaPause();
   }, [mediaPause]);
 
-  /** Установка колбэка при начале воспроизведения */
+  /**
+   * Сохраняет обработчик старта трека.
+   *
+   * @param {Function|null} fn - Обработчик начала воспроизведения
+   */
   const setOnTrackStart = useCallback((fn) => {
     onTrackStartCallbackRef.current = fn;
   }, []);
 
-  /** Значение контекста */
   const value = useMemo(
     () => ({
       pause,
@@ -218,6 +229,11 @@ export const AudioPlayerProvider = ({ children }) => {
         prevTrackId.current = null;
         trackStartedRef.current = false;
       },
+      /**
+       * Записывает режим повтора.
+       *
+       * @param {string} mode - Режим повтора: off, one или all
+       */
       setRepeat: (mode) => dispatch(setRepeat(mode)),
       toggleShuffle: () => dispatch(toggleShuffle()),
       togglePlay,

@@ -1,5 +1,8 @@
 /**
- * Нормализует объект видео для SharedEntityCard.
+ * Приводит видео к карточке общей сущности.
+ *
+ * @param {Object} video - Видео
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedVideo = (video) => ({
   id: video.id,

@@ -1,5 +1,6 @@
 /**
- * Конфигурация источников новостей
+ * Задает источники новостей для автоматического сбора.
+ *
  * @type {Array<{name: string, url: string, category: string}>}
  */
 const NEWS_SOURCES_CONFIG = [

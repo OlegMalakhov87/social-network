@@ -1,10 +1,10 @@
-export * from './api/postApi'; // API для постов
+export * from './api/postApi'; // Выполняет запросы постов.
 
-export * from './config/postTypes'; // Конфигурация типов постов
+export * from './config/postTypes'; // Хранит типы постов.
 
-export { getPostActions } from './lib/getPostActions'; // Функция для получения действий для поста
-export { normalizePosts } from './lib/normalizePosts'; // Функция для нормализации поста
+export { getPostActions } from './lib/getPostActions'; // Возвращает действия поста.
+export { normalizePosts } from './lib/normalizePosts'; // Приводит пост к формату карточки.
 
-export * from './model/postSchema'; // Схема поста
+export * from './model/postSchema'; // Описывает схемы поста.
 
-export { Post } from './ui/Post'; // Компонент для отображения карточки поста
+export { Post } from './ui/Post'; // Отображает карточку поста.

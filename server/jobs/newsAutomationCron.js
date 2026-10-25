@@ -1,16 +1,18 @@
 const cron = require('node-cron');
+
 const newsAutomationService = require('../src/services/newsAutomationService');
 const { NEWS_AUTOMATION_CONFIG } = require('../config/newsAutomationConfig');
 
 /**
- * Флаг, указывающий, выполняется ли автоматизация новостей в данный момент.
- * Защищает от пересечения cron-запусков внутри одного Node-процесса.
- * Для нескольких экземпляров backend потребуется распределённая блокировка.
+ * Запрещает пересечение запусков автоматизации внутри одного процесса.
+ * Для нескольких экземпляров сервера нужна отдельная распределенная блокировка.
  */
 let isRunning = false;
 
 /**
- * Запускает cron-задачу автоматизированного получения и обработки новостей.
+ * Запускает расписание автоматизированного сбора и обработки новостей.
+ *
+ * @returns {void} Ничего не возвращает.
  */
 const startNewsAutomationCron = () => {
   cron.schedule(NEWS_AUTOMATION_CONFIG.cronSchedule, async () => {

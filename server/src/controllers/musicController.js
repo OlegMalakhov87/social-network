@@ -1,4 +1,5 @@
 const fs = require('node:fs/promises');
+
 const musicService = require('../services/musicService');
 const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
@@ -6,12 +7,14 @@ const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 
-/**
- * Контроллер для работы с музыкой
- */
 const musicController = {
   /**
-   * Получение публичной ленты треков и поиск
+   * Возвращает публичную ленту треков и результат поиска.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getMusic: async (req, res, next) => {
     try {
@@ -32,7 +35,12 @@ const musicController = {
   },
 
   /**
-   * Создание нового трека
+   * Создает трек.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   createMusic: async (req, res, next) => {
     try {
@@ -45,13 +53,20 @@ const musicController = {
   },
 
   /**
-   * Загрузка аудио файла для трека
+   * Загружает аудиофайл трека.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadAudio: async (req, res, next) => {
     let registered = false;
     let audioPath = null;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     try {
@@ -97,7 +112,9 @@ const musicController = {
         );
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       audioPath = await mediaStorageService.publish(req.file);
 
       const audioUrl = toPublicUrl(audioPath);
@@ -137,7 +154,9 @@ const musicController = {
           }
         }
       }
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -155,12 +174,19 @@ const musicController = {
   },
 
   /**
-   * Загрузка обложки для трека
+   * Загружает обложку трека.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadCover: async (req, res, next) => {
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     let coverPath = null;
@@ -191,7 +217,9 @@ const musicController = {
         );
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       coverPath = await mediaStorageService.publish(req.file);
 
       const coverUrl = toPublicUrl(coverPath);
@@ -227,7 +255,9 @@ const musicController = {
           }
         }
       }
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -245,7 +275,12 @@ const musicController = {
   },
 
   /**
-   * Обновление приватности треков
+   * Обновляет приватность треков.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateMusicPrivacy: async (req, res, next) => {
     try {
@@ -261,7 +296,12 @@ const musicController = {
   },
 
   /**
-   * Обновление трека
+   * Обновляет трек.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateMusic: async (req, res, next) => {
     try {
@@ -279,7 +319,12 @@ const musicController = {
   },
 
   /**
-   * Инкремент счетчика прослушиваний
+   * Увеличивает счетчик прослушиваний.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   incrementPlaysCount: async (req, res, next) => {
     try {
@@ -292,7 +337,12 @@ const musicController = {
   },
 
   /**
-   * Удаление трека (владелец)
+   * Удаляет трек владельца.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteMusic: async (req, res, next) => {
     try {
@@ -309,7 +359,12 @@ const musicController = {
   },
 
   /**
-   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять трек
+   * Удаляет загруженный аудиофайл, если пользователь отменил добавление трека.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
@@ -333,7 +388,7 @@ const musicController = {
           fieldName: 'coverUrl',
         },
       ];
-      // Удаляем временные медиа файлы
+      // Удаляет временные медиафайлы, которые пользователь не сохранил.
       const result = await temporaryMediaService.removeMany(
         currentUserId,
         media
@@ -345,7 +400,12 @@ const musicController = {
   },
 
   /**
-   * Удаление загруженных медиа cover
+   * Удаляет загруженную обложку.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedCover: async (req, res, next) => {
     try {

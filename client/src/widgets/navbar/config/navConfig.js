@@ -1,7 +1,7 @@
 /**
- * Массив элементов навигации.
- 
- * @type {Array<{ path: string, label: string, icon: string }>}
+ * Содержит пункты основной навигации.
+ *
+ * @type {Array<{path: string, label: string, icon: string}>}
  */
 export const NAV_ITEMS = [
   { path: '/profile', label: 'Профиль', icon: '👤' },

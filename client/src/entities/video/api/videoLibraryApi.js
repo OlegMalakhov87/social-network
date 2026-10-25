@@ -2,13 +2,14 @@ import { api } from '../../../shared/api';
 import { VideosListSchema } from '../model/videoSchema';
 
 /**
- * Получить видео из библиотеки текущего пользователя.
- * @param {Object} params - параметры запроса
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { videos, pagination } - данные видео и пагинация
+ * Возвращает видео библиотеки текущего пользователя.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @returns {Promise<{ videos: Object[], pagination: Object }>} Видео и пагинация
  */
 export const fetchMyVideoLibrary = async ({
   page,
@@ -27,14 +28,15 @@ export const fetchMyVideoLibrary = async ({
 };
 
 /**
- * Получить видео для вкладки "Видео" на странице просматриваемого профиля.
- * @param {Object} params - параметры запроса
- * @param {number} params.userId - ID пользователя, библиотеку которого просматриваем
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { videos, pagination }
+ * Возвращает видео библиотеки выбранного профиля.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.userId] - Идентификатор пользователя
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @returns {Promise<{ videos: Object[], pagination: Object }>} Видео и пагинация
  */
 export const fetchUserVideoLibrary = async ({
   userId,
@@ -58,9 +60,10 @@ export const fetchUserVideoLibrary = async ({
 };
 
 /**
- * Добавить видео в библиотеку.
- * @param {number} videoId – ID видео, которое добавляем
- * @returns {Promise<Object>} { libraryItem }
+ * Добавляет видео в библиотеку.
+ *
+ * @param {number} videoId - Идентификатор видео
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const addVideoToLibrary = async (videoId) => {
   const response = await api.post(`/uservideolibrary/${videoId}/add`);
@@ -68,10 +71,12 @@ export const addVideoToLibrary = async (videoId) => {
 };
 
 /**
- * Обновить видео из библиотеки (добавить/удалить из избранного)
- * @param {number} libraryId – ID записи в библиотеке
- * @param {boolean} isFavorite – состояние в избраном
- * @returns {Promise<Object>} { libraryItem }
+ * Обновляет признак избранного в библиотеке видео.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @param {Object} favorite - Изменения избранного
+ * @param {boolean} favorite.isFavorite - Признак избранного
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
   const response = await api.patch(`/uservideolibrary/${libraryId}/favorite`, {
@@ -81,9 +86,10 @@ export const updateFavoriteVideo = async (libraryId, { isFavorite }) => {
 };
 
 /**
- * Увеличить счетчик просмотров видео в библиотеке.
- * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId, viewsCount }
+ * Увеличивает счётчик просмотров записи библиотеки.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const incrementViewsCount = async (libraryId) => {
   const response = await api.patch(`/uservideolibrary/${libraryId}/views`);
@@ -91,9 +97,10 @@ export const incrementViewsCount = async (libraryId) => {
 };
 
 /**
- * Удалить видео из библиотеки.
- * @param {number} libraryId – ID записи в библиотеке
- * @returns {Promise<Object>} { message, libraryId }
+ * Удаляет видео из библиотеки.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteVideoFromLibrary = async (libraryId) => {
   const response = await api.delete(`/uservideolibrary/${libraryId}/delete`);

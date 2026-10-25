@@ -1,28 +1,31 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 /**
- * Начальное состояние аудиоплеера.
+ * Хранит начальное состояние аудиоплеера.
+ * Поле repeat принимает значения off, one и all.
+ *
  * @type {Object}
  */
 const initialState = {
-  currentTrack: null, // Текущий трек
-  queue: [], // Очередь треков
-  currentIndex: -1, // Индекс текущего трека в очереди
-  repeat: 'off', // 'off' | 'one' | 'all' - повтор одного трека, всех треков или ничего
-  shuffle: false, // Перемешивание очереди
-  isPlaying: false, // Воспроизведение
-  currentTime: 0, // Текущее время воспроизведения
-  duration: 0, // Длительность текущего трека
-  volume: 0.5, // Громкость
-  isMuted: false, // Мут звука (включен/выключен)
-  progress: 0, // Прогресс воспроизведения (в процентах)
-  isLoading: false, // Загрузка (вкл/выкл)
-  error: null, // Ошибка (текст ошибки или null)
+  currentTrack: null,
+  queue: [],
+  currentIndex: -1,
+  repeat: 'off',
+  shuffle: false,
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  volume: 0.5,
+  isMuted: false,
+  progress: 0,
+  isLoading: false,
+  error: null,
 };
 
 /**
- * Сброс состояния воспроизведения.
- * @param {Object} state - текущее состояние
+ * Сбрасывает позицию и признак воспроизведения.
+ *
+ * @param {Object} state - Состояние плеера
  */
 const resetPlaybackState = (state) => {
   state.isPlaying = false;
@@ -33,18 +36,17 @@ const resetPlaybackState = (state) => {
 };
 
 /**
- * Слайс аудиоплеера. Управляет состоянием воспроизведения, очередью, громкостью, повтором и перемешиванием музыки.
- * @name audioPlayerSlice
+ * Управляет очередью, воспроизведением, громкостью и повтором.
  */
-
 const audioPlayerSlice = createSlice({
   name: 'audioPlayer',
   initialState,
   reducers: {
     /**
-     * Установка очереди треков.
-     * @param {Object} state - текущее состояние
-     * @param {Object} action - действие
+     * Записывает очередь и выбирает текущий трек.
+     *
+     * @param {Object} state - Состояние плеера
+     * @param {Object} action - Действие Redux с очередью и индексом
      */
     setQueue: (state, action) => {
       const { queue, currentIndex } = action.payload;
@@ -56,8 +58,9 @@ const audioPlayerSlice = createSlice({
       state.error = null;
     },
     /**
-     * Переключение на следующий трек.
-     * @param {Object} state - текущее состояние
+     * Переключает воспроизведение на следующий трек.
+     *
+     * @param {Object} state - Состояние плеера
      */
     nextTrack: (state) => {
       if (!state.queue.length) return;
@@ -67,6 +70,7 @@ const audioPlayerSlice = createSlice({
         else nextIndex = -1;
       }
       if (state.shuffle && state.queue.length > 1 && nextIndex !== -1) {
+        // Выбирает другой индекс, чтобы не повторять текущий трек.
         let randomIndex;
         do {
           randomIndex = Math.floor(Math.random() * state.queue.length);
@@ -88,8 +92,9 @@ const audioPlayerSlice = createSlice({
     },
 
     /**
-     * Переключение на предыдущий трек.
-     * @param {Object} state - текущее состояние
+     * Переключает воспроизведение на предыдущий трек.
+     *
+     * @param {Object} state - Состояние плеера
      */
     prevTrack: (state) => {
       if (!state.queue.length) return;
@@ -107,25 +112,28 @@ const audioPlayerSlice = createSlice({
     },
 
     /**
-     * Установка режима повтора.
-     * @param {Object} state - текущее состояние
-     * @param {Object} action - действие
+     * Записывает режим повтора.
+     *
+     * @param {Object} state - Состояние плеера
+     * @param {Object} action - Действие Redux с режимом повтора
      */
     setRepeat: (state, action) => {
       state.repeat = action.payload;
     },
 
     /**
-     * Переключение режима перемешивания.
-     * @param {Object} state - текущее состояние
+     * Переключает перемешивание очереди.
+     *
+     * @param {Object} state - Состояние плеера
      */
     toggleShuffle: (state) => {
       state.shuffle = !state.shuffle;
     },
 
     /**
-     * Очистка плеера.
-     * @param {Object} state - текущее состояние
+     * Очищает очередь и текущий трек.
+     *
+     * @param {Object} state - Состояние плеера
      */
     clearPlayer: (state) => {
       state.currentTrack = null;
@@ -136,9 +144,10 @@ const audioPlayerSlice = createSlice({
     },
 
     /**
-     * Синхронизация с DOM-событиями.
-     * @param {Object} state - текущее состояние
-     * @param {Object} action - действие
+     * Записывает состояние воспроизведения из медиаэлемента.
+     *
+     * @param {Object} state - Состояние плеера
+     * @param {Object} action - Действие Redux с полями воспроизведения
      */
     updatePlayerState: (state, action) => {
       const {
@@ -164,7 +173,8 @@ const audioPlayerSlice = createSlice({
 });
 
 /**
- * Экшены слайса аудиоплеера.
+ * Содержит действия управления аудиоплеером.
+ *
  * @type {Object}
  */
 export const {
@@ -177,4 +187,11 @@ export const {
   updatePlayerState,
 } = audioPlayerSlice.actions;
 
+/**
+ * Обновляет состояние аудиоплеера в Redux.
+ *
+ * @param {Object} state - Состояние плеера
+ * @param {Object} action - Действие Redux
+ * @returns {Object} Следующее состояние.
+ */
 export default audioPlayerSlice.reducer;

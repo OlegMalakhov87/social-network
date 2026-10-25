@@ -1,13 +1,13 @@
-export * from './api/musicApi'; // API для треков
-export * from './api/musicLibraryApi'; // API для библиотеки треков
+export * from './api/musicApi'; // Выполняет запросы треков.
+export * from './api/musicLibraryApi'; // Выполняет запросы библиотеки треков.
 
-export * from './model/trackSchema'; // Схема трека
-export * from './model/tracksTabs'; // Мапа для выбора вкладки треков
+export * from './model/trackSchema'; // Описывает схемы трека.
+export * from './model/tracksTabs'; // Хранит вкладки и жанры треков.
 
-export { getTrackActions } from './lib/getTrackActions'; // Функция для получения действий для трека
-export { getTrackMeta } from './lib/getTrackMeta'; // Функция для получения метаданных для трека
-export { normalizeTracks } from './lib/normalizeTracks'; // Функция для нормализации данных треков
+export { getTrackActions } from './lib/getTrackActions'; // Возвращает действия трека.
+export { getTrackMeta } from './lib/getTrackMeta'; // Возвращает сведения о треке.
+export { normalizeTracks } from './lib/normalizeTracks'; // Приводит трек к формату карточки.
 
-export { Track } from './ui/Track'; // Компонент для отображения трека
+export { Track } from './ui/Track'; // Отображает карточку трека.
 
-export { TrackMeta } from './ui/TrackMeta'; // Компонент для отображения метаданных трека
+export { TrackMeta } from './ui/TrackMeta'; // Отображает сведения о треке.

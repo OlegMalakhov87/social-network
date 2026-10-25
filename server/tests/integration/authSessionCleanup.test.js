@@ -11,7 +11,7 @@ const {
 
 const authSessionCleanupService = require('../../src/services/authSessionCleanupService');
 
-// Защита от запуска на рабочей базе.
+// Запрещает запуск в рабочей базе.
 if (
   process.env.NODE_ENV !== 'test' ||
   sequelize.getDatabaseName() !== 'socialnet_test'

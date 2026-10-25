@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
@@ -24,25 +25,41 @@ import {
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для получения и отображения видео на странице видео с бесконечным скроллом.
+ * Возвращает ленту видео и изменяет её локально.
  *
- * @param {Object} params
- * @param {string} [params.filter='all'] - фильтр
- * @param {string} [params.searchQuery=''] - поисковый запрос
- * @param {string} [params.sortKey='dateDesc'] - ключ сортировки
- * @returns {Object} - объект с данными о видео
+ * @param {Object} params - Параметры запроса
+ * @param {string} params.filter - Фильтр ленты
+ * @param {string} params.searchQuery - Поисковый запрос
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {{
+ *   videos: Array<Object>,
+ *   currentUser: Object|null,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   hasMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   currentPage: number,
+ *   refetch: Function,
+ *   toggleLike: Function,
+ *   addToLibrary: Function,
+ *   deleteFromLibrary: Function,
+ *   updateGlobalViewsCount: Function,
+ *   updateCommentsCount: Function,
+ *   addVideo: Function,
+ *   updateVideo: Function,
+ *   deleteVideo: Function
+ * }} Видео и действия
  */
 export const useVideos = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
 
-  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [filter, searchQuery, sortKey, currentUserId],
     [filter, searchQuery, sortKey, currentUserId]
   );
 
-  /** Получение общей ленты видео с бесконечным скроллом */
   const {
     items: videosItems,
     setItems: setVideosItems,
@@ -54,6 +71,15 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     currentPage,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу видео.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница видео
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
@@ -72,7 +98,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     deps: scrollDeps,
   });
 
-  /** Оптимистическое управление библиотекой видео */
   const { addToLibrary, deleteFromLibrary } = useOptimisticLibraryToggle({
     setItems: setVideosItems,
     addFn: addVideoToLibrary,
@@ -80,7 +105,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     entityType: 'videos',
   });
 
-  /** Оптимистическое управление лайками видео */
   const toggleLike = useOptimisticLike({
     setItems: setVideosItems,
     addLikeFn: addLikeApi,
@@ -89,7 +113,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     targetType: 'videos',
   });
 
-  /** Оптимистическое управление счётчиком просмотров видео */
   const { incrementWithApi: updateGlobalViewsCount } = useOptimisticCounter({
     items: videosItems,
     setItems: setVideosItems,
@@ -97,7 +120,6 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     updateFn: incrementVideoViewsCountApi,
   });
 
-  /** Оптимистическое управление добавлением, редактированием и удалением видео */
   const {
     add: addVideo,
     edit: updateVideo,
@@ -110,10 +132,14 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     deleteFn: deleteVideoApi,
   });
 
-  /** Оптимистическое управление счётчиком комментариев видео */
   const updateCommentsCount = useOptimisticCommentCount(setVideosItems);
 
-  /** Нормализация видео */
+  /**
+   * Нормализует видео и очищает идентификатор библиотеки профиля.
+   *
+   * @param {Object} item - Видео
+   * @returns {Object} Нормализованное видео
+   */
   const normalizeVideoFn = useCallback(
     (item) => ({
       ...normalizeVideos(item),
@@ -122,13 +148,11 @@ export const useVideos = ({ filter, searchQuery, sortKey }) => {
     []
   );
 
-  /** Нормализованные видео */
   const videos = useNormalizedData({
     items: videosItems,
     normalizeFn: normalizeVideoFn,
   });
 
-  /** Возвращаемые значения */
   return {
     videos,
     currentUser,

@@ -1,1 +1,1 @@
-export { DialogsPage } from './ui/DialogsPage';
+export { DialogsPage } from './ui/DialogsPage'; // Отображает страницу диалогов.

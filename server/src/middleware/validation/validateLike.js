@@ -1,8 +1,9 @@
 const { param } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для лайков
+ * Проверяет тип и идентификатор сущности для лайка.
  */
 const validateLike = [
   param('targetType')

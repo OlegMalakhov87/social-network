@@ -1,8 +1,8 @@
 /**
- * Форматирует время в указанной таймзоне.
+ * Возвращает текущее время в заданном часовом поясе.
  *
- * @param {string} timezone - IANA-таймзона (например, 'Europe/Moscow')
- * @returns {string} - время в формате HH:MM
+ * @param {string} timezone - Название часового пояса
+ * @returns {string} Время в формате ЧЧ:ММ или пустая строка.
  */
 export const formatCityTime = (timezone) => {
   if (!timezone) return '';

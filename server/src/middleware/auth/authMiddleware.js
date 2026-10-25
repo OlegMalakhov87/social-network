@@ -1,14 +1,16 @@
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
+
 const { RefreshSession } = require('../../../db/models');
 const { createError } = require('../../utils/createError');
 
 /**
- * Middleware для проверки JWT и серверной refresh-сессии.
+ * Проверяет JWT и серверную сессию обновления.
  *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * @param {import('express').Request} req - Запрос Express
+ * @param {import('express').Response} res - Ответ Express
+ * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+ * @returns {Promise<void>} Завершает операцию.
  */
 const authMiddleware = async (req, res, next) => {
   try {
@@ -24,12 +26,12 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authHeader.slice(7);
 
-    // Проверяем подпись и срок действия access JWT.
+    // Проверяет подпись и срок действия маркера доступа.
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
     });
 
-    // Проверяем обязательные claims.
+    // Проверяет обязательные поля маркера.
     if (
       !Number.isSafeInteger(decoded.id) ||
       decoded.id <= 0 ||
@@ -39,7 +41,7 @@ const authMiddleware = async (req, res, next) => {
       throw createError('Некорректные данные токена', 401, 'INVALID_TOKEN');
     }
 
-    // Проверяем принадлежность и срок серверной сессии.
+    // Проверяет принадлежность и срок серверной сессии.
     const session = await RefreshSession.findOne({
       where: {
         id: decoded.sid,
@@ -55,7 +57,7 @@ const authMiddleware = async (req, res, next) => {
       throw createError('Сессия завершена или истекла', 401, 'SESSION_REVOKED');
     }
 
-    // Сохраняем существующий контракт req.user.
+    // Сохраняет контракт req.user с идентификатором пользователя.
     req.user = { id: decoded.id };
 
     next();

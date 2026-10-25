@@ -1,16 +1,19 @@
 const fs = require('node:fs/promises');
+
 const userService = require('../services/userService');
 const temporaryMediaService = require('../services/temporaryMediaService');
 const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 
-/**
- * Контроллер для работы с пользователями
- */
 const userController = {
   /**
-   * Получить данные о пользователе и статусе дружбы
+   * Возвращает профиль пользователя и статус дружбы.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getUserProfileWithFriendshipStatus: async (req, res, next) => {
     try {
@@ -26,7 +29,12 @@ const userController = {
   },
 
   /**
-   * Проверка онлайн статуса пользователей
+   * Проверяет онлайн-статус пользователей.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   checkOnlineBulk: async (req, res, next) => {
     try {
@@ -39,12 +47,19 @@ const userController = {
   },
 
   /**
-   * Загрузка аватара пользователя
+   * Загружает аватар пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadAvatar: async (req, res, next) => {
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     let avatarPath = null;
@@ -75,7 +90,9 @@ const userController = {
         );
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       avatarPath = await mediaStorageService.publish(req.file);
 
       const avatarUrl = toPublicUrl(avatarPath);
@@ -110,7 +127,9 @@ const userController = {
           }
         }
       }
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -128,7 +147,12 @@ const userController = {
   },
 
   /**
-   * Обновление пользователя
+   * Обновляет профиль пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateUser: async (req, res, next) => {
     try {
@@ -141,7 +165,12 @@ const userController = {
   },
 
   /**
-   * Обновление приватности пользователя
+   * Обновляет приватность пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updatePrivacy: async (req, res, next) => {
     try {
@@ -154,7 +183,12 @@ const userController = {
   },
 
   /**
-   * Изменение пароля пользователя
+   * Меняет пароль пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   changePassword: async (req, res, next) => {
     try {
@@ -172,7 +206,12 @@ const userController = {
   },
 
   /**
-   * Удаление пользователя
+   * Удаляет пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUser: async (req, res, next) => {
     try {
@@ -185,7 +224,12 @@ const userController = {
   },
 
   /**
-   * Удаление загруженного аватара пользователя
+   * Удаляет загруженный аватар.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedAvatar: async (req, res, next) => {
     try {

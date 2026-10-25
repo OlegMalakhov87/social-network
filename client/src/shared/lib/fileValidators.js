@@ -1,16 +1,16 @@
 import { formatSize } from '../utils';
 
 /**
- * Универсальные валидаторы для загрузки файлов.
- * Все валидаторы возвращают null при успехе или строку с ошибкой.
- * Могут быть как синхронными, так и асинхронными (возвращать Promise).
+ * Возвращает null при успехе или строку с ошибкой.
+ * Проверка может быть синхронной или возвращать промис.
  */
 
 /**
- * Валидатор размера файла.
- * @param {number} maxBytes - максимальный размер в байтах
- * @param {string} [message] - кастомное сообщение об ошибке
- * @returns {Function} - (file) => string|null
+ * Проверяет размер файла.
+ *
+ * @param {number} maxBytes - Максимальный размер в байтах
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает текст ошибки или null.
  */
 export const maxFileSize = (maxBytes, message) => (file) => {
   if (!file) return null;
@@ -21,10 +21,11 @@ export const maxFileSize = (maxBytes, message) => (file) => {
 };
 
 /**
- * Валидатор MIME-типа файла.
- * @param {string[]} allowedTypes - массив допустимых MIME-типов
- * @param {string} [message]
- * @returns {Function} - (file) => string|null
+ * Проверяет тип файла.
+ *
+ * @param {string[]} allowedTypes - Допустимые типы
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает текст ошибки или null.
  */
 export const fileType = (allowedTypes, message) => (file) => {
   if (!file) return null;
@@ -33,10 +34,11 @@ export const fileType = (allowedTypes, message) => (file) => {
 };
 
 /**
- * Валидатор расширения файла (дополнительная проверка поверх MIME).
- * @param {string[]} allowedExtensions - массив расширений ['.jpg', '.png']
- * @param {string} [message]
- * @returns {Function} - (file) => string|null
+ * Проверяет расширение файла.
+ *
+ * @param {string[]} allowedExtensions - Допустимые расширения
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает текст ошибки или null.
  */
 export const fileExtension = (allowedExtensions, message) => (file) => {
   if (!file) return null;
@@ -46,10 +48,10 @@ export const fileExtension = (allowedExtensions, message) => (file) => {
 };
 
 /**
- * Композиция валидаторов: применяет массив валидаторов к файлу последовательно.
- * Поддерживает как синхронные, так и асинхронные валидаторы.
- * @param {Array<Function>} validators - массив валидаторов
- * @returns {Function} - (file) => Promise<string|null>
+ * Применяет проверки файла по порядку и останавливается на первой ошибке.
+ *
+ * @param {Function[]} validators - Проверки файла
+ * @returns {Function} Принимает файл и возвращает промис с текстом ошибки или null.
  */
 export const composeValidators = (validators) => async (file) => {
   for (const validator of validators) {

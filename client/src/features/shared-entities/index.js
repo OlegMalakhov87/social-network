@@ -1,1 +1,1 @@
-export { useShareEntity } from './model/useShareEntity'; // Хук для работы с расшаренными сущностями
+export { useShareEntity } from './model/useShareEntity'; // Сохраняет сущность для отправки и читает её из sessionStorage.

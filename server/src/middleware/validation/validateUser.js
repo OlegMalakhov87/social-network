@@ -1,6 +1,16 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
+/**
+ * Проверяет обязательную строку заданной длины.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const requiredText = (field, min, max, message) =>
   body(field)
     .isString()
@@ -13,6 +23,15 @@ const requiredText = (field, min, max, message) =>
     .isLength({ min, max })
     .withMessage(message);
 
+/**
+ * Проверяет необязательную строку заданной длины.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const optionalText = (field, min, max, message) =>
   body(field)
     .optional()
@@ -26,6 +45,15 @@ const optionalText = (field, min, max, message) =>
     .isLength({ min, max })
     .withMessage(message);
 
+/**
+ * Проверяет необязательную строку, включая значение null.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const optionalBody = (field, min, max, message) =>
   body(field)
     .optional({ nullable: true })
@@ -40,7 +68,7 @@ const optionalBody = (field, min, max, message) =>
     .withMessage(message);
 
 /**
- * Валидация для регистрации пользователя
+ * Проверяет поля регистрации.
  */
 const validateRegister = [
   requiredText('name', 1, 100, 'Некорректная длинна имени'),
@@ -64,7 +92,7 @@ const validateRegister = [
 ];
 
 /**
- * Валидация для входа в систему
+ * Проверяет поля входа.
  */
 const validateLogin = [
   body('email')
@@ -81,7 +109,7 @@ const validateLogin = [
 ];
 
 /**
- * Валидация для обновления пользователя
+ * Проверяет поля обновления профиля.
  */
 const validateUser = [
   optionalText('name', 1, 100, 'Некорректная длинна имени'),
@@ -115,7 +143,7 @@ const validateUser = [
 ];
 
 /**
- * Валидация для изменения пароля пользователя
+ * Проверяет текущий и новый пароль.
  */
 const validatePasswordChange = [
   requiredText(

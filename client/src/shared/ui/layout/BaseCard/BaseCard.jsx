@@ -1,17 +1,20 @@
 import { Card } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import style from './BaseCard.module.css';
 
 /**
- * Базовая карточка для отображения контента.
- * @param {Object} props
- * @param {React.ReactNode} [props.header] - заголовок карточки
- * @param {React.ReactNode} [props.cover] - изображение для обложки
- * @param {React.ReactNode} [props.content] - основной контент карточки
- * @param {React.ReactNode} [props.actions] - действия для карточки
- * @param {React.ReactNode} [props.footer] - нижний колонтитул карточки
- * @param {string} [props.className] - дополнительный класс
- * @param {string} [props.variant='outlined'] - вариант карточки
+ * Собирает карточку из заголовка, обложки и содержимого.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} [props.header] - Заголовок карточки
+ * @param {React.ReactNode} [props.cover] - Обложка карточки
+ * @param {React.ReactNode} [props.content] - Основное содержимое
+ * @param {React.ReactNode} [props.actions] - Действия карточки
+ * @param {React.ReactNode} [props.footer] - Нижняя часть карточки
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @param {string} [props.variant='outlined'] - Вариант оформления
+ * @returns {JSX.Element} Карточка.
  */
 
 export const BaseCard = ({

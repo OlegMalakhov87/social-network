@@ -1,3 +1,3 @@
-export * from './api/likeApi'; // API для лайков
+export * from './api/likeApi'; // Выполняет запросы лайков.
 
-export * from './model/likeSchema'; // схема лайка
+export * from './model/likeSchema'; // Описывает схемы лайка.

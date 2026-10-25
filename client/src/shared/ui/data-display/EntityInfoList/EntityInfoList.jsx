@@ -1,12 +1,14 @@
-import styles from './EntityInfoList.module.css';
 import { classNames } from '../../../utils';
 
+import styles from './EntityInfoList.module.css';
+
 /**
- * Универсальный список информационных полей для сущности.
+ * Отображает список сведений о сущности.
  *
- * @param {Object} props
- * @param {Array<{label: string, value: React.ReactNode}>} props.items - массив характеристик
- * @param {string} [props.className=''] - дополнительный класс
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{label: string, value: React.ReactNode}>} [props.items=[]] - Строки с подписью и значением
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element|null} Список сведений или пустой результат без строк.
  */
 
 export const EntityInfoList = ({ items = [], className = '' }) => {

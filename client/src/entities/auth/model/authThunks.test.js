@@ -1,11 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import { getCurrentUser } from '../api/authApi';
 import authReducer, { logout } from './authSlice';
 import { checkAuth, login, logoutSession, register } from './authThunks';
 
-/**
- * Мокирует api/authApi.
- */
+/** Подменяет API авторизации. */
 jest.mock('../api/authApi', () => ({
   getCurrentUser: jest.fn(),
   logoutUser: jest.fn(),
@@ -15,8 +14,9 @@ jest.mock('../api/authApi', () => ({
 }));
 
 /**
- * Создаёт объект с promise, resolve и reject.
- * @returns {Object}
+ * Создаёт Promise, завершением которого управляет тест.
+ *
+ * @returns {{ promise: Promise<Object>, resolve: Function, reject: Function }} Отложенный Promise
  */
 const createDeferred = () => {
   let resolve;
@@ -31,8 +31,10 @@ const createDeferred = () => {
 };
 
 /**
- * Создаёт тестовый store.
- * @returns {import('@reduxjs/toolkit').EnhancedStore}
+ * Создаёт состояние Redux для проверки.
+ *
+ * @param {Object} coordinator - Координатор авторизации
+ * @returns {import('@reduxjs/toolkit').EnhancedStore} Состояние Redux
  */
 
 const createTestStore = (coordinator) =>
@@ -52,8 +54,9 @@ const createTestStore = (coordinator) =>
   });
 
 /**
- * Создаёт тестовый координатор.
- * @returns {Object}
+ * Создаёт координатор авторизации для проверки.
+ *
+ * @returns {Object} Методы координатора
  */
 const createTestCoordinator = () => ({
   refreshSession: jest.fn(),
@@ -62,9 +65,7 @@ const createTestCoordinator = () => ({
   registerSession: jest.fn(),
 });
 
-/**
- * Тестирует thunks авторизации.
- */
+/** Проверяет запросы авторизации. */
 describe('authThunks', () => {
   beforeEach(() => {
     jest.clearAllMocks();

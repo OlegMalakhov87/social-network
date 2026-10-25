@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const commentController = require('../controllers/commentController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
@@ -6,7 +7,7 @@ const { validateComment } = require('../middleware/validation/validateComment');
 
 const commentRoutes = Router();
 
-// Получение комментариев для конкретной сущности
+// Возвращает комментарии сущности.
 commentRoutes.get(
   '/:targetType/:targetId',
   validateIdParam('targetId'),
@@ -14,7 +15,7 @@ commentRoutes.get(
   commentController.getAllCommentsTarget
 );
 
-// Получение комментария по ID для shared комментария
+// Возвращает комментарий по идентификатору для общего доступа.
 commentRoutes.get(
   '/:commentId/shared',
   validateIdParam('commentId'),
@@ -22,7 +23,7 @@ commentRoutes.get(
   commentController.getCommentById
 );
 
-// Создание комментария
+// Создает комментарий.
 commentRoutes.post(
   '/add',
   authMiddleware,
@@ -30,7 +31,7 @@ commentRoutes.post(
   commentController.createComment
 );
 
-// Обновление комментария
+// Обновляет комментарий.
 commentRoutes.patch(
   '/:commentId/update',
   validateIdParam('commentId'),
@@ -39,7 +40,7 @@ commentRoutes.patch(
   commentController.updateComment
 );
 
-// Удаление комментария
+// Удаляет комментарий.
 commentRoutes.delete(
   '/:commentId/delete',
   validateIdParam('commentId'),

@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const musicController = require('../controllers/musicController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
@@ -21,10 +22,10 @@ const {
 
 const musicRoutes = Router();
 
-// Публичная лента и поиск (объединено)
+// Возвращает публичную ленту и результат поиска.
 musicRoutes.get('/', authMiddleware, musicController.getMusic);
 
-// Создание трека
+// Создает трек.
 musicRoutes.post(
   '/add',
   authMiddleware,
@@ -32,7 +33,7 @@ musicRoutes.post(
   musicController.createMusic
 );
 
-// Загрузка аудио файла
+// Загружает аудиофайл.
 musicRoutes.post(
   '/upload-audio',
   authMiddleware,
@@ -42,7 +43,7 @@ musicRoutes.post(
   musicController.uploadAudio
 );
 
-// Загрузка обложки для трека
+// Загружает обложку трека.
 musicRoutes.post(
   '/upload-cover',
   authMiddleware,
@@ -52,7 +53,7 @@ musicRoutes.post(
   musicController.uploadCover
 );
 
-// Обновление трека (владелец)
+// Обновляет трек владельца.
 musicRoutes.put(
   '/:trackId/update',
   validateIdParam('trackId'),
@@ -61,7 +62,7 @@ musicRoutes.put(
   musicController.updateMusic
 );
 
-// Обновление приватности треков
+// Обновляет приватность треков.
 musicRoutes.patch(
   '/update-privacy',
   authMiddleware,
@@ -69,7 +70,7 @@ musicRoutes.patch(
   musicController.updateMusicPrivacy
 );
 
-// Инкремент счетчика прослушиваний
+// Увеличивает счетчик прослушиваний.
 musicRoutes.patch(
   '/:trackId/plays',
   validateIdParam('trackId'),
@@ -77,7 +78,7 @@ musicRoutes.patch(
   musicController.incrementPlaysCount
 );
 
-// Удаление трека (владелец)
+// Удаляет трек владельца.
 musicRoutes.delete(
   '/:trackId/delete',
   validateIdParam('trackId'),
@@ -85,14 +86,14 @@ musicRoutes.delete(
   musicController.deleteMusic
 );
 
-// Удаление (очистка мусора) загруженных медиа файлов
+// Удаляет загруженные медиафайлы.
 musicRoutes.delete(
   '/delete-uploaded-audio',
   authMiddleware,
   musicController.deleteUploadedMedia
 );
 
-// Удаление загруженных медиа обложек
+// Удаляет загруженную обложку.
 musicRoutes.delete(
   '/delete-uploaded-cover',
   authMiddleware,

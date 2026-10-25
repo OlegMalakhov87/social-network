@@ -1,8 +1,8 @@
 /**
- * Нормализует объект комментария в объект SharedEntityCard.
+ * Приводит комментарий к карточке общей сущности.
  *
- * @param {Object} comment - объект комментария.
- * @returns {Object} - объект нормализованного комментария.
+ * @param {Object} comment - Комментарий
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedComment = (comment) => ({
   id: comment.id,

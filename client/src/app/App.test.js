@@ -7,7 +7,7 @@ import { audioPlayerReducer } from '../widgets/audio-player';
 import App from './App';
 
 /**
- * Мокирование authSlice.
+ * Подменяет модуль авторизации.
  */
 jest.mock('../entities/auth', () => ({
   checkAuth: () => ({ type: 'auth/checkAuth/test' }),
@@ -17,7 +17,7 @@ jest.mock('../entities/auth', () => ({
     state.auth.isAuthenticated && !state.auth.isCheckingAuth,
 }));
 
-// Состояние приложения на момент запуска.
+// Задаёт начальное состояние авторизации.
 const initialAuthState = {
   user: null,
   token: null,
@@ -28,9 +28,9 @@ const initialAuthState = {
 };
 
 /**
- * Создание тестового хранилища.
+ * Создаёт тестовое хранилище.
  *
- * @returns {Store} - Тестовое хранилище
+ * @returns {import('@reduxjs/toolkit').EnhancedStore} Тестовое хранилище.
  */
 const createTestStore = () =>
   configureStore({
@@ -41,7 +41,7 @@ const createTestStore = () =>
   });
 
 /**
- * Настройка тестового окружения для медиа-запросов и медиа-элементов.
+ * Настраивает окружение медиазапросов и медиаэлементов.
  */
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
@@ -59,20 +59,12 @@ beforeAll(() => {
     }),
   });
 
-  /**
-   * Мокирование метода pause для медиа-элемента.
-   */
   jest.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
-
-  /**
-   * Мокирование метода load для медиа-элемента.
-   */
-
   jest.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
 });
 
 /**
- * Восстановление всех моков после тестов.
+ * Восстанавливает моки после тестов.
  */
 afterAll(() => {
   jest.restoreAllMocks();

@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { verifyAuthOrigin } = require('../middleware/auth/verifyAuthOrigin');
 const {
@@ -9,19 +10,19 @@ const authController = require('../controllers/authController');
 
 const authRouter = Router();
 
-// Получение информации о текущем пользователе
+// Возвращает данные текущего пользователя.
 authRouter.get('/me', authMiddleware, authController.getMe);
 
-// Регистрация пользователя
+// Регистрирует пользователя.
 authRouter.post('/register', validateRegister, authController.register);
 
-// Вход в систему
+// Выполняет вход.
 authRouter.post('/login', validateLogin, authController.login);
 
-// Обновление токена
+// Обновляет маркер доступа.
 authRouter.post('/refresh', verifyAuthOrigin, authController.refresh);
 
-// Выход из системы
+// Завершает сессию.
 authRouter.post('/logout', verifyAuthOrigin, authController.logout);
 
 module.exports = authRouter;

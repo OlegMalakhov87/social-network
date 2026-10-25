@@ -1,15 +1,17 @@
 const { Op } = require('sequelize');
+
 const { sequelize, Comment, Like } = require('../../db/models');
 
 /**
- * Удаляет сущность вместе с её комментариями, лайками и лайками комментариев.
- * Всё в одной транзакции — либо всё удалится, либо ничего.
+ * Удаляет сущность вместе с комментариями, лайками и лайками комментариев.
  *
- * @param {Object} params
- * @param {Object} params.entity - экземпляр Sequelize-модели (Music, Post, Video, News)
- * @param {string} params.targetType - тип сущности для комментариев и лайков ('Music', 'Post', 'Video', 'News')
- * @param {string} [params.idField='id'] - имя поля с ID сущности (по умолчанию 'id')
- * @returns {Promise<Object>} - { deleted: { comments, likes, commentLikes } }
+ * Выполняет удаление в одной транзакции Sequelize: сохраняет все записи или не удаляет ничего.
+ *
+ * @param {Object} params - Параметры удаления
+ * @param {import('sequelize').Model} params.entity - Экземпляр сущности
+ * @param {string} params.targetType - Тип сущности для комментариев и лайков
+ * @param {string} [params.idField='id'] - Имя поля с идентификатором сущности
+ * @returns {Promise<{deleted: {comments: number, likes: number, commentLikes: number}}>} Число удаленных записей.
  */
 const deleteEntityWithRelations = async ({
   entity,
@@ -19,7 +21,6 @@ const deleteEntityWithRelations = async ({
   const entityId = entity[idField];
 
   return await sequelize.transaction(async (transaction) => {
-    // Находим комментарии сущности
     const comments = await Comment.findAll({
       where: { targetType, targetId: entityId },
       attributes: ['id'],
@@ -28,7 +29,6 @@ const deleteEntityWithRelations = async ({
 
     const commentIds = comments.map((c) => c.id);
 
-    // Удаляем лайки комментариев
     let deletedCommentLikes = 0;
     if (commentIds.length > 0) {
       deletedCommentLikes = await Like.destroy({
@@ -40,19 +40,16 @@ const deleteEntityWithRelations = async ({
       });
     }
 
-    // Удаляем лайки самой сущности
     const deletedLikes = await Like.destroy({
       where: { targetType, targetId: entityId },
       transaction,
     });
 
-    // Удаляем комментарии сущности
     const deletedComments = await Comment.destroy({
       where: { targetType, targetId: entityId },
       transaction,
     });
 
-    // Удаляем саму сущность
     await entity.destroy({ transaction });
 
     return {

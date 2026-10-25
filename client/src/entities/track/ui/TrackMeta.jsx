@@ -1,14 +1,16 @@
 import { getTrackMeta } from '..';
 import { EntityDates, EntityInfoList, EntityStats } from '../../../shared/ui';
 import { formatViews } from '../../../shared/utils';
+
 import style from './TrackMeta.module.css';
 
 /**
- * Информация о треке.
+ * Отображает сведения о треке.
  *
- * @param {Object} props
- * @param {Object} props.track - данные трека
- * @param {string} [props.mode] - режим отображения
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.track - Трек.
+ * @param {string} [props.mode] - Режим отображения.
+ * @returns {JSX.Element} Разметка сведений.
  */
 export const TrackMeta = ({ track, mode }) => {
   const meta = getTrackMeta(track, mode);

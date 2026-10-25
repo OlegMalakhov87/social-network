@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
 import { useCommentsPanel } from '../../../features/comments';
 import { PostForm } from '../../../features/posts';
 import { useContentFilter } from '../../../features/users';
@@ -21,21 +22,20 @@ import {
 } from '../../../widgets/user-content';
 import { Profile } from '../../../widgets/user-profile';
 import { VideoPlayer } from '../../../widgets/video-player';
+
 import style from './ProfilePage.module.css';
 
 /**
- * Страница профиля пользователя.
- * Отображает карточку пользователя, вкладки с контентом (посты, фото, треки, видео),
- * форму создания поста, комментарии и модальный видеоплеер.
+ * Отображает страницу профиля.
+ *
+ * @returns {JSX.Element} Разметка страницы.
  */
-
 export const ProfilePage = () => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const onVideoStartRef = useRef(null);
   const { userId: userIdParam } = useParams();
 
-  /** Управление фильтрацией и сортировкой */
   const {
     filter: activeTab,
     sortKey,
@@ -46,7 +46,6 @@ export const ProfilePage = () => {
     initialSort: 'dateDesc',
   });
 
-  /**  Загрузка контента вкладки с экшенами */
   const {
     currentUser,
     targetUser,
@@ -66,7 +65,6 @@ export const ProfilePage = () => {
     incrementCounter,
     toggleFavoriteItem,
     updateCommentsCount,
-    // Посты
     isLoadingPosts,
     isLoadingMorePosts,
     errorPosts,
@@ -77,7 +75,6 @@ export const ProfilePage = () => {
     currentPagePosts,
     loadMorePosts,
     refetchPosts,
-    // Треки
     isLoadingTracks,
     isLoadingMoreTracks,
     errorTracks,
@@ -85,7 +82,6 @@ export const ProfilePage = () => {
     currentPageTracks,
     loadMoreTracks,
     refetchTracks,
-    // Видео
     isLoadingVideos,
     isLoadingMoreVideos,
     errorVideos,
@@ -99,53 +95,76 @@ export const ProfilePage = () => {
     userIdParam,
   });
 
-  // Экшены для управления аудиоплеером + состояние аудиоплеера
   const { playTrack, setOnTrackStart, isPlaying, currentTrack, togglePlay } =
     useAudioPlayer();
 
-  /** Обработчик для открытия модального окна с видео*/
+  /**
+   * Открывает видео в плеере.
+   *
+   * @param {Object} video - Данные видео
+   * @returns {void}
+   */
   const handleOpenVideo = useCallback((video) => {
     if (!video) return;
     setSelectedVideo(video);
   }, []);
 
-  /** Колбэк для запуска видео*/
+  /**
+   * Сохраняет обработчик запуска видео.
+   *
+   * @param {Function} handler - Обработчик запуска
+   * @returns {void}
+   */
   const setOnVideoStart = useCallback((handler) => {
     onVideoStartRef.current = handler;
   }, []);
 
-  /** Обработчик для запуска видео*/
+  /**
+   * Запускает воспроизведение видео.
+   *
+   * @param {Object} video - Данные видео
+   * @returns {void}
+   */
   const handleVideoPlayStart = useCallback((video) => {
     onVideoStartRef.current?.(video);
   }, []);
 
-  /** Обработчик для закрытия модального окна с видео*/
   const handleCloseVideo = useCallback(() => setSelectedVideo(null), []);
 
-  /** Тип комментариев */
+  // Сопоставляет фото с комментариями постов.
   const commentTargetType = activeTab === 'photos' ? 'posts' : activeTab;
 
-  /** Мапа для получения текущей страницы для выбранной вкладки */
   const PAGE_BY_TAB = {
     posts: currentPagePosts,
     tracks: currentPageTracks,
     videos: currentPageVideos,
   };
 
-  /** Текущая страница для выбранной вкладки */
   const currentPage = PAGE_BY_TAB[commentTargetType] ?? 1;
 
-  /** Управление панелью комментариев (панель закрывается при изменении страницы или вкладки) */
+  // Закрывает панель при смене страницы или вкладки.
   const { commentTarget, handleCloseComments, onToggleComments } =
     useCommentsPanel(commentTargetType, userIdParam, sortKey, currentPage);
 
-  /** Получение функции для обновления количества комментариев открытой вкладки */
+  /**
+   * Обновляет число комментариев открытой записи.
+   *
+   * @param {number} delta - Изменение числа комментариев
+   * @returns {boolean} Признак обновления.
+   */
   const handleCommentChange = useCallback(
     (delta) => updateCommentsCount(commentTarget?.id, delta),
     [commentTarget?.id, updateCommentsCount]
   );
 
-  /** Обработчик для отправки формы добавления/редактирования поста*/
+  /**
+   * Отправляет форму поста.
+   *
+   * @param {Object} values - Данные формы
+   * @param {boolean} isEdit - Признак редактирования
+   * @param {number|undefined} postId - Идентификатор поста
+   * @returns {Promise<void>}
+   */
   const handleFormSubmit = useCallback(
     async (values, isEdit, postId) => {
       if (isEdit && postId) {
@@ -158,17 +177,14 @@ export const ProfilePage = () => {
     [addPost, updatePost]
   );
 
-  /** Обработчик для закрытия формы добавления/редактирования поста*/
   const handleCloseForm = useCallback(() => {
     setShowPostForm(null);
   }, []);
 
-  /**  Состояние загрузки всей страницы */
   if (isLoadingProfile || (userIdParam && !targetUser && !userError)) {
     return <PageLoader message="Загружаем профиль..." />;
   }
 
-  /** Контекст для getProfileTabContent */
   const tabContext = {
     currentUser,
     targetUser,
@@ -238,14 +254,12 @@ export const ProfilePage = () => {
     }),
   };
 
-  /** Получение контента вкладки */
   const tabContent = getProfileTabContent({ activeTab, tabProps: tabContext });
 
   return (
     <ErrorBoundary>
       <PageLayout className={style.profile}>
         <SectionCard>
-          {/* Карточка профиля */}
           <Profile
             targetUser={targetUser}
             currentUser={currentUser}
@@ -259,20 +273,17 @@ export const ProfilePage = () => {
             onBlock={blockUser}
           />
 
-          {/* Вкладки с контентом */}
           <Toolbar
             tabs={PROFILE_TABS_MAP}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             rightSlot={
               <>
-                {/* Сортировка */}
                 <Dropdown
                   options={SORT_OPTIONS}
                   currentSort={sortKey}
                   onChange={setSortKey}
                 />
-                {/* Кнопка для добавления поста */}
                 {isOwnProfile && activeTab === 'posts' && (
                   <IconButton
                     icon="➕"
@@ -286,11 +297,9 @@ export const ProfilePage = () => {
             }
           />
 
-          {/* Контент вкладки */}
           {tabContent}
         </SectionCard>
 
-        {/* Форма для добавления/редактирования поста */}
         {showPostForm && currentUser && (
           <PostForm
             key={
@@ -303,7 +312,6 @@ export const ProfilePage = () => {
           />
         )}
 
-        {/* Видеоплеер */}
         {selectedVideo && (
           <VideoPlayer
             video={selectedVideo}

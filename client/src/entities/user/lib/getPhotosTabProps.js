@@ -1,10 +1,9 @@
 /**
- * Возвращает пропсы для вкладки "Фото".
+ * Возвращает свойства вкладки фото.
  *
- * @param {Object} ctx - контекст компонента
- * @returns {Object} - пропсы для вкладки "Фото"
+ * @param {Object} ctx - Контекст вкладки
+ * @returns {Object} Свойства вкладки фото
  */
-
 export const getPhotosTabProps = (ctx) => ({
   photos: ctx.items,
   currentUser: ctx.currentUser,

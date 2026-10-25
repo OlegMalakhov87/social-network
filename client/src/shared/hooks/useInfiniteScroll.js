@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { createAbortableFetch, parseApiError } from '../lib';
 
 /**
- * Проверяет, является ли ошибка отменённым запросом.
+ * Проверяет, отменён ли запрос.
  *
- * @param {Error} err - ошибка
- * @returns {boolean} - true, если ошибка отменённого запроса, false в противном случае
+ * @param {Object} err - Ошибка запроса
+ * @param {string} [err.name] - Имя ошибки
+ * @param {string} [err.code] - Код ошибки
+ * @returns {boolean} Признак отмены запроса.
  */
 const isRequestCanceled = (err) =>
   err?.name === 'AbortError' ||
@@ -13,16 +16,28 @@ const isRequestCanceled = (err) =>
   err?.code === 'ERR_CANCELED';
 
 /**
- * Универсальный хук для бесконечной загрузки с пагинацией.
+ * Загружает страницы списка и отменяет устаревший запрос.
  *
- * @param {Object} params - параметры запроса
- * @param {Function} params.fetchFn - функция загрузки данных
- * @param {Array} [params.deps=[]] - зависимости для перезапуска запроса
- * @param {number} [params.limit=30] - лимит на страницу
- * @param {Function} [params.onSuccess] - функция для выполнения действия при успешном запросе
- * @param {Function} [params.onError] - функция для выполнения действия при ошибке запроса
- * @param {Array} [params.initialItems=[]] - начальные данные
- * @returns {Object} - объект с данными о запросе
+ * @param {Object} params - Параметры загрузки
+ * @param {Function} params.fetchFn - Загружает страницу
+ * @param {Array} [params.deps=[]] - Зависимости перезагрузки первой страницы
+ * @param {number} [params.limit=30] - Размер страницы
+ * @param {Function} [params.onSuccess] - Обрабатывает успешную загрузку
+ * @param {Function} [params.onError] - Обрабатывает ошибку загрузки
+ * @param {Array} [params.initialItems=[]] - Начальные элементы
+ * @returns {{
+ *   items: Array,
+ *   setItems: Function,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   hasMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   refetch: Function,
+ *   reset: Function,
+ *   loadFirstPage: Function,
+ *   currentPage: number
+ * }} Список, состояние загрузки и методы управления.
  */
 export const useInfiniteScroll = ({
   fetchFn,
@@ -59,10 +74,17 @@ export const useInfiniteScroll = ({
     onErrorRef.current = onError;
   }, [onSuccess, onError]);
 
+  /**
+   * Загружает первую страницу и отменяет предыдущий запрос.
+   *
+   * @returns {Promise<void>}
+   */
   const loadFirstPage = useCallback(async () => {
+    loadMoreFetcherRef.current.cleanup();
     const controller = firstPageFetcherRef.current.createController();
 
     setIsLoading(true);
+    setIsLoadingMore(false);
     setError(null);
     setPage(1);
     setHasMore(true);
@@ -91,6 +113,11 @@ export const useInfiniteScroll = ({
     }
   }, [limit]);
 
+  /**
+   * Добавляет следующую страницу к списку.
+   *
+   * @returns {Promise<void>}
+   */
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
 
@@ -126,10 +153,20 @@ export const useInfiniteScroll = ({
     }
   }, [page, limit, isLoading, isLoadingMore, hasMore]);
 
+  /**
+   * Загружает первую страницу заново.
+   *
+   * @returns {Promise<void>}
+   */
   const refetch = useCallback(async () => {
     await loadFirstPage();
   }, [loadFirstPage]);
 
+  /**
+   * Возвращает список к начальному состоянию и отменяет запросы.
+   *
+   * @returns {void}
+   */
   const reset = useCallback(() => {
     setItems(initialItems);
     setPage(1);
@@ -142,6 +179,7 @@ export const useInfiniteScroll = ({
   }, [initialItems]);
 
   useEffect(() => {
+    setItems([]);
     loadFirstPage();
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 

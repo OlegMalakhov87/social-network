@@ -8,15 +8,13 @@ const newsIngestionService = require('./newsIngestionService');
 const newsLlmService = require('./llm/newsLlmService');
 const { NEWS_AUTOMATION_CONFIG } = require('../../config/newsAutomationConfig');
 
-/**
- * Сервис для автоматизации новостей.
- */
 const newsAutomationService = {
   /**
-   * Находит системного пользователя, от имени которого создаются
-   * автоматические News. Отсутствие бота считается fatal-ошибкой запуска.
+   * Находит системного пользователя, от имени которого создаются автоматические News.
    *
-   * @returns {Promise<Object>} - Системный бот для публикации новостей
+   * Отсутствие бота считается фатальной ошибкой запуска.
+   *
+   * @returns {Promise<Object>} Системный бот для публикации новостей.
    */
   async getBotUser() {
     const bot = await User.findOne({
@@ -38,8 +36,10 @@ const newsAutomationService = {
 
   /**
    * Записывает в базу данных техническую ошибку обработки новости.
-   * @param {Object} candidate - Новость, кандидат на публикацию
-   * @param {Error} error - Ошибка обработки новости
+   *
+   * @param {Object} candidate - Кандидат на публикацию
+   * @param {Error} error - Ошибка
+   * @returns {Promise<Object>} Результат операции.
    */
   async recordFailure(candidate, error) {
     return sequelize.transaction(async (transaction) => {
@@ -70,7 +70,7 @@ const newsAutomationService = {
         return record;
       }
 
-      // Для уже существующего failed-кандидата атомарно увеличиваем число неудачных попыток и сохраняем последнюю ошибку.
+      // Для уже существующего failed-кандидата атомарно увеличивает число неудачных попыток и сохраняет последнюю ошибку.
       if (!created) {
         await record.increment('attempts', {
           by: 1,
@@ -96,12 +96,14 @@ const newsAutomationService = {
   },
 
   /**
-   * Атомарно публикует автоматическую новость и фиксирует terminal-статус
+   * Атомарно публикует автоматическую новость и фиксирует terminal-статус.
+   *
    * published. Если любая запись не сохранится, транзакция откатится целиком.
    *
-   * @param {Object} candidate - Новость, кандидат на публикацию
-   * @param {Object} analysis - Результат анализа новости, кандидата на публикацию
-   * @param {number} botUserId - ID системного бота
+   * @param {Object} candidate - Кандидат на публикацию
+   * @param {Object} analysis - Результат анализа модели
+   * @param {number} botUserId - Идентификатор служебного пользователя
+   * @returns {Promise<Object>} Результат операции.
    */
   async publishCandidate(candidate, analysis, botUserId) {
     return sequelize.transaction(async (transaction) => {
@@ -168,7 +170,7 @@ const newsAutomationService = {
       return [];
     }
 
-    // Группируем кандидатов по источникам
+    // Группирует кандидатов по источникам.
     const candidatesBySource = new Map();
 
     for (const candidate of candidates) {
@@ -178,7 +180,7 @@ const newsAutomationService = {
 
       const sourceCandidates = candidatesBySource.get(candidate.source);
 
-      // Ограничиваем количество кандидатов от каждого отдельного источника
+      // Ограничивает количество кандидатов от каждого отдельного источника.
       if (sourceCandidates.length < maxCandidatesPerSourcePerRun) {
         sourceCandidates.push(candidate);
       }
@@ -194,8 +196,8 @@ const newsAutomationService = {
       )
     );
 
-    // Round-robin: берем по одному кандидату от каждого источника за один проход
-    // maxSourceLength - максимальное количество кандидатов, которое может находиться в одной группе
+    // Round-robin: берет по одному кандидату от каждого источника за один проход.
+    // maxSourceLength - максимальное количество кандидатов, которое может находиться в одной группе.
     for (let index = 0; index < maxSourceLength; index += 1) {
       for (const sourceCandidates of candidatesBySource.values()) {
         if (selectedCandidates.length >= maxCandidatesPerRun) {
@@ -214,12 +216,11 @@ const newsAutomationService = {
   },
 
   /**
-   * Выполняет один полный цикл автоматизации:
-   * получает новых RSS-кандидатов, применяет лимиты,
-   * анализирует выбранные материалы через LLM и фиксирует
-   * published/rejected/failed результат каждого кандидата.
+   * Выполняет один полный цикл автоматизации: получает новых кандидатов RSS, применяет лимиты, анализирует выбранные материалы через LLM и фиксирует published, rejected или failed для каждого кандидата.
    *
    * Ошибка одного кандидата не останавливает обработку остальных.
+   *
+   * @returns {Promise<Object>} Результат операции.
    */
   async run() {
     const bot = await this.getBotUser();
@@ -241,12 +242,12 @@ const newsAutomationService = {
     );
 
     const result = {
-      found: candidates.length, // после ingestion/dedup
-      selected: candidatesToProcess.length, // выбрано selector
-      processed: 0, // успешно проанализировано LLM
-      published: 0, // успешно опубликовано
-      rejected: 0, // успешно отклонено LLM
-      failed: 0, // технические ошибки обработки кандидата
+      found: candidates.length, // после ingestion/dedup.
+      selected: candidatesToProcess.length, // выбрано selector.
+      processed: 0, // успешно проанализировано LLM.
+      published: 0, // успешно опубликовано.
+      rejected: 0, // успешно отклонено LLM.
+      failed: 0, // технические ошибки обработки кандидата.
     };
 
     for (const candidate of candidatesToProcess) {

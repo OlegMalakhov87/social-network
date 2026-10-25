@@ -1,4 +1,5 @@
 const fs = require('node:fs/promises');
+
 const videoService = require('../services/videoService');
 const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
@@ -7,12 +8,14 @@ const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 
-/**
- * Контроллер для работы с видео
- */
 const videoController = {
   /**
-   * Получение публичной ленты видео и поиск
+   * Возвращает публичную ленту видео и результат поиска.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getVideos: async (req, res, next) => {
     try {
@@ -33,7 +36,12 @@ const videoController = {
   },
 
   /**
-   * Создание видео
+   * Создает видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   createVideo: async (req, res, next) => {
     try {
@@ -49,13 +57,20 @@ const videoController = {
   },
 
   /**
-   * Загрузка видео файла
+   * Загружает видеофайл.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadVideo: async (req, res, next) => {
     const createdFiles = [];
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     try {
@@ -83,7 +98,9 @@ const videoController = {
         );
       }
 
-      /** Проверяем видео, пока оно ещё в закрытой директории */
+      /**
+       * Проверяет видео, пока файл находится в закрытом каталоге.
+       */
       const videoMetadata = await mediaService.getMetadata(
         stagingPath,
         'video'
@@ -101,7 +118,9 @@ const videoController = {
         );
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       const videoPath = await mediaStorageService.publish(req.file);
 
       createdFiles.push(videoPath);
@@ -178,7 +197,9 @@ const videoController = {
         );
       }
 
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -196,12 +217,19 @@ const videoController = {
   },
 
   /**
-   * Загрузка обложки видео
+   * Загружает обложку видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadThumbnail: async (req, res, next) => {
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     let thumbnailPath = null;
@@ -232,7 +260,9 @@ const videoController = {
           'UNSUPPORTED_MEDIA_TYPE'
         );
       }
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       thumbnailPath = await mediaStorageService.publish(req.file);
 
       const thumbnailUrl = toPublicUrl(thumbnailPath);
@@ -269,7 +299,9 @@ const videoController = {
           }
         }
       }
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -287,12 +319,19 @@ const videoController = {
   },
 
   /**
-   * Загрузка превью видео
+   * Загружает превью видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadPreview: async (req, res, next) => {
     let registered = false;
 
-    /** Сохраняем путь временного файла до любых операций */
+    /**
+     * Сохраняет путь временного файла до любых операций.
+     */
     const stagingPath = req.file?.path;
 
     let previewPath = null;
@@ -324,7 +363,9 @@ const videoController = {
         );
       }
 
-      /** Проверяем превью, пока оно ещё в закрытой директории */
+      /**
+       * Проверяет превью, пока файл находится в закрытом каталоге.
+       */
       const previewMetadata = await mediaService.getMetadata(
         stagingPath,
         'video'
@@ -338,7 +379,9 @@ const videoController = {
         );
       }
 
-      /** Только после успешной проверки переносим файл в MEDIA_ROOT */
+      /**
+       * Переносит файл в MEDIA_ROOT только после успешной проверки.
+       */
       previewPath = await mediaStorageService.publish(req.file);
 
       const previewUrl = toPublicUrl(previewPath);
@@ -375,7 +418,9 @@ const videoController = {
         }
       }
 
-      /** Если ошибка произошла до публикации, исходный файл всё ещё находится в staging */
+      /**
+       * Удаляет исходный файл из временного каталога, если публикация не началась.
+       */
       if (stagingPath) {
         try {
           await fs.unlink(stagingPath);
@@ -393,7 +438,12 @@ const videoController = {
   },
 
   /**
-   * Обновление приватности видео
+   * Обновляет приватность видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateVideoPrivacy: async (req, res, next) => {
     try {
@@ -409,7 +459,12 @@ const videoController = {
   },
 
   /**
-   * Обновление видео
+   * Обновляет видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateVideo: async (req, res, next) => {
     try {
@@ -427,7 +482,12 @@ const videoController = {
   },
 
   /**
-   * Инкремент счетчика просмотров видео
+   * Увеличивает счетчик просмотров видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   incrementViewsCount: async (req, res, next) => {
     try {
@@ -440,7 +500,12 @@ const videoController = {
   },
 
   /**
-   * Удаление видео (владелец)
+   * Удаляет видео владельца.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteVideo: async (req, res, next) => {
     try {
@@ -457,7 +522,12 @@ const videoController = {
   },
 
   /**
-   * Удаление (очистка мусора)загруженных медиа файлов в случае если пользователь отказался добавлять видео
+   * Удаляет загруженные медиафайлы, если пользователь отменил добавление видео.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedMedia: async (req, res, next) => {
     try {
@@ -485,7 +555,7 @@ const videoController = {
           fieldName: 'thumbnailUrl',
         },
       ];
-      // Удаляем временные медиа файлы
+      // Удаляет временные медиафайлы, которые пользователь не сохранил.
       const result = await temporaryMediaService.removeMany(
         currentUserId,
         media
@@ -497,7 +567,12 @@ const videoController = {
   },
 
   /**
-   * Удаление загруженных медиа превью
+   * Удаляет загруженное превью.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedPreview: async (req, res, next) => {
     try {
@@ -524,7 +599,12 @@ const videoController = {
   },
 
   /**
-   * Удаление загруженных медиа thumbnail
+   * Удаляет загруженную обложку.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteUploadedThumbnail: async (req, res, next) => {
     try {

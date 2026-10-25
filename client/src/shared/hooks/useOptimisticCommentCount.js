@@ -1,12 +1,19 @@
 import { useCallback } from 'react';
 
 /**
- * Хук для обновления счётчика комментариев.
+ * Обновляет количество комментариев у элемента.
  *
- * @param {Function} setItems - функция для обновления массива элементов`
- * @returns {Function} - функция для обновления счётчика комментариев
+ * @param {Function} setItems - Обновляет массив элементов
+ * @returns {Function} Меняет количество комментариев и возвращает признак обновления.
  */
 export const useOptimisticCommentCount = (setItems) => {
+  /**
+   * Меняет количество комментариев на дельту.
+   *
+   * @param {number|string} itemId - Идентификатор элемента
+   * @param {number} [delta=1] - Изменение счётчика
+   * @returns {boolean} Признак обновления или false, если идентификатор пуст.
+   */
   const updateCommentCount = useCallback(
     (itemId, delta = 1) => {
       if (!itemId) return false;

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import { Track } from '../../../../entities/track';
 import { useInfiniteScrollTrigger } from '../../../../shared/hooks';
 import {
@@ -7,39 +8,42 @@ import {
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
 import { CommentableGrid } from '../../../comment';
+
 import styles from './TracksTab.module.css';
 
 /**
- * Вкладка с сеткой треков.
- * @param {Object} props
- * @param {Array} props.tracks - массив треков
- * @param {string} props.mode - режим отображения (library/global)
- * @param {boolean} props.hasMore - флаг наличия следующей страницы треков
- * @param {Function} props.loadMore - функция для загрузки следующей страницы треков
- * @param {Object} props.currentUser - текущий пользователь
- * @param {boolean} props.isOwnProfile - владелец профиля
- * @param {boolean} props.isLoading - флаг общей загрузки треков
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей страницы треков
- * @param {string} props.error - ошибка
- * @param {Object} props.currentTrack - текущий воспроизводимый трек
- * @param {boolean} props.isPlaying - сейчас трек играет или нет
- * @param {Function} props.onPlay - воспоризведение трека
- * @param {Function} props.togglePlay - переключение трека (пауза/плей)
- * @param {Function} props.onTrackStart - увеличение счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере
- * @param {Function} props.addOptimistic - добавить трек в библиотеку
- * @param {Function} props.deleteOptimistic - удалить из библиотеки
- * @param {Function} props.deleteTrack - удалить трек
- * @param {Function} props.updateTrack - обновить трек
- * @param {Function} props.updatePlaysCount - обновить личный счетчик прослушиваний
- * @param {Function} props.updateGlobalPlaysCount - обновить глобальный счетчик прослушиваний
- * @param {Function} props.toggleFavorite - удалить/добавить в избранное
- * @param {Function} props.toggleComments - открыть комментарии
- * @param {Object} props.commentTarget - целевой тип и id комментариев
- * @param {Function} props.onCloseComments - закрыть комментарии
- * @param {Function} props.onCommentChange - изменить количество комментариев
- * @param {Function} props.onRetry - повторить загрузку
+ * Отображает вкладку с сеткой треков.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.tracks=[]] - Список треков
+ * @param {string} props.mode - Режим отображения
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {boolean} props.isOwnProfile - Признак собственного профиля
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {Object} props.currentTrack - Текущий трек
+ * @param {boolean} props.isPlaying - Признак воспроизведения текущего трека
+ * @param {Function} props.onPlay - Обработчик воспроизведения трека
+ * @param {Function} props.togglePlay - Обработчик паузы и воспроизведения
+ * @param {Function} [props.onTrackStart] - Обработчик старта воспроизведения
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.addOptimistic - Обработчик добавления трека в библиотеку
+ * @param {Function} props.deleteOptimistic - Обработчик удаления трека из библиотеки
+ * @param {Function} props.deleteTrack - Обработчик удаления трека
+ * @param {Function} props.updateTrack - Обработчик обновления трека
+ * @param {Function} [props.updatePlaysCount] - Обработчик личного счётчика прослушиваний
+ * @param {Function} [props.updateGlobalPlaysCount] - Обработчик общего счётчика прослушиваний
+ * @param {Function} props.toggleFavorite - Обработчик переключения избранного
+ * @param {Function} props.toggleComments - Обработчик открытия комментариев
+ * @param {Object|null} props.commentTarget - Открытая цель комментариев
+ * @param {Function} props.onCloseComments - Обработчик закрытия комментариев
+ * @param {Function} props.onCommentChange - Обработчик изменения количества комментариев
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @returns {JSX.Element} Разметка вкладки.
  */
-
 export const TracksTab = ({
   tracks = [],
   mode,
@@ -70,22 +74,26 @@ export const TracksTab = ({
   onRetry,
 }) => {
   const tracksRef = useRef(tracks);
+  // Оставляет в эффекте актуальный список без повторной подписки на каждый ответ.
   tracksRef.current = tracks;
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных треках.
   const isRefetching = isLoading && tracks.length > 0;
 
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Обработчик для увеличения счетчика прослушиваний при клике на кнопки next/prev (вперед/назад) на аудио-плеере */
   useEffect(() => {
     if (typeof onTrackStart !== 'function') return;
 
+    /**
+     * Увеличивает счётчик прослушиваний запущенного трека.
+     *
+     * @param {Object} track - Запущенный трек
+     */
     onTrackStart((track) => {
       if (!track?.id) return;
 

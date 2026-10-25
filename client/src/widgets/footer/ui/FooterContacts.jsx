@@ -1,11 +1,12 @@
 import { CONTACT_INFO } from '..';
 import { Text } from '../../../shared/ui';
+
 import style from './FooterContacts.module.css';
 
 /**
- * Секция контактной информации(email, телефон, адрес).
+ * Отображает контакты нижней панели.
  *
- * @returns {React.ReactNode}
+ * @returns {JSX.Element} Разметка контактов.
  */
 export const FooterContacts = () => {
   return (

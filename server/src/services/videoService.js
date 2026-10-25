@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+
 const {
   sequelize,
   Video,
@@ -6,14 +8,13 @@ const {
   Comment,
   UserVideoLibrary,
 } = require('../../db/models');
-const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
 
-// Безопасный маппинг сортировки (защита от SQL-инъекций)
+// Ограничивает сортировку известными полями и закрывает подстановку SQL.
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
@@ -21,7 +22,7 @@ const SORT_MAP = {
   viewsAsc: { field: 'viewsCount', direction: 'ASC' },
 };
 
-// Поля видео, которые можно обновлять
+// Поля видео, которые можно обновлять.
 const VIDEO_FIELDS = [
   'title',
   'description',
@@ -36,15 +37,16 @@ const VIDEO_FIELDS = [
 
 const videoService = {
   /**
-   * Получить все публичные видео с возможностью фильтрации по категории и поиску.
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество видео на странице
-   * @param {string} params.category - Категория видео
-   * @param {string} params.q - Поисковый запрос
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {string} params.sortKey - Ключ сортировки
-   * @returns {Promise<Object>} - Объект с результатом
+   * Возвращает публичные видео с фильтром по категории и поиском.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} params.category - Категория
+   * @param {string} params.q - Строка поиска
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async getVideos({
     page = 1,
@@ -54,7 +56,7 @@ const videoService = {
     currentUserId,
     sortKey = 'dateDesc',
   } = {}) {
-    const where = { isPublic: true }; // По умолчанию показываем только публичные
+    const where = { isPublic: true }; // По умолчанию показываем только публичные.
 
     const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
@@ -70,7 +72,6 @@ const videoService = {
       ];
     }
 
-    // Получаем видео с автором, лайками и комментариями
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
       { model: Like, as: 'likes', attributes: ['id', 'userId'] },
@@ -90,7 +91,7 @@ const videoService = {
       },
     ];
 
-    // Если есть текущий пользователь, добавляем информацию о его библиотеке
+    // Если есть текущий пользователь, добавляет информацию о его библиотеке.
     if (currentUserId) {
       includes.push({
         model: UserVideoLibrary,
@@ -101,7 +102,6 @@ const videoService = {
       });
     }
 
-    // Получаем видео с автором, лайками и комментариями
     const { count, rows: videos } = await Video.findAndCountAll({
       where,
       include: includes,
@@ -114,7 +114,6 @@ const videoService = {
       distinct: true,
     });
 
-    // Форматируем видео
     const formattedVideos = videos.map((video) => {
       const videoData = video.toJSON();
       const libraryEntry = videoData.libraryItems?.[0];
@@ -126,7 +125,7 @@ const videoService = {
         commentsCount: videoData.comments?.length,
         likesCount: videoData.likes?.length,
         isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
-        libraryItems: undefined, // Убираем мусор из ответа
+        libraryItems: undefined, // Убираем мусор из ответа.
       };
     });
 
@@ -142,11 +141,11 @@ const videoService = {
   },
 
   /**
-   * Создать новое видео.
+   * Создает видео.
    *
-   * @param {number} currentUserId - ID пользователя
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object} videoData - Данные видео
-   * @returns {Promise<Object>}
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async createVideo(currentUserId, videoData) {
     const media = [
@@ -207,36 +206,35 @@ const videoService = {
   },
 
   /**
-   * Обновление приватности видео
-   * @param {number} currentUserId - ID пользователя, обновляющего видео
-   * @param {boolean} isPublic - Приватность видео
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет приватность видео.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} params - Параметры вызова
+   * @param {boolean} params.isPublic - Признак публичности
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updateVideoPrivacy(currentUserId, { isPublic }) {
-    // Обновляем приватность видео
     const [affectedCount] = await Video.update(
       { isPublic },
       { where: { uploadedBy: currentUserId } }
     );
 
-    // Проверяем, найдены ли видео
     if (affectedCount === 0) {
       throw createError('Видео не найдены', 404, 'VIDEOS_NOT_FOUND');
     }
 
-    // Возвращаем результат
     return {
       message: `Приватность видео успешно обновлена: ${affectedCount}`,
     };
   },
 
   /**
-   * Обновление видео (владелец).
+   * Обновляет видео владельца.
    *
-   * @param {number} videoId - ID видео
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updateData - Обновляемые данные
-   * @returns {Promise<Object>} - { video }
+   * @param {number} videoId - Идентификатор видео
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updateData - Данные обновления
+   * @returns {Promise<Object>} { video }.
    */
   async updateVideo(videoId, currentUserId, updateData) {
     return sequelize.transaction(async (transaction) => {
@@ -306,12 +304,12 @@ const videoService = {
   },
 
   /**
-   * Инкремент счетчика просмотров видео
-   * @param {number} videoId - ID видео
-   * @returns {Promise<Object>} - Объект с результатом
+   * Увеличивает счетчик просмотров видео.
+   *
+   * @param {number} videoId - Идентификатор видео
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async incrementViewsCount(videoId) {
-    // Инкрементируем счетчик просмотров видео
     await Video.increment('viewsCount', {
       by: 1,
       where: { id: videoId },
@@ -321,18 +319,17 @@ const videoService = {
   },
 
   /**
-   * Удаление видео (владелец)
-   * @param {number} videoId - ID видео
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - Объект с результатом
+   * Удаляет видео владельца.
+   *
+   * @param {number} videoId - Идентификатор видео
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async deleteVideo(videoId, currentUserId) {
-    // Получаем видео
     const video = await Video.findOne({
       where: { id: videoId, uploadedBy: currentUserId },
     });
 
-    // Проверяем, найдено ли видео
     if (!video) {
       throw createError(
         'Видео не найдено или нет прав на удаление',
@@ -341,7 +338,6 @@ const videoService = {
       );
     }
 
-    // Удаляем видео и все связанные данные
     const result = await deleteEntityWithRelations({
       entity: video,
       targetType: 'Video',

@@ -7,8 +7,11 @@ const {
 let ai = null;
 
 /**
- * Лениво создаёт и переиспользует один Gemini client.
+ * Создает и переиспользует клиент Gemini.
+ *
  * Dynamic import нужен из-за ESM-пакета @google/genai.
+ *
+ * @returns {Promise<Object>} Клиент Gemini.
  */
 const getClient = async () => {
   if (ai) return ai;
@@ -23,9 +26,10 @@ const getClient = async () => {
 };
 
 /**
- * Функция, строит промпт для LLM.
- * @param {Object} candidate - Новость
- * @returns {string} - Промпт
+ * Создает текст запроса к модели по кандидату новости.
+ *
+ * @param {Object} candidate - Кандидат на публикацию
+ * @returns {string} Промпт.
  */
 const buildPrompt = (candidate) => `
 Ты — редактор новостной ленты социальной сети.
@@ -60,8 +64,7 @@ URL: ${candidate.externalUrl ?? ''}
 `;
 
 /**
- * Схема для валидации ответа от LLM.
- * @type {Object}
+ * Описывает JSON-схему ответа модели.
  */
 const responseJsonSchema = {
   type: 'object',
@@ -90,18 +93,20 @@ const responseJsonSchema = {
 };
 
 /**
- * Функция, приостанавливает выполнение на заданное количество миллисекунд.
- * @param {number} ms - Количество миллисекунд
- * @returns {Promise<void>} - Promise, который разрешается через заданное количество миллисекунд
+ * Приостанавливает выполнение на заданное число миллисекунд.
+ *
+ * @param {number} ms - Задержка в миллисекундах
+ * @returns {Promise<void>} Promise, который разрешается через заданное количество миллисекунд.
  */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Определяет, имеет ли смысл повторить LLM-запрос после временной ошибки.
- * Ретраим timeout (408) и серверные 5xx; клиентские 4xx не ретраим.
+ * Проверяет, можно ли повторить запрос к модели после временной ошибки.
+ *
+ * Повторяет запрос при timeout (408) и серверных 5xx. Клиентские 4xx не повторяет.
  *
  * @param {Error} error - Ошибка
- * @returns {boolean} - true, если ошибка повторяемая, false в противном случае
+ * @returns {boolean} True, если ошибка повторяемая, false в противном случае.
  */
 const isRetryableError = (error) => {
   const status = error?.status ?? error?.statusCode;
@@ -110,11 +115,13 @@ const isRetryableError = (error) => {
 };
 
 /**
- * Функция, получает задержку повтора, если она есть в заголовке retry-after,
- * чтобы не нагружать сервер LLM.
+ * Возвращает задержку повтора из заголовка retry-after или вычисляет ее.
+ *
+ * Учитывает заголовок retry-after, чтобы не нагружать сервер модели.
+ *
  * @param {Error} error - Ошибка
- * @param {number} attempt - Количество попыток
- * @returns {number} - Задержка повтора в миллисекундах, если она есть в заголовке retry-after, иначе задержка повтора в миллисекундах
+ * @param {number} attempt - Номер повтора, начиная с нуля
+ * @returns {number} Задержка повтора в миллисекундах, если она есть в заголовке retry-after, иначе задержка повтора в миллисекундах.
  */
 const getRetryDelay = (error, attempt) => {
   const retryAfter = Number(error?.headers?.get?.('retry-after'));
@@ -126,36 +133,30 @@ const getRetryDelay = (error, attempt) => {
   return 1000 * Math.pow(2, attempt) + Math.random() * 1000;
 };
 
-/**
- * Сервис для анализа новостей через LLM.
- */
 const newsLlmService = {
   /**
-   * Выполняет запрос к LLM.
+   * Выполняет запрос к модели.
    *
-   * Поддерживает короткие сетевые retry для 408/5xx, но сейчас
-   * maxRetries по умолчанию равен 0, чтобы не расходовать LLM quota.
-   * Повтор обработки самого кандидата выполняется между cron-запусками
-   * через NewsIngestionRecord.attempts.
+   * Поддерживает короткие сетевые повторы для 408 и 5xx, но maxRetries по умолчанию равен 0, чтобы не расходовать квоту модели.
+   * Повтор обработки самого кандидата выполняется между запусками cron через NewsIngestionRecord.attempts.
    *
-   * @param {Object} params - Параметры
-   * @param {GoogleGenAI} params.client - Клиент LLM
-   * @param {Object} params.request - Запрос к LLM
-   * @param {number} [params.maxRetries=0] - Максимальное количество попыток
-   * @returns {Promise<Object>} - Результат запроса к LLM
+   * @param {Object} params - Параметры вызова
+   * @param {GoogleGenAI} params.client - Клиент модели
+   * @param {Object} params.request - Параметры запроса к модели
+   * @param {number} [params.maxRetries=0] - Максимальное число повторов
+   * @returns {Promise<Object>} Результат запроса к LLM.
    */
   async createInteraction({ client, request, maxRetries = 0 }) {
-    // Выполняем попытки запроса к LLM пока не получим результат или не превысим максимальное количество попыток
+    // Повторяет запрос, пока не получит результат или не исчерпает число попыток.
     for (let attempt = 0; ; attempt += 1) {
       try {
         return await client.interactions.create(request);
       } catch (error) {
-        // Если ошибка не повторяемая или количество попыток превышено, бросаем ошибку
+        // Выбрасывает ошибку, если она не повторяется или попытки исчерпаны.
         if (!isRetryableError(error) || attempt >= maxRetries) {
           throw error;
         }
 
-        // Получаем задержку для повторного запроса к LLM
         const delay = getRetryDelay(error, attempt);
 
         console.warn(
@@ -164,16 +165,16 @@ const newsLlmService = {
           }/${maxRetries} in ${delay}ms`
         );
 
-        // Приостанавливаем выполнение для повторного запроса к LLM на заданное количество миллисекунд
         await sleep(delay);
       }
     }
   },
 
   /**
-   * Функция, анализирует кандидата на публикацию через LLM.
-   * @param {Object} candidate - Кандидат
-   * @returns {Promise<Object>} - Результат анализа кандидата на публикацию через LLM
+   * Анализирует кандидата на публикацию через модель.
+   *
+   * @param {Object} candidate - Кандидат на публикацию
+   * @returns {Promise<Object>} Результат анализа кандидата на публикацию через LLM.
    */
   async analyzeCandidate(candidate) {
     if (!process.env.GEMINI_API_KEY) {

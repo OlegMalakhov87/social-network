@@ -1,18 +1,19 @@
 import { Button, Loading } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import styles from './InfiniteScrollFooter.module.css';
 
 /**
- * Универсальный футер для бесконечного скролла.
- * Автоматически отображает: лоадер, ошибку с кнопкой повтора или сообщение о конце списка.
+ * Отображает индикатор загрузки, ошибку с кнопкой повтора или сообщение о конце списка.
  *
- * @param {Object} props
- * @param {boolean} props.hasMore - Есть ли еще данные для загрузки
- * @param {boolean} props.isLoading - Идет ли сейчас загрузка следующей страницы
- * @param {string|null} props.error - Текст ошибки при дозагрузке
- * @param {Function} props.onRetry - Функция повтора загрузки при ошибке
- * @param {string} [props.endMessage='Вы просмотрели все данные'] - Текст при окончании списка
+ * @param {Object} props - Свойства компонента
+ * @param {boolean} props.hasMore - Признак оставшихся данных
+ * @param {boolean} props.isLoading - Признак загрузки следующей страницы
+ * @param {string|null} props.error - Текст ошибки дозагрузки
+ * @param {Function} [props.onRetry] - Обработчик повтора загрузки
+ * @param {string} [props.endMessage='Вы просмотрели все данные'] - Текст в конце списка
  * @param {string} [props.className] - Дополнительный CSS-класс
+ * @returns {JSX.Element|null} Состояние подгрузки или пустой результат.
  */
 export const InfiniteScrollFooter = ({
   hasMore,
@@ -22,7 +23,6 @@ export const InfiniteScrollFooter = ({
   endMessage = 'Вы просмотрели все данные',
   className,
 }) => {
-  //  Ошибка при дозагрузке
   if (error) {
     return (
       <div className={classNames(styles.footer, styles.error, className)}>
@@ -36,7 +36,6 @@ export const InfiniteScrollFooter = ({
     );
   }
 
-  // Идет загрузка следующей страницы
   if (isLoading) {
     return (
       <div className={classNames(styles.footer, className)}>
@@ -45,7 +44,6 @@ export const InfiniteScrollFooter = ({
     );
   }
 
-  //  Данные закончились
   if (!hasMore) {
     return (
       <div className={classNames(styles.footer, styles.end, className)}>
@@ -54,6 +52,6 @@ export const InfiniteScrollFooter = ({
     );
   }
 
-  //  Есть данные, загрузка не идет, ждем скролла (ничего не показываем)
+  // Ожидает прокрутку и ничего не показывает, пока данные ещё есть и загрузка не идёт.
   return null;
 };

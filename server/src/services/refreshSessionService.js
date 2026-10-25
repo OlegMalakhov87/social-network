@@ -1,4 +1,5 @@
 const { randomBytes, createHash } = require('node:crypto');
+
 const {
   sequelize,
   RefreshSession,
@@ -8,17 +9,19 @@ const { createError } = require('../utils/createError');
 const { REFRESH_TOKEN_TTL_MS } = require('../../config/authConfig');
 
 /**
- * Генерация криптографически стойкого refresh token.
- * @returns {string}
+ * Создает криптографически стойкий маркер обновления.
+ *
+ * @returns {string} Строковый результат.
  */
 const generateRefreshToken = () => {
   return randomBytes(32).toString('hex');
 };
 
 /**
- * Создание SHA-256 хеша refresh token.
- * @param {string} token
- * @returns {string}
+ * Создает хеш SHA-256 маркера обновления.
+ *
+ * @param {string} token - Маркер обновления
+ * @returns {string} Строковый результат.
  */
 const hashRefreshToken = (token) => {
   return createHash('sha256').update(token).digest('hex');
@@ -26,16 +29,16 @@ const hashRefreshToken = (token) => {
 
 const refreshSessionService = {
   /**
-   * Создание пользовательской refresh-сессии.
+   * Создает сессию обновления.
    *
-   * @param {number} userId
-   * @param {Object} [options]
-   * @param {import('sequelize').Transaction} [options.transaction]
+   * @param {number} userId - Идентификатор пользователя
+   * @param {Object} [options={}] - Параметры вызова
+   * @param {import('sequelize').Transaction} [options.transaction] - Транзакция Sequelize
    * @returns {Promise<{
    *   sessionId: string,
    *   refreshToken: string,
    *   expiresAt: Date
-   * }>}
+   * }>} Идентификатор сессии, маркер и срок действия.
    */
   async create(userId, { transaction } = {}) {
     const refreshToken = generateRefreshToken();
@@ -54,15 +57,15 @@ const refreshSessionService = {
   },
 
   /**
-   * Ротация refresh token с обнаружением повторного использования.
+   * Заменяет маркер обновления и обнаруживает повторное использование.
    *
-   * @param {string} refreshToken
+   * @param {string} refreshToken - Маркер обновления
    * @returns {Promise<{
    *   sessionId: string,
    *   userId: number,
    *   refreshToken: string,
    *   expiresAt: Date
-   * }>}
+   * }>} Новая сессия после замены маркера.
    */
   async rotate(refreshToken) {
     if (
@@ -79,7 +82,7 @@ const refreshSessionService = {
     const oldHash = hashRefreshToken(refreshToken);
 
     const result = await sequelize.transaction(async (transaction) => {
-      // Блокируем найденную сессию до завершения транзакции.
+      // Блокирует найденную сессию до завершения транзакции.
       const session = await RefreshSession.findOne({
         where: { tokenHash: oldHash },
         transaction,
@@ -87,14 +90,14 @@ const refreshSessionService = {
       });
 
       if (session) {
-        // Абсолютный срок сессии не продлеваем.
+        // Абсолютный срок сессии не продлевает.
         if (session.expiresAt <= new Date()) {
           return { status: 'invalid' };
         }
 
         const newRefreshToken = generateRefreshToken();
 
-        // Сначала сохраняем историю старого токена.
+        // Сначала сохраняет историю старого токена.
         await UsedRefreshToken.create(
           {
             sessionId: session.id,
@@ -103,7 +106,7 @@ const refreshSessionService = {
           { transaction }
         );
 
-        // Затем заменяем действительный токен новым.
+        // Затем заменяет действительный токен новым.
         await session.update(
           {
             tokenHash: hashRefreshToken(newRefreshToken),
@@ -120,7 +123,7 @@ const refreshSessionService = {
         };
       }
 
-      // Если активного токена нет, ищем его в истории.
+      // Если активного токена нет, ищет его в истории.
       const usedToken = await UsedRefreshToken.findOne({
         where: { tokenHash: oldHash },
         transaction,
@@ -130,8 +133,7 @@ const refreshSessionService = {
         return { status: 'invalid' };
       }
 
-      // Повторно использованный токен:
-      // отзываем соответствующую сессию.
+      // Повторно использованный токен отзывает соответствующую сессию.
       const reusedSession = await RefreshSession.findByPk(usedToken.sessionId, {
         transaction,
         lock: transaction.LOCK.UPDATE,
@@ -141,8 +143,7 @@ const refreshSessionService = {
         await reusedSession.destroy({ transaction });
       }
 
-      // Ошибку пока не выбрасываем:
-      // сначала транзакция должна зафиксировать отзыв.
+      // Ошибку пока не выбрасывает: сначала транзакция должна зафиксировать отзыв.
       return { status: 'reused' };
     });
 
@@ -171,14 +172,14 @@ const refreshSessionService = {
   },
 
   /**
-   * Отзывает только ожидаемую refresh-сессию.
+   * Отзывает только ожидаемую сессию обновления.
    *
-   * @param {string} refreshToken
-   * @param {string} expectedSessionId
+   * @param {string} refreshToken - Маркер обновления
+   * @param {string} expectedSessionId - Ожидаемый идентификатор сессии
    * @returns {Promise<{
    *   revoked: boolean,
    *   reason?: 'SESSION_CHANGED' | 'NOT_FOUND'
-   * }>}
+   * }>} Признак отзыва и причина отказа.
    */
   async revoke(refreshToken, expectedSessionId) {
     if (
@@ -193,8 +194,7 @@ const refreshSessionService = {
 
     const tokenHash = hashRefreshToken(refreshToken);
 
-    // Удаляем запись только при совпадении
-    // refresh token и ожидаемого sessionId.
+    // Удаляет запись только при совпадении маркера обновления и ожидаемого sessionId.
     const deletedCount = await RefreshSession.destroy({
       where: {
         tokenHash,
@@ -206,7 +206,7 @@ const refreshSessionService = {
       return { revoked: true };
     }
 
-    // Если удалить не удалось, выясняем причину.
+    // Если удалить не удалось, выясняет причину.
     const currentSession = await RefreshSession.findOne({
       where: { tokenHash },
       attributes: ['id'],

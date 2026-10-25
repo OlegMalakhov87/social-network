@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import { CommentsListSchema } from '../../../entities/comment';
 import { LikeSchema } from '../../../entities/like';
 import { UserSchema } from '../../../entities/user';
 
 /**
- * Схема поста
+ * Описывает пост.
  */
 export const PostSchema = z.object({
   id: z.number(),
@@ -35,6 +36,6 @@ export const PostSchema = z.object({
 });
 
 /**
- * Схема списка постов
+ * Описывает список постов.
  */
 export const PostsListSchema = z.array(PostSchema);

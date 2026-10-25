@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+
 import { TRACK_CONFIG } from '..';
 import { CATEGORY_OPTIONS } from '../../../entities/track';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -22,20 +23,27 @@ import {
   TRACK_UPLOAD_CONFIG,
   useFileUpload,
 } from '../../file-upload';
+
 /**
- * Форма добавления/редактирования трека с валидацией.
+ * Отображает форму добавления и редактирования трека.
  *
- * @param {Object} props - пропсы компонента
- * @param {Object} [props.initialData] - данные трека для редактирования
- * @param {Function} props.onClose - функция для закрытия формы
- * @param {Function} props.onSubmit - функция для отправки формы
+ * @param {Object} props - Свойства компонента
+ * @param {Object} [props.initialData={}] - Данные трека для редактирования
+ * @param {Function} props.onClose - Закрывает форму
+ * @param {Function} props.onSubmit - Отправляет форму
+ * @returns {JSX.Element} Форма трека
  */
 export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
   const isEdit = Boolean(initialData?.id);
   const notify = useNotify();
   const isCancellingRef = useRef(false);
 
-  /** Обработчик отправки формы */
+  /**
+   * Отправляет трек и закрепляет загруженные файлы.
+   *
+   * @param {Object} values - Значения формы
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (values) => {
     try {
       await onSubmit?.(values, isEdit, initialData?.id);
@@ -49,7 +57,7 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       throw error;
     }
 
-    // С этого момента сохранение на сервере уже успешно.
+    // Сохранение на сервере уже завершилось успешно.
     const usedUrls = [values.audioUrl, values.coverUrl];
 
     const results = await Promise.all([
@@ -69,7 +77,6 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
     onClose?.();
   };
 
-  /** Форма для создания/редактирования трека с валидацией*/
   const form = useForm({
     initialValues: {
       title: initialData?.title ?? null,
@@ -116,7 +123,6 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
     onSubmit: handleSubmit,
   });
 
-  /** Хук для загрузки аудиофайла */
   const trackUpload = useFileUpload(TRACK_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('audioUrl', data.audioUrl);
@@ -125,27 +131,22 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
     },
   });
 
-  /** Хук для загрузки обложки альбома */
   const coverUpload = useFileUpload(ALBUM_COVER_CONFIG, {
     onSuccess: (data) => form.setValue('coverUrl', data.coverUrl),
   });
 
-  /** Флаг загрузки */
   const isUploading = trackUpload.isUploading || coverUpload.isUploading;
 
-  /** Обработчик закрытия формы */
   const handleCancel = async () => {
     if (isCancellingRef.current || form.isSubmitting) return;
 
     isCancellingRef.current = true;
 
     try {
-      // Сначала инвалидируем запросы и очищаем UI.
-      // Это защищает от применения ответа загрузки
-      // после начала закрытия формы.
+      // Сбрасывает загрузку до очистки, чтобы ответ не попал в закрытую форму.
       trackUpload.reset();
       coverUpload.reset();
-   
+
       const results = await Promise.all([
         trackUpload.cleanupUploadedFile(),
         coverUpload.cleanupUploadedFile(),

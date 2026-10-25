@@ -1,27 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { parseApiError } from '../../../shared/lib';
 
 /**
- * Универсальный хук для загрузки файлов.
+ * Загружает файл, показывает предварительный просмотр и очищает временную копию.
  *
- * Управляет:
- * - локальным preview;
- * - загрузкой файла;
- * - прогрессом;
- * - временно загруженным файлом;
- * - очисткой временного файла;
- * - фиксацией файла после успешного сохранения сущности.
- *
- * @param {Object} config - конфигурация загрузки
- * @param {string} config.fieldName - имя поля FormData
- * @param {Function} config.validators - валидаторы файла
- * @param {Function} config.uploadFn - функция загрузки файла
- * @param {Function} [config.deleteFn] - функция удаления загруженного файла
- * @param {Object} [options]
- * @param {Function} [options.onSuccess] - callback после успешной загрузки
- * @param {Function} [options.onError] - callback ошибки
+ * @param {Object} config - Конфигурация загрузки
+ * @param {string} config.fieldName - Имя поля FormData
+ * @param {Function} [config.validators] - Проверка выбранного файла
+ * @param {Function} config.uploadFn - Отправка файла
+ * @param {Function} [config.deleteFn] - Удаление временного файла
+ * @param {Array<string>} [config.mediaFields] - Имена полей с URL в ответе
+ * @param {Object} [options={}] - Дополнительные обработчики
+ * @param {Function} [options.onSuccess] - Обработчик успешной загрузки
+ * @param {Function} [options.onError] - Обработчик ошибки загрузки
+ * @returns {{
+ *   preview: string|null,
+ *   isUploading: boolean,
+ *   error: string|{ message: string, fieldErrors?: Object }|null,
+ *   progress: number,
+ *   handleFileChange: Function,
+ *   cleanupUploadedFile: Function,
+ *   finalize: Function,
+ *   reset: Function
+ * }} Состояние загрузки и действия
  */
-
 export const useFileUpload = (config, options = {}) => {
   const { onSuccess, onError } = options;
 
@@ -32,10 +35,10 @@ export const useFileUpload = (config, options = {}) => {
 
   const abortControllerRef = useRef(null);
 
-  // URL -> fieldName
+  // Сопоставляет URL с именем поля.
   const temporaryMediaRef = useRef(new Map());
 
-  // URL -> Promise<boolean>
+  // Сопоставляет URL с выполняемым удалением.
   const deletionPromisesRef = useRef(new Map());
 
   const previewUrlRef = useRef(null);
@@ -50,10 +53,11 @@ export const useFileUpload = (config, options = {}) => {
   callbacksRef.current = { onSuccess, onError };
 
   /**
-   * Получает записи временных медиафайлов из данных ответа сервера.
-   * @param {Object} data - данные ответа сервера
-   * @param {Object} currentConfig - текущая конфигурация загрузки
-   * @returns {Array} - массив записей временных медиафайлов
+   * Возвращает временные медиафайлы из ответа сервера.
+   *
+   * @param {Object} data - Данные ответа сервера
+   * @param {Object} currentConfig - Текущая конфигурация загрузки
+   * @returns {Array<{fieldName: string, url: string}>} Записи временных файлов
    */
   const getMediaEntries = useCallback((data, currentConfig) => {
     const fields = currentConfig.mediaFields ?? [currentConfig.fieldName];
@@ -69,9 +73,6 @@ export const useFileUpload = (config, options = {}) => {
       }));
   }, []);
 
-  /**
-   * Удаляет URL-адрес предпросмотра файла.
-   */
   const revokePreview = useCallback(() => {
     if (!previewUrlRef.current) return;
 
@@ -81,10 +82,11 @@ export const useFileUpload = (config, options = {}) => {
 
   /**
    * Удаляет одну временную запись.
+   *
    * @param {string} url - URL записи
-   * @param {string} fieldName - имя поля записи
-   * @param {Function} deleteFn - функция удаления записи
-   * @returns {Promise<boolean>} - результат удаления
+   * @param {string} fieldName - Имя поля записи
+   * @param {Function} deleteFn - Функция удаления записи
+   * @returns {Promise<boolean>} Результат удаления
    */
   const deleteMedia = useCallback(async (url, fieldName, deleteFn) => {
     const existing = deletionPromisesRef.current.get(url);
@@ -97,8 +99,7 @@ export const useFileUpload = (config, options = {}) => {
       try {
         await deleteFn({ [fieldName]: url });
 
-        // Не удаляем запись, если по этому URL уже
-        // зарегистрировано другое значение.
+        // Оставляет запись, если по этому URL уже зарегистрировано другое значение.
         if (temporaryMediaRef.current.get(url) === fieldName) {
           temporaryMediaRef.current.delete(url);
         }
@@ -117,10 +118,6 @@ export const useFileUpload = (config, options = {}) => {
     return promise;
   }, []);
 
-  /**
-   * Удаляет все временные записи данного экземпляра хука.
-   * @returns {Promise<boolean>} - результат удаления
-   */
   const cleanupUploadedFile = useCallback(async () => {
     const entries = [...temporaryMediaRef.current.entries()];
 
@@ -136,16 +133,17 @@ export const useFileUpload = (config, options = {}) => {
   }, [deleteMedia]);
 
   /**
-   * Вызывается ТОЛЬКО после успешного сохранения сущности.
-   * @param {Array} usedUrls - массив URL загруженных файлов
-   * @returns {Promise<boolean>} - результат фиксации
+   * Закрепляет использованные файлы и удаляет остальные после сохранения сущности.
+   *
+   * @param {Array<string>} [usedUrls=[]] - URL файлов, закреплённых в сущности
+   * @returns {Promise<boolean>} Результат фиксации
    */
   const finalize = useCallback(
     async (usedUrls = []) => {
       const used = new Set(usedUrls.filter(Boolean));
       const entries = [...temporaryMediaRef.current.entries()];
 
-      // Эти URL уже закреплены сервером в сущности.
+      // Сервер уже закрепил эти URL в сущности.
       for (const [url] of entries) {
         if (used.has(url)) {
           temporaryMediaRef.current.delete(url);
@@ -169,9 +167,7 @@ export const useFileUpload = (config, options = {}) => {
     [deleteMedia]
   );
 
-  /**
-   * Сбрасывает UI, но НЕ забывает временные файлы.
-   */
+  // Сбрасывает интерфейс и сохраняет временные файлы.
   const reset = useCallback(() => {
     requestIdRef.current += 1;
 
@@ -191,9 +187,10 @@ export const useFileUpload = (config, options = {}) => {
   }, [revokePreview]);
 
   /**
-   * Обработчик изменения файла.
-   * @param {Event} event - событие изменения файла
-   * @returns {Promise<boolean>} - результат обработки файла
+   * Проверяет файл, загружает его и обновляет предварительный просмотр.
+   *
+   * @param {Event} event - Событие выбора файла
+   * @returns {Promise<boolean>} Результат обработки
    */
   const handleFileChange = useCallback(
     async (event) => {
@@ -203,7 +200,7 @@ export const useFileUpload = (config, options = {}) => {
 
       const input = event.target;
 
-      // Ref защищает даже до следующего React-render.
+      // Проверяет флаг до следующей отрисовки React.
       if (uploadingRef.current) {
         input.value = '';
         return false;
@@ -248,6 +245,14 @@ export const useFileUpload = (config, options = {}) => {
 
         const response = await currentConfig.uploadFn(formData, {
           signal: controller.signal,
+          /**
+           * Обновляет процент загрузки.
+           *
+           * @param {Object} progressEvent - Событие прогресса
+           * @param {number} progressEvent.loaded - Загруженный объём
+           * @param {number} progressEvent.total - Полный объём
+           * @returns {void}
+           */
           onUploadProgress: (progressEvent) => {
             if (
               requestId !== requestIdRef.current ||
@@ -275,8 +280,7 @@ export const useFileUpload = (config, options = {}) => {
           temporaryMediaRef.current.set(url, fieldName);
         }
 
-        // Если форму закрыли во время запроса,
-        // удаляем только что загруженные временные файлы.
+        // Удаляет временные файлы, если форму закрыли во время запроса.
         if (requestId !== requestIdRef.current || !isMountedRef.current) {
           await Promise.all(
             entries.map(({ url, fieldName }) =>
@@ -287,7 +291,7 @@ export const useFileUpload = (config, options = {}) => {
           return false;
         }
 
-        // Обновление формы должно быть синхронным.
+        // Обновляет форму синхронно.
         callbacksRef.current.onSuccess?.(uploadedFile);
 
         revokePreview();
@@ -329,9 +333,6 @@ export const useFileUpload = (config, options = {}) => {
     [deleteMedia, getMediaEntries, revokePreview]
   );
 
-  /**
-   * Монтирует компонент.
-   */
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -344,8 +345,7 @@ export const useFileUpload = (config, options = {}) => {
 
       revokePreview();
 
-      // Резервная очистка, если компонент закрыли
-      // без явного вызова cleanupUploadedFile().
+      // Очищает временные файлы, если закрытие прошло без cleanupUploadedFile().
       void cleanupUploadedFile();
     };
   }, [cleanupUploadedFile, revokePreview]);

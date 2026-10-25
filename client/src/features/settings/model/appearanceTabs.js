@@ -1,4 +1,4 @@
-/** Мапа для выбора темы внешнего вида */
+/** Задаёт варианты темы оформления. */
 export const THEME_OPTIONS = [
   { value: 'light', label: 'Светлая', icon: '☀️' },
   { value: 'dark', label: 'Тёмная', icon: '🌙' },

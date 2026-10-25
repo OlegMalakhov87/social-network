@@ -1,122 +1,122 @@
 /**
- * Получить объект текущего пользователя.
+ * Возвращает текущего пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {Object|null}
+ * @param {Object} state - Состояние Redux
+ * @returns {Object|null} Текущий пользователь
  */
 export const selectUser = (state) => state.auth.user;
 
 /**
- * Получить JWT токен.
+ * Возвращает маркер доступа.
  *
- * @param {Object} state - Redux Store.
- * @returns {string|null}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Маркер доступа
  */
 export const selectToken = (state) => state.auth.token;
 
 /**
- * Проверить, авторизован ли пользователь.
+ * Проверяет, авторизован ли пользователь.
  *
- * @param {Object} state - Redux Store.
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак авторизации
  */
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 
 /**
- * Получить статус запросов авторизации.
+ * Возвращает статус запросов авторизации.
  *
- * idle | loading | succeeded | failed
+ * Принимает значения idle, loading, succeeded и failed.
  *
- * @param {Object} state - Redux Store.
- * @returns {string}
+ * @param {Object} state - Состояние Redux
+ * @returns {string} Статус запросов
  */
 export const selectAuthStatus = (state) => state.auth.status;
 
 /**
- * Получить текст последней ошибки авторизации.
+ * Возвращает текст последней ошибки авторизации.
  *
- * @param {Object} state - Redux Store.
- * @returns {string|null}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Текст ошибки
  */
 export const selectAuthError = (state) => state.auth.error;
 
 /**
- * Проверить, выполняется ли запрос авторизации.
+ * Проверяет, выполняется ли запрос авторизации.
  *
- * @param {Object} state - Redux Store.
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак выполнения запроса
  */
 export const selectIsAuthLoading = (state) => state.auth.status === 'loading';
 
 /**
- * Получить id текущего пользователя.
+ * Возвращает идентификатор текущего пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {number|null}
+ * @param {Object} state - Состояние Redux
+ * @returns {number|null} Идентификатор пользователя
  */
 export const selectUserId = (state) => state.auth.user?.id ?? null;
 
 /**
- * Получить email пользователя.
+ * Возвращает почту пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {string}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Почта пользователя
  */
 export const selectUserEmail = (state) => state.auth.user?.email ?? null;
 
 /**
- * Получить имя пользователя.
+ * Возвращает имя пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {string}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Имя пользователя
  */
 export const selectUserName = (state) => state.auth.user?.name ?? null;
 
 /**
- * Получить никнейм пользователя.
+ * Возвращает никнейм пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {string}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Никнейм пользователя
  */
 export const selectUserNickname = (state) => state.auth.user?.nickname ?? null;
 
 /**
- * Получить аватар пользователя.
+ * Возвращает аватар пользователя.
  *
- * @param {Object} state - Redux Store.
- * @returns {string}
+ * @param {Object} state - Состояние Redux
+ * @returns {string|null} Аватар пользователя
  */
 export const selectUserAvatar = (state) => state.auth.user?.avatar ?? null;
 
 /**
- * Проверить, загружен ли пользователь.
+ * Проверяет, загружен ли пользователь.
  *
- * @param {Object} state
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак загруженного пользователя
  */
 export const selectHasUser = (state) => Boolean(state.auth.user);
 
 /**
- * Проверить наличие JWT токена.
+ * Проверяет наличие маркера доступа.
  *
- * @param {Object} state
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак маркера доступа
  */
 export const selectHasToken = (state) => Boolean(state.auth.token);
 
 /**
- * Проверить, завершена ли инициализация авторизации.
+ * Проверяет, завершена ли проверка авторизации.
  *
- * @param {Object} state
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак завершённой проверки
  */
 export const selectIsAuthReady = (state) => !state.auth.isCheckingAuth;
 
 /**
- * Проверить, авторизован ли пользователь и завершена ли проверка авторизации.
+ * Проверяет, что пользователь авторизован и проверка завершена.
  *
- * @param {Object} state
- * @returns {boolean}
+ * @param {Object} state - Состояние Redux
+ * @returns {boolean} Признак готовой авторизации
  */
 export const selectIsAuthenticatedAndReady = (state) =>
   Boolean(

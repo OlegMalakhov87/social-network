@@ -1,5 +1,5 @@
-export { useFetchComments } from './model/useFetchComments'; // Хук для получения комментариев с бесконечным скроллом
+export { useFetchComments } from './model/useFetchComments'; // Возвращает комментарии и изменяет их локально.
 
-export { useCommentsPanel } from './model/useCommentsPanel'; // Хук для управления панелью комментариев (открытие/закрытие, скролл к секции комментариев при открытии панели)
+export { useCommentsPanel } from './model/useCommentsPanel'; // Открывает и закрывает панель комментариев.
 
-export { CommentForm } from './ui/CommentForm'; // Компонент для формы комментария
+export { CommentForm } from './ui/CommentForm'; // Отображает форму добавления комментария.

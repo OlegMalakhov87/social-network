@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+
 import { GENDER_OPTIONS, REGISTER_CONFIG } from '..';
 import {
   clearError,
@@ -24,15 +25,19 @@ import {
   Select,
   Text,
 } from '../../../shared/ui';
+
 import style from './AuthForm.module.css';
 
 /**
- * Форма регистрации нового пользователя.
+ * Отображает форму регистрации.
+ *
+ * @returns {JSX.Element} Форма регистрации
  */
 export const RegisterForm = () => {
   const dispatch = useDispatch();
   const isSubmitting = useSelector(selectIsAuthLoading);
 
+  // Сбрасывает ошибку предыдущей попытки при открытии формы.
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);

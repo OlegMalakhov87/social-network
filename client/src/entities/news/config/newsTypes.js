@@ -1,11 +1,11 @@
-/** Массив типов новостей*/
+/** Хранит типы новостей. */
 export const NEWS_TYPES = [
   { value: 'text', label: 'Текст', icon: '📝' },
   { value: 'image', label: 'Изображение', icon: '🖼️' },
   { value: 'video', label: 'Видео', icon: '🎬' },
 ];
 
-/** Мапа для выбора категории новости*/
+/** Хранит варианты категории новости. */
 export const CATEGORY_OPTIONS = [
   { value: '', label: 'Выберите категорию' },
   { value: 'technology', label: 'Технологии' },

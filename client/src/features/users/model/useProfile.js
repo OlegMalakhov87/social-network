@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import { useOnline } from '..';
 import { fetchUserProfileApi } from '../../../entities/user';
 import { useAbortableRequest, useNotify } from '../../../shared/hooks';
@@ -6,17 +7,24 @@ import { getApiErrorDisplay } from '../../../shared/lib';
 import { useFriendshipActions } from '../../friends';
 
 /**
- * Хук для получения данных о пользователе и управления статусом дружбы.
+ * Возвращает данные профиля и обновляет статус дружбы.
  *
- * @param {number} profileUserId - ID пользователя, с которым проверяем статус дружбы
- * @returns {Object} - объект с данными о статусе дружбы и экшенами
+ * @param {number} profileUserId - Идентификатор пользователя
+ * @returns {{
+ *   user: Object|null,
+ *   userLoading: boolean,
+ *   userError: { message: string, fieldErrors?: Object }|null,
+ *   refetchUser: Function,
+ *   followUser: Function,
+ *   unfollowUser: Function,
+ *   acceptUser: Function,
+ *   blockUser: Function,
+ *   unlockUser: Function|undefined
+ * }} Данные профиля и действия дружбы
  */
 export const useProfile = (profileUserId) => {
   const notify = useNotify();
 
-  /**
-   * Загрузка пользователя и начального статуса дружбы.
-   */
   const {
     data: user,
     setData: setUser,
@@ -24,6 +32,12 @@ export const useProfile = (profileUserId) => {
     error,
     execute: refetchUser,
   } = useAbortableRequest({
+    /**
+     * Загружает профиль и статус дружбы.
+     *
+     * @param {AbortSignal} signal - Сигнал отмены
+     * @returns {Promise<Object|null>} Данные профиля
+     */
     fetcher: async (signal) => {
       if (!profileUserId || profileUserId <= 0) {
         return null;
@@ -37,7 +51,6 @@ export const useProfile = (profileUserId) => {
     },
   });
 
-  /** Экшены для управления статусом дружбы. */
   const friendshipActions = useFriendshipActions({
     setItems: setUser,
     getCurrentData: () => user,
@@ -47,16 +60,15 @@ export const useProfile = (profileUserId) => {
       notify.error(getApiErrorDisplay(error, 'Ошибка выполнения')),
   });
 
-  /** Получение статуса пользователя (в сети или нет) */
   const onlineMap = useOnline(user?.id);
 
-  /** Обогащаем данные пользователя статусом онлайн. */
-  const enrichedUser = useMemo(
-    () => (user ? { ...user, online: onlineMap.get(user?.id) ?? false } : null),
-    [user, onlineMap]
-  );
+  const enrichedUser = useMemo(() => {
+    if (!user) return null;
+    const online = onlineMap.get(user.id) ?? false;
+    if (user.online === online) return user;
+    return { ...user, online };
+  }, [user, onlineMap]);
 
-  /** Возвращаемые значения */
   return {
     user: enrichedUser,
     userLoading: isLoading,

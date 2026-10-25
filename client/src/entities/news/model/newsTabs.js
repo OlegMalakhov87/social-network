@@ -1,4 +1,4 @@
-/** Мапа для выбора категории новостей*/
+/** Хранит категории новостей. */
 export const CATEGORIES = [
   { id: 'all', label: 'Все', icon: '📰' },
   { id: 'technology', label: 'Технологии', icon: '💻' },

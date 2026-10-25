@@ -1,5 +1,8 @@
 /**
- * Преобразует новость News с сервера в формат компонента News.
+ * Приводит новость с сервера к формату карточки.
+ *
+ * @param {Object} raw - Новость с сервера
+ * @returns {Object} Новость карточки
  */
 export const normalizeNews = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

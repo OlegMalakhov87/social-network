@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { API_URL } from '../config';
 
 export const apiAxios = axios.create({
@@ -11,17 +12,32 @@ export const apiAxios = axios.create({
 let requestInterceptorId = null;
 let responseInterceptorId = null;
 
-/** Проверяем, что авторизация не меняется. */
+/**
+ * Проверяет, что авторизация остаётся устойчивой.
+ *
+ * @param {Object} auth - Состояние авторизации
+ * @returns {boolean} Признак устойчивой сессии.
+ */
 const isStableAuth = (auth) =>
   auth?.isAuthenticated === true &&
   auth.isLoggingOut !== true &&
   auth.authCheckRequestId == null &&
   auth.authMutationRequestId == null;
 
-/** Запросы авторизации не запускают автоматический refresh. */
+/**
+ * Проверяет, относится ли адрес к авторизации.
+ *
+ * @param {string} [url=''] - Адрес запроса
+ * @returns {boolean} Признак адреса авторизации.
+ */
 const isAuthEndpoint = (url = '') => /(?:^|\/)auth(?:\/|$|\?)/.test(url);
 
-/** Извлекаем токен из Authorization. */
+/**
+ * Извлекает маркер доступа из заголовка авторизации.
+ *
+ * @param {Object} config - Параметры запроса Axios
+ * @returns {string|null} Маркер доступа или null.
+ */
 const getRequestToken = (config) => {
   const headers = config.headers;
 
@@ -41,13 +57,18 @@ const getRequestToken = (config) => {
 };
 
 /**
- * Настраивает Axios interceptors.
+ * Настраивает перехватчики Axios для обновления сессии.
  *
- * @param {import('@reduxjs/toolkit').EnhancedStore} store
- * @param {Object} dependencies
- * @param {Function} dependencies.refreshSession
- * @param {Function} dependencies.setAccessToken
- * @param {Function} dependencies.getAccessTokenClaims
+ * @param {Object} store - Хранилище Redux
+ * @param {Function} store.getState - Возвращает состояние
+ * @param {Function} store.dispatch - Отправляет действие
+ * @param {Object} dependencies - Зависимости перехватчиков
+ * @param {Function} dependencies.refreshSession - Обновляет сессию
+ * @param {Function} dependencies.setAccessToken - Записывает маркер доступа
+ * @param {Function} dependencies.getAccessTokenClaims - Возвращает данные JWT
+ * @param {Function} dependencies.logout - Завершает сессию
+ * @param {Function} [dependencies.notifySessionRevoked] - Сообщает другим вкладкам об отзыве сессии
+ * @returns {void}
  */
 export const setupAxiosInterceptors = (
   store,
@@ -69,6 +90,13 @@ export const setupAxiosInterceptors = (
 
   const pendingRefreshes = new Map();
 
+  /**
+   * Проверяет, что маркеры доступа принадлежат одной сессии.
+   *
+   * @param {string} firstToken - Первый маркер доступа
+   * @param {string} secondToken - Второй маркер доступа
+   * @returns {boolean} Признак совпадения пользователя и сессии.
+   */
   const isSameSession = (firstToken, secondToken) => {
     const first = getAccessTokenClaims(firstToken);
     const second = getAccessTokenClaims(secondToken);
@@ -79,12 +107,16 @@ export const setupAxiosInterceptors = (
   };
 
   /**
-   * Обновляет JWT и применяет его только к исходной
-   * авторизации. Конкурентные вызовы разделяют Promise.
+   * Обновляет сессию и возвращает новый маркер доступа.
+   * Повторные вызовы с тем же маркером разделяют один промис.
+   *
+   * @param {string} expectedToken - Маркер доступа исходного запроса
+   * @returns {Promise<string>} Новый маркер доступа.
    */
   const refreshForToken = (expectedToken) => {
     const existing = pendingRefreshes.get(expectedToken);
 
+    // Возвращает уже запущенное обновление сессии.
     if (existing) {
       return existing;
     }
@@ -121,8 +153,10 @@ export const setupAxiosInterceptors = (
   };
 
   /**
-   * Завершает только актуальную авторизацию
-   * и уведомляет остальные вкладки.
+   * Завершает текущую авторизацию и сообщает другим вкладкам.
+   *
+   * @param {string} expectedToken - Маркер доступа завершаемой сессии
+   * @returns {void}
    */
   const logoutCurrentSession = (expectedToken) => {
     const auth = store.getState().auth;
@@ -141,6 +175,12 @@ export const setupAxiosInterceptors = (
   };
 
   requestInterceptorId = apiAxios.interceptors.request.use(
+    /**
+     * Добавляет маркер доступа к запросу.
+     *
+     * @param {Object} config - Параметры запроса
+     * @returns {Object|Promise<never>} Параметры запроса или отказ, если авторизация сменилась.
+     */
     (config) => {
       const auth = store.getState().auth;
 
@@ -163,12 +203,30 @@ export const setupAxiosInterceptors = (
 
       return config;
     },
+    /**
+     * Отклоняет запрос, если подготовка завершилась ошибкой.
+     *
+     * @param {Error} error - Ошибка подготовки запроса
+     * @returns {Promise<never>} Отклонённый промис.
+     */
     (error) => Promise.reject(error)
   );
 
   responseInterceptorId = apiAxios.interceptors.response.use(
+    /**
+     * Возвращает успешный ответ без изменений.
+     *
+     * @param {Object} response - Ответ Axios
+     * @returns {Object} Исходный ответ.
+     */
     (response) => response,
 
+    /**
+     * Обновляет сессию после ответа 401 и повторяет исходный запрос.
+     *
+     * @param {Object} error - Ошибка ответа Axios
+     * @returns {Promise<*>} Повторный ответ или отказ.
+     */
     async (error) => {
       const config = error.config;
 

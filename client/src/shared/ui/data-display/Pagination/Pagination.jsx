@@ -1,22 +1,26 @@
 import { Button } from '../..';
+
 import style from './Pagination.module.css';
 
 /**
- * Пагинация (постраничная навигация).
- * @param {Object} props
- * @param {number} props.totalPages - общее количество страниц (целое число)
- * @param {number} props.page - текущая страница (начиная с 1) (целое число)
- * @param {Function} props.onPageChange - колбэк при смене страницы (получает номер страницы)
+ * Переключает страницы списка.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {number} props.totalPages - Общее количество страниц
+ * @param {number} props.page - Номер текущей страницы, начиная с 1
+ * @param {Function} props.onPageChange - Обработчик смены страницы, получает её номер
+ * @returns {JSX.Element} Постраничная навигация.
  */
 
 export const Pagination = ({ totalPages, page, onPageChange }) => {
-  // Защита от некорректных значений
+  // Ограничивает номера страниц допустимым диапазоном.
   const safeTotal = Math.max(1, Number(totalPages) || 1);
   const safePage = Math.min(Math.max(1, Number(page) || 1), safeTotal);
 
   /**
-   * Генерация массива страниц с добавлением '...' для пропусков.
-   * @returns {Array<number|string>}
+   * Возвращает номера страниц и маркеры пропуска.
+   *
+   * @returns {Array<number|string>} Номера страниц и пропуски.
    */
   const getPageNumbers = () => {
     if (safeTotal <= 7) {

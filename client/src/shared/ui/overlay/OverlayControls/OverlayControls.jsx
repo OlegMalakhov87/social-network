@@ -1,11 +1,12 @@
 import style from './OverlayControls.module.css';
 
 /**
- * Контролы для оверлея.
+ * Отображает элементы управления наложения.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.left - левое поле оверлея
- * @param {React.ReactNode} props.right - правое поле оверлея
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.left - Левая часть наложения
+ * @param {React.ReactNode} props.right - Правая часть наложения
+ * @returns {JSX.Element} Элементы управления наложения.
  */
 export const OverlayControls = ({ left, right }) => {
   return (

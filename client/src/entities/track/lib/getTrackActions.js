@@ -1,16 +1,16 @@
 /**
- * Формирует массив действий карточки трека.
+ * Возвращает действия трека.
  *
- * @param {Object} params - параметры
- * @param {Object} params.track - данные трека
- * @param {boolean} params.isOwn - флаг владельца трека
- * @param {Function} params.toggleLike - функция для лайка/дизлайка трека
- * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к треку
- * @param {Function} params.addToLibrary - функция для добавления трека в библиотеку
- * @param {Function} params.deleteFromLibrary - функция для удаления трека из библиотеки
- * @param {Function} params.onUpdate - функция для обновления трека
- * @param {boolean} params.disabledButton - флаг для блокировки кнопки
- * @returns {Array<Object>} - массив действий для карточки трека
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.track - Трек
+ * @param {boolean} params.isOwn - Признак владельца трека
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.toggleComments] - Обработчик комментариев
+ * @param {Function} [params.addToLibrary] - Обработчик добавления в библиотеку
+ * @param {Function} [params.deleteFromLibrary] - Обработчик удаления из библиотеки
+ * @param {Function} [params.onUpdate] - Обработчик обновления
+ * @param {boolean} params.disabledButton - Признак блокировки кнопки
+ * @returns {Array<Object>} Действия трека
  */
 export const getTrackActions = ({
   track,

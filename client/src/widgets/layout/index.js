@@ -1,1 +1,1 @@
-export { AppShellSkeleton } from './ui/AppShellSkeleton'; // скелетон оболочки всего приложения
+export { AppShellSkeleton } from './ui/AppShellSkeleton'; // Отображает каркас загрузки оболочки приложения.

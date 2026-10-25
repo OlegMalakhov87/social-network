@@ -1,6 +1,4 @@
-/**
- * Поля формы регистрации.
- */
+/** Задаёт поля формы регистрации. */
 export const REGISTER_CONFIG = [
   {
     name: 'name',
@@ -32,9 +30,7 @@ export const REGISTER_CONFIG = [
   },
 ];
 
-/**
- * Поля формы входа.
- */
+/** Задаёт поля формы входа. */
 export const LOGIN_CONFIG = [
   {
     name: 'email',
@@ -52,9 +48,7 @@ export const LOGIN_CONFIG = [
   },
 ];
 
-/**
- * Опции для выбора пола.
- */
+/** Задаёт варианты выбора пола. */
 export const GENDER_OPTIONS = [
   { value: 'male', label: 'Мужской' },
   { value: 'female', label: 'Женский' },

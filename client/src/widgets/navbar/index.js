@@ -1,2 +1,2 @@
-export { NAV_ITEMS } from './config/navConfig'; // конфигурация навигации
-export { Navbar } from './ui/Navbar'; // навигационное меню с логотипом, навигацией и поиском
+export { NAV_ITEMS } from './config/navConfig'; // Содержит пункты основной навигации.
+export { Navbar } from './ui/Navbar'; // Отображает боковую панель навигации.

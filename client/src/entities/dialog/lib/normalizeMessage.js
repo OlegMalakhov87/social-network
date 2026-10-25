@@ -1,8 +1,8 @@
 /**
- * Нормализация списка сообщений.
+ * Приводит сообщение к формату карточки.
  *
- * @param {Object} raw - сырой список сообщений
- * @returns {Object} - нормализованный список сообщений
+ * @param {Object} raw - Сообщение с сервера
+ * @returns {Object} Сообщение карточки
  */
 export const normalizeMessages = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

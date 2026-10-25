@@ -2,11 +2,11 @@ import { formatDate, formatSize } from '../../../shared/utils';
 import { CATEGORY_OPTIONS } from '../model/videosTabs';
 
 /**
- * Подготавливает данные для отображения VideoMeta.
+ * Возвращает сведения для карточки видео.
  *
- * @param {Object} video - данные видео
- * @param {string} mode - режим отображения
- * @returns {Object} - данные для отображения VideoMeta
+ * @param {Object} video - Видео
+ * @param {string} mode - Режим отображения
+ * @returns {{ details: Array<Object>, dates: Object }} Сведения о видео
  */
 export const getVideoMeta = (video, mode) => {
   return {

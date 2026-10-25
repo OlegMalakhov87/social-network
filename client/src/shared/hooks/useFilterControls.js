@@ -1,12 +1,21 @@
 import { useCallback, useState } from 'react';
 
 /**
- * Хук для управления фильтрами, поиском и сортировкой.
+ * Хранит фильтр, строку поиска и сортировку.
  *
- * @param {Object} params
- * @param {string|Object} [params.initialFilter='all'] - начальный фильтр или объект
- * @param {string} [params.initialSort='dateDesc'] - начальная сортировка
- * @returns {Object} - объект с данными о фильтрах, поиске и сортировке
+ * @param {Object} params - Начальные значения
+ * @param {string|Object} [params.initialFilter='all'] - Начальный фильтр
+ * @param {string} [params.initialSort='dateDesc'] - Начальная сортировка
+ * @returns {{
+ *   filter: string|Object,
+ *   setFilter: Function,
+ *   searchQuery: string,
+ *   setSearchQuery: Function,
+ *   sortKey: string,
+ *   setSortKey: Function,
+ *   handleFilterChange: Function,
+ *   resetFilters: Function
+ * }} Состояние фильтров и методы изменения.
  */
 export const useFilterControls = ({
   initialFilter = 'all',
@@ -16,7 +25,12 @@ export const useFilterControls = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState(initialSort);
 
-  /** Сброс поиска и сортировки при смене фильтра */
+  /**
+   * Меняет фильтр и сбрасывает поиск и сортировку.
+   *
+   * @param {string|Object} id - Новый фильтр
+   * @returns {void}
+   */
   const handleFilterChange = useCallback(
     (id) => {
       setFilter(id);
@@ -26,7 +40,11 @@ export const useFilterControls = ({
     [initialSort]
   );
 
-  /** Сброс всех фильтров */
+  /**
+   * Возвращает фильтр, поиск и сортировку к начальным значениям.
+   *
+   * @returns {void}
+   */
   const resetFilters = useCallback(() => {
     setFilter(initialFilter);
     setSearchQuery('');

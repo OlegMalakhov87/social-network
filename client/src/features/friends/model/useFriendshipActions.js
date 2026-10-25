@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+
 import {
   acceptFriendRequest,
   blockUser,
@@ -8,16 +9,20 @@ import {
 import { parseApiError } from '../../../shared/lib';
 
 /**
- * Универсальный хук для управления дружбой.
- * Работает как с объектом пользователя, так и с массивом.
+ * Обновляет статус дружбы у пользователя или в списке пользователей.
  *
- * @param {Object} params
- * @param {Function} params.setItems - функция обновления (принимает либо функцию, либо объект)
- * @param {Function} params.getCurrentData - функция, возвращающая текущие данные
- * @param {Function} params.getUserId - функция, извлекающая ID из данных
- * @param {Function} [params.onSuccess] - колбэк успеха
- * @param {Function} [params.onError] - колбэк ошибки
- * @returns {Object} - экшены
+ * @param {Object} params - Параметры обновления
+ * @param {Function} params.setItems - Обновляет пользователя или список
+ * @param {Function} params.getCurrentData - Возвращает текущие данные
+ * @param {Function} params.getUserId - Возвращает идентификатор из данных
+ * @param {Function} [params.onSuccess] - Обработчик успешного действия
+ * @param {Function} [params.onError] - Обработчик ошибки
+ * @returns {{
+ *   follow: Function,
+ *   unfollow: Function,
+ *   accept: Function,
+ *   block: Function
+ * }} Действия дружбы
  */
 export const useFriendshipActions = ({
   setItems,
@@ -26,9 +31,12 @@ export const useFriendshipActions = ({
   onSuccess,
   onError,
 }) => {
-  /** Обновление полей дружбы
-   * @param {string} userId - ID пользователя
-   * @param {Object} fields - поля для обновления
+  /**
+   * Обновляет поля дружбы у пользователя.
+   *
+   * @param {number} userId - Идентификатор пользователя
+   * @param {Object} fields - Поля дружбы
+   * @returns {void}
    */
   const updateFriendshipFields = useCallback(
     (userId, fields) => {
@@ -47,8 +55,11 @@ export const useFriendshipActions = ({
     [setItems, getUserId]
   );
 
-  /** Отправка запроса на дружбу
-   * @param {string} userId - ID пользователя
+  /**
+   * Отправляет заявку в друзья.
+   *
+   * @param {number} userId - Идентификатор пользователя
+   * @returns {Promise<boolean>} Результат отправки
    */
   const follow = useCallback(
     async (userId) => {
@@ -82,9 +93,12 @@ export const useFriendshipActions = ({
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
   );
 
-  /** Удалить из друзей, разблокировать, отменить заявку на дружбу
-   * @param {string} friendshipId - ID дружбы
-   * @param {string} userId - ID пользователя
+  /**
+   * Удаляет дружбу, снимает блокировку или отменяет заявку.
+   *
+   * @param {number} friendshipId - Идентификатор дружбы
+   * @param {number} userId - Идентификатор пользователя
+   * @returns {Promise<boolean>} Результат удаления
    */
   const unfollow = useCallback(
     async (friendshipId, userId) => {
@@ -110,9 +124,12 @@ export const useFriendshipActions = ({
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
   );
 
-  /** Принятие запроса на дружбу
-   * @param {string} friendshipId - ID дружбы
-   * @param {string} userId - ID пользователя
+  /**
+   * Принимает заявку в друзья.
+   *
+   * @param {number} friendshipId - Идентификатор дружбы
+   * @param {number} userId - Идентификатор пользователя
+   * @returns {Promise<boolean>} Результат принятия
    */
   const accept = useCallback(
     async (friendshipId, userId) => {
@@ -146,8 +163,11 @@ export const useFriendshipActions = ({
     [updateFriendshipFields, onSuccess, onError, setItems, getCurrentData]
   );
 
-  /** Блокировка пользователя
-   * @param {string} userId - ID пользователя
+  /**
+   * Блокирует пользователя.
+   *
+   * @param {number} userId - Идентификатор пользователя
+   * @returns {Promise<boolean>} Результат блокировки
    */
   const block = useCallback(
     async (userId) => {

@@ -1,26 +1,30 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Хук для управления прокруткой.
+ * Отслеживает прокрутку и перемещает контейнер к краям.
  *
- * @param {Object} props
- * @param {React.RefObject} props.containerRef - Ссылка на scroll-контейнер.
+ * @param {Object} props - Параметры прокрутки
+ * @param {import('react').RefObject} props.containerRef - Ссылка на контейнер прокрутки
  * @returns {{
  *   isPastMiddle: boolean,
- *   scrollToTop: () => void,
- *   scrollToBottom: () => void
- * }}
+ *   scrollToTop: Function,
+ *   scrollToBottom: Function
+ * }} Признак середины и методы прокрутки.
  */
-
 export const useScrollNavigation = ({ containerRef }) => {
   const [isPastMiddle, setIsPastMiddle] = useState(false);
 
-  /** Обработка прокрутки контейнера */
+  // Следит, пройдена ли середина прокрутки.
   useEffect(() => {
     const container = containerRef.current;
 
     if (!container) return;
 
+    /**
+     * Обновляет признак прохождения середины прокрутки.
+     *
+     * @returns {void}
+     */
     const handleScroll = () => {
       const maxScroll = container.scrollHeight - container.clientHeight;
 
@@ -38,7 +42,11 @@ export const useScrollNavigation = ({ containerRef }) => {
     };
   }, [containerRef]);
 
-  /** Прокрутка к началу */
+  /**
+   * Прокручивает контейнер к началу.
+   *
+   * @returns {void}
+   */
   const scrollToTop = useCallback(() => {
     containerRef.current?.scrollTo({
       top: 0,
@@ -46,7 +54,11 @@ export const useScrollNavigation = ({ containerRef }) => {
     });
   }, [containerRef]);
 
-  /** Прокрутка к концу */
+  /**
+   * Прокручивает контейнер к концу.
+   *
+   * @returns {void}
+   */
   const scrollToBottom = useCallback(() => {
     const container = containerRef.current;
 

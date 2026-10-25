@@ -49,14 +49,13 @@ module.exports = {
       },
     });
 
-    // Уникальный индекс (один пользователь - одна запись на видео)
+    // Не даёт пользователю сохранить одно видео дважды.
     await queryInterface.addConstraint('UserVideoLibraries', {
       fields: ['userId', 'videoId'],
       type: 'unique',
       name: 'uniqueUserVideo',
     });
 
-    // Индексы для быстрого поиска
     await queryInterface.addIndex('UserVideoLibraries', ['userId']);
     await queryInterface.addIndex('UserVideoLibraries', ['videoId']);
   },

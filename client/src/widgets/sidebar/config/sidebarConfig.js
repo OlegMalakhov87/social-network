@@ -1,4 +1,4 @@
-// Этот файл содержит конфигурацию для боковой панели приложения
+/** Содержит тексты и ссылки боковой панели. */
 export const SIDEBAR_CONFIG = {
   premium: {
     variant: 'gradient-primary',

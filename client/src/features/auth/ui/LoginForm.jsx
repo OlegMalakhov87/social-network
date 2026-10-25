@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+
 import { LOGIN_CONFIG } from '..';
 import {
   clearError,
@@ -11,22 +12,24 @@ import {
 import { useForm } from '../../../shared/hooks';
 import { email, maxLength, minLength, required } from '../../../shared/lib';
 import { Alert, BaseCard, Button, Input, Text } from '../../../shared/ui';
+
 import style from './AuthForm.module.css';
 
 /**
- * Форма входа в аккаунт.
+ * Отображает форму входа в аккаунт.
+ *
+ * @returns {JSX.Element} Форма входа
  */
 export const LoginForm = () => {
   const dispatch = useDispatch();
   const authError = useSelector(selectAuthError);
   const isSubmitting = useSelector(selectIsAuthLoading);
 
-  /** Очистка ошибки при загрузке */
+  // Сбрасывает ошибку предыдущей попытки при открытии формы.
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
 
-  /** Форма для входа в аккаунт */
   const form = useForm({
     initialValues: { email: null, password: null },
     rules: {

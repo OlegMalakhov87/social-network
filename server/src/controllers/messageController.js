@@ -3,7 +3,12 @@ const { notifyUser } = require('../websocket');
 
 const messageController = {
   /**
-   * Получить список диалогов
+   * Возвращает список диалогов.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getDialogs: async (req, res, next) => {
     try {
@@ -22,7 +27,12 @@ const messageController = {
   },
 
   /**
-   * Получить переписку с конкретным пользователем
+   * Возвращает переписку с выбранным пользователем.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getConversation: async (req, res, next) => {
     try {
@@ -42,7 +52,12 @@ const messageController = {
   },
 
   /**
-   * Получить сообщение по ID
+   * Возвращает сообщение по идентификатору.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getMessageById: async (req, res, next) => {
     try {
@@ -59,7 +74,12 @@ const messageController = {
   },
 
   /**
-   * Отправить сообщение
+   * Отправляет сообщение.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   sendMessage: async (req, res, next) => {
     try {
@@ -85,7 +105,12 @@ const messageController = {
   },
 
   /**
-   * Обновить сообщение
+   * Обновляет сообщение.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   updateMessage: async (req, res, next) => {
     try {
@@ -104,7 +129,12 @@ const messageController = {
   },
 
   /**
-   * Отметить сообщения как прочитанные
+   * Отмечает сообщения как прочитанные.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   markAsRead: async (req, res, next) => {
     try {
@@ -118,7 +148,12 @@ const messageController = {
   },
 
   /**
-   * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
+   * Скрывает сообщение у текущего пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   hideMessage: async (req, res, next) => {
     try {
@@ -135,7 +170,12 @@ const messageController = {
   },
 
   /**
-   * Очистить чат
+   * Очищает переписку у текущего пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   clearChat: async (req, res, next) => {
     try {

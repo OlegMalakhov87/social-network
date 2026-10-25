@@ -1,5 +1,8 @@
 /**
- * Нормализует объект новости для SharedEntityCard.
+ * Приводит новость к карточке общей сущности.
+ *
+ * @param {Object} news - Новость
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedNews = (news) => ({
   id: news.id,

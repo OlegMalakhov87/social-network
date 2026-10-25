@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import {
   fetchMyVideoLibrary,
   fetchUserVideoLibrary,
@@ -8,25 +9,32 @@ import { useInfiniteScroll, useNormalizedData } from '../../../shared/hooks';
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для получения видео библиотеки пользователя.
+ * Возвращает видео библиотеки пользователя.
  *
- * @param {Object} params - параметры запроса
- * @param {number|null} params.profileUserId - ID пользователя
- * @param {boolean} params.isOwnProfile - является ли текущий пользователь владельцем профиля
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Object} - объект с данными о видео библиотеке пользователя
+ * @param {Object} params - Параметры запроса
+ * @param {number|null} params.profileUserId - Идентификатор пользователя
+ * @param {boolean} params.isOwnProfile - Признак своего профиля
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {{
+ *   videos: Array<Object>,
+ *   hasMore: boolean,
+ *   isLoading: boolean,
+ *   loadMore: Function,
+ *   isLoadingMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   refetch: Function,
+ *   setVideosItems: Function
+ * }} Видео библиотеки и состояние загрузки
  */
 export const useUserVideoLibrary = ({
   profileUserId,
   isOwnProfile,
   sortKey,
 }) => {
-  /** Зависимости для скролла */
   const scrollDeps = useMemo(
     () => [profileUserId, sortKey],
     [profileUserId, sortKey]
   );
-  /** Получение видео библиотеки пользователя. */
   const {
     items: videosItems,
     setItems: setVideosItems,
@@ -37,6 +45,15 @@ export const useUserVideoLibrary = ({
     loadMore,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу библиотеки видео.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница видео
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!profileUserId || profileUserId <= 0) {
         return { items: [], hasMore: false };
@@ -52,13 +69,11 @@ export const useUserVideoLibrary = ({
     deps: scrollDeps,
   });
 
-  /** Нормализация видео. */
   const videos = useNormalizedData({
     items: videosItems,
     normalizeFn: normalizeVideos,
   });
 
-  /** Объект с данными о видео библиотеке пользователя. */
   return {
     videos,
     hasMore,

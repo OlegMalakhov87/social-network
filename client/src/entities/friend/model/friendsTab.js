@@ -1,4 +1,4 @@
-/** Мапа для выбора категории друзей */
+/** Хранит категории друзей. */
 export const FRIEND_CATEGORIES = [
   { id: 'all', label: 'Пользователи' },
   { id: 'friends', label: 'Друзья' },

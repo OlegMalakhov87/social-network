@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { Message } from '../../../entities/dialog';
 import { normalizeSharedMessage } from '../../../entities/shared-entity';
 import { MessageForm } from '../../../features/dialogs';
@@ -13,31 +14,34 @@ import {
   InfiniteScrollFooter,
   StatusBadge,
 } from '../../../shared/ui';
+
 import styles from './ChatGrid.module.css';
 
 /**
- * Компонент отображения чата.
- * @param {Object} props
- * @param {Array} props.messages - массив сообщений
- * @param {number} props.currentUserId - ID текущего пользователя
- * @param {Object} props.selectedUser - объект выбранного пользователя
- * @param {boolean} props.isLoadingMessages - флаг загрузки сообщений
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей порции сообщений
- * @param {boolean} props.hasMore - флаг наличия следующей порции сообщений
- * @param {Error} props.messagesError - ошибка загрузки сообщений
- * @param {Error} props.userError - ошибка загрузки пользователя
- * @param {Function} props.loadMore - колбэк загрузки следующей порции сообщений
- * @param {Function} props.onRetry - колбэк повторной загрузки
- * @param {boolean} props.isLoadingUser - флаг загрузки пользователя
- * @param {Function} props.onSendMessage - колбэк отправки сообщения
- * @param {Function} props.onDeleteMessage - колбэк удаления сообщения
- * @param {Function} props.onUpdateMessage - колбэк обновления сообщения
- * @param {Function} props.onToggleLike - колбэк лайка сообщения
- * @param {Function} props.onBack - колбэк назад
- * @param {Function} props.onPlayMedia - колбэк воспроизведения медиа
- * @param {Function} props.markAsRead - колбэк чтения сообщения
- * @param {Function} props.onClearChat - колбэк очистки чата
- * @param {boolean} props.partnerOnline - флаг онлайн-статуса собеседника
+ * Отображает переписку с выбранным пользователем.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.messages=[]] - Список сообщений
+ * @param {number} props.currentUserId - Идентификатор текущего пользователя
+ * @param {Object} props.selectedUser - Выбранный пользователь
+ * @param {boolean} props.isLoadingMessages - Признак загрузки сообщений
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Error|string|null} props.messagesError - Ошибка загрузки сообщений
+ * @param {Error|string|null} props.userError - Ошибка загрузки пользователя
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {boolean} props.isLoadingUser - Признак загрузки пользователя
+ * @param {Function} props.onSendMessage - Обработчик отправки сообщения
+ * @param {Function} props.onDeleteMessage - Обработчик удаления сообщения
+ * @param {Function} props.onUpdateMessage - Обработчик обновления сообщения
+ * @param {Function} props.onToggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.onBack - Обработчик возврата к списку диалогов
+ * @param {Function} props.onPlayMedia - Обработчик воспроизведения медиа
+ * @param {Function} [props.markAsRead] - Обработчик отметки сообщений прочитанными
+ * @param {Function} [props.onClearChat] - Обработчик очистки переписки
+ * @param {boolean} props.partnerOnline - Признак нахождения собеседника в сети
+ * @returns {JSX.Element} Разметка переписки.
  */
 export const ChatGrid = ({
   messages = [],
@@ -62,86 +66,175 @@ export const ChatGrid = ({
   partnerOnline,
 }) => {
   const navigate = useNavigate();
+  const messagesListRef = useRef(null);
+  const scrollRestoreRef = useRef(null);
+  const currentDialogRef = useRef(null);
+  const stickToBottomRef = useRef(true);
 
-  /** Хук для отметки сообщений как прочитанных.*/
+  /**
+   * Обрабатывает скролл.
+   *
+   * @returns {void}
+   */
+  const handleScroll = () => {
+    const element = messagesListRef.current;
+    if (!element) return;
+
+    const distanceToBottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight;
+
+    stickToBottomRef.current = distanceToBottom < 80;
+  };
+
+  /**
+   * Загружает старые сообщения.
+   *
+   * @returns {void}
+   */
+  const handleLoadOlder = useCallback(() => {
+    const element = messagesListRef.current;
+
+    if (
+      !element ||
+      !hasMore ||
+      isLoadingMore ||
+      isLoadingMessages ||
+      !loadMore
+    ) {
+      return;
+    }
+
+    // Запоминаем положение до добавления старых сообщений.
+    scrollRestoreRef.current = {
+      scrollHeight: element.scrollHeight,
+      scrollTop: element.scrollTop,
+    };
+
+    loadMore();
+  }, [hasMore, isLoadingMore, isLoadingMessages, loadMore]);
+
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasMore: hasMore && !isLoadingMessages,
+    isLoadingMore,
+    onLoadMore: handleLoadOlder,
+    rootRef: messagesListRef,
+    rootMargin: '100px 0px 0px 0px',
+  });
+
+  useLayoutEffect(() => {
+    const element = messagesListRef.current;
+    if (!element || isLoadingMessages) return;
+
+    // Восстанавливаем положение после подгрузки старой истории.
+    if (!isLoadingMore && scrollRestoreRef.current) {
+      const { scrollHeight, scrollTop } = scrollRestoreRef.current;
+
+      element.scrollTop = scrollTop + (element.scrollHeight - scrollHeight);
+
+      scrollRestoreRef.current = null;
+      return;
+    }
+
+    // При открытии другого диалога показываем его конец.
+    if (currentDialogRef.current !== selectedUser?.id) {
+      currentDialogRef.current = selectedUser?.id;
+      stickToBottomRef.current = true;
+      element.scrollTop = element.scrollHeight;
+      return;
+    }
+
+    // Новые сообщения прокручивают чат вниз, только если пользователь уже был рядом с концом.
+    if (!isLoadingMore && stickToBottomRef.current) {
+      element.scrollTop = element.scrollHeight;
+    }
+  }, [messages, isLoadingMessages, isLoadingMore, selectedUser?.id]);
+
+  // Отмечает сообщения прочитанными, когда переписка уже загружена.
   useEffect(() => {
     if (messages.length > 0 && selectedUser?.id) {
       markAsRead?.();
     }
   }, [messages, selectedUser?.id, markAsRead]);
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
   const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedMessage,
     onSuccess: () => navigate('/messages'),
   });
 
-  /** Триггер для автоматической загрузки следующей страницы */
-  const loadMoreRef = useInfiniteScrollTrigger({
-    hasMore,
-    isLoadingMore,
-    onLoadMore: loadMore,
-  });
+  if (!selectedUser?.id) {
+    return (
+      <ContentState
+        loading={isLoadingUser}
+        error={userError}
+        isEmpty
+        emptyIcon="💬"
+        emptyTitle="Выберите диалог"
+        emptyDescription="Выберите собеседника, чтобы начать общение"
+      />
+    );
+  }
 
   return (
-    <ContentState
-      loading={isLoadingUser || (isLoadingMessages && messages.length === 0)}
-      error={userError || (messagesError && messages?.length === 0)}
-      isEmpty={!messages?.length}
-      loadingMessage={
-        isLoadingUser ? 'Загружаем пользователя...' : 'Загружаем сообщения...'
-      }
-      emptyIcon="💬"
-      emptyTitle="Нет сообщений"
-      emptyDescription="Начните общение с друзьями"
-      onRetry={onRetry}
-    >
-      <div className={styles.chat}>
-        {/* Шапка чата  */}
-        <EntityHeader className={styles.chatHeader}>
-          <IconButton
-            icon="←"
-            variant="ghost"
-            size="md"
-            onClick={onBack}
-            ariaLabel="Назад к списку диалогов"
+    <div className={styles.chat}>
+      <EntityHeader className={styles.chatHeader}>
+        <IconButton
+          icon="←"
+          variant="ghost"
+          size="md"
+          onClick={onBack}
+          ariaLabel="Назад к списку диалогов"
+        />
+
+        <div
+          className={styles.userInfo}
+          onClick={() =>
+            selectedUser?.id && navigate(`/profile/${selectedUser?.id}`)
+          }
+        >
+          <EntityMeta
+            avatar={selectedUser?.avatarUrl}
+            title={selectedUser?.name}
+            fallback="/user.jpg"
           />
-
-          <div
-            className={styles.userInfo}
-            onClick={() =>
-              selectedUser?.id && navigate(`/profile/${selectedUser?.id}`)
-            }
-          >
-            <EntityMeta
-              avatar={selectedUser?.avatar}
-              title={selectedUser?.name}
-              fallback="/user.jpg"
-            />
-            <StatusBadge
-              status={partnerOnline ? 'online' : 'offline'}
-              label={partnerOnline ? 'В сети' : 'Не в сети'}
-              size="sm"
-              className={styles.statusBadge}
-            />
-          </div>
-
-          <IconButton
-            icon="🗑️"
-            variant="ghost"
+          <StatusBadge
+            status={partnerOnline ? 'online' : 'offline'}
+            label={partnerOnline ? 'В сети' : 'Не в сети'}
             size="sm"
-            onClick={() => onClearChat?.(selectedUser?.id)}
-            ariaLabel="Очистить чат"
+            className={styles.statusBadge}
           />
-        </EntityHeader>
+        </div>
 
-        {/* Список сообщений */}
-        <div className={styles.messagesList}>
-          {messages.map((msg) => (
+        <IconButton
+          icon="🗑️"
+          variant="ghost"
+          size="sm"
+          onClick={() => onClearChat?.(selectedUser?.id)}
+          ariaLabel="Очистить чат"
+        />
+      </EntityHeader>
+
+      <div
+        ref={messagesListRef}
+        className={styles.messagesList}
+        onScroll={handleScroll}
+      >
+        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
+        {messages.length === 0 ? (
+          <ContentState
+            loading={isLoadingMessages}
+            error={messagesError}
+            isEmpty
+            emptyIcon="💬"
+            emptyTitle="Пока нет сообщений"
+            emptyDescription="Напишите первое сообщение"
+            onRetry={onRetry}
+          />
+        ) : (
+          messages.map((msg) => (
             <Message
               key={msg.id}
               message={msg}
-              currentUserId={currentUserId}
               isOwn={msg.senderId === currentUserId}
               sharedEntity={msg.sharedEntity}
               onPlayMedia={onPlayMedia}
@@ -150,26 +243,20 @@ export const ChatGrid = ({
               onUpdate={onUpdateMessage}
               onDelete={onDeleteMessage}
             />
-          ))}
-        </div>
-
-        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
-
-        {messages.length > 0 && (
-          <>
-            <InfiniteScrollFooter
-              hasMore={hasMore}
-              isLoading={isLoadingMore}
-              error={messagesError}
-              onRetry={loadMore}
-              endMessage="Сообщений больше нет"
-            />
-          </>
+          ))
         )}
 
-        {/* Форма отправки */}
-        <MessageForm partnerId={selectedUser?.id} onSubmit={onSendMessage} />
+        {messages.length > 0 && (
+          <InfiniteScrollFooter
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+            error={messagesError}
+            onRetry={handleLoadOlder}
+            endMessage="Сообщений больше нет"
+          />
+        )}
       </div>
-    </ContentState>
+      <MessageForm partnerId={selectedUser?.id} onSubmit={onSendMessage} />
+    </div>
   );
 };

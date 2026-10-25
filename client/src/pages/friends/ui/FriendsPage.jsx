@@ -10,18 +10,17 @@ import {
 import { FriendsGrid } from '../../../widgets/friends-list';
 
 /**
- * Страница друзей – отображает каталог друзей с фильтрацией.
+ * Отображает страницу друзей.
  *
- * @param {Object} props
- * @param {string} props.searchQuery - поисковый запрос для загрузки друзей
+ * @param {Object} props - Свойства компонента
+ * @param {string} [props.searchQuery=''] - Поисковый запрос
+ * @returns {JSX.Element} Разметка страницы.
  */
 export const FriendsPage = ({ searchQuery = '' }) => {
-  /** Управление фильтрацией */
   const { filter, handleFilterChange } = useFilterControls({
     initialFilter: 'all',
   });
 
-  /** Загрузка друзей */
   const {
     friends,
     isLoading,

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+
 import { NEWS_CONFIG } from '..';
 import { CATEGORY_OPTIONS, NEWS_TYPES } from '../../../entities/news';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -24,14 +25,14 @@ import {
 } from '../../file-upload';
 
 /**
- * Форма добавления/редактирования новости. Используется для создания и редактирования новостей.
- * Поддерживает типы: text, image, video.
+ * Отображает форму добавления и редактирования новости.
  *
- * @param {Object} props - пропсы компонента
- * @param {Object} [props.initialData] - данные новости для редактирования
- * @param {Function} props.onClose - функция для закрытия формы
- * @param {Function} props.onSubmit - функция для отправки формы
- * @param {Object} props.currentUser - текущий пользователь
+ * @param {Object} props - Свойства компонента
+ * @param {Object} [props.initialData={}] - Данные новости для редактирования
+ * @param {Function} props.onClose - Закрывает форму
+ * @param {Function} props.onSubmit - Отправляет форму
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @returns {JSX.Element} Форма новости
  */
 export const NewsForm = ({
   initialData = {},
@@ -44,7 +45,12 @@ export const NewsForm = ({
   const notify = useNotify();
   const isCancellingRef = useRef(false);
 
-  /** Обработчик отправки формы */
+  /**
+   * Отправляет новость и закрепляет загруженные файлы.
+   *
+   * @param {Object} values - Значения формы
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (values) => {
     try {
       await onSubmit?.(values, isEdit, initialData?.id);
@@ -58,7 +64,7 @@ export const NewsForm = ({
       throw error;
     }
 
-    // С этого момента сохранение на сервере уже успешно.
+    // Сохранение на сервере уже завершилось успешно.
     const usedUrls = [values.newsUrl, values.previewUrl, values.thumbnailUrl];
 
     const results = await Promise.all([
@@ -79,7 +85,6 @@ export const NewsForm = ({
     onClose?.();
   };
 
-  /** Форма для создания/редактирования новости с валидацией*/
   const form = useForm({
     initialValues: {
       uploader: currentUser,
@@ -92,6 +97,13 @@ export const NewsForm = ({
       previewUrl: initialData?.previewUrl ?? null,
       thumbnailUrl: initialData?.thumbnailUrl ?? null,
     },
+    /**
+     * Возвращает правила полей по типу новости.
+     *
+     * @param {Object} values - Значения формы
+     * @param {string} values.type - Тип новости
+     * @returns {Object} Правила полей
+     */
     rules: (values) => ({
       title: [
         required('Введите заголовок'),
@@ -129,7 +141,6 @@ export const NewsForm = ({
     onSubmit: handleSubmit,
   });
 
-  /** Хук для загрузки изображения */
   const imageUpload = useFileUpload(NEWS_IMAGE_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('newsUrl', data.newsUrl);
@@ -138,7 +149,6 @@ export const NewsForm = ({
     },
   });
 
-  /** Хук для загрузки видео */
   const videoUpload = useFileUpload(NEWS_VIDEO_UPLOAD_CONFIG, {
     onSuccess: (data) => {
       form.setValue('newsUrl', data.newsUrl);
@@ -155,19 +165,21 @@ export const NewsForm = ({
     },
   });
 
-  /** Флаг загрузки */
   const isUploading = imageUpload.isUploading || videoUpload.isUploading;
 
-  /** Конфигурация загрузки */
   const activeUpload = form.values.type === 'video' ? videoUpload : imageUpload;
 
-  /** Конфигурация загрузки */
   const activeConfig =
     form.values.type === 'video'
       ? NEWS_VIDEO_UPLOAD_CONFIG
       : NEWS_IMAGE_UPLOAD_CONFIG;
 
-  /** Обработчик изменения типа новости */
+  /**
+   * Меняет тип новости и удаляет временный файл предыдущего типа.
+   *
+   * @param {string} value - Новый тип новости
+   * @returns {Promise<void>}
+   */
   const handleTypeChange = async (value) => {
     setIsChangingType(true);
 
@@ -198,15 +210,12 @@ export const NewsForm = ({
     }
   };
 
-  /** Обработчик закрытия формы */
   const handleCancel = async () => {
     if (isCancellingRef.current || form.isSubmitting) return;
 
     isCancellingRef.current = true;
 
-    // Сначала инвалидируем запросы и очищаем UI.
-    // Это защищает от применения ответа загрузки
-    // после начала закрытия формы.
+    // Сбрасывает загрузку до очистки, чтобы ответ не попал в закрытую форму.
     videoUpload.reset();
     imageUpload.reset();
 
@@ -234,7 +243,6 @@ export const NewsForm = ({
       size="sm"
     >
       <form onSubmit={form.submit}>
-        {/* Выбор типа новости */}
         <SegmentedControl
           options={NEWS_TYPES}
           disabled={form.isSubmitting || isUploading || isChangingType}
@@ -265,7 +273,6 @@ export const NewsForm = ({
           disabled={form.isSubmitting || isUploading || isChangingType}
         />
 
-        {/* Динамическое поле для медиафайла */}
         {form.values.type !== 'text' && (
           <FileInput
             label={form.values.type === 'image' ? 'Изображение' : 'Видео'}
@@ -285,7 +292,6 @@ export const NewsForm = ({
           />
         )}
 
-        {/* Кнопки действий: Отмена, Сохранить, Добавить */}
         <ButtonGroup>
           <Button
             variant="secondary"

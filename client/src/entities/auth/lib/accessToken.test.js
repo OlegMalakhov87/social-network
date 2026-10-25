@@ -1,9 +1,10 @@
 import { getAccessTokenClaims } from './accessToken';
 
 /**
- * Создаёт тестовый токен.
- * @param {Object} payload - полезная нагрузка токена
- * @returns {string} - тестовый токен
+ * Создаёт маркер доступа для проверки.
+ *
+ * @param {Object} payload - Данные JWT
+ * @returns {string} Маркер доступа
  */
 const createTestToken = (payload) => {
   const header = btoa(
@@ -18,13 +19,8 @@ const createTestToken = (payload) => {
   return `${header}.${body}.test-signature`;
 };
 
-/**
- * Тестирует функцию getAccessTokenClaims.
- */
+/** Проверяет чтение полей маркера доступа. */
 describe('accessToken', () => {
-  /**
-   * Настраивает тестовые данные.
-   */
   beforeEach(() => {
     jest.clearAllMocks();
   });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { getMessageActions } from '..';
 import { classNames, formatDate } from '../../../shared/utils';
 import {
@@ -10,18 +11,22 @@ import {
   TextArea,
 } from '../../../shared/ui';
 import { SharedEntityCard } from '../../shared-entity';
+
 import style from './Message.module.css';
 
-/** Компонент отображения сообщения.
- * @param {Object} props
- * @param {Object} props.message - сообщение
- * @param {boolean} props.isOwn - является ли сообщение от текущего пользователя
- * @param {Function} props.onShareEntity - функция для передачи сообщения
- * @param {Object} props.sharedEntity - объект, содержащий информацию о сущности которой поделился пользователь
- * @param {Function} props.onPlayMedia - функция для воспроизведения медиа-контента
- * @param {Function} props.onDelete - функция для удаления сообщения
- * @param {Function} props.toggleLike - функция для лайка/дизлайка сообщения
- * @param {Function} props.onUpdate - функция для редактирования сообщения
+/**
+ * Отображает карточку сообщения.
+ *
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.message - Сообщение.
+ * @param {boolean} props.isOwn - Признак своего сообщения.
+ * @param {Function} props.onShareEntity - Обработчик отправки сообщения.
+ * @param {Object} props.sharedEntity - Общая сущность.
+ * @param {Function} props.onPlayMedia - Обработчик воспроизведения.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @param {Function} props.onUpdate - Обработчик правки.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 export const Message = ({
   message,

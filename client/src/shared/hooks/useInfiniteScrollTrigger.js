@@ -1,16 +1,15 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Триггер для автоматической загрузки следующей страницы
- * при приближении к концу списка.
+ * Вызывает загрузку следующей страницы при приближении к концу списка.
  *
- * @param {Object} params
- * @param {boolean} params.hasMore - Есть ли ещё данные
- * @param {boolean} params.isLoadingMore - Идёт ли загрузка следующей страницы
- * @param {Function} params.onLoadMore - Загрузка следующей страницы
- * @param {string} [params.rootMargin='300px'] - Отступ от viewport для срабатывания
- * @param {React.RefObject} [params.rootRef] - Ref на элемент, относительно которого наблюдается пересечение
- * @returns {React.RefObject} ref для sentinel-элемента
+ * @param {Object} params - Параметры наблюдения
+ * @param {boolean} params.hasMore - Есть ещё данные
+ * @param {boolean} params.isLoadingMore - Следующая страница уже загружается
+ * @param {Function} params.onLoadMore - Загружает следующую страницу
+ * @param {string} [params.rootMargin='300px'] - Отступ области наблюдения
+ * @param {import('react').RefObject} [params.rootRef] - Ссылка на контейнер прокрутки
+ * @returns {import('react').RefObject} Ссылка на элемент в конце списка.
  */
 export const useInfiniteScrollTrigger = ({
   hasMore,

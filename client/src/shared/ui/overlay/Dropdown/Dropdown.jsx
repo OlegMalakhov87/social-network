@@ -1,14 +1,18 @@
 import { useRef, useState } from 'react';
+
 import { useEscapeKey, useOutsideClick } from '../../../hooks';
+
 import styles from './Dropdown.module.css';
 
 /**
- * Выпадающий список сортировки.
- * @param {Object} props
- * @param {Object} props.options - объект с вариантами сортировки (ключи — id, значения — { id, label })
- * @param {string} props.currentSort - текущий выбранный ключ сортировки
- * @param {Function} props.onChange - колбэк при выборе варианта (получает id)
- * @param {boolean} [props.disabled=false] - заблокирован ли выпадающий список
+ * Отображает список сортировки.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.options - Варианты сортировки: ключ и поля идентификатора и подписи
+ * @param {string} props.currentSort - Ключ выбранного варианта
+ * @param {Function} props.onChange - Обработчик выбора, получает идентификатор варианта
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @returns {JSX.Element|null} Список сортировки или пустой результат без вариантов.
  */
 export const Dropdown = ({
   options,
@@ -19,16 +23,19 @@ export const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Закрытие при клике вне компонента
   useOutsideClick(dropdownRef, () => setIsOpen(false));
 
-  // Закрытие по Escape
   useEscapeKey(() => setIsOpen(false));
 
-  // Текущая отображаемая опция
   const items = Object.values(options);
   const currentOption = options?.[currentSort] || items[0];
 
+  /**
+   * Сохраняет выбранный вариант и закрывает список.
+   *
+   * @param {string} optionId - Идентификатор варианта
+   * @returns {void}
+   */
   const handleSelect = (optionId) => {
     onChange(optionId);
     setIsOpen(false);

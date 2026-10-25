@@ -1,20 +1,19 @@
-const { Message, User, Like } = require('../../db/models');
 const { Op, QueryTypes } = require('sequelize');
+
+const { Message, User, Like } = require('../../db/models');
 const { createError } = require('../utils/createError');
 const { sequelize } = require('../../db/models');
 
-/**
- * Сервис для работы с сообщениями.
- */
 const messageService = {
   /**
-   * Получить список диалогов
-   * @param {Object} params
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.page - номер страницы
-   * @param {number} params.limit - количество диалогов на странице
-   * @param {string} params.q - поисковый запрос
-   * @returns {Promise<Object>} { dialogs, pagination }
+   * Возвращает список диалогов.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.q=''] - Строка поиска
+   * @returns {Promise<Object>} { dialogs, pagination }.
    */
   async getDialogs({ currentUserId, page = 1, limit = 30, q = '' }) {
     const offset = (page - 1) * limit;
@@ -129,14 +128,14 @@ const messageService = {
   },
 
   /**
-   * Получить переписку с конкретным пользователем
+   * Возвращает переписку с выбранным пользователем.
    *
-   * @param {Object} params
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.partnerId - ID собеседника
-   * @param {number} params.page - номер страницы
-   * @param {number} params.limit - количество сообщений на странице
-   * @returns {Promise<Object>} { messages, pagination }
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.partnerId - Идентификатор собеседника
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @returns {Promise<Object>} { messages, pagination }.
    */
   async getConversation({ currentUserId, partnerId, page = 1, limit = 30 }) {
     const { count, rows: messages } = await Message.findAndCountAll({
@@ -173,7 +172,10 @@ const messageService = {
           attributes: ['id', 'userId'],
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['createdAt', 'DESC'],
+        ['id', 'DESC'],
+      ],
       limit: limit,
       offset: (page - 1) * limit,
       distinct: true,
@@ -195,11 +197,11 @@ const messageService = {
   },
 
   /**
-   * Получить сообщение по ID (для кнопки "Поделиться")
+   * Возвращает сообщение по идентификатору для кнопки «Поделиться».
    *
-   * @param {number} messageId - ID сообщения
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} { message }
+   * @param {number} messageId - Идентификатор сообщения
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} { message }.
    */
   async getMessageById(messageId, currentUserId) {
     const message = await Message.findByPk(messageId, {
@@ -221,11 +223,12 @@ const messageService = {
   },
 
   /**
-   * Отправить сообщение
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} receiverId - ID собеседника
-   * @param {string} content - контент сообщения
-   * @returns {Promise<Object>} { message }
+   * Отправляет сообщение.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} receiverId - Идентификатор получателя
+   * @param {string} content - Текст сообщения
+   * @returns {Promise<Object>} { message }.
    */
   async sendMessage(currentUserId, receiverId, content) {
     if (currentUserId === receiverId) {
@@ -268,11 +271,12 @@ const messageService = {
   },
 
   /**
-   * Обновить сообщение
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} messageId - ID сообщения
-   * @param {string} content - новый контент сообщения
-   * @returns {Promise<Object>} { message }
+   * Обновляет сообщение.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} messageId - Идентификатор сообщения
+   * @param {string} content - Текст сообщения
+   * @returns {Promise<Object>} { message }.
    */
   async updateMessage(currentUserId, messageId, content) {
     const msg = await Message.findByPk(messageId);
@@ -312,10 +316,11 @@ const messageService = {
   },
 
   /**
-   * Отметить сообщения как прочитанные
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number[]} messageIds - массив ID сообщений
-   * @returns {Promise<Object>} { message }
+   * Отмечает сообщения как прочитанные.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number[]} messageIds - Идентификаторы сообщений
+   * @returns {Promise<Object>} { message }.
    */
   async markAsRead(currentUserId, messageIds) {
     if (!Array.isArray(messageIds) || messageIds.length === 0) {
@@ -343,10 +348,11 @@ const messageService = {
   },
 
   /**
-   * Скрыть сообщение (для текущего пользователя)
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} messageId - ID сообщения
-   * @returns {Promise<Object>} { message }
+   * Скрывает сообщение у текущего пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} messageId - Идентификатор сообщения
+   * @returns {Promise<Object>} { message }.
    */
   async hideMessage(currentUserId, messageId) {
     const msg = await Message.findByPk(messageId);
@@ -361,10 +367,11 @@ const messageService = {
   },
 
   /**
-   * Очистить чат (Скрыть всю переписку для текущего пользователя)
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {number} partnerId - ID собеседника
-   * @returns {Promise<Object>} { message }
+   * Очищает переписку у текущего пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {number} partnerId - Идентификатор собеседника
+   * @returns {Promise<Object>} { message }.
    */
   async clearChat(currentUserId, partnerId) {
     await sequelize.transaction(async (transaction) => {
@@ -397,8 +404,9 @@ const messageService = {
   },
 
   /**
-   * Очищает удаленные сообщения
-   * @returns {Promise<number>} - Количество удаленных сообщений
+   * Очищает удаленные сообщения.
+   *
+   * @returns {Promise<number>} Количество удаленных сообщений.
    */
   async cleanupDeletedMessages() {
     return sequelize.transaction(async (transaction) => {

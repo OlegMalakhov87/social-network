@@ -1,16 +1,17 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { UniqueConstraintError } = require('sequelize');
+
 const { sequelize, User } = require('../../db/models');
 const refreshSessionService = require('./refreshSessionService');
 const { createError } = require('../utils/createError');
 
 /**
- * Генерация access JWT.
+ * Создает JWT маркера доступа.
  *
- * @param {number} userId - ID пользователя.
- * @param {string} sessionId - ID refresh-сессии.
- * @returns {string} - JWT токен
+ * @param {number} userId - Идентификатор пользователя
+ * @param {string} sessionId - Идентификатор сессии
+ * @returns {string} JWT токен.
  */
 const generateToken = (userId, sessionId) => {
   return jwt.sign(
@@ -26,23 +27,22 @@ const generateToken = (userId, sessionId) => {
 };
 
 /**
- * Создание хеша пароля
+ * Создает хеш пароля.
+ *
  * @param {string} password - Пароль
- * @returns {Promise<string>} - Хеш пароля
+ * @returns {Promise<string>} Хеш пароля.
  */
 const createPasswordHash = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(password, salt);
 };
 
-/**
- * Сервис для работы с авторизацией
- */
 const authService = {
   /**
-   * Получение информации о пользователе
-   * @param {number} userId - ID пользователя
-   * @returns {Promise<Object>} - Объект с пользователем
+   * Возвращает данные пользователя.
+   *
+   * @param {number} userId - Идентификатор пользователя
+   * @returns {Promise<Object>} Объект с пользователем.
    */
   async getMe(userId) {
     const user = await User.findByPk(userId, {
@@ -57,9 +57,10 @@ const authService = {
   },
 
   /**
-   * Регистрация пользователя
+   * Регистрирует пользователя.
+   *
    * @param {Object} userData - Данные пользователя
-   * @returns {Promise<Object>} - Объект с пользователем и токеном
+   * @returns {Promise<Object>} Объект с пользователем и токеном.
    */
   async register(userData) {
     const { name, email, password, gender } = userData;
@@ -117,9 +118,10 @@ const authService = {
   },
 
   /**
-   * Вход в систему
-   * @param {Object} credentials - Данные пользователя
-   * @returns {Promise<Object>} - Объект с пользователем и токеном
+   * Выполняет вход.
+   *
+   * @param {Object} credentials - Учетные данные
+   * @returns {Promise<Object>} Объект с пользователем и токеном.
    */
   async login(credentials) {
     const { email, password } = credentials;
@@ -162,14 +164,14 @@ const authService = {
   },
 
   /**
-   * Обновление пользовательской авторизации.
+   * Обновляет маркер доступа.
    *
-   * @param {string} refreshToken
+   * @param {string} refreshToken - Маркер обновления
    * @returns {Promise<{
    *   token: string,
    *   refreshToken: string,
    *   expiresAt: Date
-   * }>}
+   * }>} Новые маркеры и срок сессии.
    */
   async refresh(refreshToken) {
     const session = await refreshSessionService.rotate(refreshToken);
@@ -198,15 +200,15 @@ const authService = {
   },
 
   /**
-   * Завершение ожидаемой серверной сессии.
+   * Завершает ожидаемую сессию.
    *
-   * @param {string} refreshToken
-   * @param {Object} options
-   * @param {string} options.expectedSessionId - Ожидаемый sessionId.
+   * @param {string} refreshToken - Маркер обновления
+   * @param {Object} options - Параметры вызова
+   * @param {string} options.expectedSessionId - Ожидаемый идентификатор сессии
    * @returns {Promise<{
    *   revoked: boolean,
    *   reason: string
-   * }>}
+   * }>} Признак отзыва и причина отказа.
    */
   async logout(refreshToken, { expectedSessionId }) {
     return refreshSessionService.revoke(refreshToken, expectedSessionId);

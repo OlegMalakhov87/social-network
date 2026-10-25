@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectUser } from '../../../entities/auth';
 import { fetchDialogsApi, normalizeDialogs } from '../../../entities/dialog';
 import { useOnline } from '../../../features/users';
@@ -8,24 +9,30 @@ import { apiFetchItems } from '../../../shared/lib';
 import { parseSharedEntity } from '../../../shared/utils';
 
 /**
- * Хук для получения и отображения списка диалогов.
- * Загружает диалоги текущего пользователя, обогащает их онлайн-статусами собеседников и фильтрует по поисковому запросу.
+ * Возвращает список диалогов и дополняет его статусами собеседников.
  *
- * @param {Object} params - параметры запроса
- * @param {string} [params.searchQuery=''] – поисковый запрос для фильтрации диалогов
- * @returns {Object} - объект с данными о диалогах
+ * @param {Object} params - Параметры запроса
+ * @param {string} [params.searchQuery=''] - Поисковый запрос
+ * @returns {{
+ *   dialogs: Array<Object>,
+ *   currentUserId: number|undefined,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   hasMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   refetch: Function
+ * }} Диалоги и состояние загрузки
  */
 export function useDialogs({ searchQuery = '' }) {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
 
-  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [currentUserId, searchQuery],
     [currentUserId, searchQuery]
   );
 
-  /** Получение новостей с бесконечным скроллом. */
   const {
     items: dialogsItems,
     isLoading,
@@ -35,6 +42,15 @@ export function useDialogs({ searchQuery = '' }) {
     loadMore,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу диалогов.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница диалогов
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
@@ -47,16 +63,13 @@ export function useDialogs({ searchQuery = '' }) {
     deps: scrollDeps,
   });
 
-  /** Все ID собеседников (уникальные). */
   const interlocutorIds = useMemo(
     () => [...new Set(dialogsItems.map((d) => d.user.id).filter(Boolean))],
     [dialogsItems]
   );
 
-  /** Карта онлайн-статусов для всех собеседников. */
   const onlineMap = useOnline(interlocutorIds);
 
-  /** Обогащение диалогов статусами и форматирование последнего сообщения. */
   const enrichedData = useMemo(
     () =>
       dialogsItems.map((dialog) => ({
@@ -64,6 +77,7 @@ export function useDialogs({ searchQuery = '' }) {
         lastMessage: dialog.lastMessage
           ? {
               ...dialog.lastMessage,
+              // Заменяет общую сущность короткой подписью.
               content: parseSharedEntity(dialog.lastMessage.content)
                 ? 'Поделился'
                 : dialog.lastMessage.content,
@@ -77,13 +91,11 @@ export function useDialogs({ searchQuery = '' }) {
     [dialogsItems, onlineMap]
   );
 
-  /** Нормализация под компоненты. */
   const normalizedDialogs = useMemo(
     () => enrichedData.map(normalizeDialogs),
     [enrichedData]
   );
 
-  /** Объект с данными о диалогах. */
   return {
     dialogs: normalizedDialogs,
     currentUserId,

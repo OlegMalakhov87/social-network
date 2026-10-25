@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectUser } from '../../../entities/auth';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
 import {
@@ -21,25 +22,39 @@ import {
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для получения и фильтрации новостей с бесконечным скроллом.
+ * Возвращает ленту новостей и изменяет её локально.
  *
- * @param {Object|string} params
- * @param {string} [filter='all'] - фильтр
- * @param {string} [searchQuery=''] - поисковый запрос
- * @param {string} [sortKey='dateDesc'] - ключ сортировки
- * @returns {Object} - объект с данными о новостях
+ * @param {Object} params - Параметры запроса
+ * @param {string} params.filter - Фильтр ленты
+ * @param {string} params.searchQuery - Поисковый запрос
+ * @param {string} params.sortKey - Ключ сортировки
+ * @returns {{
+ *   news: Array<Object>,
+ *   currentUser: Object|null,
+ *   hasMore: boolean,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   currentPage: number,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   refetch: Function,
+ *   addNews: Function,
+ *   deleteNews: Function,
+ *   updateNews: Function,
+ *   toggleLike: Function,
+ *   incrementViewsCount: Function,
+ *   updateCommentsCount: Function
+ * }} Новости и действия
  */
 export const useNews = ({ filter, searchQuery, sortKey }) => {
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.id;
 
-  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [filter, searchQuery, sortKey, currentUserId],
     [filter, searchQuery, sortKey, currentUserId]
   );
 
-  /** Получение новостей с бесконечным скроллом. */
   const {
     items: newsItems,
     setItems: setNewsItems,
@@ -51,6 +66,15 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     currentPage,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу новостей.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница новостей
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!currentUserId || currentUserId <= 0) {
         return { items: [], hasMore: false };
@@ -69,7 +93,6 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     deps: scrollDeps,
   });
 
-  /** Оптимистичный лайк. */
   const toggleLike = useOptimisticLike({
     setItems: setNewsItems,
     addLikeFn: addLikeApi,
@@ -78,7 +101,6 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     targetType: 'news',
   });
 
-  /** Оптимистичный счётчик просмотров. */
   const { incrementWithApi: incrementViewsCount } = useOptimisticCounter({
     items: newsItems,
     setItems: setNewsItems,
@@ -86,10 +108,8 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     updateFn: updateNewsViewsCountApi,
   });
 
-  /** Оптимистичный счётчик комментариев. */
   const updateCommentsCount = useOptimisticCommentCount(setNewsItems);
 
-  /** Оптимистичные мутации (CRUD). */
   const {
     add: addNews,
     edit: updateNews,
@@ -102,13 +122,11 @@ export const useNews = ({ filter, searchQuery, sortKey }) => {
     deleteFn: deleteNewsApi,
   });
 
-  /** Нормализация новостей. */
   const news = useNormalizedData({
     items: newsItems,
     normalizeFn: normalizeNews,
   });
 
-  /** Возвращаемые значения */
   return {
     news,
     currentUser,

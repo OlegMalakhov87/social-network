@@ -1,11 +1,15 @@
 const bcrypt = require('bcryptjs');
+const WebSocket = require('ws');
 const { Op } = require('sequelize');
+
 const { sequelize, User, Friend } = require('../../db/models');
 const { clients } = require('../websocket');
 const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 
-/** Поля профиля пользователя, которые можно обновлять. */
+/**
+ * Перечисляет поля профиля, которые можно обновлять.
+ */
 const USER_PROFILE_FIELDS = [
   'name',
   'avatarUrl',
@@ -20,11 +24,12 @@ const USER_PROFILE_FIELDS = [
 
 const userService = {
   /**
-   * Получить пользователя с информацией о статусе дружбы между двумя пользователями
-   * @param {Object} params - параметры запроса
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @param {number} params.targetUserId - ID пользователя, с которым проверяем статус дружбы
-   * @returns {Promise<Object>} - Объект с результатом
+   * Возвращает профиль и статус дружбы между двумя пользователями.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.targetUserId - Идентификатор выбранного пользователя
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async getUserProfileWithFriendshipStatus({ currentUserId, targetUserId }) {
     const where = { isSystem: false };
@@ -85,9 +90,12 @@ const userService = {
   },
 
   /**
-   * Проверка онлайн статуса пользователей
-   * @param {Array<number>} userIds - Массив ID пользователей
-   * @returns {Promise<Object>} - Объект с результатом
+   * Проверяет онлайн-статус пользователей.
+   *
+   * Пользователь считается online, если существует хотя бы одно активное соединение WebSocket.
+   *
+   * @param {Array} userIds - Идентификаторы пользователей
+   * @returns {Promise<Object>} Результат операции.
    */
   async checkOnlineBulk(userIds) {
     if (!Array.isArray(userIds)) {
@@ -96,25 +104,38 @@ const userService = {
 
     const normalizedIds = [
       ...new Set(
-        userIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)
+        userIds.map(Number).filter((id) => Number.isSafeInteger(id) && id > 0)
       ),
     ];
 
+    const now = Date.now();
+
     return {
-      users: normalizedIds.map((id) => ({
-        userId: id,
-        online: clients.has(String(id)),
-      })),
+      users: normalizedIds.map((id) => {
+        const sockets = clients.get(id);
+
+        const online = Boolean(
+          sockets &&
+          [...sockets].some(
+            (ws) => ws.readyState === WebSocket.OPEN && ws.accessExpiresAt > now
+          )
+        );
+
+        return {
+          userId: id,
+          online,
+        };
+      }),
     };
   },
 
   /**
-   * Обновление профиля текущего пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updateData - Данные для обновления
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет профиль текущего пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updateData - Данные обновления
+   * @returns {Promise<Object>} Объект с результатом.
    */
-
   async updateUser(currentUserId, updateData) {
     const dbUpdates = Object.fromEntries(
       USER_PROFILE_FIELDS.filter((field) =>
@@ -182,10 +203,12 @@ const userService = {
   },
 
   /**
-   * Обновление приватности пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {boolean} isPublic - Приватность пользователя
-   * @returns {Promise<Object>} - Объект с результатом
+   * Обновляет приватность пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} params - Параметры вызова
+   * @param {boolean} params.isPublic - Признак публичности
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async updatePrivacy(currentUserId, { isPublic }) {
     const [affectedCount, updatedUser] = await User.update(
@@ -212,11 +235,12 @@ const userService = {
   },
 
   /**
-   * Изменение пароля пользователя
-   * @param {number} currentUserId - ID текущего пользователя
+   * Меняет пароль пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {string} currentPassword - Текущий пароль
    * @param {string} newPassword - Новый пароль
-   * @returns {Promise<Object>} - Объект с результатом
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async changePassword(currentUserId, currentPassword, newPassword) {
     if (!currentPassword || !newPassword) {
@@ -251,9 +275,10 @@ const userService = {
   },
 
   /**
-   * Удаление пользователя
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - Объект с результатом
+   * Удаляет пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} Объект с результатом.
    */
   async deleteUser(currentUserId) {
     const user = await User.findByPk(currentUserId);

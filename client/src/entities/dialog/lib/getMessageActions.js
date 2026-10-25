@@ -1,19 +1,19 @@
 /**
- * Конфигурация элементов управления сообщением.
+ * Возвращает действия сообщения.
  *
- * @param {Object} params - параметры
- * @param {Object} params.message - данные сообщения
- * @param {string} params.currentUserId - ID текущего пользователя
- * @param {Object} params.sharedEntity - данные общей сущности
- * @param {Function} params.handleStartEdit - функция для начала редактирования сообщения
- * @param {Function} params.onDelete - функция для удаления сообщения
- * @param {Function} params.toggleLike - функция для лайка/дизлайка сообщения
- * @param {Function} params.onShare - функция для перехода на страницу сообщений для передачи сообщения
- * @returns {Array<Object>} - массив действий для сообщения
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.message - Сообщение
+ * @param {boolean} params.isOwn - Является ли сообщение владельцем
+ * @param {Object} params.sharedEntity - Общая сущность
+ * @param {Function} [params.handleStartEdit] - Обработчик начала правки
+ * @param {Function} [params.onDelete] - Обработчик удаления
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.onShare] - Обработчик отправки
+ * @returns {Array<Object>} Действия сообщения
  */
 export const getMessageActions = ({
   message,
-  currentUserId,
+  isOwn,
   sharedEntity,
   handleStartEdit,
   onDelete,
@@ -21,8 +21,6 @@ export const getMessageActions = ({
   onShare,
 }) => {
   if (!message) return [];
-
-  const isOwn = message.senderId === currentUserId;
 
   const actions = [
     {

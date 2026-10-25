@@ -1,14 +1,17 @@
 import { classNames } from '../../../utils';
+
 import styles from './Loading.module.css';
 
 /**
- * Универсальный индикатор загрузки.
- * @param {Object} props
- * @param {React.ReactNode} [props.children] - дополнительный контент над спиннером
- * @param {string} [props.message='Загрузка...'] - текст под спиннером
- * @param {'small'|'medium'|'large'} [props.size='medium'] - размер спиннера
- * @param {boolean} [props.fullPage=false] - если true, спиннер центрируется на всю доступную область
- * @param {string} [props.className] - дополнительный CSS-класс
+ * Отображает индикатор загрузки.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} [props.children] - Содержимое вместо текста загрузки
+ * @param {string} [props.message='Загрузка...'] - Текст под индикатором
+ * @param {'small'|'medium'|'large'} [props.size='medium'] - Размер индикатора
+ * @param {boolean} [props.fullPage=false] - Центрирование на всю доступную область
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Индикатор загрузки.
  */
 export const Loading = ({
   children,

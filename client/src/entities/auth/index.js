@@ -4,9 +4,9 @@ export {
   logoutUser,
   refreshAuth,
   registerUser,
-} from './api/authApi'; // API для работы с авторизацией и регистрацией
+} from './api/authApi'; // Выполняет запросы авторизации и регистрации.
 
-export * from './lib/authSelectors'; // selectors (селекторы для получения состояния авторизации)
+export * from './lib/authSelectors'; // Возвращает срезы состояния авторизации.
 
 export {
   default as authReducer,
@@ -14,7 +14,7 @@ export {
   logout,
   sessionLogoutObserved,
   setAccessToken,
-} from './model/authSlice'; // slice (состояние авторизации)
+} from './model/authSlice'; // Хранит состояние авторизации и его действия.
 
 export {
   changePassword,
@@ -24,4 +24,9 @@ export {
   logoutSession,
   register,
   updateUser,
-} from './model/authThunks'; // thunks (экшены для авторизации)
+} from './model/authThunks'; // Выполняет запросы авторизации.
+
+export {
+  handleWebSocketSessionRevoked,
+  refreshWebSocketAccess,
+} from './model/refreshWebSocketAccess'; // Обновляет маркер доступа после истечения авторизации WebSocket.

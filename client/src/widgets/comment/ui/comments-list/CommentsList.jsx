@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+
 import { Comment } from '../../../../entities/comment';
 import { normalizeSharedComment } from '../../../../entities/shared-entity';
 import { useShareEntity } from '../../../../features/shared-entities';
@@ -8,24 +9,26 @@ import {
   ContentState,
   InfiniteScrollFooter,
 } from '../../../../shared/ui';
+
 import styles from './CommentsList.module.css';
 
 /**
- * Список комментариев с поддержкой пагинации, бесконечной прокрутки и операций над комментариями.
+ * Отображает список комментариев с подгрузкой при прокрутке.
  *
- * @param {Object} props
- * @param {Object} props.comments - список комментариев.
- * @param {boolean} props.isLoading - флаг загрузки.
- * @param {boolean} props.isLoadingMore - флаг загрузки ещё комментариев.
- * @param {boolean} props.hasMore - флаг наличия ещё комментариев.
- * @param {Error} props.error - ошибка.
- * @param {Object} props.currentUser - текущий пользователь.
- * @param {Function} props.loadMore - функция для загрузки ещё комментариев.
- * @param {Function} props.onEdit - функция для редактирования комментария.
- * @param {Function} props.onDelete - функция для удаления комментария.
- * @param {Function} props.toggleLike - функция для лайка комментария.
- * @param {Function} props.onRetry - функция для повторной загрузки комментариев.
- * @param {React.RefObject} props.scrollRootRef - Ref на элемент, относительно которого наблюдается пересечение.
+ * @param {Object} props - Свойства компонента
+ * @param {Array<Object>} [props.comments=[]] - Список комментариев
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.onEdit - Обработчик редактирования комментария
+ * @param {Function} props.onDelete - Обработчик удаления комментария
+ * @param {Function} props.toggleLike - Обработчик переключения отметки «нравится»
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {React.RefObject} props.scrollRootRef - Корень прокрутки для подгрузки
+ * @returns {JSX.Element} Разметка списка.
  */
 export const CommentsList = ({
   comments = [],
@@ -43,13 +46,11 @@ export const CommentsList = ({
 }) => {
   const navigate = useNavigate();
 
-  /** Хук для работы с расшаренными сущностями в sessionStorage.*/
   const { shareEntity } = useShareEntity({
     normalizeFn: normalizeSharedComment,
     onSuccess: () => navigate('/messages'),
   });
 
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
@@ -57,7 +58,7 @@ export const CommentsList = ({
     rootRef: scrollRootRef,
   });
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных комментариях.
   const isRefetching = isLoading && comments.length > 0;
 
   return (

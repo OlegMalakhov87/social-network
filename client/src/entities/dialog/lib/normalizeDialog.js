@@ -1,8 +1,8 @@
 /**
- * Нормализация списка диалогов.
+ * Приводит диалог к формату карточки.
  *
- * @param {Object} raw - сырой список диалогов
- * @returns {Object} - нормализованный список диалогов
+ * @param {Object} raw - Диалог с сервера
+ * @returns {Object} Диалог карточки
  */
 export const normalizeDialogs = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

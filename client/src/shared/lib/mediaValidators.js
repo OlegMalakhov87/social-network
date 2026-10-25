@@ -1,15 +1,16 @@
 import { formatDuration } from '../utils';
 
 /**
- * Специфичные валидаторы для медиа-файлов (аудио, видео, изображения).
- * Используют HTML5 API для чтения метаданных (длительность, разрешение).
+ * Проверяет длительность, разрешение и соотношение сторон через средства браузера.
+ * Возвращает null при успехе или строку с ошибкой.
  */
 
 /**
- * Валидатор длительности аудио/видео.
- * @param {number} maxSeconds - максимальная длительность в секундах
- * @param {string} [message]
- * @returns {Function} - (file) => Promise<string|null>
+ * Проверяет длительность аудио или видео.
+ *
+ * @param {number} maxSeconds - Максимальная длительность в секундах
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает промис с текстом ошибки или null.
  */
 export const maxDuration = (maxSeconds, message) => (file) => {
   if (!file) return Promise.resolve(null);
@@ -42,11 +43,12 @@ export const maxDuration = (maxSeconds, message) => (file) => {
 };
 
 /**
- * Валидатор минимального разрешения изображения.
- * @param {number} minWidth - минимальная ширина в пикселях
- * @param {number} minHeight - минимальная высота в пикселях
- * @param {string} [message]
- * @returns {Function} - (file) => Promise<string|null>
+ * Проверяет минимальное разрешение изображения.
+ *
+ * @param {number} minWidth - Минимальная ширина в пикселях
+ * @param {number} minHeight - Минимальная высота в пикселях
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает промис с текстом ошибки или null.
  */
 export const minImageResolution = (minWidth, minHeight, message) => (file) => {
   if (!file || !file.type.startsWith('image/')) {
@@ -75,11 +77,12 @@ export const minImageResolution = (minWidth, minHeight, message) => (file) => {
 };
 
 /**
- * Валидатор соотношения сторон изображения.
- * @param {number} ratio - ожидаемое соотношение (например, 1 для квадрата, 16/9 для видео)
- * @param {number} [tolerance=0.1] - допустимое отклонение
- * @param {string} [message]
- * @returns {Function} - (file) => Promise<string|null>
+ * Проверяет соотношение сторон изображения.
+ *
+ * @param {number} ratio - Ожидаемое соотношение ширины к высоте
+ * @param {number} [tolerance=0.1] - Допустимое отклонение
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает файл и возвращает промис с текстом ошибки или null.
  */
 export const aspectRatio =
   (ratio, tolerance = 0.1, message) =>

@@ -1,25 +1,28 @@
 import { useMemo, useRef, useState } from 'react';
+
 import { useEscapeKey, useOutsideClick } from '../../../hooks';
 import { Text } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import styles from './Select.module.css';
 
 /**
- * Универсальный Select.
+ * Отображает раскрывающийся список.
  *
- * @param {Object} props
- * @param {string} [props.label] - текст лейбла
- * @param {boolean} [props.required=false] - обязательное поле
- * @param {string|number|boolean} props.value - значение выбранной опции
- * @param {(value: string|number|boolean)=>void} props.onChange - обработчик изменения
- * @param {Array<{value: string|number|boolean, label: string}>} props.options - опции
- * @param {boolean} [props.disabled=false] - заблокирован ли селект
- * @param {boolean} [props.fullWidth=true] - растянуть на всю ширину контейнера
- * @param {string} [props.className=''] - дополнительный CSS класс для select
- * @param {string} [props.id] - id для связи label и select
- * @param {string} [props.helperText] - подсказка под полем
- * @param {string} [props.error] - ошибка
- * @param {'down'|'up'} [props.menuPlacement='down'] - направление раскрытия меню
+ * @param {Object} props - Свойства компонента
+ * @param {string} [props.label] - Подпись поля
+ * @param {boolean} [props.required=false] - Признак обязательного поля
+ * @param {string|number|boolean} props.value - Значение выбранного варианта
+ * @param {(value: string|number|boolean) => void} [props.onChange] - Обработчик изменения
+ * @param {Array<{value: string|number|boolean, label: string}>} props.options - Варианты списка
+ * @param {boolean} [props.disabled=false] - Признак блокировки
+ * @param {boolean} [props.fullWidth=true] - Растягивание на всю ширину
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {string} [props.id] - Идентификатор поля для связи с подписью
+ * @param {string} [props.helperText] - Подсказка под полем
+ * @param {string} [props.error] - Текст ошибки
+ * @param {'down'|'up'} [props.menuPlacement='down'] - Направление раскрытия списка
+ * @returns {JSX.Element} Раскрывающийся список.
  */
 
 export const Select = ({
@@ -50,6 +53,12 @@ export const Select = ({
     [options, normalizedValue]
   );
 
+  /**
+   * Выбирает значение и закрывает список.
+   *
+   * @param {string|number|boolean} optionValue - Значение варианта
+   * @returns {void}
+   */
   const handleSelect = (optionValue) => {
     const match = options.find(
       (option) => String(option.value) === String(optionValue)

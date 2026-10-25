@@ -1,11 +1,13 @@
 import { extractPaginatedItems } from './';
 
 /**
- * Вспомогательная функция для запроса данных с пагинацией.
+ * Загружает страницу элементов и сообщает, есть ли следующая.
  *
- * @param {Function} fetchApi
- * @param {{ params: Object, signal?: AbortSignal }} options
- * @returns {Promise<{ items: Array, hasMore: boolean, currentPage: number }>}
+ * @param {Function} fetchApi - Выполняет запрос к серверу
+ * @param {Object} options - Параметры запроса
+ * @param {Object} options.params - Параметры выборки
+ * @param {AbortSignal} [options.signal] - Сигнал отмены
+ * @returns {Promise<{ items: Array, hasMore: boolean }>} Элементы и признак следующей страницы.
  */
 export const apiFetchItems = async (fetchApi, { params, signal }) => {
   const { q, filter, ...restParams } = params;

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+
 import { getCommentActions } from '..';
 import { useExpandableText, useNotify } from '../../../shared/hooks';
 import { getApiErrorDisplay } from '../../../shared/lib';
@@ -18,20 +19,21 @@ import {
   TextArea,
 } from '../../../shared/ui';
 import { classNames, formatDate } from '../../../shared/utils';
+
 import styles from './Comment.module.css';
 
 /**
- * Карточка комментария.
+ * Отображает карточку комментария.
  *
- * @param {Object} props
- * @param {Object} props.comment - данные комментария.
- * @param {Object} props.currentUserId - ID текущего пользователя.
- * @param {Function} props.onShareEntity - функция для расшаривания комментария.
- * @param {Object} props.author - данные автора комментария.
- * @param {Function} props.onEdit - функция для редактирования комментария.
- * @param {Function} props.onDelete - функция для удаления комментария.
- * @param {Function} props.toggleLike - функция для лайка/дизлайка комментария.
- * @returns {JSX.Element} - компонент карточки комментария.
+ * @param {Object} props - Свойства компонента.
+ * @param {Object} props.comment - Комментарий.
+ * @param {number} props.currentUserId - Идентификатор текущего пользователя.
+ * @param {Function} props.onShareEntity - Обработчик отправки комментария.
+ * @param {Object} props.author - Автор комментария.
+ * @param {Function} props.onEdit - Обработчик правки.
+ * @param {Function} props.onDelete - Обработчик удаления.
+ * @param {Function} props.toggleLike - Обработчик лайка.
+ * @returns {JSX.Element|null} Разметка карточки.
  */
 
 export const Comment = ({
@@ -58,7 +60,6 @@ export const Comment = ({
 
   if (!comment?.id || !author) return null;
 
-  /** Конфигурация элементов управления карточкой комментария. */
   const actions = getCommentActions({
     comment,
     currentUserId,
@@ -70,7 +71,6 @@ export const Comment = ({
     },
   });
 
-  /** Обработчик сохранения изменений в комментарии. */
   const handleSave = async () => {
     if (
       editText.trim() &&
@@ -88,13 +88,11 @@ export const Comment = ({
     }
   };
 
-  /** Обработчик отмены изменений в комментарии. */
   const handleCancel = () => {
     setEditText(comment.text);
     setIsEditing(false);
   };
 
-  /** Обработчик переключения раскрытия текста комментария. */
   const handleToggleExpand = () => {
     if (!expanded && !hasViewed) {
       setHasViewed(true);
@@ -102,7 +100,6 @@ export const Comment = ({
     toggle();
   };
 
-  /** Обработчик подтверждения удаления комментария. */
   const handleConfirmDelete = async () => {
     try {
       await onDelete?.(comment.id);

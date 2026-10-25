@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import { getAccessTokenClaims } from '../../entities/auth/lib/accessToken';
 import authReducer, {
   logout,
@@ -11,7 +12,13 @@ const SESSION_ID = '11111111-1111-4111-8111-111111111111';
 const SESSION_B = '22222222-2222-4222-8222-222222222222';
 
 /**
- * Создает токен авторизации для тестирования.
+ * Создаёт JWT для проверки.
+ *
+ * @param {number} version - Версия маркера доступа
+ * @param {number} [userId=15] - Идентификатор пользователя
+ * @param {string} [sessionId=SESSION_ID] - Идентификатор сессии
+ * @param {number} [expiresInSeconds=3600] - Срок действия в секундах
+ * @returns {string} Строка JWT.
  */
 const createToken = (
   version,
@@ -19,6 +26,12 @@ const createToken = (
   sessionId = SESSION_ID,
   expiresInSeconds = 3600
 ) => {
+  /**
+   * Кодирует часть JWT.
+   *
+   * @param {Object} value - Данные части JWT
+   * @returns {string} Закодированная часть JWT.
+   */
   const encode = (value) =>
     Buffer.from(JSON.stringify(value)).toString('base64url');
 
@@ -38,7 +51,10 @@ const createToken = (
 };
 
 /**
- * Создает авторизованный store для тестирования.
+ * Создаёт хранилище Redux с авторизованным состоянием.
+ *
+ * @param {string} token - Маркер доступа
+ * @returns {Object} Хранилище с авторизованным состоянием.
  */
 const createAuthenticatedStore = (token) => {
   const store = configureStore({
@@ -95,13 +111,13 @@ describe('apiAxios: automatic token refresh', () => {
 
     const requests = [];
 
-    // Имитируем backend без реальных HTTP-запросов.
+    // Имитирует сервер без реальных HTTP-запросов.
     apiAxios.defaults.adapter = async (config) => {
       const authorization = config.headers.get('Authorization');
 
       requests.push(authorization);
 
-      // Первый запрос со старым JWT отклоняется.
+      // Отклоняет первый запрос со старым JWT.
       if (authorization === `Bearer ${oldToken}`) {
         return Promise.reject({
           config,
@@ -113,7 +129,7 @@ describe('apiAxios: automatic token refresh', () => {
         });
       }
 
-      // Повторный запрос с новым JWT успешен.
+      // Принимает повторный запрос с новым JWT.
       return {
         config,
         data: { success: true },
@@ -128,17 +144,16 @@ describe('apiAxios: automatic token refresh', () => {
     expect(response.status).toBe(200);
     expect(response.data).toEqual({ success: true });
 
-    // Refresh выполнялся только один раз.
+    // Вызывает обновление сессии один раз.
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Было два HTTP-запроса:
-    // первоначальный и повторный.
+    // Отправляет исходный HTTP-запрос и один повтор.
     expect(requests).toEqual([`Bearer ${oldToken}`, `Bearer ${newToken}`]);
 
-    // Redux сохранил новый access token.
+    // Сохраняет в Redux новый маркер доступа.
     expect(store.getState().auth.token).toBe(newToken);
 
-    // Пользователь остался авторизованным.
+    // Оставляет пользователя авторизованным.
     expect(store.getState().auth.isAuthenticated).toBe(true);
     expect(store.getState().auth.user.id).toBe(15);
   });
@@ -149,7 +164,7 @@ describe('apiAxios: automatic token refresh', () => {
 
     const store = createAuthenticatedStore(oldToken);
 
-    // Управляем моментом завершения refresh вручную.
+    // Управляет моментом завершения обновления сессии.
     let resolveRefresh;
 
     const refreshSession = jest.fn(
@@ -196,16 +211,14 @@ describe('apiAxios: automatic token refresh', () => {
       };
     };
 
-    // Запускаем три запроса одновременно.
+    // Запускает три запроса одновременно.
     const promises = [
       apiAxios.get('/profile'),
       apiAxios.get('/posts'),
       apiAxios.get('/notifications'),
     ];
 
-    // Дожидаемся начала refresh.
-    // Не завершаем его, пока остальные запросы
-    // тоже не получат 401.
+    // Ожидает начала обновления сессии и не завершает его, пока остальные запросы не получат 401.
     await new Promise((resolve) => {
       const check = () => {
         if (refreshSession.mock.calls.length > 0) {
@@ -220,7 +233,7 @@ describe('apiAxios: automatic token refresh', () => {
 
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Завершаем общий refresh.
+    // Завершает общее обновление сессии.
     resolveRefresh({ token: newToken });
 
     const responses = await Promise.all(promises);
@@ -232,25 +245,25 @@ describe('apiAxios: automatic token refresh', () => {
       expect(response.data.success).toBe(true);
     });
 
-    // Все три запроса сначала использовали OLD_TOKEN.
+    // Сначала отправляет все три запроса со старым JWT.
     const initialRequests = requests.filter(
       (request) => request.authorization === `Bearer ${oldToken}`
     );
 
     expect(initialRequests).toHaveLength(3);
 
-    // Все три запроса повторились с NEW_TOKEN.
+    // Повторяет все три запроса с новым JWT.
     const repeatedRequests = requests.filter(
       (request) => request.authorization === `Bearer ${newToken}`
     );
 
     expect(repeatedRequests).toHaveLength(3);
 
-    // Единственный refresh обновил Redux.
+    // Обновляет Redux одним обновлением сессии.
     expect(store.getState().auth.token).toBe(newToken);
     expect(store.getState().auth.isAuthenticated).toBe(true);
 
-    // Главное требование.
+    // Фиксирует единственный вызов обновления сессии.
     expect(refreshSession).toHaveBeenCalledTimes(1);
   });
 
@@ -263,12 +276,12 @@ describe('apiAxios: automatic token refresh', () => {
     let resolveRefresh;
     let notifyRefreshStarted;
 
-    // Сигнал, что refresh действительно начался.
+    // Сообщает, что обновление сессии началось.
     const refreshStarted = new Promise((resolve) => {
       notifyRefreshStarted = resolve;
     });
 
-    // Управляем завершением refresh вручную.
+    // Управляет завершением обновления сессии.
     const refreshSession = jest.fn(
       () =>
         new Promise((resolve) => {
@@ -311,21 +324,21 @@ describe('apiAxios: automatic token refresh', () => {
       };
     };
 
-    // Исходный запрос.
+    // Отправляет запрос, который получит ответ 401.
     const requestPromise = apiAxios.get('/test-protected');
 
-    // Дожидаемся начала refresh.
+    // Ожидает начала обновления сессии.
     await refreshStarted;
 
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Пользователь выходит до завершения refresh.
+    // Завершает сессию до окончания обновления.
     store.dispatch(logout());
 
-    // Теперь сервер возвращает новый JWT.
+    // Возвращает с сервера новый JWT.
     resolveRefresh({ token: newToken });
 
-    // Старый запрос не должен продолжиться.
+    // Ожидает отказ продолжить старый запрос.
     await expect(requestPromise).rejects.toThrow(
       'Авторизация изменилась во время обновления токена'
     );
@@ -336,7 +349,7 @@ describe('apiAxios: automatic token refresh', () => {
     expect(auth.user).toBeNull();
     expect(auth.isAuthenticated).toBe(false);
 
-    // Повторного HTTP-запроса не было.
+    // Не отправляет повторный HTTP-запрос.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
   });
 
@@ -359,7 +372,7 @@ describe('apiAxios: automatic token refresh', () => {
 
     const requests = [];
 
-    // Backend отвечает 401 на любой запрос.
+    // Отвечает с сервера кодом 401 на любой запрос.
     apiAxios.defaults.adapter = async (config) => {
       const authorization = config.headers.get('Authorization');
 
@@ -381,14 +394,13 @@ describe('apiAxios: automatic token refresh', () => {
       },
     });
 
-    // Один refresh, несмотря на два ответа 401.
+    // Вызывает обновление сессии один раз при двух ответах 401.
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Исходный запрос + ровно один retry.
+    // Отправляет исходный запрос и ровно один повтор.
     expect(requests).toEqual([`Bearer ${oldToken}`, `Bearer ${newToken}`]);
 
-    // Временный отказ API сам по себе не означает,
-    // что refresh-сессия недействительна.
+    // Не считает временный отказ API признаком недействительной сессии.
     const auth = store.getState().auth;
 
     expect(auth.isAuthenticated).toBe(true);
@@ -447,7 +459,7 @@ describe('apiAxios: automatic token refresh', () => {
     expect(auth.token).toBeNull();
     expect(auth.isAuthenticated).toBe(false);
 
-    // Повторного API-запроса не выполняли.
+    // Не выполняет повторный запрос API.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
   });
 
@@ -498,12 +510,12 @@ describe('apiAxios: automatic token refresh', () => {
 
     const auth = store.getState().auth;
 
-    // Ошибка сервера не должна очищать Redux.
+    // Не очищает Redux при ошибке сервера.
     expect(auth.isAuthenticated).toBe(true);
     expect(auth.user.id).toBe(15);
     expect(auth.token).toBe(oldToken);
 
-    // Повторного API-запроса нет.
+    // Не отправляет повторный запрос API.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
   });
 
@@ -535,8 +547,7 @@ describe('apiAxios: automatic token refresh', () => {
 
       requests.push(authorization);
 
-      // Первый запрос отправлен со старым JWT.
-      // Намеренно задерживаем ответ backend.
+      // Отправляет первый запрос со старым JWT и задерживает ответ сервера.
       if (authorization === `Bearer ${oldToken}`) {
         return new Promise((resolve, reject) => {
           rejectOriginalRequest = () => {
@@ -556,7 +567,7 @@ describe('apiAxios: automatic token refresh', () => {
         });
       }
 
-      // Повторный запрос с актуальным JWT.
+      // Принимает повторный запрос с актуальным JWT.
       return Promise.resolve({
         config,
         data: { success: true },
@@ -566,13 +577,13 @@ describe('apiAxios: automatic token refresh', () => {
       });
     };
 
-    // Отправляем запрос с TOKEN_A.
+    // Отправляет запрос со старым JWT.
     const requestPromise = apiAxios.get('/test-protected');
 
-    // Дожидаемся, пока запрос достигнет adapter.
+    // Ожидает, пока запрос дойдёт до адаптера Axios.
     await originalStarted;
 
-    // Другая операция уже обновила access token.
+    // Обновляет маркер доступа другой операцией.
     store.dispatch(
       setAccessToken({
         token: newToken,
@@ -582,7 +593,7 @@ describe('apiAxios: automatic token refresh', () => {
 
     expect(store.getState().auth.token).toBe(newToken);
 
-    // Только теперь старый запрос получает 401.
+    // Возвращает старому запросу ответ 401.
     rejectOriginalRequest();
 
     const response = await requestPromise;
@@ -590,10 +601,10 @@ describe('apiAxios: automatic token refresh', () => {
     expect(response.status).toBe(200);
     expect(response.data).toEqual({ success: true });
 
-    // Самое важное: refresh больше не нужен.
+    // Не вызывает повторное обновление сессии.
     expect(refreshSession).not.toHaveBeenCalled();
 
-    // Axios повторил запрос с актуальным токеном.
+    // Повторяет запрос Axios с актуальным маркером доступа.
     expect(requests).toEqual([`Bearer ${oldToken}`, `Bearer ${newToken}`]);
 
     expect(store.getState().auth.token).toBe(newToken);
@@ -655,15 +666,15 @@ describe('apiAxios: automatic token refresh', () => {
       };
     };
 
-    // Пользователь A отправляет запрос.
+    // Отправляет запрос пользователя A.
     const requestPromise = apiAxios.get('/test-protected');
 
-    // Дожидаемся начала refresh старой сессии.
+    // Ожидает начала обновления старой сессии.
     await refreshStarted;
 
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Моделируем смену локальной авторизации.
+    // Меняет локальную авторизацию.
     store.dispatch(logout());
 
     const credentials = {
@@ -686,11 +697,11 @@ describe('apiAxios: automatic token refresh', () => {
       )
     );
 
-    // Проверяем, что Redux уже содержит пользователя B.
+    // Проверяет, что Redux уже содержит пользователя B.
     expect(store.getState().auth.user.id).toBe(20);
     expect(store.getState().auth.token).toBe(newUserToken);
 
-    // Запоздалый refresh возвращает JWT пользователя A.
+    // Возвращает JWT пользователя A из запоздавшего обновления сессии.
     resolveRefresh({ token: refreshedOldToken });
 
     await expect(requestPromise).rejects.toThrow(
@@ -699,12 +710,12 @@ describe('apiAxios: automatic token refresh', () => {
 
     const auth = store.getState().auth;
 
-    // Авторизация пользователя B сохранилась.
+    // Сохраняет авторизацию пользователя B.
     expect(auth.isAuthenticated).toBe(true);
     expect(auth.user.id).toBe(20);
     expect(auth.token).toBe(newUserToken);
 
-    // Старый запрос не повторился.
+    // Не повторяет старый запрос.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
 
     expect(refreshSession).toHaveBeenCalledTimes(1);
@@ -802,13 +813,13 @@ describe('apiAxios: automatic token refresh', () => {
       response: { status: 401 },
     });
 
-    // Auth endpoint не запускает refresh.
+    // Не запускает обновление сессии для адреса авторизации.
     expect(refreshSession).not.toHaveBeenCalled();
 
-    // Повторных запросов нет.
+    // Не отправляет повторные запросы.
     expect(requests).toEqual([url]);
 
-    // Interceptor не выполняет logout.
+    // Не завершает сессию в перехватчике.
     expect(store.getState().auth.isAuthenticated).toBe(true);
     expect(store.getState().auth.token).toBe(oldToken);
   });
@@ -853,12 +864,12 @@ describe('apiAxios: automatic token refresh', () => {
       });
     };
 
-    // Старый пользователь отправляет запрос.
+    // Отправляет запрос прежнего пользователя.
     const requestPromise = apiAxios.get('/test-protected');
 
     await requestStarted;
 
-    // Пока запрос выполняется, меняем аккаунт.
+    // Меняет учётную запись, пока запрос выполняется.
     store.dispatch(logout());
 
     const credentials = {
@@ -881,17 +892,17 @@ describe('apiAxios: automatic token refresh', () => {
       )
     );
 
-    // Ответ на старый запрос приходит только сейчас.
+    // Возвращает ответ на старый запрос только сейчас.
     rejectOldRequest();
 
     await expect(requestPromise).rejects.toMatchObject({
       response: { status: 401 },
     });
 
-    // Refresh не запускался.
+    // Не запускает обновление сессии.
     expect(refreshSession).not.toHaveBeenCalled();
 
-    // Старый запрос не повторялся под новым аккаунтом.
+    // Не повторяет старый запрос от имени новой учётной записи.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
 
     const auth = store.getState().auth;
@@ -942,13 +953,13 @@ describe('apiAxios: automatic token refresh', () => {
       },
     });
 
-    // Refresh вообще не запускается.
+    // Не запускает обновление сессии при отзыве сессии.
     expect(refreshSession).not.toHaveBeenCalled();
 
     expect(notifySessionRevoked).toHaveBeenCalledTimes(1);
     expect(notifySessionRevoked).toHaveBeenCalledWith(token);
 
-    // Повторного запроса нет.
+    // Не отправляет повторный запрос.
     expect(requests).toEqual([`Bearer ${token}`]);
 
     const auth = store.getState().auth;
@@ -1004,12 +1015,12 @@ describe('apiAxios: automatic token refresh', () => {
       });
     };
 
-    // Отправляем запрос пользователя A.
+    // Отправляет запрос пользователя A.
     const requestPromise = apiAxios.get('/test-protected');
 
     await requestStarted;
 
-    // Пока запрос выполняется, меняем аккаунт.
+    // Меняет учётную запись, пока запрос выполняется.
     store.dispatch(logout());
 
     const credentials = {
@@ -1034,7 +1045,7 @@ describe('apiAxios: automatic token refresh', () => {
 
     expect(store.getState().auth.user.id).toBe(20);
 
-    // Только теперь приходит ошибка старой сессии.
+    // Возвращает ошибку старой сессии только сейчас.
     rejectOldRequest();
 
     await expect(requestPromise).rejects.toMatchObject({
@@ -1046,15 +1057,15 @@ describe('apiAxios: automatic token refresh', () => {
       },
     });
 
-    // Старый запрос не запускает refresh.
+    // Не запускает обновление сессии для старого запроса.
     expect(refreshSession).not.toHaveBeenCalled();
 
     expect(notifySessionRevoked).not.toHaveBeenCalled();
 
-    // Старый запрос не повторяется.
+    // Не повторяет старый запрос.
     expect(requests).toEqual([`Bearer ${oldToken}`]);
 
-    // Новый аккаунт остаётся авторизованным.
+    // Оставляет новую учётную запись авторизованной.
     const auth = store.getState().auth;
 
     expect(auth.isAuthenticated).toBe(true);
@@ -1120,13 +1131,13 @@ describe('apiAxios: automatic token refresh', () => {
       },
     });
 
-    // Refresh успешно выполнился ровно один раз.
+    // Выполняет обновление сессии ровно один раз.
     expect(refreshSession).toHaveBeenCalledTimes(1);
 
-    // Axios выполнил только один retry.
+    // Выполняет в Axios только один повтор.
     expect(requests).toEqual([`Bearer ${oldToken}`, `Bearer ${newToken}`]);
 
-    // После SESSION_REVOKED локальная авторизация завершена.
+    // Завершает локальную авторизацию после SESSION_REVOKED.
     const auth = store.getState().auth;
 
     expect(auth.isAuthenticated).toBe(false);

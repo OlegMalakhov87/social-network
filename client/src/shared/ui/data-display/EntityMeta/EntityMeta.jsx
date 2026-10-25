@@ -1,17 +1,18 @@
 import { Avatar } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import style from './EntityMeta.module.css';
 
 /**
- * Универсальный блок информации о сущности.
- * Используется внутри BaseCard или EntityHeader для отображения информации о сущности.
+ * Отображает краткие сведения о сущности.
  *
- * @param {Object} props
- * @param {string|React.ReactNode} [props.avatar] - изображение аватара
- * @param {string|React.ReactNode} [props.title] - заголовок
- * @param {string|React.ReactNode} [props.subtitle] - подзаголовок
- * @param {string|React.ReactNode} [props.badge] - текст или узел бейджа
- * @param {string} [props.className] - дополнительный класс
+ * @param {Object} props - Свойства компонента
+ * @param {string|React.ReactNode} [props.avatar] - Адрес или узел аватара
+ * @param {string|React.ReactNode} [props.title] - Заголовок
+ * @param {string|React.ReactNode} [props.subtitle] - Подзаголовок
+ * @param {string|React.ReactNode} [props.badge] - Содержимое значка
+ * @param {string} [props.className] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Краткие сведения.
  */
 export const EntityMeta = ({ avatar, title, subtitle, badge, className }) => {
   return (

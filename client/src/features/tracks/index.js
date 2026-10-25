@@ -1,7 +1,7 @@
-export { useUserMusicLibrary } from './model/useUserMusicLibrary'; // Хук для получения треков библиотеки пользователя
+export { useUserMusicLibrary } from './model/useUserMusicLibrary'; // Возвращает треки библиотеки пользователя.
 
-export { useMusic } from './model/useMusic'; // Хук для получения треков на странице музыки
+export { useMusic } from './model/useMusic'; // Возвращает ленту треков и изменяет её локально.
 
-export { TrackForm } from './ui/TrackForm'; // Форма добавления/редактирования трека
+export { TrackForm } from './ui/TrackForm'; // Отображает форму добавления и редактирования трека.
 
-export { TRACK_CONFIG } from './config/trackConfig'; // Конфигурация полей формы добавления/редактирования трека
+export { TRACK_CONFIG } from './config/trackConfig'; // Задаёт поля формы трека.

@@ -1,20 +1,17 @@
 import { apiAxios } from './apiAxios';
 
 /**
- * API для взаимодействия с сервером.
- *
- * @returns {Object} - объект с методами для взаимодействия с сервером
+ * Выполняет запросы HTTP к серверу.
  */
-
 export const api = {
-  /** Метод для получения данных. */
+  /** Возвращает данные. */
   get: apiAxios.get.bind(apiAxios),
-  /** Метод для отправки данных. */
+  /** Отправляет данные. */
   post: apiAxios.post.bind(apiAxios),
-  /** Метод для обновления данных. */
+  /** Заменяет данные. */
   put: apiAxios.put.bind(apiAxios),
-  /** Метод для частичного обновления данных. */
+  /** Частично обновляет данные. */
   patch: apiAxios.patch.bind(apiAxios),
-  /** Метод для удаления данных. */
+  /** Удаляет данные. */
   delete: apiAxios.delete.bind(apiAxios),
 };

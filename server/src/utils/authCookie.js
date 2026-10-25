@@ -5,8 +5,9 @@ const {
 } = require('../../config/authConfig');
 
 /**
- * Получение опций для refresh токена.
- * @returns {Object} Опции для refresh токена.
+ * Возвращает параметры cookie маркера обновления.
+ *
+ * @returns {{httpOnly: boolean, secure: boolean, sameSite: string, path: string}} Параметры cookie.
  */
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
@@ -16,10 +17,12 @@ const getRefreshCookieOptions = () => ({
 });
 
 /**
- * Установка refresh токена в cookie.
- * @param {Object} res - Объект response.
- * @param {string} refreshToken - Refresh токен.
- * @param {number} maxAge - Срок действия refresh токена.
+ * Сохраняет маркер обновления в cookie ответа.
+ *
+ * @param {import('express').Response} res - Ответ Express
+ * @param {string} refreshToken - Маркер обновления
+ * @param {number} [maxAge=REFRESH_TOKEN_TTL_MS] - Срок действия cookie в миллисекундах
+ * @returns {void} Ничего не возвращает.
  */
 const setRefreshCookie = (res, refreshToken, maxAge = REFRESH_TOKEN_TTL_MS) => {
   res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
@@ -29,8 +32,10 @@ const setRefreshCookie = (res, refreshToken, maxAge = REFRESH_TOKEN_TTL_MS) => {
 };
 
 /**
- * Очистка refresh токена из cookie.
- * @param {Object} res - Объект response.
+ * Удаляет маркер обновления из cookie ответа.
+ *
+ * @param {import('express').Response} res - Ответ Express
+ * @returns {void} Ничего не возвращает.
  */
 const clearRefreshCookie = (res) => {
   res.clearCookie(REFRESH_COOKIE_NAME, getRefreshCookieOptions());

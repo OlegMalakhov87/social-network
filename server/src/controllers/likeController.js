@@ -2,7 +2,12 @@ const likeService = require('../services/likeService');
 
 const likeController = {
   /**
-   * Поставить лайк сущности
+   * Создает лайк сущности.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   addLike: async (req, res, next) => {
     try {
@@ -20,7 +25,12 @@ const likeController = {
   },
 
   /**
-   * Удалить лайк у сущности
+   * Удаляет лайк сущности.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   deleteLike: async (req, res, next) => {
     try {

@@ -1,14 +1,16 @@
 import { classNames } from '../../../utils';
+
 import style from './Badge.module.css';
 
 /**
- * Универсальный бейдж.
+ * Отображает значок.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children - контент бейджа
- * @param {'primary'|'secondary'|'success'|'warning'|'danger'} [props.variant] - вариант бейджа
- * @param {'sm'|'md'} [props.size] - размер бейджа
- * @param {string} [props.className] - дополнительный класс
+ * @param {Object} props - Свойства компонента
+ * @param {React.ReactNode} props.children - Содержимое значка
+ * @param {'primary'|'secondary'|'success'|'warning'|'danger'} [props.variant='primary'] - Вариант оформления
+ * @param {'sm'|'md'} [props.size='md'] - Размер значка
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @returns {JSX.Element} Значок.
  */
 
 export const Badge = ({

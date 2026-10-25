@@ -1,10 +1,9 @@
 /**
- * Возвращает пропсы для вкладки "Видео".
+ * Возвращает свойства вкладки видео.
  *
- * @param {Object} ctx - контекст компонента
- * @returns {Object} - пропсы для вкладки "Видео"
+ * @param {Object} ctx - Контекст вкладки
+ * @returns {Object} Свойства вкладки видео
  */
-
 export const getVideosTabProps = (ctx) => ({
   videos: ctx.items,
   currentUser: ctx.currentUser,

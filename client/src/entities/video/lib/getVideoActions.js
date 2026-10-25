@@ -1,16 +1,16 @@
 /**
- * Формирует массив действий карточки видео.
+ * Возвращает действия видео.
  *
- * @param {Object} params - пропсы компонента
- * @param {Object} params.video - данные видео
- * @param {boolean} params.isOwn - флаг владельца видео
- * @param {Function} params.toggleLike - функция для лайка/дизлайка видео
- * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к видео
- * @param {Function} params.addToLibrary - функция для добавления видео в библиотеку
- * @param {Function} params.deleteFromLibrary - функция для удаления видео из библиотеки
- * @param {Function} params.onUpdate - функция для обновления видео
- * @param {boolean} params.disabledButton - флаг для блокировки кнопки
- * @returns {Array<Object>} - массив действий карточки видео
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.video - Видео
+ * @param {boolean} params.isOwn - Признак владельца видео
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.toggleComments] - Обработчик комментариев
+ * @param {Function} [params.addToLibrary] - Обработчик добавления в библиотеку
+ * @param {Function} [params.deleteFromLibrary] - Обработчик удаления из библиотеки
+ * @param {Function} [params.onUpdate] - Обработчик обновления
+ * @param {boolean} params.disabledButton - Признак блокировки кнопки
+ * @returns {Array<Object>} Действия видео
  */
 export const getVideoActions = ({
   video,

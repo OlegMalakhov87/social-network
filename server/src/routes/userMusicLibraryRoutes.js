@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const userMusicLibraryController = require('../controllers/userMusicLibraryController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
@@ -8,14 +9,14 @@ const {
 
 const userMusicLibraryRoutes = Router();
 
-// Получить мою библиотеку треков
+// Возвращает библиотеку треков текущего пользователя.
 userMusicLibraryRoutes.get(
   '/',
   authMiddleware,
   userMusicLibraryController.getMyMusicLibrary
 );
 
-// Получить библиотеку выбранного пользователя
+// Возвращает библиотеку выбранного пользователя.
 userMusicLibraryRoutes.get(
   '/:userId',
   validateIdParam('userId'),
@@ -23,7 +24,7 @@ userMusicLibraryRoutes.get(
   userMusicLibraryController.getUserMusicLibrary
 );
 
-// Добавить трек в библиотеку
+// Добавляет трек в библиотеку.
 userMusicLibraryRoutes.post(
   '/:trackId/add',
   validateIdParam('trackId'),
@@ -31,7 +32,7 @@ userMusicLibraryRoutes.post(
   userMusicLibraryController.addToMusicLibrary
 );
 
-// Обновить запись в библиотеке (избранное)
+// Обновляет признак избранного в библиотеке.
 userMusicLibraryRoutes.patch(
   '/:libraryId/favorite',
   validateIdParam('libraryId'),
@@ -40,7 +41,7 @@ userMusicLibraryRoutes.patch(
   userMusicLibraryController.updateFavoriteTrack
 );
 
-// Увеличить счетчик прослушиваний трека из библиотеки
+// Увеличивает счетчик прослушиваний трека в библиотеке.
 userMusicLibraryRoutes.patch(
   '/:libraryId/plays',
   validateIdParam('libraryId'),
@@ -48,7 +49,7 @@ userMusicLibraryRoutes.patch(
   userMusicLibraryController.incrementPlaysCount
 );
 
-// Удалить трек из библиотеки
+// Удаляет трек из библиотеки.
 userMusicLibraryRoutes.delete(
   '/:libraryId/delete',
   validateIdParam('libraryId'),

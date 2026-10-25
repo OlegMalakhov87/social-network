@@ -1,5 +1,8 @@
 /**
- * Нормализует объект трека для SharedEntityCard.
+ * Приводит трек к карточке общей сущности.
+ *
+ * @param {Object} track - Трек
+ * @returns {Object} Карточка общей сущности
  */
 export const normalizeSharedTrack = (track) => ({
   id: track.id,

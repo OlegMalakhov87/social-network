@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { selectToken, selectUser } from '../../../entities/auth';
+
+import { selectUser } from '../../../entities/auth';
 import {
   fetchMessagesApi,
   markMessagesAsRead,
   normalizeMessages,
+  subscribeNewMessage,
 } from '../../../entities/dialog';
 import { addLikeApi, deleteLikeApi } from '../../../entities/like';
-import { WS_URL } from '../../../shared/config';
 import {
   useInfiniteScroll,
   useNormalizedData,
@@ -16,29 +17,38 @@ import {
 import { apiFetchItems } from '../../../shared/lib';
 
 /**
- * Хук для работы с сообщениями выбранного диалога.
- * Предоставляет оптимистичное добавление, замену, удаление,
- * отметку прочтения и обновление отдельных полей сообщений.
+ * Возвращает сообщения выбранного диалога и обновляет их локально.
  *
- * @param {Object} params - параметры запроса
- * @param {number} [params.partnerId=null] - ID собеседника
- * @returns { Object } - объект с данными о сообщениях
+ * @param {Object} params - Параметры запроса
+ * @param {number|null} [params.partnerId=null] - Идентификатор собеседника
+ * @returns {{
+ *   messages: Array<Object>,
+ *   isLoading: boolean,
+ *   isLoadingMore: boolean,
+ *   hasMore: boolean,
+ *   error: { message: string, fieldErrors?: Object }|null,
+ *   loadMore: Function,
+ *   refetch: Function,
+ *   addOptimistic: Function,
+ *   replaceOptimistic: Function,
+ *   removeOptimistic: Function,
+ *   updateMessageInState: Function,
+ *   markAsRead: Function,
+ *   toggleLike: Function
+ * }} Сообщения диалога и действия
  */
 export function useMessages({ partnerId = null }) {
   const currentUser = useSelector(selectUser);
-  const token = useSelector(selectToken);
   const currentUserId = currentUser?.id;
 
-  /** Хранение ID прочитанных сообщений.*/
+  // Запоминает уже отправленные отметки прочтения.
   const readIdsRef = useRef(new Set());
 
-  /** Зависимости для бесконечного скролла */
   const scrollDeps = useMemo(
     () => [currentUserId, partnerId],
     [currentUserId, partnerId]
   );
 
-  /** Получение сообщений с бесконечным скроллом. */
   const {
     items: messagesItems,
     setItems: setMessagesItems,
@@ -49,6 +59,15 @@ export function useMessages({ partnerId = null }) {
     loadMore,
     refetch,
   } = useInfiniteScroll({
+    /**
+     * Загружает страницу сообщений.
+     *
+     * @param {Object} query - Параметры страницы
+     * @param {number} query.page - Номер страницы
+     * @param {number} query.limit - Размер страницы
+     * @param {AbortSignal} query.signal - Сигнал отмены
+     * @returns {Promise<{items: Array, hasMore: boolean}>|{items: Array, hasMore: boolean}} Страница сообщений
+     */
     fetchFn: ({ page, limit, signal }) => {
       if (!currentUserId || !partnerId) {
         return { items: [], hasMore: false };
@@ -61,102 +80,48 @@ export function useMessages({ partnerId = null }) {
     deps: scrollDeps,
   });
 
-  /** WebSocket: получение новых сообщений в реальном времени. */
+  // Подписывается на новые сообщения. Соединение WebSocket держит приложение.
   useEffect(() => {
-    if (!currentUserId || !token || !partnerId) return;
+    if (!currentUserId || !partnerId) {
+      return;
+    }
 
-    let ws;
-    let reconnectTimeout;
-    let reconnectAttempts = 0;
-    const MAX_RECONNECT_ATTEMPTS = 5;
+    return subscribeNewMessage((msg) => {
+      const belongsToCurrentDialog =
+        (msg.senderId === partnerId && msg.receiverId === currentUserId) ||
+        (msg.receiverId === partnerId && msg.senderId === currentUserId);
 
-    const connect = () => {
-      const wsUrl = `${WS_URL}?token=${encodeURIComponent(token)}`;
-      ws = new WebSocket(wsUrl);
+      if (!belongsToCurrentDialog) return;
 
-      ws.onopen = () => {
-        reconnectAttempts = 0;
-      };
-
-      ws.onerror = (event) => {
-        console.error('Ошибка WebSocket соединения:', event);
-      };
-
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type === 'newMessage') {
-            const msg = data.data;
-            if (
-              (msg.senderId === partnerId &&
-                msg.receiverId === currentUserId) ||
-              (msg.receiverId === partnerId && msg.senderId === currentUserId)
-            ) {
-              setMessagesItems((prev) => [...prev, msg]);
-            }
-          }
-        } catch (err) {
-          console.error('Ошибка обработки сообщения WebSocket:', err);
-        }
-      };
-
-      ws.onclose = (event) => {
-        console.log(
-          `WebSocket закрыт. Код: ${event.code}, Причина: ${event.reason}`
-        );
-
-        // Не пытаемся переподключиться, если сервер нас специально выгнал (неверный токен)
-        if (event.code === 4001 || event.code === 4002) {
-          console.error(
-            'Ошибка аутентификации WebSocket. Переподключение остановлено.'
-          );
-          return;
+      setMessagesItems((prev) => {
+        if (prev.some((message) => message.id === msg.id)) {
+          return prev;
         }
 
-        // Защита от "шторма" переподключений (экспоненциальная задержка + jitter)
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttempts += 1;
-          const delay =
-            Math.min(1000 * 2 ** reconnectAttempts, 10000) +
-            Math.random() * 1000;
-
-          reconnectTimeout = setTimeout(() => {
-            console.log(
-              `Попытка переподключения WebSocket (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
-            );
-            connect();
-          }, delay);
-        } else {
-          console.error(
-            'Превышено максимальное количество попыток переподключения WebSocket.'
-          );
-        }
-      };
-    };
-
-    connect();
-
-    return () => {
-      clearTimeout(reconnectTimeout);
-      ws?.close();
-    };
-  }, [currentUserId, partnerId, setMessagesItems, token]);
+        return [msg, ...prev];
+      });
+    });
+  }, [currentUserId, partnerId, setMessagesItems]);
 
   /**
-   * Оптимистичное добавление сообщения.
-   * @param {Object} msg – объект сообщения
+   * Добавляет сообщение в список до ответа сервера.
+   *
+   * @param {Object} msg - Сообщение
+   * @returns {void}
    */
   const addOptimistic = useCallback(
     (msg) => {
-      setMessagesItems((prev) => [...prev, msg]);
+      setMessagesItems((prev) => [msg, ...prev]);
     },
     [setMessagesItems]
   );
 
   /**
-   * Замена временного сообщения на реальное (или удаление при ошибке).
-   * @param {string|number} tempId – временный ID
-   * @param {Object|null} realMsg – реальный объект сообщения или null для удаления
+   * Заменяет временное сообщение ответом сервера или удаляет его.
+   *
+   * @param {string|number} tempId - Временный идентификатор
+   * @param {Object|null} realMsg - Сообщение сервера или null для удаления
+   * @returns {void}
    */
   const replaceOptimistic = useCallback(
     (tempId, realMsg) => {
@@ -170,8 +135,10 @@ export function useMessages({ partnerId = null }) {
   );
 
   /**
-   * Оптимистичное удаление сообщения.
-   * @param {number} messageId – ID сообщения
+   * Удаляет сообщение из списка до ответа сервера.
+   *
+   * @param {number|string} messageId - Идентификатор сообщения
+   * @returns {void}
    */
   const removeOptimistic = useCallback(
     (messageId) => {
@@ -180,9 +147,6 @@ export function useMessages({ partnerId = null }) {
     [setMessagesItems]
   );
 
-  /**
-   * Отметка прочтения всех непрочитанных входящих сообщений.
-   */
   const markAsRead = useCallback(async () => {
     const unreadIds = messagesItems
       .filter(
@@ -204,16 +168,18 @@ export function useMessages({ partnerId = null }) {
         prev.map((m) => (unreadIds.includes(m.id) ? { ...m, isRead: true } : m))
       );
     } catch (err) {
-      //Откат изменений при ошибке
+      // Откатывает отметку, если сервер не подтвердил прочтение.
       unreadIds.forEach((id) => readIdsRef.current.delete(id));
       console.error('Ошибка отметки прочтения:', err);
     }
   }, [messagesItems, setMessagesItems, partnerId, currentUserId]);
 
   /**
-   * Обновление отдельных полей сообщения (например, после редактирования).
-   * @param {number} messageId – ID сообщения
-   * @param {Object} updates – поля для обновления
+   * Обновляет отдельные поля сообщения.
+   *
+   * @param {number|string} messageId - Идентификатор сообщения
+   * @param {Object} updates - Поля для обновления
+   * @returns {void}
    */
   const updateMessageInState = useCallback(
     (messageId, updates) => {
@@ -224,7 +190,6 @@ export function useMessages({ partnerId = null }) {
     [setMessagesItems]
   );
 
-  /** Оптимистичный лайк. */
   const toggleLike = useOptimisticLike({
     setItems: setMessagesItems,
     addLikeFn: addLikeApi,
@@ -233,9 +198,13 @@ export function useMessages({ partnerId = null }) {
     targetType: 'messages',
   });
 
-  /** Нормализация сообщений. */
+  const chronologicalMessages = useMemo(
+    () => [...messagesItems].reverse(),
+    [messagesItems]
+  );
+
   const normalizedMessages = useNormalizedData({
-    items: messagesItems,
+    items: chronologicalMessages,
     normalizeFn: normalizeMessages,
   });
 

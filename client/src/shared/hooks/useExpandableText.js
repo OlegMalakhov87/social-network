@@ -1,17 +1,28 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
 /**
- * Хук для работы с раскрываемым текстом
+ * Раскрывает обрезанный текст и проверяет переполнение.
  *
- * @param {number} lineClamp - Количество строк, на которые нужно обрезать текст
- * @param {Array} [deps=[]] - Зависимости для recalc функции
- * @returns {Object} - Объект с ref, expanded, isOverflowing и toggle функциями
+ * @param {Object} [params] - Параметры обрезки
+ * @param {number} [params.lineClamp=2] - Число видимых строк
+ * @param {Array} [params.deps=[]] - Зависимости пересчёта переполнения
+ * @returns {{
+ *   ref: import('react').RefObject,
+ *   expanded: boolean,
+ *   isOverflowing: boolean,
+ *   toggle: Function
+ * }} Ссылка на элемент, признак раскрытия, признак переполнения и переключатель.
  */
 export const useExpandableText = ({ lineClamp = 2, deps = [] } = {}) => {
   const ref = useRef(null);
   const [expanded, setExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
+  /**
+   * Проверяет, превышает ли текст видимую высоту.
+   *
+   * @returns {void}
+   */
   const recalc = () => {
     const el = ref.current;
     if (!el) return;
@@ -30,6 +41,11 @@ export const useExpandableText = ({ lineClamp = 2, deps = [] } = {}) => {
     return () => observer.disconnect();
   }, [lineClamp, deps]);
 
+  /**
+   * Переключает раскрытие текста.
+   *
+   * @returns {void}
+   */
   const toggle = () => setExpanded((prev) => !prev);
 
   return { ref, expanded, isOverflowing, toggle };

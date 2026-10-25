@@ -1,13 +1,15 @@
 import { DialogsListSchema, MessageSchema, MessagesListSchema } from '..';
 import { api } from '../../../shared/api';
+
 /**
- * Получить список диалогов
- * @param {Object} params
- * @param {number} params.page - номер страницы
- * @param {string} [params.q] - поисковый запрос
- * @param {number} params.limit - количество элементов на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<{dialogs: DialogsListSchema, pagination}} {dialogs, pagination}
+ * Возвращает список диалогов.
+ *
+ * @param {Object} params - Параметры запроса
+ * @param {number} params.page - Номер страницы
+ * @param {string} [params.q] - Поисковый запрос
+ * @param {number} params.limit - Количество элементов на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ dialogs: Object[], pagination: Object }>} Диалоги и пагинация
  */
 export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
   const response = await api.get(`/messages/dialogs`, {
@@ -26,13 +28,14 @@ export const fetchDialogsApi = async ({ page, q, limit, signal }) => {
 };
 
 /**
- * Получить список сообщений с выбранным собеседником
- * @param {Object} params
- * @param {number} params.partnerId - ID собеседника
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество элементов на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @returns {Promise<{messages: MessagesListSchema, pagination}} {messages, pagination}
+ * Возвращает сообщения выбранного собеседника.
+ *
+ * @param {Object} params - Параметры запроса
+ * @param {number} params.partnerId - Идентификатор собеседника
+ * @param {number} params.page - Номер страницы
+ * @param {number} params.limit - Количество элементов на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @returns {Promise<{ messages: Object[], pagination: Object }>} Сообщения и пагинация
  */
 export const fetchMessagesApi = async ({ partnerId, page, limit, signal }) => {
   const response = await api.get(`/messages/conversation/${partnerId}`, {
@@ -49,9 +52,10 @@ export const fetchMessagesApi = async ({ partnerId, page, limit, signal }) => {
 };
 
 /**
- * Получить сообщение по ID (для кнопки "Поделиться")
- * @param {number} messageId - ID сообщения
- * @returns {Promise<{message: MessageSchema}} {message}
+ * Возвращает сообщение по идентификатору.
+ *
+ * @param {number} messageId - Идентификатор сообщения
+ * @returns {Promise<Object>} Сообщение
  */
 export const fetchMessageById = async (messageId) => {
   const response = await api.get(`/messages/${messageId}/shared`);
@@ -59,10 +63,11 @@ export const fetchMessageById = async (messageId) => {
 };
 
 /**
- * Отправить сообщение собеседнику
- * @param {number} receiverId - ID собеседника
- * @param {string} content - контент сообщения
- * @returns {Promise<{message: MessageSchema}} {message}
+ * Отправляет сообщение собеседнику.
+ *
+ * @param {number} receiverId - Идентификатор собеседника
+ * @param {string} content - Текст сообщения
+ * @returns {Promise<Object>} Сообщение
  */
 export const sendMessageApi = async (receiverId, content) => {
   const response = await api.post(`/messages/send`, {
@@ -73,10 +78,11 @@ export const sendMessageApi = async (receiverId, content) => {
 };
 
 /**
- * Обновить сообщение
- * @param {number} messageId - ID сообщения
- * @param {string} content - новый контент сообщения
- * @returns {Promise<{message: MessageSchema}} {message}
+ * Обновляет сообщение.
+ *
+ * @param {number} messageId - Идентификатор сообщения
+ * @param {string} content - Новый текст сообщения
+ * @returns {Promise<Object>} Сообщение
  */
 export const updateMessageApi = async (messageId, content) => {
   const response = await api.patch(`/messages/${messageId}/edit`, {
@@ -86,9 +92,10 @@ export const updateMessageApi = async (messageId, content) => {
 };
 
 /**
- * Отметка о прочтении
- * @param {number[]} messageIds - массив ID сообщений
- * @returns {Promise<Object>} { message }
+ * Отмечает сообщения прочитанными.
+ *
+ * @param {number[]} messageIds - Идентификаторы сообщений
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const markMessagesAsRead = async (messageIds) => {
   const response = await api.patch(`/messages/read`, { messageIds });
@@ -96,9 +103,10 @@ export const markMessagesAsRead = async (messageIds) => {
 };
 
 /**
- * Скрыть сообщение (удаляет сообщение только у текущего пользователя)
- * @param {number} messageId - ID сообщения
- * @returns {Promise<Object>} { message }
+ * Скрывает сообщение у текущего пользователя.
+ *
+ * @param {number} messageId - Идентификатор сообщения
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const hideMessageApi = async (messageId) => {
   const response = await api.patch(`/messages/${messageId}/hide`);
@@ -106,9 +114,10 @@ export const hideMessageApi = async (messageId) => {
 };
 
 /**
- * Очистить чат с пользователем (удаляет чат только у текущего пользователя)
- * @param {number} receiverId - ID собеседника
- * @returns {Promise<Object>} { message }
+ * Очищает чат у текущего пользователя.
+ *
+ * @param {number} receiverId - Идентификатор собеседника
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const clearChatApi = async (receiverId) => {
   const response = await api.patch(`/messages/clear/${receiverId}`);

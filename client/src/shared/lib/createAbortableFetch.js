@@ -1,11 +1,16 @@
 /**
- * Функция для создания обёртки для отменяемого fetch-запроса.
+ * Создаёт контроллер отмены для последовательных запросов.
  *
- * @returns {Object} - { createController, abort, cleanup }
+ * @returns {{ createController: Function, abort: Function, cleanup: Function }} Создание контроллера, отмена и очистка.
  */
 export const createAbortableFetch = () => {
   let controllerRef = null;
 
+  /**
+   * Отменяет текущий запрос.
+   *
+   * @returns {void}
+   */
   const abort = () => {
     if (controllerRef) {
       controllerRef.abort();
@@ -13,6 +18,11 @@ export const createAbortableFetch = () => {
     }
   };
 
+  /**
+   * Отменяет предыдущий запрос и возвращает новый контроллер.
+   *
+   * @returns {AbortController} Контроллер текущего запроса.
+   */
   const createController = () => {
     abort();
     const controller = new AbortController();
@@ -20,6 +30,11 @@ export const createAbortableFetch = () => {
     return controller;
   };
 
+  /**
+   * Отменяет текущий запрос при очистке.
+   *
+   * @returns {void}
+   */
   const cleanup = () => abort();
 
   return { createController, abort, cleanup };

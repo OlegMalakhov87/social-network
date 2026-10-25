@@ -1,12 +1,14 @@
 import { Toast } from './Toast';
+
 import styles from './Toast.module.css';
 
 /**
- * Контейнер уведомлений.
+ * Отображает список всплывающих уведомлений.
  *
- * @param {Object} props
- * @param {Array<Object>} props.toasts - массив уведомлений (идентификатор, текст, тип)
- * @param {Function} props.removeToast - функция удаления уведомления
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{id: number, message: string, type: string}>} props.toasts - Уведомления с идентификатором, текстом и типом
+ * @param {Function} props.removeToast - Обработчик удаления уведомления
+ * @returns {JSX.Element} Список уведомлений.
  */
 
 export const ToastContainer = ({ toasts, removeToast }) => {

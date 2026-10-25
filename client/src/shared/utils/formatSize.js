@@ -1,8 +1,8 @@
 /**
- * Утилита форматирования размеров файлов
+ * Форматирует размер файла.
  *
- * @param {number} bytes - размер файла в байтах
- * @returns {string} - форматированный размер файла
+ * @param {number} bytes - Размер в байтах
+ * @returns {string} Размер с единицей измерения.
  */
 export const formatSize = (bytes) => {
   if (bytes === 0) return '0 B';

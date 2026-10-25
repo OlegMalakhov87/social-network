@@ -1,9 +1,9 @@
 /**
- * Форматирует дату как «только что», «5 минут назад», «2 часа назад».
+ * Форматирует дату относительно текущего момента.
  *
- * @param {string} dateString - ISO-строка
- * @param {number} [now=Date.now()] - текущее время
- * @returns {string}
+ * @param {string} dateString - Строка даты
+ * @param {number} [now=Date.now()] - Текущее время в миллисекундах
+ * @returns {string} Относительное время или пустая строка.
  */
 export const formatRelativeTime = (dateString, now = Date.now()) => {
   if (!dateString) return '';

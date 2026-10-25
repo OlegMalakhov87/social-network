@@ -1,17 +1,18 @@
 import { useCallback } from 'react';
+
 import { getApiErrorDisplay, parseApiError } from '../lib';
 import { useNotify } from './';
 
 /**
- * Оптимистичное добавление/удаление из библиотеки.
+ * Добавляет элемент в библиотеку и удаляет его до ответа сервера.
  *
- * @param {Object} params
- * @param {Function} params.setItems - функция для установки массива элементов
- * @param {Function} params.addFn - функция для добавления элемента в библиотеку
- * @param {Function} params.deleteFn - функция для удаления элемента из библиотеки
- * @param {Function} params.mapOnAdd - функция для получения дополнительных полей при добавлении
- * @param {Function} params.mapOnRemove - функция для получения дополнительных полей при удалении
- * @returns {Object} - объект с функциями для добавления и удаления из библиотеки
+ * @param {Object} params - Параметры библиотеки
+ * @param {Function} params.setItems - Обновляет массив элементов
+ * @param {Function} params.addFn - Добавляет элемент на сервере
+ * @param {Function} params.deleteFn - Удаляет элемент на сервере
+ * @param {Function} [params.mapOnAdd] - Возвращает дополнительные поля при добавлении
+ * @param {Function} [params.mapOnRemove] - Возвращает дополнительные поля при удалении
+ * @returns {{ addToLibrary: Function, deleteFromLibrary: Function }} Методы изменения библиотеки.
  */
 export const useOptimisticLibraryToggle = ({
   setItems,
@@ -22,7 +23,12 @@ export const useOptimisticLibraryToggle = ({
 }) => {
   const notify = useNotify();
 
-  /** Функция для добавления элемента в библиотеку */
+  /**
+   * Добавляет элемент в библиотеку и возвращает прежнее состояние при ошибке.
+   *
+   * @param {number|string} itemId - Идентификатор элемента
+   * @returns {Promise<boolean|undefined>} Результат добавления: false при пустом идентификаторе или ошибке сервера и undefined после успеха.
+   */
   const addToLibrary = useCallback(
     async (itemId) => {
       if (!itemId) return false;
@@ -80,7 +86,13 @@ export const useOptimisticLibraryToggle = ({
     [setItems, addFn, mapOnAdd, notify]
   );
 
-  /** Функция для удаления элемента из библиотеки */
+  /**
+   * Удаляет элемент из библиотеки и возвращает прежнее состояние при ошибке.
+   *
+   * @param {number|string} libraryId - Идентификатор элемента библиотеки
+   * @param {number|string} itemId - Идентификатор элемента
+   * @returns {Promise<boolean|undefined>} Результат удаления: false при пустых идентификаторах или ошибке сервера и undefined после успеха.
+   */
   const deleteFromLibrary = useCallback(
     async (libraryId, itemId) => {
       if (!libraryId || !itemId) return false;

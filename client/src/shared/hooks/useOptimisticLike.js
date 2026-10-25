@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 
 /**
- * Универсальный хук для оптимистичного управления лайками.
+ * Переключает отметку до ответа сервера и возвращает прежнее состояние при ошибке.
  *
- * @param {Object} params - параметры запроса
- * @param {Function} params.setItems - функция обновления массива
- * @param {Function} params.addLikeFn - функция добавления лайка (async)
- * @param {Function} params.deleteLikeFn - функция удаления лайка (async)
- * @param {number|string} params.currentUserId - ID текущего пользователя
- * @param {string} params.targetType - тип сущности (posts, tracks, videos, news, comments, messages)
- * @returns {Function} - функция для добавления/удаления лайка
+ * @param {Object} params - Параметры отметки
+ * @param {Function} params.setItems - Обновляет массив элементов
+ * @param {Function} params.addLikeFn - Добавляет отметку на сервере
+ * @param {Function} params.deleteLikeFn - Удаляет отметку на сервере
+ * @param {number|string} params.currentUserId - Идентификатор текущего пользователя
+ * @param {string} params.targetType - Тип сущности
+ * @returns {Function} Переключает отметку и возвращает признак успеха.
  */
 export const useOptimisticLike = ({
   setItems,
@@ -18,6 +18,13 @@ export const useOptimisticLike = ({
   currentUserId,
   targetType,
 }) => {
+  /**
+   * Переключает отметку и счётчик.
+   *
+   * @param {number|string} itemId - Идентификатор элемента
+   * @param {boolean} currentlyLiked - Отметка уже стоит
+   * @returns {Promise<boolean|undefined>} Признак успеха, false при ошибке сервера или undefined без пользователя и идентификатора.
+   */
   const toggleLike = useCallback(
     async (itemId, currentlyLiked) => {
       if (!currentUserId || !itemId) return;

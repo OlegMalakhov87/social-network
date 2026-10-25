@@ -1,11 +1,15 @@
 import { useState } from 'react';
+
 import { NOTIFICATION_SETTINGS_CONFIG, SettingsSection } from '..';
 import { useNotify } from '../../../shared/hooks';
 import { Button, Checkbox } from '../../../shared/ui';
+
 import style from './SettingsForm.module.css';
 
 /**
- * Компонент формы настроек уведомлений.
+ * Отображает настройки уведомлений.
+ *
+ * @returns {JSX.Element} Настройки уведомлений
  */
 export const NotificationToggle = () => {
   const notify = useNotify();
@@ -22,6 +26,12 @@ export const NotificationToggle = () => {
     notify.success('Настройки уведомлений сохранены');
   };
 
+  /**
+   * Переключает локальное значение уведомления.
+   *
+   * @param {string} key - Ключ уведомления
+   * @returns {void}
+   */
   const toggle = (key) =>
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 

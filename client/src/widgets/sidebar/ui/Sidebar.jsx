@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { SIDEBAR_CONFIG } from '..';
-import { classNames } from '../../../shared/utils';
 
 import { selectUser } from '../../../entities/auth';
-import { WeatherWidget } from '../weather';
-
 import {
   BaseCard,
   Button,
@@ -15,15 +11,25 @@ import {
   MediaPreview,
   Text,
 } from '../../../shared/ui';
+import { classNames } from '../../../shared/utils';
+import { SIDEBAR_CONFIG } from '..';
+import { WeatherWidget } from '../weather';
+
 import style from './Sidebar.module.css';
 
-// Компактная обертка для иконки, чтобы она выглядела как аватар в EntityMeta
+/**
+ * Отображает иконку в формате аватара.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.icon - Значок пункта
+ * @returns {JSX.Element} Разметка иконки.
+ */
 const IconAvatar = ({ icon }) => <div className={style.listIcon}>{icon}</div>;
 
 /**
- * Основная информационно-рекламная панель (боковая панель справа от пользователя)
+ * Отображает боковую панель приложения.
  *
- * @returns {React.ReactNode}
+ * @returns {JSX.Element|null} Разметка панели.
  */
 export const Sidebar = () => {
   const currentUser = useSelector(selectUser);
@@ -46,7 +52,6 @@ export const Sidebar = () => {
         ariaLabel="Скрыть панель"
       />
 
-      {/* 1. Премиум */}
       <BaseCard
         className={classNames(style.sidebarCard, style.card, style.gradientPrimary)}
         header={
@@ -66,7 +71,6 @@ export const Sidebar = () => {
         }
       />
 
-      {/* 2. Реклама */}
       <BaseCard
         className={style.sidebarCard}
         header={<Text variant="h4">{ad.title}</Text>}
@@ -95,7 +99,6 @@ export const Sidebar = () => {
         }
       />
 
-      {/* 3. Популярное */}
       <BaseCard
         className={style.sidebarCard}
         header={<Text variant="h4">{popular.title}</Text>}
@@ -114,10 +117,8 @@ export const Sidebar = () => {
         }
       />
 
-      {/* 4. Погода */}
       <WeatherWidget address={address} />
 
-      {/* 5. События */}
       <BaseCard
         className={style.sidebarCard}
         header={<Text variant="h4">{events.title}</Text>}

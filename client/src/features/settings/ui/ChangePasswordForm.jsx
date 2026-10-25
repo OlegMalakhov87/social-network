@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+
 import { CHANGE_PASSWORD_SETTINGS_CONFIG, SettingsSection } from '..';
 import { changePassword, deleteUser, logout } from '../../../entities/auth';
 import { useForm, useNotify } from '../../../shared/hooks';
@@ -17,10 +18,13 @@ import {
   ConfirmDialog,
   Input,
 } from '../../../shared/ui';
+
 import style from './SettingsForm.module.css';
 
 /**
- * Компонент формы смены пароля.
+ * Отображает форму смены пароля и удаления аккаунта.
+ *
+ * @returns {JSX.Element} Форма смены пароля
  */
 export const ChangePasswordForm = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -28,7 +32,6 @@ export const ChangePasswordForm = () => {
   const dispatch = useDispatch();
   const notify = useNotify();
 
-  /** Форма для смены пароля */
   const form = useForm({
     initialValues: {
       currentPassword: null,
@@ -68,7 +71,6 @@ export const ChangePasswordForm = () => {
     },
   });
 
-  /** Обработчик подтверждения удаления аккаунта */
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {

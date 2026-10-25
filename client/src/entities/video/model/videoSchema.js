@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import { CommentsListSchema } from '../../comment';
 import { LikeSchema } from '../../like';
 import { UserSchema } from '../../user';
 
 /**
- * Схема видео
+ * Описывает видео.
  */
 export const VideoSchema = z.object({
   id: z.number(),
@@ -44,6 +45,6 @@ export const VideoSchema = z.object({
 });
 
 /**
- * Схема списка видео
+ * Описывает список видео.
  */
 export const VideosListSchema = z.array(VideoSchema);

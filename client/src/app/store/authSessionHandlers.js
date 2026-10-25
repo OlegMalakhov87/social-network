@@ -6,15 +6,17 @@ import {
 
 /**
  * Создаёт обработчики сессии.
- * @param {import('@reduxjs/toolkit').EnhancedStore} store
- * @returns {Object}
+ *
+ * @param {import('@reduxjs/toolkit').EnhancedStore} store - Хранилище Redux
+ * @returns {{onSessionLogout: Function, onSessionChanged: Function}} Обработчики сессии.
  */
 export const createAuthSessionHandlers = (store) => {
   /**
-   * Обработчик события logout.
-   * @param {Object} payload
-   * @param {number} payload.userId
-   * @param {string} payload.sessionId
+   * Завершает сессию при выходе из неё.
+   *
+   * @param {Object} payload - Данные события
+   * @param {number} payload.userId - Идентификатор пользователя
+   * @param {string} payload.sessionId - Идентификатор сессии
    * @returns {void}
    */
   const onSessionLogout = ({ userId, sessionId }) => {
@@ -32,10 +34,11 @@ export const createAuthSessionHandlers = (store) => {
   };
 
   /**
-   * Обработчик события sessionChanged.
-   * @param {Object} payload
-   * @param {number} payload.userId
-   * @param {string} payload.sessionId
+   * Сбрасывает авторизацию при смене сессии.
+   *
+   * @param {Object} payload - Данные события
+   * @param {number} payload.userId - Идентификатор пользователя
+   * @param {string} payload.sessionId - Идентификатор сессии
    * @returns {void}
    */
   const onSessionChanged = ({ userId, sessionId }) => {

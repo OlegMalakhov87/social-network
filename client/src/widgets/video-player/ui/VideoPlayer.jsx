@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef } from 'react';
+
 import { getVideoStats } from '../../../entities/video';
 import { EntityStats, IconButton, Modal, RichText } from '../../../shared/ui';
 import { useAudioPlayer } from '../../audio-player';
+
 import style from './VideoPlayer.module.css';
 
 /**
- * Модальный видеоплеер.
+ * Отображает модальный видеоплеер.
  *
- * @param {Object} props
- * @param {Object} props.video - данные видео
- * @param {Function} props.onClose - колбэк закрытия
- * @param {Function} [props.onPlayStart] - один раз при начале воспроизведения
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.video - Данные видео
+ * @param {Function} props.onClose - Обработчик закрытия плеера
+ * @param {Function} [props.onPlayStart] - Обработчик первого старта воспроизведения
+ * @returns {JSX.Element} Разметка плеера.
  */
 export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
   const { pause, play, isPlaying } = useAudioPlayer();
@@ -18,7 +21,7 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
   const playStartedRef = useRef(false);
   const videoRef = useRef(null);
 
-  /** Пауза трека при открытии видео + возобновление только при закрытии модалки. */
+  // Ставит текущий трек на паузу и возобновляет его при закрытии плеера.
   useEffect(() => {
     const shouldResumeAudio = shouldResumeAudioRef.current;
 
@@ -33,26 +36,26 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
     };
   }, [pause, play]);
 
-  /** Обработчик начала воспроизведения видео */
+  // Сбрасывает отметку старта при смене видео.
   useEffect(() => {
     playStartedRef.current = false;
   }, [video?.id]);
 
-  /** Обработчик воспроизведения видео */
   const handleVideoPlay = useCallback(() => {
+    // Запасное видео не увеличивает счётчик просмотров.
     if (videoRef.current?.dataset.fallback === 'true') return;
+    // Сообщает о старте один раз за ролик.
     if (playStartedRef.current || !video?.id) return;
     playStartedRef.current = true;
     onPlayStart?.(video);
   }, [video, onPlayStart]);
 
-  /** Обработчик ошибки видео */
   const handleVideoError = useCallback(() => {
     const player = videoRef.current;
 
     if (!player) return;
 
-    // Если резервное видео тоже недоступно, повторно не переключаем.
+    // Повторно не переключает источник: запасное видео тоже недоступно.
     if (player.dataset.fallback === 'true') {
       console.error('[VideoPlayer] Резервное видео недоступно');
       return;
@@ -64,16 +67,14 @@ export const VideoPlayer = ({ video, onClose, onPlayStart }) => {
     player.src = '/socialnet-video-unavailable-5s.mp4';
     player.load();
 
-    // Повторное воспроизведение может быть заблокировано браузером.
+    // Браузер может заблокировать автоматический запуск.
     player.play().catch(() => {
       console.warn('[VideoPlayer] Не удалось автоматически запустить fallback');
     });
   }, []);
 
-  /** URL видео */
   const videoUrl = video?.videoUrl || video?.postUrl || video?.newsUrl;
 
-  /** Если видео не найдено, отображается модальное окно с сообщением о недоступности видео */
   if (!videoUrl) {
     return (
       <Modal

@@ -1,11 +1,18 @@
 import { useMemo } from 'react';
+
 import { createNotifier } from '../lib';
 import { useToast } from '../ui';
 
 /**
- * Хук для работы с уведомлениями в компонентах.
+ * Возвращает методы показа уведомлений.
  *
- * @returns {Object} - объект с методами
+ * @returns {{
+ *   success: Function,
+ *   error: Function,
+ *   warning: Function,
+ *   info: Function,
+ *   createHandlers: Function
+ * }} Методы уведомлений и пара обработчиков.
  */
 export const useNotify = () => {
   const toast = useToast();

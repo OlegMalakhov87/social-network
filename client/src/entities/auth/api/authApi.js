@@ -1,13 +1,14 @@
 import { authAxios } from '../../../shared/api';
 import { UserSchema } from '../../user';
 
-// Promise для кеширования refresh запроса
+/** Хранит общий Promise обновления маркера доступа. */
 let refreshPromise = null;
 
 /**
- * Получить данные текущего пользователя.
- * @param {string} accessToken - access token пользователя
- * @returns {Promise<{user: UserSchema}} {user}
+ * Возвращает текущего пользователя.
+ *
+ * @param {string} accessToken - Маркер доступа
+ * @returns {Promise<{ user: Object }>} Текущий пользователь
  */
 export const getCurrentUser = async (accessToken) => {
   const response = await authAxios.get('/auth/me', {
@@ -19,9 +20,10 @@ export const getCurrentUser = async (accessToken) => {
 };
 
 /**
- * Зарегистрировать пользователя.
- * @param {Object} formData - данные нового пользователя
- * @returns {Promise<{user: UserSchema, token: string}} {user, token}
+ * Регистрирует пользователя.
+ *
+ * @param {Object} formData - Данные нового пользователя
+ * @returns {Promise<{ user: Object, token: string }>} Пользователь и маркер доступа
  */
 export const registerUser = async (formData) => {
   const response = await authAxios.post('/auth/register', formData);
@@ -32,9 +34,10 @@ export const registerUser = async (formData) => {
 };
 
 /**
- * Авторизовать пользователя.
- * @param {Object} credentials - логин и пароль пользователя
- * @returns {Promise<{user: UserSchema, token: string}} {user, token}
+ * Авторизует пользователя.
+ *
+ * @param {Object} credentials - Почта и пароль
+ * @returns {Promise<{ user: Object, token: string }>} Пользователь и маркер доступа
  */
 export const loginUser = async (credentials) => {
   const response = await authAxios.post('/auth/login', credentials);
@@ -45,9 +48,11 @@ export const loginUser = async (credentials) => {
 };
 
 /**
- * Получить новый access token через refresh cookie.
+ * Возвращает новый маркер доступа по cookie.
  *
- * @returns {Promise<{token: string}} {token}
+ * Повторные вызовы делят один HTTP-запрос, пока он не завершится.
+ *
+ * @returns {Promise<{ token: string }>} Новый маркер доступа
  */
 export const refreshAuth = () => {
   if (!refreshPromise) {
@@ -65,9 +70,9 @@ export const refreshAuth = () => {
 };
 
 /**
- * Завершить refresh-сессию на сервере.
+ * Завершает сессию на сервере.
  *
- * @param {string} sessionId - идентификатор сессии
+ * @param {string} sessionId - Идентификатор сессии
  * @returns {Promise<void>}
  */
 export const logoutUser = async (sessionId) => {

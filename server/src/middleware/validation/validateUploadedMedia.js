@@ -1,9 +1,10 @@
 const fs = require('node:fs/promises');
 const sharp = require('sharp');
+
 const { createError } = require('../../utils/createError');
 const { UPLOAD_MIME_CONFIG } = require('../../../config/mediaUploadConfig');
 
-/** Алиасы расширений файлов */
+/** Сопоставляет MIME-тип с расширением файла. */
 const EXTENSIONS = {
   'image/jpeg': '.jpg',
   'image/jpg': '.jpg',
@@ -21,7 +22,7 @@ const EXTENSIONS = {
   'audio/flac': '.flac',
 };
 
-/** Алиасы MIME типов */
+/** Сопоставляет нестандартный MIME-тип с каноническим. */
 const MIME_ALIASES = {
   'image/jpg': 'image/jpeg',
   'image/jfif': 'image/jpeg',
@@ -30,10 +31,20 @@ const MIME_ALIASES = {
   'audio/x-flac': 'audio/flac',
 };
 
-/** Нормализация MIME типа */
+/**
+ * Приводит MIME-тип к каноническому значению.
+ *
+ * @param {string} mime - Объявленный или определенный MIME-тип
+ * @returns {string} Канонический MIME-тип или исходное значение.
+ */
 const normalizeMime = (mime) => MIME_ALIASES[mime] || mime;
 
-/** Получение загруженных файлов */
+/**
+ * Собирает файлы из одиночного и множественного поля загрузки.
+ *
+ * @param {import('express').Request} req - Запрос Express
+ * @returns {Express.Multer.File[]} Загруженные файлы.
+ */
 const getUploadedFiles = (req) => [
   ...(req.file ? [req.file] : []),
   ...(Array.isArray(req.files)
@@ -41,7 +52,14 @@ const getUploadedFiles = (req) => [
     : Object.values(req.files || {}).flat()),
 ];
 
-/** Валидация загруженных медиа файлов */
+/**
+ * Проверяет содержимое загруженных файлов и удаляет их при ошибке.
+ *
+ * @param {import('express').Request} req - Запрос Express
+ * @param {import('express').Response} res - Ответ Express
+ * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+ * @returns {Promise<void>} Завершает операцию.
+ */
 const validateUploadedMedia = async (req, res, next) => {
   const files = getUploadedFiles(req);
 
@@ -53,13 +71,11 @@ const validateUploadedMedia = async (req, res, next) => {
     for (const file of files) {
       const detected = await fileTypeFromFile(file.path);
 
-      /** Нормализация MIME типа */
       const detectedMime = normalizeMime(detected?.mime);
 
-      /** Получение объявленного MIME типа */
       const declaredMime = normalizeMime(file.mimetype);
 
-      /** Получение разрешенных MIME типов для поля загрузки */
+      // Подставляет пустой список как запасное значение, если поле загрузки не настроено.
       const allowedMimes = UPLOAD_MIME_CONFIG[file.fieldname] || [];
 
       if (
@@ -74,13 +90,10 @@ const validateUploadedMedia = async (req, res, next) => {
         );
       }
 
-      /** Определение типа медиа файла */
       const mediaType = detectedMime.split('/')[0];
 
-      /** Получение расширения файла */
       const extension = EXTENSIONS[detectedMime];
 
-      /** Проверка типа медиа файла */
       if (!extension) {
         throw createError(
           'Неподдерживаемый формат файла',
@@ -89,9 +102,9 @@ const validateUploadedMedia = async (req, res, next) => {
         );
       }
 
-      /** Валидация изображений */
       if (mediaType === 'image') {
         try {
+          // Отключает анимацию и ограничивает число пикселей.
           await sharp(file.path, {
             animated: false,
             limitInputPixels: 40_000_000,

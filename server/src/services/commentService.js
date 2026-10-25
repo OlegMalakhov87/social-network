@@ -7,10 +7,11 @@ const {
   Video,
   News,
 } = require('../../db/models');
-const { Op } = require('sequelize');
 const { createError } = require('../utils/createError');
 
-/** Маппинг типов сущностей на модели и типы в БД */
+/**
+ * Сопоставляет тип сущности с моделью Sequelize.
+ */
 const TARGET_TYPES = {
   posts: {
     model: Post,
@@ -33,7 +34,9 @@ const TARGET_TYPES = {
   },
 };
 
-/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
@@ -41,19 +44,18 @@ const SORT_MAP = {
   viewsAsc: { field: 'likesCount', direction: 'ASC' },
 };
 
-/**
- * Сервис для работы с комментариями
- */
-
 const commentService = {
   /**
-   * Получение комментариев для конкретной сущности
-   * @param {string} targetType - Тип сущности
-   * @param {number} targetId - ID сущности
-   * @param {number} page - Номер страницы
-   * @param {number} limit - Количество комментариев на странице
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} { comments, pagination }
+   * Возвращает комментарии сущности.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {string} params.targetType - Тип сущности
+   * @param {number} params.targetId - Идентификатор сущности
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @returns {Promise<Object>} { comments, pagination }.
    */
   async getCommentsByTarget({
     targetType,
@@ -112,9 +114,10 @@ const commentService = {
   },
 
   /**
-   * Получение комментария по ID для кнопки "Поделиться"
-   * @param {number} commentId - ID комментария
-   * @returns {Promise<Object>} { comment }
+   * Возвращает комментарий по идентификатору для кнопки «Поделиться».
+   *
+   * @param {number} commentId - Идентификатор комментария
+   * @returns {Promise<Object>} { comment }.
    */
   async getCommentById(commentId) {
     const comment = await Comment.findByPk(commentId, {
@@ -133,10 +136,11 @@ const commentService = {
   },
 
   /**
-   * Создание комментария
-   * @param {number} currentUserId - ID текущего пользователя
+   * Создает комментарий.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object} commentData - Данные комментария
-   * @returns {Promise<Object>} { comment }
+   * @returns {Promise<Object>} { comment }.
    */
   async createComment(currentUserId, commentData) {
     const { targetType, targetId, text } = commentData;
@@ -176,11 +180,12 @@ const commentService = {
   },
 
   /**
-   * Обновление комментария
-   * @param {number} commentId - ID комментария
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updateData - Данные для обновления
-   * @returns {Promise<Object>} { comment }
+   * Обновляет комментарий.
+   *
+   * @param {number} commentId - Идентификатор комментария
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updateData - Данные обновления
+   * @returns {Promise<Object>} { comment }.
    */
   async updateComment(commentId, currentUserId, updateData) {
     const [affectedCount] = await Comment.update(
@@ -216,10 +221,11 @@ const commentService = {
   },
 
   /**
-   * Удаление комментария
-   * @param {number} commentId - ID комментария
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} { message, commentId }
+   * Удаляет комментарий.
+   *
+   * @param {number} commentId - Идентификатор комментария
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} { message, commentId }.
    */
   async deleteComment(commentId, currentUserId) {
     const comment = await Comment.findByPk(commentId);

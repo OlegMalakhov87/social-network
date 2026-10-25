@@ -1,10 +1,9 @@
 /**
- * Функция для объединения классов в одну строку.
+ * Объединяет имена классов CSS в одну строку.
  *
- * @param {string} classes - классы для объединения.
- * @returns {string} - объединенные классы.
+ * @param {...*} classes - Имена классов и пустые значения
+ * @returns {string} Строка из непустых имён классов.
  */
-
 export const classNames = (...classes) => {
   return classes.filter(Boolean).join(' ');
 };

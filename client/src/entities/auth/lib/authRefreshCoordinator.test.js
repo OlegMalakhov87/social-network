@@ -5,25 +5,22 @@ import {
 import { createAuthRefreshCoordinator } from './authRefreshCoordinator';
 import { AUTH_MESSAGE_TYPES } from './authRefreshMessages';
 
-/**
- * Мокирует createAuthRefreshChannel.
- */
+/** Подменяет канал обновления авторизации. */
 jest.mock('../../../shared/lib', () => ({
   createAuthRefreshChannel: jest.fn(),
   withAuthRefreshLock: jest.fn(),
 }));
 
-/**
- * Сохраняет исходное значение свойства crypto.
- */
+/** Сохраняет исходное значение crypto. */
 const originalCryptoDescriptor = Object.getOwnPropertyDescriptor(
   window,
   'crypto'
 );
 
 /**
- * Создаёт объект с promise, resolve и reject.
- * @returns {Object}
+ * Создаёт Promise, завершением которого управляет тест.
+ *
+ * @returns {{ promise: Promise<Object>, resolve: Function, reject: Function }} Отложенный Promise
  */
 const createDeferred = () => {
   let resolve;
@@ -37,9 +34,7 @@ const createDeferred = () => {
   return { promise, resolve, reject };
 };
 
-/**
- * Тестирует координатор обмена сообщениями авторизации.
- */
+/** Проверяет координатор обмена сообщениями авторизации. */
 describe('authRefreshCoordinator', () => {
   let channel;
 
@@ -63,16 +58,11 @@ describe('authRefreshCoordinator', () => {
     withAuthRefreshLock.mockImplementation((operation) => operation());
   });
 
-  /**
-   * Очищает моки после каждого теста.
-   */
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  /**
-   * Восстанавливает исходное значение свойства crypto.
-   */
+  /** Восстанавливает исходное значение crypto. */
   afterAll(() => {
     if (originalCryptoDescriptor) {
       Object.defineProperty(window, 'crypto', originalCryptoDescriptor);
@@ -82,12 +72,13 @@ describe('authRefreshCoordinator', () => {
   });
 
   /**
-   * Создаёт тестовый токен.
-   * @param {Object} options - опции для создания токена
-   * @param {number} options.id - идентификатор пользователя
-   * @param {string} options.sid - идентификатор сессии
-   * @param {number} options.exp - срок действия токена
-   * @returns {string} - тестовый токен
+   * Создаёт маркер доступа для проверки.
+   *
+   * @param {Object} [options={}] - Поля маркера
+   * @param {number} [options.id=15] - Идентификатор пользователя
+   * @param {string} [options.sid='session-123'] - Идентификатор сессии
+   * @param {number} [options.exp=Math.floor(Date.now() / 1000) + 3600] - Срок действия маркера
+   * @returns {string} Маркер доступа
    */
   const createTestToken = ({
     id = 15,

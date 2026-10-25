@@ -2,13 +2,14 @@ import { api } from '../../../shared/api';
 import { TracksListSchema } from '../model/trackSchema';
 
 /**
- * Получить треки из библиотеки текущего пользователя.
- * @param {Object} params - параметры запроса
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { tracks, pagination }
+ * Возвращает треки библиотеки текущего пользователя.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @returns {Promise<{ tracks: Object[], pagination: Object }>} Треки и пагинация
  */
 export const fetchMyMusicLibrary = async ({
   page,
@@ -27,14 +28,15 @@ export const fetchMyMusicLibrary = async ({
 };
 
 /**
- * Получить треки из библиотеки просматриваемого профиля.
- * @param {Object} params - параметры запроса
- * @param {number} params.userId - ID пользователя, библиотеку которого просматриваем
- * @param {number} params.page - номер страницы
- * @param {number} params.limit - количество на странице
- * @param {AbortSignal} params.signal - сигнал отмены запроса
- * @param {string} params.sortKey - ключ сортировки
- * @returns {Promise<Object>} { tracks, pagination }
+ * Возвращает треки библиотеки выбранного профиля.
+ *
+ * @param {Object} [params={}] - Параметры запроса
+ * @param {number} [params.userId] - Идентификатор пользователя
+ * @param {number} [params.page] - Номер страницы
+ * @param {number} [params.limit] - Количество на странице
+ * @param {AbortSignal} [params.signal] - Сигнал отмены запроса
+ * @param {string} [params.sortKey] - Ключ сортировки
+ * @returns {Promise<{ tracks: Object[], pagination: Object }>} Треки и пагинация
  */
 export const fetchUserMusicLibrary = async ({
   userId,
@@ -58,9 +60,10 @@ export const fetchUserMusicLibrary = async ({
 };
 
 /**
- * Добавить трек в библиотеку.
- * @param {number} trackId - ID трека, который добавляем
- * @returns {Promise<Object>} { libraryItem }
+ * Добавляет трек в библиотеку.
+ *
+ * @param {number} trackId - Идентификатор трека
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const addTrackToLibrary = async (trackId) => {
   const response = await api.post(`/usermusiclibrary/${trackId}/add`);
@@ -68,10 +71,12 @@ export const addTrackToLibrary = async (trackId) => {
 };
 
 /**
- * Обновить трек из библиотеки (добавить/удалить из избранного).
- * @param {number} libraryId - ID записи в библиотеке
- * @param {boolean} isFavorite - состояние в избраном
- * @returns {Promise<Object>} { libraryItem }
+ * Обновляет признак избранного в библиотеке треков.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @param {Object} favorite - Изменения избранного
+ * @param {boolean} favorite.isFavorite - Признак избранного
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updateFavoriteTrack = async (libraryId, { isFavorite }) => {
   const response = await api.patch(`/usermusiclibrary/${libraryId}/favorite`, {
@@ -81,9 +86,10 @@ export const updateFavoriteTrack = async (libraryId, { isFavorite }) => {
 };
 
 /**
- * Увеличить счетчик прослушиваний трека из библиотеки.
- * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { libraryId, playsCount }
+ * Увеличивает счётчик прослушиваний записи библиотеки.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const incrementPlaysCount = async (libraryId) => {
   const response = await api.patch(`/usermusiclibrary/${libraryId}/plays`);
@@ -91,9 +97,10 @@ export const incrementPlaysCount = async (libraryId) => {
 };
 
 /**
- * Удалить трек из библиотеки.
- * @param {number} libraryId - ID записи в библиотеке
- * @returns {Promise<Object>} { message, libraryId }
+ * Удаляет трек из библиотеки.
+ *
+ * @param {number} libraryId - Идентификатор записи библиотеки
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteTrackFromLibrary = async (libraryId) => {
   const response = await api.delete(`/usermusiclibrary/${libraryId}/delete`);

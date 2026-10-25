@@ -1,8 +1,4 @@
-/**
- * Конфигурация настроек уведомлений.
- *
- * @returns {Array<Object>} - массив настроек уведомлений
- */
+/** Задаёт параметры уведомлений. */
 export const NOTIFICATION_SETTINGS_CONFIG = [
   {
     key: 'email',

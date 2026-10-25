@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const widgetController = require('../controllers/widgetController');
 const {
   validateWeather,
@@ -6,7 +7,7 @@ const {
 
 const widgetRoutes = Router();
 
-// Получить погоду по адресу
+// Возвращает погоду по координатам.
 widgetRoutes.get('/weather', validateWeather, widgetController.getWeather);
 
 module.exports = widgetRoutes;

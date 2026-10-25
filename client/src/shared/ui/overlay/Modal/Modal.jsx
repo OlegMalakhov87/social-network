@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
+
 import {
   useEscapeKey,
   useLockBodyScroll,
@@ -7,21 +8,25 @@ import {
 } from '../../../hooks';
 import { Button } from '../../../ui';
 import { classNames } from '../../../utils';
+
 import styles from './Modal.module.css';
 
 /**
- * Универсальное модальное окно.
+ * Отображает модальное окно.
  *
- * @param {Object} props
- * @param {boolean} props.isOpen - открыт ли модальное окно
- * @param {Function} props.onClose - функция закрытия модального окна
- * @param {React.ReactNode} props.children - контент модального окна
- * @param {string} [props.title] - заголовок модального окна
- * @param {'sm'|'md'|'lg'|'xl'} [props.size='md'] - размер модального окна
- * @param {boolean} [props.closeOnOverlay=true] - закрывать ли модальное окно при клике вне окна
- * @param {boolean} [props.closeOnEscape=true] - закрывать ли модальное окно при нажатии Escape
- * @param {React.ReactNode} [props.footer] - нижний колонтитул модального окна
- * @param {boolean} [props.mobileFullscreen=true] - полноэкранный режим на мобильных
+ * @param {Object} props - Свойства компонента
+ * @param {boolean} [props.isOpen=true] - Признак открытого окна
+ * @param {Function} props.onClose - Обработчик закрытия
+ * @param {React.ReactNode} props.children - Содержимое окна
+ * @param {string} [props.title] - Заголовок окна
+ * @param {'sm'|'md'|'lg'|'xl'} [props.size='md'] - Размер окна
+ * @param {boolean} [props.closeOnOverlay=true] - Закрытие по щелчку на наложение
+ * @param {boolean} [props.closeOnEscape=true] - Закрытие по клавише Escape
+ * @param {React.ReactNode} [props.footer] - Нижняя часть окна
+ * @param {boolean} [props.mobileFullscreen=true] - Полноэкранный режим на узком экране
+ * @param {string} [props.className=''] - Дополнительный CSS-класс окна
+ * @param {string} [props.contentClassName=''] - Дополнительный CSS-класс содержимого
+ * @returns {JSX.Element|null} Модальное окно или пустой результат, если оно закрыто.
  */
 export const Modal = ({
   isOpen = true,

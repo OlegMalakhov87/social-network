@@ -1,10 +1,10 @@
 /**
- * Извлекает необходимые поля access JWT.
+ * Извлекает поля маркера доступа.
  *
- * ВАЖНО: декодирование не проверяет подпись токена.
+ * Декодирование не проверяет подпись JWT.
  *
- * @param {string} token
- * @returns {{ id: number, sid: string, exp: number } | null}
+ * @param {string} token - Маркер доступа
+ * @returns {{ id: number, sid: string, exp: number }|null} Поля маркера или пустой результат
  */
 export const getAccessTokenClaims = (token) => {
   if (typeof token !== 'string') {

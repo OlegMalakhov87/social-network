@@ -44,14 +44,13 @@ module.exports = {
       },
     });
 
-    // Уникальный индекс (один пользователь - одна запись на музыку)
+    // Не даёт пользователю сохранить один трек дважды.
     await queryInterface.addConstraint('UserMusicLibraries', {
       fields: ['userId', 'trackId'],
       type: 'unique',
       name: 'uniqueUserMusic',
     });
 
-    // Индексы для быстрого поиска
     await queryInterface.addIndex('UserMusicLibraries', ['userId']);
     await queryInterface.addIndex('UserMusicLibraries', ['trackId']);
   },

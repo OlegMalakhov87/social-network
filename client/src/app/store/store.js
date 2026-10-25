@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import {
   loginUser,
   logoutUser,
@@ -15,18 +16,23 @@ import { setupAxiosInterceptors } from '../../shared/api/apiAxios';
 import audioPlayerReducer from '../../widgets/audio-player/model/audioPlayerSlice';
 import { createAuthSessionHandlers } from './authSessionHandlers';
 
-/** Объект зависимостей для async thunks */
+// Хранит зависимости асинхронных операций Redux.
 const authDependencies = {
   coordinator: null,
 };
 
-/** Создаём Redux Store */
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     audioPlayer: audioPlayerReducer,
   },
 
+  /**
+   * Подключает зависимости к асинхронным операциям.
+   *
+   * @param {Function} getDefaultMiddleware - Возвращает стандартные промежуточные обработчики
+   * @returns {Array} Промежуточные обработчики.
+   */
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       thunk: {
@@ -35,10 +41,9 @@ export const store = configureStore({
     }),
 });
 
-/** Создаём обработчики сессии */
 const { onSessionLogout, onSessionChanged } = createAuthSessionHandlers(store);
 
-/** Создаём координатор после создания Redux Store */
+// Создаёт координатор после хранилища Redux.
 authDependencies.coordinator = createAuthRefreshCoordinator({
   getToken: () => store.getState().auth.token,
   refreshAuth,
@@ -49,7 +54,6 @@ authDependencies.coordinator = createAuthRefreshCoordinator({
   onSessionChanged,
 });
 
-/** Настраиваем interceptors для axios */
 setupAxiosInterceptors(store, {
   refreshSession: authDependencies.coordinator.refreshSession,
   notifySessionRevoked: authDependencies.coordinator.notifySessionRevoked,

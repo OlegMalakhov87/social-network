@@ -1,11 +1,12 @@
 /**
- * Все валидаторы возвращают null при успехе или строку с ошибкой.
+ * Возвращает null при успехе или строку с ошибкой.
  */
 
 /**
- * Валидатор обязательного поля.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет, что значение непустое.
+ *
+ * @param {string} [message='Обязательное поле'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const required =
   (message = 'Обязательное поле') =>
@@ -13,10 +14,11 @@ export const required =
     value?.toString().trim() ? null : message;
 
 /**
- * Валидатор минимальной длины.
- * @param {number} length
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет минимальную длину значения.
+ *
+ * @param {number} length - Минимальная длина
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const minLength = (length, message) => (value) => {
   if (value == null || value === '') {
@@ -28,10 +30,11 @@ export const minLength = (length, message) => (value) => {
 };
 
 /**
- * Валидатор максимальной длины.
- * @param {number} length
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет максимальную длину значения.
+ *
+ * @param {number} length - Максимальная длина
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const maxLength = (length, message) => (value) => {
   if (value == null || value === '') {
@@ -43,9 +46,10 @@ export const maxLength = (length, message) => (value) => {
 };
 
 /**
- * Валидатор URL.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет адрес URL.
+ *
+ * @param {string} [message='Некорректный URL'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const url =
   (message = 'Некорректный URL') =>
@@ -60,9 +64,10 @@ export const url =
   };
 
 /**
- * Валидатор email.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет адрес электронной почты.
+ *
+ * @param {string} [message='Некорректный email'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const email =
   (message = 'Некорректный email') =>
@@ -72,20 +77,22 @@ export const email =
   };
 
 /**
- * Валидатор совпадения значений двух полей.
- * @param {string} field - имя поля для сравнения
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет совпадение значения с другим полем.
+ *
+ * @param {string} field - Имя поля для сравнения
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает значение и все значения формы и возвращает текст ошибки или null.
  */
 export const match = (field, message) => (value, values) =>
   value === values[field] ? null : message || 'Значения не совпадают';
 
 /**
- * Валидатор целого числа.
- * @param {number} [min] - минимальное значение
- * @param {number} [max] - максимальное значение
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет, что значение является целым числом в заданных границах.
+ *
+ * @param {number|null} [min=null] - Минимальное значение
+ * @param {number|null} [max=null] - Максимальное значение
+ * @param {string} [message='Должно быть целым числом'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const integer =
   (min = null, max = null, message = 'Должно быть целым числом') =>
@@ -105,9 +112,10 @@ export const integer =
   };
 
 /**
- * Валидатор номера телефона.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет номер телефона.
+ *
+ * @param {string} [message='Введите корректный номер телефона'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const phone =
   (message = 'Введите корректный номер телефона') =>
@@ -123,9 +131,10 @@ export const phone =
   };
 
 /**
- * Вализатор slug.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет, что строка содержит только латиницу, цифры, дефис и подчёркивание.
+ *
+ * @param {string} [message='Только латиница, цифры, дефис и подчёркивание'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const slug =
   (message = 'Только латиница, цифры, дефис и подчёркивание') =>
@@ -135,9 +144,10 @@ export const slug =
   };
 
 /**
- * Валидатор даты.
- * @param {string} [message]
- * @returns {Function}
+ * Проверяет календарную дату не из будущего.
+ *
+ * @param {string} [message='Введите корректную дату'] - Текст ошибки
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const date =
   (message = 'Введите корректную дату') =>
@@ -165,10 +175,11 @@ export const date =
   };
 
 /**
- * Валидатор проверки префикса.
- * @param {string} prefix - префикс
- * @param {string} [message] - сообщение об ошибке
- * @returns {Function}
+ * Проверяет, что значение начинается с заданного начала.
+ *
+ * @param {string} prefix - Обязательное начало строки
+ * @param {string} [message] - Текст ошибки, по умолчанию с требуемым началом
+ * @returns {Function} Принимает значение и возвращает текст ошибки или null.
  */
 export const startsWith =
   (prefix, message = `Должно начинаться с "${prefix}"`) =>
@@ -178,12 +189,11 @@ export const startsWith =
   };
 
 /**
- * Пользовательский валидатор.
- * fn — предикат: возвращает true если значение валидно, false иначе.
+ * Проверяет значение переданным условием.
  *
- * @param {Function} fn - (value, values) => boolean
- * @param {string} [message]
- * @returns {Function}
+ * @param {Function} fn - Возвращает true для допустимого значения
+ * @param {string} [message] - Текст ошибки
+ * @returns {Function} Принимает значение и все значения формы и возвращает текст ошибки или null.
  */
 export const custom = (fn, message) => (value, values) =>
   fn(value, values) ? null : message || 'Некорректное значение';

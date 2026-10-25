@@ -1,15 +1,18 @@
-import styles from './Skeleton.module.css';
 import { classNames } from '../../../utils';
 
+import styles from './Skeleton.module.css';
+
 /**
- * Универсальный Skeleton для отображения состояния загрузки.
+ * Отображает каркас загрузки.
  *
- * @param {Object} props
- * @param {string|number} [props.width='100%'] - ширина
- * @param {string|number} [props.height=16] - высота
- * @param {boolean} [props.circle=false] - круглая форма
- * @param {string|number} [props.radius] - переопределить border-radius
- * @param {string} [props.className=''] - дополнительный CSS класс
+ * @param {Object} props - Свойства компонента
+ * @param {string|number} [props.width='100%'] - Ширина
+ * @param {string|number} [props.height=16] - Высота
+ * @param {boolean} [props.circle=false] - Круглая форма
+ * @param {string|number} [props.radius] - Радиус скругления
+ * @param {string} [props.className=''] - Дополнительный CSS-класс
+ * @param {Object} [props.style] - Дополнительные стили элемента
+ * @returns {JSX.Element} Каркас загрузки.
  */
 export const Skeleton = ({
   width = '100%',

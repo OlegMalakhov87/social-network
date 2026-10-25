@@ -1,115 +1,383 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
-// Хранилище подключений: Map<userId, Set<WebSocket>>
+const { RefreshSession } = require('../db/models');
+
 const clients = new Map();
 
+const AUTH_TIMEOUT_MS = 5000; // Ограничивает ожидание авторизации пятью секундами.
+const SESSION_CHECK_INTERVAL_MS = 10000; // Проверяет сессии каждые 10 секунд.
+
 /**
- * Настройка WebSocket сервера
- * @param {http.Server} server - HTTP сервер
- * @returns {Object} { wss, clients }
+ * Проверяет поля маркера доступа.
+ *
+ * @param {Object} claims - Поля маркера доступа
+ * @returns {boolean} Результат проверки.
+ */
+const isValidClaims = (claims) =>
+  Number.isSafeInteger(claims?.id) &&
+  claims.id > 0 &&
+  typeof claims.sid === 'string' &&
+  /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(claims.sid) &&
+  Number.isSafeInteger(claims.exp);
+
+/**
+ * Удаляет соединение из списка клиентов.
+ *
+ * @param {WebSocket} ws - Соединение WebSocket
+ * @returns {void} Ничего не возвращает.
+ */
+const removeClient = (ws) => {
+  if (!ws.userId) return;
+
+  const sockets = clients.get(ws.userId);
+  if (!sockets) return;
+
+  sockets.delete(ws);
+
+  if (sockets.size === 0) {
+    clients.delete(ws.userId);
+  }
+};
+
+/**
+ * Настраивает сервер WebSocket.
+ *
+ * @param {http.Server} server - Сервер HTTP
+ * @returns {Object} Объект с WebSocket-сервером и клиентами.
  */
 function setupWebSocket(server) {
-  const wss = new WebSocket.Server({ server });
+  const wss = new WebSocket.Server({
+    noServer: true,
+    maxPayload: 16 * 1024,
+    perMessageDeflate: false,
+  });
 
-  // Механизм heartbeat (очистка "зомби" соединений)
-  const interval = setInterval(() => {
-    wss.clients.forEach((ws) => {
-      if (ws.isAlive === false) {
-        // Если клиент не ответил на предыдущий ping, принудительно закрываем соединение
-        return ws.terminate();
+  const allowedOrigin = new URL(
+    process.env.CLIENT_URL || 'http://localhost:3000'
+  ).origin;
+
+  /**
+   * Отклоняет установление соединения.
+   *
+   * @param {import('net').Socket} socket - Сокет TCP
+   * @returns {void} Завершает сокет без соединения.
+   */
+  const rejectUpgrade = (socket) => {
+    socket.write(
+      'HTTP/1.1 403 Forbidden\r\n' +
+        'Connection: close\r\n' +
+        'Content-Length: 0\r\n\r\n'
+    );
+    socket.destroy();
+  };
+
+  /**
+   * Проверяет источник до установления соединения WebSocket.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('net').Socket} socket - Сокет TCP
+   * @param {Buffer} head - Начало запроса обновления протокола
+   * @returns {void} Ничего не возвращает.
+   */
+  const handleUpgrade = (req, socket, head) => {
+    try {
+      const url = new URL(req.url, 'http://localhost');
+
+      if (
+        req.headers.origin !== allowedOrigin ||
+        url.pathname !== '/' ||
+        url.search
+      ) {
+        rejectUpgrade(socket);
+        return;
       }
-      ws.isAlive = false;
-      ws.ping();
+
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req);
+      });
+    } catch {
+      rejectUpgrade(socket);
+    }
+  };
+
+  server.on('upgrade', handleUpgrade);
+
+  wss.on('connection', (ws) => {
+    ws.isAlive = true;
+
+    let authenticating = false;
+    let authenticated = false;
+
+    // Не позволяет держать неавторизованное соединение бесконечно.
+    const authTimeout = setTimeout(() => {
+      if (!authenticated) {
+        ws.close(4001, 'Требуется авторизация');
+      }
+    }, AUTH_TIMEOUT_MS);
+
+    ws.on('pong', () => {
+      ws.isAlive = true;
     });
-  }, 30000); // Проверка каждые 30 секунд
+
+    ws.on('message', async (raw, isBinary) => {
+      // Пока авторизации нет, принимает только одно auth-сообщение.
+      if (!authenticated) {
+        if (authenticating || isBinary) {
+          ws.close(4004, 'Недопустимое сообщение');
+          return;
+        }
+
+        authenticating = true;
+
+        try {
+          const message = JSON.parse(raw.toString());
+
+          if (message?.type !== 'auth' || typeof message.token !== 'string') {
+            ws.close(4004, 'Неверный формат авторизации');
+            return;
+          }
+
+          let claims;
+
+          try {
+            claims = jwt.verify(message.token, process.env.JWT_SECRET, {
+              algorithms: ['HS256'],
+            });
+          } catch (error) {
+            ws.close(
+              error.name === 'TokenExpiredError' ? 4002 : 4004,
+              'Недействительный токен'
+            );
+            return;
+          }
+
+          if (!isValidClaims(claims)) {
+            ws.close(4004, 'Некорректный токен');
+            return;
+          }
+
+          const session = await RefreshSession.findOne({
+            where: {
+              id: claims.sid,
+              userId: claims.id,
+              expiresAt: { [Op.gt]: new Date() },
+            },
+            attributes: ['id'],
+          });
+
+          if (!session) {
+            ws.close(4003, 'Сессия отозвана');
+            return;
+          }
+
+          if (
+            ws.readyState !== WebSocket.OPEN ||
+            claims.exp * 1000 <= Date.now()
+          ) {
+            ws.close(4002, 'Токен истёк');
+            return;
+          }
+
+          ws.userId = claims.id;
+          ws.sessionId = claims.sid;
+          ws.accessExpiresAt = claims.exp * 1000;
+
+          authenticated = true;
+          clearTimeout(authTimeout);
+
+          if (!clients.has(ws.userId)) {
+            clients.set(ws.userId, new Set());
+          }
+
+          clients.get(ws.userId).add(ws);
+
+          ws.send(
+            JSON.stringify({
+              type: 'authSuccess',
+              userId: ws.userId,
+            })
+          );
+        } catch (error) {
+          console.error(
+            '[WebSocket] Ошибка проверки авторизации:',
+            error.message
+          );
+
+          ws.close(1011, 'Ошибка сервера');
+        } finally {
+          authenticating = false;
+        }
+
+        return;
+      }
+
+      // Оставляет обработку typing и других событий на будущее.
+      // Все действия должны дополнительно проверять права пользователя.
+    });
+
+    ws.on('close', () => {
+      clearTimeout(authTimeout);
+      removeClient(ws);
+    });
+
+    ws.on('error', (error) => {
+      console.error('[WebSocket] Ошибка соединения:', error.message);
+    });
+  });
+
+  let checkingSessions = false;
+
+  /**
+   * Проверяет срок JWT и действительность серверных сессий.
+   *
+   * @returns {Promise<void>} Завершает операцию.
+   */
+  const checkConnections = async () => {
+    if (checkingSessions) return;
+    checkingSessions = true;
+
+    try {
+      const now = Date.now();
+
+      for (const ws of wss.clients) {
+        if (ws.readyState !== WebSocket.OPEN) continue;
+
+        if (ws.isAlive === false) {
+          ws.terminate();
+          continue;
+        }
+
+        ws.isAlive = false;
+        ws.ping();
+
+        if (ws.userId && ws.accessExpiresAt <= now) {
+          ws.close(4002, 'Токен истёк');
+        }
+      }
+
+      const sockets = [...wss.clients].filter(
+        (ws) =>
+          ws.readyState === WebSocket.OPEN &&
+          ws.userId &&
+          ws.accessExpiresAt > now
+      );
+
+      if (sockets.length === 0) return;
+
+      const sessionIds = [...new Set(sockets.map((ws) => ws.sessionId))];
+
+      const sessions = await RefreshSession.findAll({
+        where: {
+          id: { [Op.in]: sessionIds },
+          expiresAt: { [Op.gt]: new Date() },
+        },
+        attributes: ['id', 'userId'],
+      });
+
+      const activeSessions = new Set(
+        sessions.map((session) => `${session.id}:${session.userId}`)
+      );
+
+      for (const ws of sockets) {
+        if (
+          ws.readyState === WebSocket.OPEN &&
+          !activeSessions.has(`${ws.sessionId}:${ws.userId}`)
+        ) {
+          ws.close(4003, 'Сессия отозвана');
+        }
+      }
+    } catch (error) {
+      console.error('[WebSocket] Не удалось проверить сессии:', error.message);
+
+      // При сбое проверки не продолжает доверять старой сессии.
+      for (const ws of wss.clients) {
+        if (ws.userId && ws.readyState === WebSocket.OPEN) {
+          ws.close(1011, 'Ошибка проверки сессии');
+        }
+      }
+    } finally {
+      checkingSessions = false;
+    }
+  };
+
+  const interval = setInterval(checkConnections, SESSION_CHECK_INTERVAL_MS);
 
   wss.on('close', () => {
     clearInterval(interval);
-  });
-
-  wss.on('connection', (ws, req) => {
-    // Аутентификация на этапе рукопожатия (через URL: ws://localhost:5000?token=xxx)
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const token = url.searchParams.get('token');
-
-    if (!token) {
-      ws.close(4001, 'Токен не предоставлен');
-      return;
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.id;
-
-      // Помечаем сокет как "живой" для механизма heartbeat
-      ws.isAlive = true;
-      ws.userId = userId;
-
-      // Добавляем сокет в Set для конкретного пользователя
-      if (!clients.has(userId)) {
-        clients.set(userId, new Set());
-      }
-      clients.get(userId).add(ws);
-
-      // Обработка ответа на ping от сервера
-      ws.on('pong', () => {
-        ws.isAlive = true;
-      });
-
-      // Обработка входящих сообщений (если понадобится чат в реальном времени без REST)
-      ws.on('message', (raw) => {
-        try {
-          const msg = JSON.parse(raw);
-          // Здесь можно обрабатывать 'typing' (печатает...) или другие события
-        } catch (err) {
-          console.error('Ошибка парсинга WS сообщения:', err);
-        }
-      });
-
-      ws.on('close', () => {
-        // Корректная очистка при закрытии
-        if (ws.userId && clients.has(ws.userId)) {
-          const userSockets = clients.get(ws.userId);
-          userSockets.delete(ws);
-
-          // Если это был последний сокет пользователя, удаляем его из Map
-          if (userSockets.size === 0) {
-            clients.delete(ws.userId);
-          }
-        }
-      });
-
-      ws.send(JSON.stringify({ type: 'authSuccess', userId }));
-    } catch (err) {
-      // Если токен невалидный или истек, сразу закрываем соединение
-      ws.close(4002, 'Недействительный токен');
-    }
+    server.off('upgrade', handleUpgrade);
   });
 
   return { wss, clients };
 }
 
 /**
- * Отправить сообщение пользователю
- * @param {number} userId - ID пользователя
- * @param {Object} payload - данные для отправки
+ * Отправляет уведомление через действующие сессии.
+ *
+ * @param {number} userId - Идентификатор пользователя
+ * @param {Object} payload - Данные уведомления
+ * @returns {Promise<Object>} Результат операции.
  */
-function notifyUser(userId, payload) {
-  const sockets = clients.get(userId);
-  if (!sockets) return;
+async function notifyUser(userId, payload) {
+  const sockets = [...(clients.get(userId) ?? [])].filter(
+    (ws) => ws.readyState === WebSocket.OPEN
+  );
 
-  // Безопасная отправка: проверяем, что сокет открыт (чтобы не отправлять сообщения, если соединение закрыто)
-  const data = JSON.stringify(payload);
-  sockets.forEach((ws) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      try {
-        ws.send(data);
-      } catch (err) {
-        console.error(`Ошибка отправки сообщения пользователю ${userId}:`, err);
+  if (sockets.length === 0) return;
+
+  try {
+    const now = Date.now();
+
+    const validCandidates = sockets.filter((ws) => {
+      if (ws.accessExpiresAt > now) return true;
+
+      ws.close(4002, 'Токен истёк');
+      return false;
+    });
+
+    if (validCandidates.length === 0) return;
+
+    const sessions = await RefreshSession.findAll({
+      where: {
+        id: {
+          [Op.in]: [...new Set(validCandidates.map((ws) => ws.sessionId))],
+        },
+        userId,
+        expiresAt: { [Op.gt]: new Date() },
+      },
+      attributes: ['id'],
+    });
+
+    const activeIds = new Set(sessions.map((session) => session.id));
+    const data = JSON.stringify(payload);
+
+    for (const ws of validCandidates) {
+      if (ws.readyState !== WebSocket.OPEN) continue;
+
+      if (!activeIds.has(ws.sessionId)) {
+        ws.close(4003, 'Сессия отозвана');
+        continue;
+      }
+
+      if (ws.accessExpiresAt <= Date.now()) {
+        ws.close(4002, 'Токен истёк');
+        continue;
+      }
+
+      ws.send(data);
+    }
+  } catch (error) {
+    console.error(
+      '[WebSocket] Не удалось отправить уведомление:',
+      error.message
+    );
+    for (const ws of sockets) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close(1011, 'Не удалось проверить сессию');
       }
     }
-  });
+  }
 }
 
 module.exports = { setupWebSocket, notifyUser, clients };

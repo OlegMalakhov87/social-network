@@ -1,12 +1,13 @@
 const path = require('node:path');
+
 const { MEDIA_ROOT } = require('../../config/mediaUploadConfig');
 const { createError } = require('./createError');
 
 /**
- * Преобразует абсолютный путь к файлу в публичный URL.
+ * Преобразует абсолютный путь файла в публичный URL.
  *
  * @param {string} filePath - Абсолютный путь к файлу
- * @returns {string|null} Публичный URL
+ * @returns {string|null} Публичный URL или null, если путь пуст.
  */
 const toPublicUrl = (filePath) => {
   if (!filePath) {

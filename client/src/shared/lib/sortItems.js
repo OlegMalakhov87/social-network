@@ -1,17 +1,19 @@
 import { FIELD_MAP } from '../config';
 
-// Маппинг только для нестандартных случаев (photos использует поля posts)
+// Сопоставляет фотографии с полями постов.
 const TAB_TO_ENTITY = {
   photos: 'posts',
 };
 
 /**
- * Сортирует массив сущностей по заданной конфигурации сортировки.
+ * Сортирует элементы по полю и порядку.
  *
- * @param {Array} items - массив сущностей
- * @param {Object} sortConfig - конфигурация сортировки { field, order }
- * @param {string} entityType - тип сущности
- * @returns {Array} отсортированный массив
+ * @param {Array} items - Элементы
+ * @param {Object} sortConfig - Правило сортировки
+ * @param {string} [sortConfig.field] - Поле сортировки
+ * @param {string} [sortConfig.order] - Порядок сортировки
+ * @param {string} entityType - Тип сущности
+ * @returns {Array} Отсортированные элементы или исходный массив, если правило неполно.
  */
 export const sortItems = (items, sortConfig, entityType) => {
   if (!Array.isArray(items) || items.length === 0) return [];

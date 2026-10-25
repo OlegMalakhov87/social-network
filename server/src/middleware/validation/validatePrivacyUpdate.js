@@ -1,8 +1,9 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для обновления приватности пользователя
+ * Проверяет признак публичности профиля.
  */
 const validatePrivacyUpdate = [
   body('isPublic')

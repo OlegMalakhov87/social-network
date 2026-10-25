@@ -1,14 +1,17 @@
 import { Button } from '../../../ui';
+
 import styles from './EmptyState.module.css';
 
 /**
- * Заглушка для пустого состояния (нет данных, ничего не найдено).
- * @param {Object} props
- * @param {string} props.icon - эмодзи или символ иконки
- * @param {string} props.title - заголовок сообщения
- * @param {string} [props.description] - дополнительный текст описания
- * @param {string} [props.actionLabel] - текст кнопки действия (если нужно предложить действие)
- * @param {Function} [props.onAction] - обработчик клика по кнопке
+ * Отображает заглушку при отсутствии данных.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.icon - Иконка заглушки
+ * @param {string} props.title - Заголовок сообщения
+ * @param {string} [props.description] - Дополнительное описание
+ * @param {string} [props.actionLabel] - Текст кнопки действия
+ * @param {Function} [props.onAction] - Обработчик нажатия на кнопку
+ * @returns {JSX.Element} Заглушка пустого состояния.
  */
 export const EmptyState = ({
   icon,

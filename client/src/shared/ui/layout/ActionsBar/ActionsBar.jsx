@@ -1,11 +1,13 @@
 import { Button } from '../..';
+
 import styles from './ActionsBar.module.css';
 
 /**
- * Панель действий карточки.
+ * Отображает ряд кнопок действий.
  *
- * @param {Object} props
- * @param {Object[]} props.actions - массив действий
+ * @param {Object} props - Свойства компонента
+ * @param {Object[]} [props.actions=[]] - Действия с ключом, подписью, обработчиком и иконкой
+ * @returns {JSX.Element} Ряд кнопок.
  */
 export const ActionsBar = ({ actions = [] }) => {
   return (

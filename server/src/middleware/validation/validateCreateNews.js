@@ -1,6 +1,16 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
+/**
+ * Проверяет обязательную строку заданной длины.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} min - Минимальная длина
+ * @param {number} max - Максимальная длина
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const requiredText = (field, min, max, message) =>
   body(field)
     .isString()
@@ -13,6 +23,13 @@ const requiredText = (field, min, max, message) =>
     .isLength({ min, max })
     .withMessage(message);
 
+/**
+ * Проверяет необязательный URL длиной от 10 до 500 символов.
+ *
+ * @param {string} field - Имя поля
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain} Цепочка проверки поля.
+ */
 const optionalUrl = (field, message) =>
   body(field)
     .optional({ nullable: true })
@@ -27,7 +44,7 @@ const optionalUrl = (field, message) =>
     .withMessage(message);
 
 /**
- * Валидация для новости
+ * Проверяет поля новой новости.
  */
 const validateCreateNews = [
   requiredText('title', 1, 100, 'Некорректный длина заголовка'),

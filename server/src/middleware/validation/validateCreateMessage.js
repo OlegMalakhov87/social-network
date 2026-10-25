@@ -1,8 +1,9 @@
 const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для сообщений
+ * Проверяет поля нового сообщения.
  */
 
 const validateCreateMessage = [

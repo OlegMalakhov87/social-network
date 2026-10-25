@@ -1,5 +1,6 @@
-const { sequelize, News, Like, Comment, User } = require('../../db/models');
 const { Op } = require('sequelize');
+
+const { sequelize, News, Like, Comment, User } = require('../../db/models');
 const { createError } = require('../utils/createError');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
@@ -7,7 +8,9 @@ const {
 } = require('../utils/deleteEntityWithRelations');
 const { validateMedia } = require('../utils/validateMedia');
 
-/** Безопасный маппинг сортировки (защита от SQL-инъекций) */
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: { field: 'publishedAt', direction: 'DESC' },
   dateAsc: { field: 'publishedAt', direction: 'ASC' },
@@ -15,10 +18,14 @@ const SORT_MAP = {
   viewsAsc: { field: 'viewsCount', direction: 'ASC' },
 };
 
-/** Срок хранения новостей в архиве */
+/**
+ * Задает срок хранения новости до архивации.
+ */
 const NEWS_RETENTION_DAYS = 30;
 
-/** Поля новости, которые можно обновлять */
+/**
+ * Перечисляет поля новости, которые можно обновлять.
+ */
 const NEWS_FIELDS = [
   'title',
   'text',
@@ -32,15 +39,16 @@ const NEWS_FIELDS = [
 
 const newsService = {
   /**
-   * Получить новости
-   * @param {Object} params - Параметры запроса
-   * @param {number} params.page - Номер страницы
-   * @param {number} params.limit - Количество новостей на странице
-   * @param {string} params.sortKey - Ключ сортировки
-   * @param {string} params.category - Категория новостей
-   * @param {string} params.q - Поисковый запрос
-   * @param {number} params.currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - { news, pagination }
+   * Возвращает список новостей.
+   *
+   * @param {Object} params - Параметры вызова
+   * @param {number} [params.page=1] - Номер страницы
+   * @param {number} [params.limit=30] - Размер страницы
+   * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+   * @param {string} params.category - Категория
+   * @param {string} params.q - Строка поиска
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} { news, pagination }.
    */
   async getNews({
     page = 1,
@@ -134,10 +142,11 @@ const newsService = {
   },
 
   /**
-   * Получить новость по ID для кнопки "Поделиться"
-   * @param {number} newsId - ID новости
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - { news }
+   * Возвращает новость по идентификатору для кнопки «Поделиться».
+   *
+   * @param {number} newsId - Идентификатор новости
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} { news }.
    */
   async getNewsById(newsId, currentUserId) {
     const news = await News.findByPk(newsId, {
@@ -174,10 +183,11 @@ const newsService = {
   },
 
   /**
-   * Создать новость (текущий пользователь является автором)
-   * @param {number} currentUserId - ID текущего пользователя
+   * Создает новость от имени текущего пользователя.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object} newsData - Данные новости
-   * @returns {Promise<Object>} - { news }
+   * @returns {Promise<Object>} { news }.
    */
   async createNews(currentUserId, newsData) {
     validateMedia({
@@ -247,11 +257,12 @@ const newsService = {
   },
 
   /**
-   * Обновить новость (владелец)
-   * @param {number} newsId - ID новости
-   * @param {number} currentUserId - ID текущего пользователя
-   * @param {Object} updateData - Обновляемые данные
-   * @returns {Promise<Object>} - { news }
+   * Обновляет новость владельца.
+   *
+   * @param {number} newsId - Идентификатор новости
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object} updateData - Данные обновления
+   * @returns {Promise<Object>} { news }.
    */
   async updateNews(newsId, currentUserId, updateData) {
     return sequelize.transaction(async (transaction) => {
@@ -289,6 +300,12 @@ const newsService = {
       const nextType = dbUpdates.type ?? news.type;
       const typeChanged = nextType !== news.type;
 
+      /**
+       * Возвращает следующий URL поля с учетом обновления.
+       *
+       * @param {string} fieldName - Имя поля
+       * @returns {string|null} Следующий URL поля.
+       */
       const getNextUrl = (fieldName) => {
         if (Object.hasOwn(dbUpdates, fieldName)) {
           return dbUpdates[fieldName];
@@ -365,9 +382,10 @@ const newsService = {
   },
 
   /**
-   *  Инкремент счетчика просмотров новости
-   * @param {number} newsId - ID новости
-   * @returns {Promise<Object>} - { success, viewsCount }
+   * Увеличивает счетчик просмотров новости.
+   *
+   * @param {number} newsId - Идентификатор новости
+   * @returns {Promise<Object>} { success, viewsCount }.
    */
   async incrementViewsCount(newsId) {
     await News.increment('viewsCount', {
@@ -379,10 +397,11 @@ const newsService = {
   },
 
   /**
-   * Удалить новость (владелец)
-   * @param {number} newsId - ID новости
-   * @param {number} currentUserId - ID текущего пользователя
-   * @returns {Promise<Object>} - { message, newsId }
+   * Удаляет новость владельца.
+   *
+   * @param {number} newsId - Идентификатор новости
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @returns {Promise<Object>} { message, newsId }.
    */
   async deleteNews(newsId, currentUserId) {
     const news = await News.findOne({
@@ -409,8 +428,9 @@ const newsService = {
   },
 
   /**
-   * Архивировать новости старше {NEWS_RETENTION_DAYS} дней
-   * @returns {Promise<number>} Количество архивированных новостей
+   * Архивирует новости старше срока хранения.
+   *
+   * @returns {Promise<number>} Количество архивированных новостей.
    */
   async archiveOldNews() {
     const cutoffDate = new Date(

@@ -2,7 +2,12 @@ const friendService = require('../services/friendService');
 
 const friendController = {
   /**
-   * Получить всех пользователей с отметкой о статусе дружбы для текущего пользователя
+   * Возвращает пользователей со статусом дружбы.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   getUsersWithFriendshipStatus: async (req, res, next) => {
     try {
@@ -22,7 +27,12 @@ const friendController = {
   },
 
   /**
-   * Отправить заявку в друзья
+   * Отправляет заявку в друзья.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   sendRequest: async (req, res, next) => {
     try {
@@ -39,7 +49,12 @@ const friendController = {
   },
 
   /**
-   * Принять заявку в друзья
+   * Принимает заявку в друзья.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   acceptRequest: async (req, res, next) => {
     try {
@@ -56,7 +71,12 @@ const friendController = {
   },
 
   /**
-   * Удалить из друзей, разблокировать, отменить заявку на дружбу
+   * Удаляет дружбу, снимает блокировку или отменяет заявку.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   rejectRequest: async (req, res, next) => {
     try {
@@ -73,7 +93,12 @@ const friendController = {
   },
 
   /**
-   * Заблокировать пользователя
+   * Блокирует пользователя.
+   *
+   * @param {import('express').Request} req - Запрос Express
+   * @param {import('express').Response} res - Ответ Express
+   * @param {import('express').NextFunction} next - Следующий промежуточный обработчик
+   * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   blockUser: async (req, res, next) => {
     try {

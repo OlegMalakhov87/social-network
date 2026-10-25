@@ -2,11 +2,11 @@ import { UserSchema } from '..';
 import { api } from '../../../shared/api';
 
 /**
- * Получить данные о пользователе и статусе дружбы.
+ * Возвращает профиль пользователя и статус дружбы.
  *
- * @param {number} targetUserId - ID пользователя
- * @param {AbortSignal} signal - сигнал отмены запроса
- * @returns {Promise<UserSchema>} user
+ * @param {number} targetUserId - Идентификатор пользователя
+ * @param {AbortSignal} [signal] - Сигнал отмены запроса
+ * @returns {Promise<Object>} Пользователь
  */
 export const fetchUserProfileApi = async (targetUserId, signal) => {
   const response = await api.get(
@@ -17,9 +17,10 @@ export const fetchUserProfileApi = async (targetUserId, signal) => {
 };
 
 /**
- * Получить статус пользователей в сети.
- * @param {Array} userIds - массив ID пользователей
- * @returns {Promise<Array>} - массив статусов пользователей [{userId,online:boolean}]
+ * Возвращает статусы пользователей в сети.
+ *
+ * @param {Array<number>} userIds - Идентификаторы пользователей
+ * @returns {Promise<Object>} Статусы пользователей
  */
 export const fetchUsersOnlineStatus = async (userIds) => {
   const response = await api.post(`/profile/online-status`, { userIds });
@@ -27,10 +28,11 @@ export const fetchUsersOnlineStatus = async (userIds) => {
 };
 
 /**
- * Загрузить аватар.
- * @param {FormData} formData - формат данных аватара
- * @param {Object} config - конфигурация запроса
- * @returns {Promise<{Object}>} { avatarUrl }
+ * Загружает аватар.
+ *
+ * @param {FormData} formData - Файл аватара
+ * @param {Object} config - Настройки запроса
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const uploadAvatarApi = async (formData, config) => {
   const response = await api.post('/profile/upload-avatar', formData, config);
@@ -38,19 +40,21 @@ export const uploadAvatarApi = async (formData, config) => {
 };
 
 /**
- * Обновить профиль.
- * @param {Object} userData - новые данные текущего пользователя
- * @returns {Promise<UserSchema>} user
+ * Обновляет профиль текущего пользователя.
+ *
+ * @param {Object} userData - Данные профиля
+ * @returns {Promise<{ user: Object }>} Обновлённый пользователь
  */
 export const updateCurrentUser = async (userData) => {
   const response = await api.put('/profile/update', userData);
-  return { user: UserSchema.parse(response.data?.user) }; // (Thunk API)
+  return { user: UserSchema.parse(response.data?.user) }; // Возвращает пользователя объектом для Redux.
 };
 
 /**
- * Обновить приватность пользователя.
- * @param {boolean} isPublic - видимость пользователя
- * @returns {Promise<Object>} { message, isPublic }
+ * Обновляет приватность пользователя.
+ *
+ * @param {boolean} isPublic - Признак публичности профиля
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const updateUserPrivacyApi = async (isPublic) => {
   const response = await api.patch(`/profile/update-privacy`, { isPublic });
@@ -58,9 +62,10 @@ export const updateUserPrivacyApi = async (isPublic) => {
 };
 
 /**
- * Обновить пароль текущего пользователя.
- * @param {Object} credentials - текущий и новый пароль пользователя
- * @returns {Promise<{Object}>} { message }
+ * Обновляет пароль текущего пользователя.
+ *
+ * @param {Object} credentials - Текущий и новый пароль
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const changePasswordApi = async (credentials) => {
   const response = await api.patch('/profile/change-password', credentials);
@@ -68,8 +73,9 @@ export const changePasswordApi = async (credentials) => {
 };
 
 /**
- * Удалить профиль.
- * @returns {Promise<{Object}>} { message, userId }
+ * Удаляет профиль текущего пользователя.
+ *
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteCurrentUser = async () => {
   const response = await api.delete('/profile/delete');
@@ -77,9 +83,10 @@ export const deleteCurrentUser = async () => {
 };
 
 /**
- * Удалить загруженный аватар.
- * @param {Object} data - данные аватара
- * @returns {Promise<Object>} { message }
+ * Удаляет загруженный аватар.
+ *
+ * @param {Object} data - Данные аватара
+ * @returns {Promise<Object>} Ответ сервера
  */
 export const deleteUploadedAvatarApi = async (data) => {
   const response = await api.delete('/profile/delete-uploaded-avatar', {

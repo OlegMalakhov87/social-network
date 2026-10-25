@@ -1,1 +1,1 @@
-export { VideoPlayer } from './ui/VideoPlayer';
+export { VideoPlayer } from './ui/VideoPlayer'; // Отображает модальный видеоплеер.

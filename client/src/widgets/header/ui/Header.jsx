@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
+
 import { logoutSession, selectHasUser } from '../../../entities/auth';
 import {
   Button,
@@ -10,12 +11,15 @@ import {
   SearchField,
 } from '../../../shared/ui';
 import { classNames } from '../../../shared/utils';
+
 import style from './Header.module.css';
 
 /**
- * Шапка приложения с логотипом, навигацией и поиском.
- * @param {Object} props
- * @param {Function} props.onSearchChange - колбэк при изменении поискового запроса
+ * Отображает шапку приложения с логотипом, поиском и входом.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {Function} [props.onSearchChange] - Обработчик изменения поискового запроса
+ * @returns {JSX.Element} Разметка шапки.
  */
 export const Header = ({ onSearchChange }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -25,7 +29,9 @@ export const Header = ({ onSearchChange }) => {
   const isAuthenticated = useSelector(selectHasUser);
 
   /**
-   * Обработчик изменения поискового запроса.
+   * Обновляет поисковый запрос и сообщает его родителю.
+   *
+   * @param {Object} e - Событие изменения поля
    */
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -34,7 +40,9 @@ export const Header = ({ onSearchChange }) => {
   };
 
   /**
-   * Обработчик отправки поискового запроса.
+   * Открывает поиск пользователей по нажатию Enter.
+   *
+   * @param {Object} e - Событие клавиатуры
    */
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchValue.trim()) {
@@ -44,19 +52,14 @@ export const Header = ({ onSearchChange }) => {
     }
   };
 
-  /**
-   * Обработчик кнопки поиска.
-   */
   const handleSearchAction = () => {
     if (!searchValue.trim()) return;
     navigate('/friends');
     setSearchValue('');
   };
 
-  /**
-   * Обработчик выхода из аккаунта.
-   */
   const handleLogout = async () => {
+    // Повторный выход не запускает, пока предыдущий запрос не завершён.
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);

@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+
 import { CommentsList } from '../../';
 import { CommentForm, useFetchComments } from '../../../../features/comments';
 import { SORT_OPTIONS } from '../../../../shared/config';
@@ -14,17 +15,19 @@ import {
   SectionCard,
   Text,
 } from '../../../../shared/ui';
+
 import styles from './CommentsSection.module.css';
 
 /**
- * Секция комментариев. Стартовый компонент для отображения списка комментариев.
+ * Отображает секцию комментариев с сортировкой и формой отправки.
  *
- * @param {Object} props
- * @param {string} props.targetType - тип сущности комментариев.
- * @param {number} props.targetId - ID сущности комментариев.
- * @param {Object} props.currentUser - текущий пользователь.
- * @param {Function} props.onChange - функция для обновления количества комментариев.
- * @param {Function} props.onClose - функция для закрытия секции комментариев.
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.targetType - Тип комментируемой сущности
+ * @param {number} props.targetId - Идентификатор комментируемой сущности
+ * @param {Object} props.currentUser - Текущий пользователь
+ * @param {Function} props.onChange - Обработчик изменения количества комментариев
+ * @param {Function} props.onClose - Обработчик закрытия секции
+ * @returns {JSX.Element} Разметка секции.
  */
 export const CommentsSection = ({
   targetType,
@@ -35,18 +38,15 @@ export const CommentsSection = ({
 }) => {
   const bodyRef = useRef(null);
 
-  /** Управление прокруткой */
   const { isPastMiddle, scrollToTop, scrollToBottom } = useScrollNavigation({
     containerRef: bodyRef,
   });
 
-  /** Управление фильтрацией и сортировкой */
   const { sortKey, setSortKey } = useFilterControls({
     initialFilter: 'all',
     initialSort: 'dateDesc',
   });
 
-  /** Получение данных о комментариях */
   const {
     comments,
     toggleLike,

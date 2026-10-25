@@ -1,8 +1,9 @@
-const { body, param } = require('express-validator');
+const { body } = require('express-validator');
+
 const { validateErrors } = require('../../utils/validateErrors');
 
 /**
- * Валидация для комментария
+ * Проверяет поля комментария.
  */
 const validateComment = [
   body('targetId')

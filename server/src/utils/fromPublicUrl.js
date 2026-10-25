@@ -1,4 +1,5 @@
 const path = require('node:path');
+
 const { MEDIA_ROOT } = require('../../config/mediaUploadConfig');
 const { createError } = require('./createError');
 
@@ -8,7 +9,7 @@ const MEDIA_URL_PREFIX = '/uploads/';
  * Преобразует публичный URL в абсолютный путь к файлу.
  *
  * @param {string} url - Публичный URL
- * @returns {string|null} Абсолютный путь к файлу
+ * @returns {string|null} Абсолютный путь к файлу или null, если URL пуст.
  */
 const fromPublicUrl = (url) => {
   if (!url) return null;
@@ -17,7 +18,7 @@ const fromPublicUrl = (url) => {
     throw createError('Некорректный тип URL', 400, 'INVALID_URL_TYPE');
   }
 
-  // Старые записи могли хранить путь без начального слеша.
+  // Старые записи хранят путь без начального слеша.
   const normalizedUrl = url.startsWith('/') ? url : '/' + url;
 
   if (!normalizedUrl.startsWith(MEDIA_URL_PREFIX)) {

@@ -1,7 +1,8 @@
 /**
- * Преобразует видео Videos с сервера в формат компонента Video / VideoPlayer.
- * @param {Object} raw - видео из ответа сервера
- * @returns {Object} - нормализованные данные видео
+ * Приводит видео с сервера к формату карточки.
+ *
+ * @param {Object} raw - Видео с сервера
+ * @returns {Object} Видео карточки
  */
 export const normalizeVideos = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

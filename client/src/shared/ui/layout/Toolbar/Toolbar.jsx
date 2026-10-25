@@ -1,16 +1,18 @@
 import { Tabs } from '../../../ui';
+
 import styles from './Toolbar.module.css';
 
 /**
- * Верхняя панель управления профилем.
+ * Отображает панель инструментов.
  *
- * @param {Object} props
- * @param {Array<{id:string,label:string,icon?:React.ReactNode}>} props.tabs - массив вкладок (идентификатор, текст, иконка) для выбора вкладки профиля.
- * @param {string} props.activeTab - значение выбранной вкладки профиля.
- * @param {Function} props.onTabChange - функция изменения активной вкладки профиля.
- * @param {React.ReactNode} props.leftSlot - левая часть панели управления профилем.
- * @param {React.ReactNode} props.rightSlot - правая часть панели управления профилем.
- * @param {boolean} [props.disabled=false] - заблокированы ли вкладки
+ * @param {Object} props - Свойства компонента
+ * @param {Array<{id: string, label: string, icon?: React.ReactNode}>} [props.tabs] - Вкладки с идентификатором, текстом и иконкой
+ * @param {string} [props.activeTab] - Идентификатор выбранной вкладки
+ * @param {Function} [props.onTabChange] - Обработчик смены вкладки
+ * @param {React.ReactNode} [props.leftSlot] - Левая область панели
+ * @param {React.ReactNode} [props.rightSlot] - Правая область панели
+ * @param {boolean} [props.disabled=false] - Признак блокировки вкладок
+ * @returns {JSX.Element} Панель инструментов.
  */
 
 export const Toolbar = ({

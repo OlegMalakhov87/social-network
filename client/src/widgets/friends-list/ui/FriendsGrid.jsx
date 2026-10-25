@@ -5,24 +5,27 @@ import {
 } from '../../../entities/friend';
 import { useInfiniteScrollTrigger } from '../../../shared/hooks';
 import { ContentRefetchOverlay, ContentState, InfiniteScrollFooter } from '../../../shared/ui';
+
 import styles from './FriendsGrid.module.css';
 
 /**
- * Сетка карточек друзей с пагинацией.
- * @param {Object} props
- * @param {string} props.filter - фильтр друзей
- * @param {Array} props.friends - список друзей с полями _friendshipStatus и _friendshipDirection
- * @param {boolean} props.isLoading - флаг загрузки
- * @param {boolean} props.isLoadingMore - флаг загрузки следующей порции друзей
- * @param {Error} props.error - ошибка загрузки друзей
- * @param {boolean} props.hasMore - флаг наличия следующей порции друзей
- * @param {Function} props.loadMore - функция загрузки следующей порции друзей
- * @param {Function} props.onRetry - функция повторной загрузки друзей
- * @param {Function} props.onFollow - функция для отправки запроса на добавление в друзья
- * @param {Function} props.onUnfollow - функция для отправки запроса на удаление из друзей
- * @param {Function} props.onAccept - функция для принятия запроса на добавление в друзья
- * @param {Function} props.onUnlock - функция для разблокировки пользователя
- * @param {Function} props.onBlock - функция для блокировки пользователя
+ * Отображает сетку карточек друзей с подгрузкой при прокрутке.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.filter - Текущий фильтр списка
+ * @param {Array<Object>} [props.friends=[]] - Список друзей
+ * @param {boolean} props.isLoading - Признак загрузки списка
+ * @param {boolean} props.isLoadingMore - Признак загрузки следующей страницы
+ * @param {Error|string|null} props.error - Ошибка загрузки
+ * @param {boolean} props.hasMore - Признак наличия следующей страницы
+ * @param {Function} props.loadMore - Обработчик загрузки следующей страницы
+ * @param {Function} props.onRetry - Обработчик повторной загрузки
+ * @param {Function} props.onFollow - Обработчик запроса в друзья
+ * @param {Function} props.onUnfollow - Обработчик удаления из друзей
+ * @param {Function} props.onAccept - Обработчик принятия запроса в друзья
+ * @param {Function} props.onUnlock - Обработчик снятия блокировки
+ * @param {Function} props.onBlock - Обработчик блокировки пользователя
+ * @returns {JSX.Element} Разметка сетки.
  */
 export const FriendsGrid = ({
   filter,
@@ -39,14 +42,13 @@ export const FriendsGrid = ({
   onUnlock,
   onBlock,
 }) => {
-  /** Триггер для автоматической загрузки следующей страницы */
   const loadMoreRef = useInfiniteScrollTrigger({
     hasMore,
     isLoadingMore,
     onLoadMore: loadMore,
   });
 
-  /** Флаг перезагрузки контента */
+  // Показывает наложение, пока список обновляется при уже загруженных карточках.
   const isRefetching = isLoading && friends.length > 0;
 
   return (

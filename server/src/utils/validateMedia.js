@@ -1,19 +1,22 @@
 const { createError } = require('./createError');
 
 /**
- * Проверяет, является ли значение строкой и не пустой
- * @param {string} value - значение для проверки
- * @returns {boolean} - true, если значение является строкой и не пустой, false в противном случае
+ * Проверяет, что значение является непустой строкой.
+ *
+ * @param {*} value - Проверяемое значение
+ * @returns {boolean} Признак непустой строки.
  */
 const hasUrl = (value) => typeof value === 'string' && value.trim().length > 0;
 
 /**
- * Проверяет, являются ли медиафайлы валидными
- * @param {Object} params - параметры для проверки
- * @param {string} params.type - тип медиа
- * @param {string} params.mediaUrl - URL медиа
- * @param {string} params.previewUrl - URL превью
- * @param {string} params.thumbnailUrl - URL обложки
+ * Проверяет согласованность типа медиа и ссылок на файлы.
+ *
+ * @param {Object} params - Поля медиа
+ * @param {string} params.type - Тип медиа
+ * @param {string|null} [params.mediaUrl] - URL основного файла
+ * @param {string|null} [params.previewUrl] - URL превью
+ * @param {string|null} [params.thumbnailUrl] - URL обложки
+ * @returns {void} Ничего не возвращает.
  */
 const validateMedia = ({ type, mediaUrl, previewUrl, thumbnailUrl }) => {
   if (type === 'text') {

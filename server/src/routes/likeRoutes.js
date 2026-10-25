@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const likeController = require('../controllers/likeController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
@@ -6,7 +7,7 @@ const { validateLike } = require('../middleware/validation/validateLike');
 
 const likeRoutes = Router();
 
-// Поставить лайк
+// Создает лайк сущности.
 likeRoutes.post(
   '/:targetType/:targetId/add',
   validateIdParam('targetId'),
@@ -15,7 +16,7 @@ likeRoutes.post(
   likeController.addLike
 );
 
-// Удалить лайк
+// Удаляет лайк сущности.
 likeRoutes.delete(
   '/:targetType/:targetId/delete',
   validateIdParam('targetId'),

@@ -1,19 +1,20 @@
 import { Avatar } from '../../../shared/ui';
 import { classNames } from '../../../shared/utils';
+
 import styles from './ProfileMeta.module.css';
 
 /**
- * Блок информации о пользователе в шапке профиля.
- * Используется внутри BaseCard / EntityHeader (вертикальная компоновка).
+ * Отображает сведения о пользователе в шапке профиля.
  *
- * @param {Object} props
- * @param {string|React.ReactNode} [props.avatar] - URL или готовый узел аватара
- * @param {string|React.ReactNode} [props.title] - отображаемое имя
- * @param {string|React.ReactNode} [props.subtitle] - подпись перед именем (например, @nickname)
- * @param {React.ReactNode} [props.badge] - содержимое бейджа (строка или компонент Badge)
- * @param {React.ReactNode} [props.extra] - дополнительный блок (кнопки действий и т.п.)
- * @param {'online'|'offline'|'busy'|'away'|null} [props.status] - индикатор на Avatar, если передан URL
- * @param {string} [props.className] - дополнительный класс
+ * @param {Object} props - Свойства компонента.
+ * @param {string|React.ReactNode} [props.avatar] - URL или узел аватара.
+ * @param {string|React.ReactNode} [props.title] - Имя пользователя.
+ * @param {string|React.ReactNode} [props.subtitle] - Подпись перед именем.
+ * @param {React.ReactNode} [props.extra] - Дополнительный блок.
+ * @param {'online'|'offline'|'busy'|'away'|null} [props.status] - Индикатор аватара.
+ * @param {React.ReactNode} [props.badge] - Содержимое значка.
+ * @param {string} [props.className] - Дополнительный класс CSS.
+ * @returns {JSX.Element} Разметка сведений.
  */
 export const ProfileMeta = ({
   avatar,

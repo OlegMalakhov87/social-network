@@ -1,6 +1,4 @@
 const express = require('express');
-const app = express();
-const path = require('node:path');
 const morgan = require('morgan');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -19,33 +17,34 @@ const newsRoutes = require('./routes/newsRoutes');
 const likeRoutes = require('./routes/likeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const widgetRoutes = require('./routes/widgetRoutes');
-
 const errorMiddleware = require('./middleware/error/errorMiddleware');
 
-// CORS
+const app = express();
+
+// Кросс-доменные запросы
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000', // только с этого домена
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // разрешенные методы
-    credentials: true, // разрешить куки/авторизацию
+    origin: process.env.CLIENT_URL || 'http://localhost:3000', // Разрешает запросы только с адреса клиента.
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true, // Разрешает передачу cookie и авторизации.
   })
 );
 
-// JSON
+// Разбор JSON
 app.use(express.json());
 
-// Cookie parser
+// Разбор cookie
 app.use(cookieParser());
 
-// URL-encoded
+// Разбор URL-encoded
 app.use(express.urlencoded({ extended: true }));
 
-// Morgan
+// Журнал запросов HTTP
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Static files
+// Статические файлы
 app.use(
   '/uploads',
   express.static(MEDIA_ROOT, {
@@ -55,7 +54,7 @@ app.use(
   })
 );
 
-// Routes
+// Маршруты
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', userRoutes);
 app.use('/api/messages', messageRoutes);
@@ -70,7 +69,7 @@ app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/widgets', widgetRoutes);
 
-// Error middleware
+// Промежуточный обработчик ошибок
 app.use(errorMiddleware);
 
 module.exports = app;

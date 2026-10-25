@@ -3,7 +3,6 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class UsedRefreshToken extends Model {
     static associate({ RefreshSession }) {
-      // Сессия, в которой был использован токен
       UsedRefreshToken.belongsTo(RefreshSession, {
         foreignKey: 'sessionId',
         as: 'session',

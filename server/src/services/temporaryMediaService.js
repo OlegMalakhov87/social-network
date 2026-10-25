@@ -1,15 +1,19 @@
 const { Op } = require('sequelize');
+
 const { TemporaryMedia } = require('../../db/models');
 const { createError } = require('../utils/createError');
 
-/** Срок действия временного медиафайла в миллисекундах */
+/**
+ * Задает срок действия временного медиафайла в миллисекундах.
+ */
 const TEMPORARY_MEDIA_TTL = 24 * 60 * 60 * 1000;
 
 const temporaryMediaService = {
   /**
-   * Регистрирует несколько временных медиафайлов
-   * @param {Object[]} items - массив объектов с параметрами запроса
-   * @returns {Promise<Object[]>} - массив объектов с временными медиафайлами
+   * Регистрирует несколько временных медиафайлов.
+   *
+   * @param {Object[]} items - Список временных медиафайлов
+   * @returns {Promise<Object[]>} Массив объектов с временными медиафайлами.
    */
   async registerMany(items) {
     if (
@@ -49,11 +53,10 @@ const temporaryMediaService = {
   /**
    * Проверяет владение временными медиафайлами.
    *
-   * @param {number} currentUserId
-   * @param {Object[]} items
-   * @param {Object} options
-   * @param {import('sequelize').Transaction} [options.transaction]
-   * @returns {Promise<Object[]>}
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object[]} items - Список временных медиафайлов
+   * @param {Object} [options={}] - Дополнительные параметры
+   * @returns {Promise<Object[]>} Список объектов.
    */
   async assertOwnershipMany(currentUserId, items, options = {}) {
     const { transaction } = options;
@@ -117,6 +120,10 @@ const temporaryMediaService = {
    *
    * Удаляет записи TemporaryMedia.
    * Физические файлы удаляются фоновой очисткой.
+   *
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Array} items - Список временных медиафайлов
+   * @returns {Promise<Object>} Результат операции.
    */
   async removeMany(currentUserId, items) {
     if (
@@ -169,12 +176,18 @@ const temporaryMediaService = {
   /**
    * Фиксирует временные медиафайлы.
    *
-   * @param {number} currentUserId
-   * @param {Object[]} items
-   * @param {Object} options
-   * @returns {Promise<Object[]>}
+   * @param {number} currentUserId - Идентификатор текущего пользователя
+   * @param {Object[]} items - Список временных медиафайлов
+   * @param {Object} [options={}] - Дополнительные параметры
+   * @returns {Promise<Object[]>} Список объектов.
    */
   async commitMany(currentUserId, items, options = {}) {
+    /**
+     * Фиксирует временные файлы внутри переданной транзакции.
+     *
+     * @param {import('sequelize').Transaction} transaction - Транзакция Sequelize
+     * @returns {Promise<void>} Завершает операцию.
+     */
     const execute = async (transaction) => {
       const mediaRecords = await this.assertOwnershipMany(
         currentUserId,
@@ -197,8 +210,9 @@ const temporaryMediaService = {
   },
 
   /**
-   * Очищает просроченные временные медиафайлы
-   * @returns {Promise<number>} - Количество удаленных временных медиафайлов
+   * Очищает просроченные временные медиафайлы.
+   *
+   * @returns {Promise<number>} Количество удаленных временных медиафайлов.
    */
   async cleanupExpired() {
     const deletedCount = await TemporaryMedia.destroy({

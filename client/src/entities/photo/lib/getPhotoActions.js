@@ -1,12 +1,12 @@
 /**
- * Формирует массив действий для карточки фото.
+ * Возвращает действия фотографии.
  *
- * @param {Object} params
- * @param {Object} params.photo - фото
- * @param {Function} params.toggleLike - функция для лайка/дизлайка фото
- * @param {Function} params.toggleComments - функция для открытия/закрытия комментариев к фото
- * @param {Function} params.onShare - функция- переход на страницу сообщений для передачи фото
- * @returns {Array<Object>} - массив действий карточки фото
+ * @param {Object} params - Параметры действий
+ * @param {Object} params.photo - Фотография
+ * @param {Function} [params.toggleLike] - Обработчик лайка
+ * @param {Function} [params.toggleComments] - Обработчик комментариев
+ * @param {Function} [params.onShare] - Обработчик отправки
+ * @returns {Array<Object>} Действия фотографии
  */
 export const getPhotoActions = ({
   photo,

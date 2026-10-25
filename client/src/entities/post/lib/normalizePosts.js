@@ -1,5 +1,8 @@
 /**
- * Преобразует данные поста из API в формат компонента Post.
+ * Приводит пост с сервера к формату карточки.
+ *
+ * @param {Object} raw - Пост с сервера
+ * @returns {Object} Пост карточки
  */
 export const normalizePosts = (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

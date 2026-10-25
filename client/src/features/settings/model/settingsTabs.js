@@ -1,4 +1,4 @@
-/** Мапа для выбора вкладок настроек */
+/** Задаёт вкладки настроек. */
 export const SETTINGS_TABS_MAP = [
   { id: 'profile', label: 'Профиль', icon: '👤' },
   { id: 'account', label: 'Аккаунт', icon: '🔐' },

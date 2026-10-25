@@ -1,11 +1,13 @@
 import { Button } from '../../../shared/ui';
+
 import styles from './ProfileActions.module.css';
 
 /**
- * Панель действий профиля.
+ * Отображает действия профиля.
  *
- * @param {Object} props
- * @param {Array<Object>} props.actions - массив действий
+ * @param {Object} props - Свойства компонента.
+ * @param {Array<Object>} [props.actions=[]] - Действия профиля.
+ * @returns {JSX.Element|null} Разметка действий.
  */
 
 export const ProfileActions = ({ actions = [] }) => {

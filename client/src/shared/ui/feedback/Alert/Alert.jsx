@@ -1,14 +1,17 @@
 import { classNames } from '../../../utils';
+
 import style from './Alert.module.css';
 
 /**
- * Всплывающее уведомление для форм.
- * @param {Object} props
- * @param {string} props.variant - 'success'|'error'|'info'|'warning'
- * @param {string} props.title - заголовок уведомления
- * @param {boolean} props.closable - показываем крестик или нет
- * @param {string} props.children - сообщение
- * @param {Function} props.onClose - закрыть уведомление
+ * Отображает предупреждение с заголовком и текстом.
+ *
+ * @param {Object} props - Свойства компонента
+ * @param {'success'|'error'|'info'|'warning'} props.variant - Вид предупреждения
+ * @param {string} props.title - Заголовок предупреждения
+ * @param {boolean} props.closable - Признак кнопки закрытия
+ * @param {React.ReactNode} props.children - Текст предупреждения
+ * @param {Function} props.onClose - Обработчик закрытия
+ * @returns {JSX.Element|null} Предупреждение или пустой результат без текста.
  */
 
 export const Alert = ({ variant, title, closable, children, onClose }) => {

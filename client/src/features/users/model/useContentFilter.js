@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectIsAuthReady, selectUser } from '../../../entities/auth';
 import { useOptimisticCommentCount } from '../../../shared/hooks';
 import { usePosts } from '../../posts';
@@ -8,13 +9,53 @@ import { useLibraryResource, useProfile } from '../../users';
 import { useUserVideoLibrary } from '../../videos';
 
 /**
- * Хук для фильтрации и сортировки контента пользователя по вкладкам
+ * Возвращает материалы профиля по активной вкладке.
  *
- * @param {Object} params
- * @param {string} [params.activeTab] - тип контента для отображения
- * @param {number|string} [params.userIdParam] - ID пользователя из URL
- * @param {string} [params.sortKey] - ключ сортировки из SORT_OPTIONS
- * @returns {Object} - объект с данными о контенте пользователя
+ * @param {Object} params - Параметры фильтра
+ * @param {string} [params.activeTab='posts'] - Активная вкладка
+ * @param {number|string|null} [params.userIdParam=null] - Идентификатор пользователя
+ * @param {string} [params.sortKey='dateDesc'] - Ключ сортировки
+ * @returns {{
+ *   currentUser: Object|null,
+ *   targetUser: Object|null,
+ *   isOwnProfile: boolean,
+ *   userError: { message: string, fieldErrors?: Object }|null,
+ *   refetchUser: Function,
+ *   followUser: Function,
+ *   unfollowUser: Function,
+ *   acceptUser: Function,
+ *   blockUser: Function,
+ *   unlockUser: Function|undefined,
+ *   items: Array<Object>,
+ *   isLoadingProfile: boolean,
+ *   toggleLikeItem: Function,
+ *   deleteFromLibrary: Function,
+ *   addToLibrary: Function,
+ *   incrementCounter: Function,
+ *   toggleFavoriteItem: Function,
+ *   updateCommentsCount: Function,
+ *   isLoadingPosts: boolean|undefined,
+ *   isLoadingMorePosts: boolean,
+ *   errorPosts: { message: string, fieldErrors?: Object }|null,
+ *   addPost: Function,
+ *   updatePost: Function,
+ *   deletePost: Function,
+ *   refetchPosts: Function,
+ *   hasMorePosts: boolean,
+ *   loadMorePosts: Function,
+ *   isLoadingTracks: boolean|undefined,
+ *   isLoadingMoreTracks: boolean,
+ *   errorTracks: { message: string, fieldErrors?: Object }|null,
+ *   refetchTracks: Function,
+ *   hasMoreTracks: boolean,
+ *   loadMoreTracks: Function,
+ *   isLoadingVideos: boolean|undefined,
+ *   isLoadingMoreVideos: boolean,
+ *   errorVideos: { message: string, fieldErrors?: Object }|null,
+ *   refetchVideos: Function,
+ *   hasMoreVideos: boolean,
+ *   loadMoreVideos: Function
+ * }} Материалы профиля и действия
  */
 export const useContentFilter = ({
   activeTab = 'posts',
@@ -24,9 +65,6 @@ export const useContentFilter = ({
   const currentUser = useSelector(selectUser);
   const isAuthReady = useSelector(selectIsAuthReady);
 
-  /**
-   * Получение ID пользователя и приводим к правильному типу
-   */
   const profileUserId = useMemo(() => {
     if (userIdParam) {
       const id = Number(userIdParam);
@@ -35,11 +73,10 @@ export const useContentFilter = ({
     return isAuthReady ? (currentUser?.id ?? null) : null;
   }, [userIdParam, currentUser?.id, isAuthReady]);
 
-  /**
-   * Получаем целевого пользователя с сервера
-   */
+  const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;
+
   const {
-    user: apiUser,
+    user: targetUser,
     userLoading,
     userError,
     refetchUser,
@@ -50,15 +87,7 @@ export const useContentFilter = ({
     unlockUser,
   } = useProfile(profileUserId);
 
-  //Проверяем, является ли текущий пользователь владельцем профиля
-  const isOwnProfile = !profileUserId || profileUserId === currentUser?.id;
-
-  // Целевой пользователь
-  const targetUser = isOwnProfile ? currentUser : apiUser;
-
-  /**
-   * Маппинг для определения, нужно ли загружать контент
-   */
+  // Ограничивает загрузку активной вкладкой.
   const fetchMap = {
     posts: { posts: true },
     photos: { posts: true },
@@ -66,10 +95,6 @@ export const useContentFilter = ({
     videos: { videos: true },
   };
   const config = fetchMap[activeTab] ?? {};
-
-  /**
-   * Загружаем посты пользователя только когда активна вкладка Post или Photo
-   */
 
   const {
     posts: apiPosts,
@@ -90,10 +115,6 @@ export const useContentFilter = ({
     sortKey,
   });
 
-  /**
-   * Загружаем треки пользователя только когда активна вкладка Music
-   */
-
   const {
     tracks: apiTracks,
     hasMore: hasMoreTracks,
@@ -109,10 +130,6 @@ export const useContentFilter = ({
     isOwnProfile,
     sortKey,
   });
-
-  /**
-   * Загружаем видео пользователя только когда активна вкладка Video
-   */
 
   const {
     videos: apiVideos,
@@ -130,7 +147,6 @@ export const useContentFilter = ({
     sortKey,
   });
 
-  /** Трансформации для работы с библиотеками */
   const trackAddTransform = useCallback(
     () => ({
       playsCount: 0,
@@ -173,7 +189,6 @@ export const useContentFilter = ({
     []
   );
 
-  /** Маппинг для определения, какой setItems нужно использовать */
   const setCurrentItems = useMemo(() => {
     switch (activeTab) {
       case 'posts':
@@ -189,14 +204,11 @@ export const useContentFilter = ({
     }
   }, [activeTab, setPostsItems, setTracksItems, setVideosItems]);
 
-  /** Маппинг для определения, какой контент нужно загружать для работы с библиотекой пользователя, используем только tracks или videos*/
+  // Ограничивает библиотеку вкладками музыки и видео.
   const isTracks = activeTab === 'tracks';
   const isVideos = activeTab === 'videos';
   const currentTab = isTracks ? 'tracks' : isVideos ? 'videos' : null;
 
-  /**
-   * Хук для управления библиотекой пользователя
-   */
   const userLibrary = useLibraryResource({
     items: currentTab ? (isTracks ? apiTracks : apiVideos) : [],
     userId: currentUser?.id,
@@ -218,12 +230,8 @@ export const useContentFilter = ({
       : null,
   });
 
-  /** Хук для управления количеством комментариев */
   const updateCommentsCount = useOptimisticCommentCount(setCurrentItems);
 
-  /**
-   * Фильтрация по типу контента и пользователю
-   */
   const filteredItems = useMemo(() => {
     if (!targetUser?.id) return [];
 
@@ -231,16 +239,16 @@ export const useContentFilter = ({
       case 'posts':
         return apiPosts || [];
       case 'photos':
-        //Фильтруем посты с типом image для вкладки фото
+        // Оставляет посты с изображением для вкладки фото.
         return (apiPosts || []).filter((post) => post.type === 'image');
       case 'tracks':
-        // Для профиля подменяем дату загрузки на дату добавления в библиотеку
+        // Подменяет дату загрузки датой добавления в библиотеку.
         return (apiTracks || []).map((track) => ({
           ...track,
           createdAt: track.libraryCreatedAt || track.createdAt,
         }));
       case 'videos':
-        // Для профиля подменяем дату загрузки на дату добавления в библиотеку
+        // Подменяет дату загрузки датой добавления в библиотеку.
         return (apiVideos || []).map((video) => ({
           ...video,
           createdAt: video.libraryCreatedAt || video.createdAt,
@@ -251,9 +259,6 @@ export const useContentFilter = ({
     }
   }, [activeTab, targetUser?.id, apiPosts, apiTracks, apiVideos]);
 
-  /**
-   * Возвращаем объект с данными о контенте пользователя
-   */
   return {
     currentUser,
     targetUser,
@@ -269,7 +274,6 @@ export const useContentFilter = ({
     isLoadingProfile:
       (userLoading && !isOwnProfile) || (!isAuthReady && isOwnProfile),
 
-    // Экшены из userLibrary
     toggleLikeItem: userLibrary?.toggleLikeItem,
     deleteFromLibrary: userLibrary?.deleteFromLibrary,
     addToLibrary: userLibrary?.addToLibrary,
@@ -277,7 +281,6 @@ export const useContentFilter = ({
     toggleFavoriteItem: userLibrary?.toggleFavoriteItem,
     updateCommentsCount,
 
-    // Посты
     isLoadingPosts: config.posts && isLoadingPostsApi,
     isLoadingMorePosts,
     errorPosts,
@@ -288,7 +291,6 @@ export const useContentFilter = ({
     hasMorePosts,
     loadMorePosts,
 
-    // Треки
     isLoadingTracks: config.tracks && isLoadingTracksApi,
     isLoadingMoreTracks,
     errorTracks,
@@ -296,7 +298,6 @@ export const useContentFilter = ({
     hasMoreTracks,
     loadMoreTracks,
 
-    // Видео
     isLoadingVideos: config.videos && isLoadingVideosApi,
     isLoadingMoreVideos,
     errorVideos,

@@ -1,4 +1,5 @@
 const { Router } = require('express');
+
 const newsController = require('../controllers/newsController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
@@ -18,10 +19,10 @@ const {
 
 const newsRoutes = Router();
 
-// Получить новости
+// Возвращает список новостей.
 newsRoutes.get('/', authMiddleware, newsController.getNews);
 
-// Получить новость по ID для шеринга
+// Возвращает новость по идентификатору для общего доступа.
 newsRoutes.get(
   '/:newsId/shared',
   validateIdParam('newsId'),
@@ -29,7 +30,7 @@ newsRoutes.get(
   newsController.getNewsById
 );
 
-// Создать новость
+// Создает новость.
 newsRoutes.post(
   '/add',
   authMiddleware,
@@ -37,7 +38,7 @@ newsRoutes.post(
   newsController.createNews
 );
 
-// Загрузка медиа файла для новости
+// Загружает медиафайл новости.
 newsRoutes.post(
   '/upload-media',
   authMiddleware,
@@ -47,7 +48,7 @@ newsRoutes.post(
   newsController.uploadMedia
 );
 
-// Обновить новость (владелец)
+// Обновляет новость владельца.
 newsRoutes.put(
   '/:newsId/update',
   validateIdParam('newsId'),
@@ -56,7 +57,7 @@ newsRoutes.put(
   newsController.updateNews
 );
 
-// Увеличить счетчик просмотров новости
+// Увеличивает счетчик просмотров новости.
 newsRoutes.patch(
   '/:newsId/views',
   validateIdParam('newsId'),
@@ -64,7 +65,7 @@ newsRoutes.patch(
   newsController.incrementViewsCount
 );
 
-// Удалить новость (владелец)
+// Удаляет новость владельца.
 newsRoutes.delete(
   '/:newsId/delete',
   validateIdParam('newsId'),
@@ -72,7 +73,7 @@ newsRoutes.delete(
   newsController.deleteNews
 );
 
-// Удаление (очистка мусора) загруженных медиа файлов
+// Удаляет загруженные медиафайлы.
 newsRoutes.delete(
   '/delete-uploaded-media',
   authMiddleware,
