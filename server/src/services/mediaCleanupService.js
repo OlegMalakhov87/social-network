@@ -11,11 +11,9 @@ const {
 const { fromPublicUrl } = require('../utils/fromPublicUrl');
 
 /** Задает срок жизни файла во временном каталоге: 24 часа. */
-const STAGING_FILE_TTL =
-  24 * 60 * 60 * 1000;
+const STAGING_FILE_TTL = 24 * 60 * 60 * 1000;
 /** Задает срок жизни неиспользуемого файла: 2 дня. */
-const ORPHAN_FILE_TTL =
-  48 * 60 * 60 * 1000;
+const ORPHAN_FILE_TTL = 48 * 60 * 60 * 1000;
 
 /**
  * Извлекает URL из значения поля.
@@ -60,6 +58,7 @@ const mediaCleanupService = {
    */
   async collectUsedFiles() {
     const usedFiles = new Set();
+    let unparsed = 0;
 
     for (const { model, fields } of MEDIA_CLEANUP_CONFIG.entities) {
       const rows = await model.findAll({
@@ -85,8 +84,9 @@ const mediaCleanupService = {
 
               usedFiles.add(path.resolve(filePath));
             } catch (error) {
-              throw new Error(
-                `[MediaCleanup] Не удалось обработать media URL "${url}": ${error.message}`
+              unparsed += 1;
+              console.warn(
+                `[MediaCleanup] Пропущен нераспознанный URL в ${model.name}.${field}: "${url}" — ${error.message}`
               );
             }
           }
@@ -108,7 +108,7 @@ const mediaCleanupService = {
         usedFiles.add(path.resolve(filePath));
       }
     }
-    return usedFiles;
+    return { usedFiles, unparsed };
   },
 
   /**
@@ -150,7 +150,7 @@ const mediaCleanupService = {
     console.log('[MediaCleanup] Старт очистки...');
     console.log('[MediaCleanup] MEDIA_ROOT:', MEDIA_ROOT);
 
-    const usedFiles = await this.collectUsedFiles();
+    const { usedFiles, unparsed } = await this.collectUsedFiles();
     const files = await this.getAllFiles();
 
     console.log(
@@ -316,6 +316,7 @@ const mediaCleanupService = {
     console.log('[StagingCleanup] Пропущено по TTL:', skippedCount);
     console.log('[StagingCleanup] Игнорировано:', ignoredCount);
     console.log('[StagingCleanup] Ошибок:', errorCount);
+    console.log('[StagingCleanup] Нераспознанных URL пропущено:', unparsed);
 
     return {
       scanned: scannedCount,
@@ -323,6 +324,7 @@ const mediaCleanupService = {
       skipped: skippedCount,
       ignored: ignoredCount,
       errors: errorCount,
+      unparsed: unparsed,
     };
   },
 };
