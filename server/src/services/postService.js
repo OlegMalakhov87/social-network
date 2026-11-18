@@ -146,6 +146,29 @@ const postService = {
       throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
     }
 
+    // Проверяет право на чтение: свой, публичный или друг автора.
+    if (post.userId !== currentUserId) {
+      let canRead = post.isPublic === true;
+
+      if (!canRead) {
+        const friendship = await Friend.findOne({
+          where: {
+            [Op.or]: [
+              { userId: currentUserId, friendId: post.userId },
+              { userId: post.userId, friendId: currentUserId },
+            ],
+            status: 'accepted',
+          },
+        });
+        canRead = Boolean(friendship);
+      }
+
+      // Не подтверждает существование приватного поста.
+      if (!canRead) {
+        throw createError('Пост не найден', 404, 'POST_NOT_FOUND');
+      }
+    }
+
     return {
       post: {
         ...post.toJSON(),
