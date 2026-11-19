@@ -3,7 +3,7 @@ const WebSocket = require('ws');
 const { Op } = require('sequelize');
 
 const { sequelize, User, Friend, RefreshSession } = require('../../db/models');
-const { clients } = require('../websocket');
+const { clients, notifyUser } = require('../websocket');
 const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 
@@ -307,6 +307,15 @@ const userService = {
         404,
         'USER_NOT_FOUND_OR_FORBIDDEN'
       );
+    }
+
+    // Закрываем WebSocket-соединения пользователя до удаления из БД
+    const userSockets = clients.get(currentUserId);
+    if (userSockets) {
+      for (const ws of userSockets) {
+        ws.close(4003, 'Пользователь удален');
+      }
+      clients.delete(currentUserId);
     }
 
     await user.destroy();
