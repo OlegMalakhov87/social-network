@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const WebSocket = require('ws');
 const { Op } = require('sequelize');
 
-const { sequelize, User, Friend } = require('../../db/models');
+const { sequelize, User, Friend, RefreshSession } = require('../../db/models');
 const { clients } = require('../websocket');
 const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
@@ -237,12 +237,19 @@ const userService = {
   /**
    * Меняет пароль пользователя.
    *
-   * @param {number} currentUserId - Идентификатор текущего пользователя
-   * @param {string} currentPassword - Текущий пароль
-   * @param {string} newPassword - Новый пароль
+   * @param {Object} params - Параметры вызова
+   * @param {number} params.currentUserId - Идентификатор текущего пользователя
+   * @param {number} params.currentSessionId - Идентификатор текущей сессии
+   * @param {string} params.currentPassword - Текущий пароль
+   * @param {string} params.newPassword - Новый пароль
    * @returns {Promise<Object>} Объект с результатом.
    */
-  async changePassword(currentUserId, currentPassword, newPassword) {
+  async changePassword({
+    currentUserId,
+    currentSessionId,
+    currentPassword,
+    newPassword,
+  }) {
     if (!currentPassword || !newPassword) {
       throw createError(
         'Текущий и новый пароль обязательны',
@@ -269,7 +276,18 @@ const userService = {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    await user.update({ passwordHash });
+    // Обновляет пароль и отзывает все остальные сессии в одной транзакции.
+    await sequelize.transaction(async (transaction) => {
+      await user.update({ passwordHash }, { transaction });
+
+      await RefreshSession.destroy({
+        where: {
+          userId: currentUserId,
+          id: { [Op.ne]: currentSessionId }, // Удаляет все, КРОМЕ текущей
+        },
+        transaction,
+      });
+    });
 
     return { message: 'Пароль успешно обновлен' };
   },

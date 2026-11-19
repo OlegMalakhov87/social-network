@@ -194,12 +194,32 @@ const userController = {
   changePassword: async (req, res, next) => {
     try {
       const currentUserId = Number(req.user?.id);
+      const currentSessionId = req.user?.sid;
+
+      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
+        throw createError(
+          'Некорректный идентификатор пользователя',
+          401,
+          'INVALID_USER_ID'
+        );
+      }
+
+      if (!currentSessionId) {
+        throw createError(
+          'Не передан идентификатор текущей сессии',
+          400,
+          'MISSING_SESSION_ID'
+        );
+      }
+
       const { currentPassword, newPassword } = req.body;
-      const result = await userService.changePassword(
+
+      const result = await userService.changePassword({
         currentUserId,
+        currentSessionId,
         currentPassword,
-        newPassword
-      );
+        newPassword,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);

@@ -57,8 +57,8 @@ const authMiddleware = async (req, res, next) => {
       throw createError('Сессия завершена или истекла', 401, 'SESSION_REVOKED');
     }
 
-    // Сохраняет контракт req.user с идентификатором пользователя.
-    req.user = { id: decoded.id };
+    // Сохраняет контракт req.user с идентификатором пользователя и сессией.
+    req.user = { id: decoded.id, sid: decoded.sid };
 
     next();
   } catch (error) {
