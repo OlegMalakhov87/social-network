@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 const morgan = require('morgan');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -20,6 +21,16 @@ const widgetRoutes = require('./routes/widgetRoutes');
 const errorMiddleware = require('./middleware/error/errorMiddleware');
 
 const app = express();
+
+// Доверяет одному прокси перед приложением (nginx, Caddy, облачный балансировщик).
+app.set('trust proxy', 1);
+
+// Защита HTTP-заголовков
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // Кросс-доменные запросы
 app.use(

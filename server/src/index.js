@@ -1,8 +1,8 @@
 const http = require('node:http');
+require('dotenv').config();
 
 const app = require('./app');
 const { redis } = require('./lib/redis');
-require('dotenv').config();
 const { setupWebSocket } = require('./websocket');
 const {
   startMaintenanceAndCleanupJob,
