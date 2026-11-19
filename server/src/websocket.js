@@ -8,6 +8,7 @@ const clients = new Map();
 
 const AUTH_TIMEOUT_MS = 5000; // Ограничивает ожидание авторизации пятью секундами.
 const SESSION_CHECK_INTERVAL_MS = 10000; // Проверяет сессии каждые 10 секунд.
+const MAX_CONNECTIONS_PER_USER = 5; // Ограничивает число вкладок на пользователя.
 
 /**
  * Проверяет поля маркера доступа.
@@ -191,7 +192,14 @@ function setupWebSocket(server) {
             clients.set(ws.userId, new Set());
           }
 
-          clients.get(ws.userId).add(ws);
+          const userSockets = clients.get(ws.userId);
+
+          if (userSockets.size >= MAX_CONNECTIONS_PER_USER) {
+            ws.close(4004, 'Превышено максимальное число соединений');
+            return;
+          }
+
+          userSockets.add(ws);
 
           ws.send(
             JSON.stringify({
