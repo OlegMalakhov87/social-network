@@ -6,6 +6,11 @@ const {
   validateRegister,
   validateLogin,
 } = require('../middleware/validation/validateUser');
+const {
+  loginLimiter,
+  registerLimiter,
+  refreshLimiter,
+} = require('../middleware/validation/rateLimit');
 const authController = require('../controllers/authController');
 
 const authRouter = Router();
@@ -14,13 +19,23 @@ const authRouter = Router();
 authRouter.get('/me', authMiddleware, authController.getMe);
 
 // Регистрирует пользователя.
-authRouter.post('/register', validateRegister, authController.register);
+authRouter.post(
+  '/register',
+  registerLimiter,
+  validateRegister,
+  authController.register
+);
 
 // Выполняет вход.
-authRouter.post('/login', validateLogin, authController.login);
+authRouter.post('/login', loginLimiter, validateLogin, authController.login);
 
 // Обновляет маркер доступа.
-authRouter.post('/refresh', verifyAuthOrigin, authController.refresh);
+authRouter.post(
+  '/refresh',
+  refreshLimiter,
+  verifyAuthOrigin,
+  authController.refresh
+);
 
 // Завершает сессию.
 authRouter.post('/logout', verifyAuthOrigin, authController.logout);

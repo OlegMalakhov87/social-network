@@ -908,6 +908,14 @@ etag@^1.8.1:
   resolved "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz"
   integrity sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==
 
+express-rate-limit@^8.7.5:
+  version "8.7.5"
+  resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-8.7.5.tgz#5064479b76eccea1813995888aca757a2dd6f135"
+  integrity sha512-wi+v38cx2EqD0JnhE/e74o5tFqKWUOAPFJIgyEiqJ8v2MNpoOAA3kI2hXYOI+YM+HE5yqbdAlVxm2GqOIeYOgA==
+  dependencies:
+    debug "^4.4.3"
+    ip-address "^10.2.0"
+
 express-validator@^7.3.1:
   version "7.3.1"
   resolved "https://registry.npmjs.org/express-validator/-/express-validator-7.3.1.tgz"
@@ -1222,6 +1230,11 @@ ioredis@^6.0.0:
     denque "2.1.0"
     redis-errors "1.2.0"
     standard-as-callback "2.1.0"
+
+ip-address@^10.2.0:
+  version "10.7.6"
+  resolved "https://registry.yarnpkg.com/ip-address/-/ip-address-10.7.6.tgz#e3c06961cedf352494c06c916c696cfdb11068dd"
+  integrity sha512-00LYkM6byILa9eQIx6qoaXCM40xTLd56AZ4vyaPW3YTyb49VZYPo5xsiAq4tuQ54GH4R7gVdYScJ1B7B77PuTg==
 
 ipaddr.js@1.9.1:
   version "1.9.1"

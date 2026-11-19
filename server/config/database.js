@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 if (process.env.NODE_ENV === 'test') {
   if (!process.env.DB_NAME_TEST) {
     throw new Error('DB_NAME_TEST не задана');

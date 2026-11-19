@@ -223,6 +223,7 @@ const mediaCleanupService = {
     console.log('[MediaCleanup] Неиспользуемые файлы удалены:', deletedCount);
     console.log('[MediaCleanup] Пропущено (моложе 2 дней):', youngCount);
     console.log('[MediaCleanup] Очистка завершена успешно.');
+    console.log('[MediaCleanup] Нераспознанных URL пропущено:', unparsed);
 
     return {
       scanned: files.length,
@@ -231,6 +232,7 @@ const mediaCleanupService = {
       deleted: deletedCount,
       skipped: skippedCount,
       young: youngCount,
+      unparsed: unparsed,
     };
   },
 
@@ -316,7 +318,6 @@ const mediaCleanupService = {
     console.log('[StagingCleanup] Пропущено по TTL:', skippedCount);
     console.log('[StagingCleanup] Игнорировано:', ignoredCount);
     console.log('[StagingCleanup] Ошибок:', errorCount);
-    console.log('[StagingCleanup] Нераспознанных URL пропущено:', unparsed);
 
     return {
       scanned: scannedCount,
@@ -324,7 +325,6 @@ const mediaCleanupService = {
       skipped: skippedCount,
       ignored: ignoredCount,
       errors: errorCount,
-      unparsed: unparsed,
     };
   },
 };
