@@ -7,6 +7,7 @@ const temporaryMediaService = require('../services/temporaryMediaService');
 const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 
 const postController = {
   /**
@@ -329,20 +330,19 @@ const postController = {
         );
       }
 
-      const media = [
-        {
-          url: req.body?.postUrl,
-          fieldName: 'postUrl',
-        },
-        {
-          url: req.body?.previewUrl,
-          fieldName: 'previewUrl',
-        },
-        {
-          url: req.body?.thumbnailUrl,
-          fieldName: 'thumbnailUrl',
-        },
-      ];
+      const media = pickMediaFields(req.body, [
+        'postUrl',
+        'previewUrl',
+        'thumbnailUrl',
+      ]);
+
+      if (media.length === 0) {
+        return res.status(400).json({
+          error: 'Не переданы медиафайлы для удаления',
+          code: 'NO_MEDIA_TO_DELETE',
+        });
+      }
+
       const result = await temporaryMediaService.removeMany(
         currentUserId,
         media

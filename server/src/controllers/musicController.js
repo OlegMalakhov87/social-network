@@ -6,6 +6,7 @@ const temporaryMediaService = require('../services/temporaryMediaService');
 const mediaStorageService = require('../services/mediaStorageService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 
 const musicController = {
   /**
@@ -378,16 +379,15 @@ const musicController = {
         );
       }
 
-      const media = [
-        {
-          url: req.body?.audioUrl,
-          fieldName: 'audioUrl',
-        },
-        {
-          url: req.body?.coverUrl,
-          fieldName: 'coverUrl',
-        },
-      ];
+      const media = pickMediaFields(req.body, ['audioUrl', 'coverUrl']);
+
+      if (media.length === 0) {
+        return res.status(400).json({
+          error: 'Не переданы медиафайлы для удаления',
+          code: 'NO_MEDIA_TO_DELETE',
+        });
+      }
+
       // Удаляет временные медиафайлы, которые пользователь не сохранил.
       const result = await temporaryMediaService.removeMany(
         currentUserId,
@@ -419,12 +419,19 @@ const musicController = {
         );
       }
 
-      const result = await temporaryMediaService.removeMany(currentUserId, [
-        {
-          url: req.body?.coverUrl,
-          fieldName: 'coverUrl',
-        },
-      ]);
+      const media = pickMediaFields(req.body, ['coverUrl']);
+
+      if (media.length === 0) {
+        return res.status(400).json({
+          error: 'Не переданы медиафайлы для удаления',
+          code: 'NO_MEDIA_TO_DELETE',
+        });
+      }
+
+      const result = await temporaryMediaService.removeMany(
+        currentUserId,
+        media
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
