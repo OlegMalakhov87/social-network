@@ -21,9 +21,9 @@ const initialState = {
   status: 'idle',
   error: null,
   authCheckRequestId: null,
-  authMutationRequestId: null,
   pendingSessionLogouts: [], // Хранит события выхода, полученные во время checkAuth.
   isLoggingOut: false,
+  mutationRequestId: null,
 };
 
 const authSlice = createSlice({
@@ -45,7 +45,7 @@ const authSlice = createSlice({
         !state.isAuthenticated ||
         state.isLoggingOut ||
         state.authCheckRequestId !== null ||
-        state.authMutationRequestId !== null ||
+        state.mutationRequestId !== null ||
         typeof token !== 'string' ||
         typeof expectedToken !== 'string' ||
         state.token !== expectedToken
@@ -108,7 +108,7 @@ const authSlice = createSlice({
       state.status = 'idle';
       state.error = null;
       state.authCheckRequestId = null;
-      state.authMutationRequestId = null;
+      state.mutationRequestId = null;
       state.isCheckingAuth = false;
       state.pendingSessionLogouts = [];
       state.isLoggingOut = false;
@@ -132,15 +132,15 @@ const authSlice = createSlice({
         state.status = 'loading';
         state.error = null;
         state.authCheckRequestId = null;
-        state.authMutationRequestId = action.meta.requestId;
+        state.mutationRequestId = action.meta.requestId;
         state.pendingSessionLogouts = [];
       })
       .addCase(login.fulfilled, (state, action) => {
-        if (state.authMutationRequestId !== action.meta.requestId) {
+        if (state.mutationRequestId !== action.meta.requestId) {
           return;
         }
 
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.status = 'succeeded';
         state.user = action.payload.user;
         state.token = action.payload.token;
@@ -149,11 +149,11 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
-        if (state.authMutationRequestId !== action.meta.requestId) {
+        if (state.mutationRequestId !== action.meta.requestId) {
           return;
         }
 
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
@@ -166,15 +166,15 @@ const authSlice = createSlice({
         state.status = 'loading';
         state.error = null;
         state.authCheckRequestId = null;
-        state.authMutationRequestId = action.meta.requestId;
+        state.mutationRequestId = action.meta.requestId;
         state.pendingSessionLogouts = [];
       })
       .addCase(register.fulfilled, (state, action) => {
-        if (state.authMutationRequestId !== action.meta.requestId) {
+        if (state.mutationRequestId !== action.meta.requestId) {
           return;
         }
 
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.status = 'succeeded';
         state.user = action.payload.user;
         state.token = action.payload.token;
@@ -183,11 +183,11 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
-        if (state.authMutationRequestId !== action.meta.requestId) {
+        if (state.mutationRequestId !== action.meta.requestId) {
           return;
         }
 
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
@@ -255,14 +255,25 @@ const authSlice = createSlice({
       })
 
       /** Обрабатывает обновление профиля. */
-      .addCase(updateUser.pending, (state) => {
+      .addCase(updateUser.pending, (state, action) => {
         state.status = 'loading';
+        state.mutationRequestId = action.meta.requestId;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.mutationRequestId = null;
         state.status = 'succeeded';
         state.user = action.payload.user;
       })
       .addCase(updateUser.rejected, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.mutationRequestId = null;
         state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
@@ -271,19 +282,28 @@ const authSlice = createSlice({
       })
 
       /** Обрабатывает удаление профиля. */
-      .addCase(deleteUser.pending, (state) => {
+      .addCase(deleteUser.pending, (state, action) => {
+        state.mutationRequestId = action.meta.requestId;
         state.status = 'loading';
       })
-      .addCase(deleteUser.fulfilled, (state) => {
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
         state.status = 'idle';
         state.error = null;
         state.authCheckRequestId = null;
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
       })
       .addCase(deleteUser.rejected, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.mutationRequestId = null;
         state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
@@ -292,14 +312,25 @@ const authSlice = createSlice({
       })
 
       /** Обрабатывает обновление пароля. */
-      .addCase(changePassword.pending, (state) => {
+      .addCase(changePassword.pending, (state, action) => {
+        state.mutationRequestId = action.meta.requestId;
         state.status = 'loading';
       })
-      .addCase(changePassword.fulfilled, (state) => {
+      .addCase(changePassword.fulfilled, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.mutationRequestId = null;
         state.status = 'succeeded';
         state.error = null;
       })
       .addCase(changePassword.rejected, (state, action) => {
+        if (state.mutationRequestId !== action.meta.requestId) {
+          return;
+        }
+
+        state.mutationRequestId = null;
         state.status = 'failed';
         state.error = apiErrorMessageFromPayload(
           action.payload,
@@ -313,7 +344,7 @@ const authSlice = createSlice({
         state.error = null;
         state.authCheckRequestId = null;
         state.isCheckingAuth = false;
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.pendingSessionLogouts = [];
         state.isLoggingOut = true;
       })
@@ -325,7 +356,7 @@ const authSlice = createSlice({
         state.status = 'idle';
         state.error = null;
         state.authCheckRequestId = null;
-        state.authMutationRequestId = null;
+        state.mutationRequestId = null;
         state.isLoggingOut = false;
       })
       .addCase(logoutSession.rejected, (state, action) => {

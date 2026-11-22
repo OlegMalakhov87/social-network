@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import { getAccessTokenClaims } from '../lib/accessToken';
 import authReducer, { logout, setAccessToken } from './authSlice';
-import { login, logoutSession } from './authThunks';
+import { login, logoutSession, updateUser } from './authThunks';
 
 const SESSION_A = '11111111-1111-4111-8111-111111111111';
 const SESSION_B = '22222222-2222-4222-8222-222222222222';
@@ -205,5 +205,27 @@ describe('authSlice: setAccessToken', () => {
 
     expect(store.getState().auth.token).toBe(expectedToken);
     expect(store.getState().auth.isLoggingOut).toBe(true);
+  });
+
+  test('updateUser.fulfilled игнорируется, если пришёл старый ответ', () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+
+    store.dispatch({
+      type: updateUser.pending.type,
+      meta: { requestId: 'req-1' },
+    });
+
+    store.dispatch({
+      type: updateUser.pending.type,
+      meta: { requestId: 'req-2' },
+    });
+
+    store.dispatch({
+      type: updateUser.fulfilled.type,
+      payload: { user: { id: 1, name: 'STALE' } },
+      meta: { requestId: 'req-1' },
+    });
+
+    expect(store.getState().auth.user).toBeNull();
   });
 });

@@ -232,7 +232,7 @@ describe('authThunks', () => {
         token: null,
         isAuthenticated: false,
         status: 'idle',
-        authCheckRequestId: null,
+        mutationRequestId: null,
       })
     );
   });
@@ -443,7 +443,7 @@ describe('authThunks', () => {
         token: null,
         isAuthenticated: false,
         status: 'idle',
-        authMutationRequestId: null,
+        mutationRequestId: null,
       })
     );
   });

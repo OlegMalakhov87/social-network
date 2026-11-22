@@ -260,6 +260,13 @@ export const PostForm = ({
             progress={activeUpload.progress}
             error={activeUpload.error || form.errors.postUrl}
             onChange={activeUpload.handleFileChange}
+            onClear={async () => {
+              activeUpload.reset();
+              form.setValue('postUrl', null);
+              form.setValue('previewUrl', null);
+              form.setValue('thumbnailUrl', null);
+              await activeUpload.cleanupUploadedFile();
+            }}
             disabled={form.isSubmitting || isUploading || isChangingType}
             required={true}
           />

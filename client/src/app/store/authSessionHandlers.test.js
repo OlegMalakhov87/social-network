@@ -194,7 +194,7 @@ describe('authSessionHandlers', () => {
     // Продолжает выполнение входа.
     store.dispatch(login.pending(requestId, credentials));
 
-    expect(store.getState().auth.authMutationRequestId).toBe(requestId);
+    expect(store.getState().auth.mutationRequestId).toBe(requestId);
 
     // Принимает SESSION_CHANGED из другой вкладки.
     const { onSessionChanged } = createAuthSessionHandlers(store);
@@ -221,7 +221,7 @@ describe('authSessionHandlers', () => {
     expect(auth.user).toBeNull();
     expect(auth.token).toBeNull();
     expect(auth.isAuthenticated).toBe(false);
-    expect(auth.authMutationRequestId).toBeNull();
+    expect(auth.mutationRequestId).toBeNull();
   });
 
   test('SESSION_CHANGED отменяет результат незавершённого register', () => {
@@ -240,7 +240,7 @@ describe('authSessionHandlers', () => {
     // Начинает регистрацию.
     store.dispatch(register.pending(requestId, formData));
 
-    expect(store.getState().auth.authMutationRequestId).toBe(requestId);
+    expect(store.getState().auth.mutationRequestId).toBe(requestId);
 
     // Создаёт новую сессию в другой вкладке.
     const { onSessionChanged } = createAuthSessionHandlers(store);
@@ -270,7 +270,7 @@ describe('authSessionHandlers', () => {
         token: null,
         isAuthenticated: false,
         status: 'idle',
-        authMutationRequestId: null,
+        mutationRequestId: null,
       })
     );
   });

@@ -151,6 +151,11 @@ export const EditProfileForm = ({ currentUser }) => {
               isUploading={avatarUpload.isUploading}
               error={avatarUpload.error}
               onChange={avatarUpload.handleFileChange}
+              onClear={async () => {
+                avatarUpload.reset();
+                form.setValue('avatarUrl', null);
+                await avatarUpload.cleanupUploadedFile();
+              }}
               disabled={form.isSubmitting || avatarUpload.isUploading}
             />
           }

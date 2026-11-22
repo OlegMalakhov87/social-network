@@ -153,7 +153,9 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
       ]);
 
       if (!results.every(Boolean)) {
-        console.warn('[TrackForm] Не все неиспользуемые временные файлы очищены');
+        console.warn(
+          '[TrackForm] Не все неиспользуемые временные файлы очищены'
+        );
       }
     } finally {
       form.reset();
@@ -192,6 +194,11 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
           progress={trackUpload.progress}
           error={trackUpload.error || form.errors.audioUrl}
           onChange={trackUpload.handleFileChange}
+          onClear={async () => {
+            trackUpload.reset();
+            form.setValue('audioUrl', null);
+            await trackUpload.cleanupUploadedFile();
+          }}
           disabled={form.isSubmitting || isUploading}
         />
 
@@ -205,6 +212,11 @@ export const TrackForm = ({ initialData = {}, onClose, onSubmit }) => {
           progress={coverUpload.progress}
           error={coverUpload.error || form.errors.coverUrl}
           onChange={coverUpload.handleFileChange}
+          onClear={async () => {
+            coverUpload.reset();
+            form.setValue('coverUrl', null);
+            await coverUpload.cleanupUploadedFile();
+          }}
           disabled={form.isSubmitting || isUploading}
         />
 

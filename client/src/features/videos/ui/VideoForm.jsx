@@ -219,6 +219,13 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           progress={videoUpload.progress}
           error={videoUpload.error || form.errors.videoUrl}
           onChange={videoUpload.handleFileChange}
+          onClear={async () => {
+            videoUpload.reset();
+            form.setValue('videoUrl', null);
+            form.setValue('previewUrl', null);
+            form.setValue('thumbnailUrl', null);
+            await videoUpload.cleanupUploadedFile();
+          }}
           disabled={form.isSubmitting || isUploading}
           required={true}
         />
@@ -233,6 +240,11 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           progress={thumbnailUpload.progress}
           error={thumbnailUpload.error || form.errors.thumbnailUrl}
           onChange={thumbnailUpload.handleFileChange}
+          onClear={async () => {
+            thumbnailUpload.reset();
+            form.setValue('thumbnailUrl', null);
+            await thumbnailUpload.cleanupUploadedFile();
+          }}
           disabled={form.isSubmitting || isUploading}
         />
 
@@ -246,6 +258,11 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
           progress={previewUpload.progress}
           error={previewUpload.error || form.errors.previewUrl}
           onChange={previewUpload.handleFileChange}
+          onClear={async () => {
+            previewUpload.reset();
+            form.setValue('previewUrl', null);
+            await previewUpload.cleanupUploadedFile();
+          }}
           disabled={form.isSubmitting || isUploading}
         />
 

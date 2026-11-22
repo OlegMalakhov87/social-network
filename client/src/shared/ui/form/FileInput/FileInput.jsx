@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { getApiErrorDisplay } from '../../../lib';
-import { Button, Image, Text } from '../../../ui';
+import { Button, IconButton, Image, Text } from '../../../ui';
 import { classNames } from '../../../utils';
 
 import style from './FileInput.module.css';
@@ -20,6 +20,7 @@ import style from './FileInput.module.css';
  * @param {Error|Object|string} [props.error] - Ошибка загрузки
  * @param {boolean} [props.disabled=false] - Признак блокировки
  * @param {Function} [props.onChange] - Обработчик выбора файла
+ * @param {Function} [props.onClear] - Обработчик очистки файла
  * @param {boolean} [props.required=false] - Признак обязательного поля
  * @param {string} [props.className=''] - Дополнительный CSS-класс
  * @returns {JSX.Element} Поле выбора файла.
@@ -35,6 +36,7 @@ export const FileInput = ({
   error,
   disabled = false,
   onChange,
+  onClear,
   required = false,
   className = '',
 }) => {
@@ -88,6 +90,16 @@ export const FileInput = ({
               <video src={preview} controls className={style.media} />
             ) : (
               <Image src={preview} alt="Превью" className={style.media} />
+            )}
+            {onClear && !isUploading && !disabled && (
+              <IconButton
+                icon={<span aria-hidden="true">×</span>}
+                ariaLabel="Удалить файл"
+                size="sm"
+                variant="overlay"
+                onClick={onClear}
+                className={style.clearButton}
+              />
             )}
           </div>
         )}
