@@ -5,6 +5,7 @@ const videoPreviewService = require('../services/videoPreviewService');
 const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
 const mediaStorageService = require('../services/mediaStorageService');
+const { runUploadPipeline } = require('../services/uploadPipeline');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
@@ -223,99 +224,16 @@ const videoController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadThumbnail: async (req, res, next) => {
-    let registered = false;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
-    let thumbnailPath = null;
-
     try {
-      if (!req.file) {
-        return res.status(400).json({
-          error: 'Файл обложки не предоставлен',
-          code: 'NO_FILE',
-        });
-      }
-
-      const mediaType = req.file.mediaType;
-      const currentUserId = Number(req.user?.id);
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['image'].includes(mediaType)) {
-        throw createError(
-          'Разрешены только изображения',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      thumbnailPath = await mediaStorageService.publish(req.file);
-
-      const thumbnailUrl = toPublicUrl(thumbnailPath);
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: thumbnailUrl,
-          mediaType: 'image',
-          fieldName: 'thumbnailUrl',
-        },
-      ];
-
-      await temporaryMediaService.registerMany(media);
-
-      registered = true;
-
-      return res.status(200).json({ thumbnailUrl });
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'thumbnailUrl',
+        allowedTypes: ['image'],
+      });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && thumbnailPath) {
-        try {
-          await fs.unlink(thumbnailPath);
-
-          console.log(
-            '[VideoController] Удалён файл обложки после ошибки:',
-            thumbnailPath
-          );
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[VideoController] Ошибка удаления обложки:',
-              cleanupError
-            );
-          }
-        }
-      }
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[VideoController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-      return next(error);
+      next(error);
     }
   },
-
   /**
    * Загружает превью видео.
    *

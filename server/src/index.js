@@ -46,7 +46,7 @@ const gracefulShutdown = async (signal) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
   console.log(
-    `\n[Server] Получен ${signal}. Начинаем корректное завершение...`
+    `\n[Server] Получен ${signal}. Начинаем корректное завершение работы сервера...`
   );
 
   // Если что-то зависнет — принудительно убьём процесс через 60 секунд.
@@ -88,10 +88,10 @@ const gracefulShutdown = async (signal) => {
     await redis.quit();
     console.log('[Server] Подключение к Redis закрыто.');
 
-    console.log('[Server] Завершение успешно.');
+    console.log('[Server] Работа сервера успешно завершена.');
     process.exit(0);
   } catch (error) {
-    console.error('[Server] Ошибка при завершении:', error);
+    console.error('[Server] Ошибка при завершении работы сервера:', error);
     process.exit(1);
   }
 };
