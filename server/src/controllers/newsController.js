@@ -1,11 +1,6 @@
-const fs = require('node:fs/promises');
-
 const newsService = require('../services/newsService');
-const videoPreviewService = require('../services/videoPreviewService');
-const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
-const mediaStorageService = require('../services/mediaStorageService');
-const { toPublicUrl } = require('../utils/toPublicUrl');
+const { runUploadPipeline } = require('../services/uploadPipeline');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 
@@ -86,164 +81,18 @@ const newsController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadMedia: async (req, res, next) => {
-    const createdFiles = [];
-    let registered = false;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
     try {
-      if (!req.file) {
-        return res.status(400).json({
-          error: 'Файл не был загружен',
-          code: 'NO_FILE',
-        });
-      }
-
-      const currentUserId = Number(req.user?.id);
-      const mediaType = req.file.mediaType;
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['image', 'video'].includes(mediaType)) {
-        throw createError(
-          'Допустимы только изображения и видео',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-
-      let metadata = null;
-
-      /**
-       * Проверяет видео, пока файл находится в закрытом каталоге.
-       */
-      if (mediaType === 'video') {
-        metadata = await mediaService.getMetadata(stagingPath, 'video');
-
-        if (
-          !Number.isFinite(metadata.duration) ||
-          metadata.duration <= 0 ||
-          metadata.duration > 60
-        ) {
-          throw createError(
-            'Длительность видео не должна превышать 1 минуты',
-            400,
-            'NEWS_VIDEO_DURATION_EXCEEDED'
-          );
-        }
-      }
-
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      const mediaPath = await mediaStorageService.publish(req.file);
-
-      createdFiles.push(mediaPath);
-
-      const newsUrl = toPublicUrl(mediaPath);
-      let previewUrl = null;
-      let thumbnailUrl = null;
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: newsUrl,
-          mediaType,
-          fieldName: 'newsUrl',
-        },
-      ];
-
-      if (mediaType === 'video') {
-        const previewPath = await videoPreviewService.generatePreview(
-          mediaPath,
-          metadata.duration
-        );
-
-        createdFiles.push(previewPath);
-
-        const thumbnailPath = await videoPreviewService.generateThumbnail(
-          mediaPath,
-          metadata.duration
-        );
-
-        createdFiles.push(thumbnailPath);
-
-        previewUrl = toPublicUrl(previewPath);
-        thumbnailUrl = toPublicUrl(thumbnailPath);
-
-        media.push(
-          {
-            userId: currentUserId,
-            url: previewUrl,
-            mediaType: 'video',
-            fieldName: 'previewUrl',
-          },
-          {
-            userId: currentUserId,
-            url: thumbnailUrl,
-            mediaType: 'image',
-            fieldName: 'thumbnailUrl',
-          }
-        );
-      }
-
-      await temporaryMediaService.registerMany(media);
-      registered = true;
-
-      return res.status(200).json({
-        newsUrl,
-        previewUrl,
-        thumbnailUrl,
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'newsUrl',
+        allowedTypes: ['image', 'video'],
+        maxDuration: 60,
+        durationError: 'Длительность видео не должна превышать 1 минуты',
+        durationErrorCode: 'NEWS_VIDEO_DURATION_EXCEEDED',
+        generateDerived: true,
       });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && createdFiles.length > 0) {
-        await Promise.allSettled(
-          createdFiles.map(async (filePath) => {
-            try {
-              await fs.unlink(filePath);
-
-              console.log(
-                '[NewsController] Удалён файл после ошибки:',
-                filePath
-              );
-            } catch (cleanupError) {
-              if (cleanupError.code !== 'ENOENT') {
-                console.error(
-                  '[NewsController] Ошибка удаления файла после ошибки:',
-                  cleanupError
-                );
-              }
-            }
-          })
-        );
-      }
-
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[NewsController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-
-      return next(error);
+      next(error);
     }
   },
 
