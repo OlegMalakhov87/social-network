@@ -51,7 +51,9 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // Журнал запросов HTTP
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+} else if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
