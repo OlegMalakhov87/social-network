@@ -11,18 +11,20 @@ const { createError } = require('../utils/createError');
  * Проверяет длительность видеофайла.
  *
  * @param {string} filePath - Путь к staging-файлу
+ * @param {string} mediaType - Тип файла ('video', 'audio')
  * @param {number} maxDuration - Максимально допустимая длительность (в секундах)
  * @param {string} errorMessage - Текст ошибки
  * @param {string} errorCode - Машинный код ошибки
  * @returns {Promise<Object>} Метаданные файла (duration, size).
  */
-const validateVideoDuration = async (
+const validateDuration = async (
   filePath,
+  mediaType,
   maxDuration,
   errorMessage,
   errorCode
 ) => {
-  const metadata = await mediaService.getMetadata(filePath, 'video');
+  const metadata = await mediaService.getMetadata(filePath, mediaType);
 
   if (
     !Number.isFinite(metadata.duration) ||
@@ -42,7 +44,7 @@ const validateVideoDuration = async (
  * @param {number} userId - Идентификатор пользователя
  * @param {Object} options - Настройки пайплайна
  * @param {string} options.fieldName - Имя поля основного файла в ответе
- * @param {string[]} options.allowedTypes - Разрешённые mediaType ('image', 'video')
+ * @param {string[]} options.allowedTypes - Разрешённые mediaType ('image', 'video', 'audio')
  * @param {number} [options.maxDuration] - Максимальная длительность видео (секунды)
  * @param {string} [options.durationError] - Текст ошибки для превышения длительности
  * @param {string} [options.durationErrorCode] - Код ошибки для превышения длительности
@@ -92,10 +94,14 @@ const runUploadPipeline = async (file, userId, options) => {
   try {
     // Проверка длительности — только для видео и только если задан лимит.
     // Работает на staging-пути, до публикации.
-    let videoMetadata = null;
-    if (mediaType === 'video' && typeof maxDuration === 'number') {
-      videoMetadata = await validateVideoDuration(
+    let mediaMetadata = null;
+    if (
+      (mediaType === 'video' || mediaType === 'audio') &&
+      typeof maxDuration === 'number'
+    ) {
+      mediaMetadata = await validateDuration(
         stagingPath,
+        mediaType,
         maxDuration,
         durationError,
         durationErrorCode
@@ -113,19 +119,19 @@ const runUploadPipeline = async (file, userId, options) => {
     if (generateDerived) {
       if (mediaType === 'video') {
         // Если metadata не получена на этапе валидации — читаем с диска.
-        if (!videoMetadata) {
-          videoMetadata = await mediaService.getMetadata(mediaPath, 'video');
+        if (!mediaMetadata) {
+          mediaMetadata = await mediaService.getMetadata(mediaPath, 'video');
         }
 
         const previewPath = await videoPreviewService.generatePreview(
           mediaPath,
-          videoMetadata.duration
+          mediaMetadata.duration
         );
         createdFiles.push(previewPath);
 
         const thumbnailPath = await videoPreviewService.generateThumbnail(
           mediaPath,
-          videoMetadata.duration
+          mediaMetadata.duration
         );
         createdFiles.push(thumbnailPath);
 
@@ -159,9 +165,9 @@ const runUploadPipeline = async (file, userId, options) => {
     await temporaryMediaService.registerMany(mediaToRegister);
     registered = true;
 
-    if (withMetadata && videoMetadata) {
-      result.duration = Math.max(1, Math.round(videoMetadata.duration));
-      result.size = Math.max(1024, Math.round(videoMetadata.size));
+    if (withMetadata && mediaMetadata) {
+      result.duration = Math.max(1, Math.round(mediaMetadata.duration));
+      result.size = Math.max(1024, Math.round(mediaMetadata.size));
     }
 
     return result;

@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 
 const { sequelize, News, Like, Comment, User } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
@@ -197,20 +198,14 @@ const newsService = {
       thumbnailUrl: newsData.thumbnailUrl,
     });
 
-    const media = [
+    const media = pickMediaFields(
       {
-        url: newsData.newsUrl,
-        fieldName: 'newsUrl',
+        newsUrl: newsData.newsUrl,
+        previewUrl: newsData.previewUrl,
+        thumbnailUrl: newsData.thumbnailUrl,
       },
-      {
-        url: newsData.previewUrl,
-        fieldName: 'previewUrl',
-      },
-      {
-        url: newsData.thumbnailUrl,
-        fieldName: 'thumbnailUrl',
-      },
-    ];
+      ['newsUrl', 'previewUrl', 'thumbnailUrl']
+    );
 
     const dbData = {
       uploadedBy: currentUserId,
@@ -232,9 +227,11 @@ const newsService = {
     };
 
     return sequelize.transaction(async (transaction) => {
-      await temporaryMediaService.commitMany(currentUserId, media, {
-        transaction,
-      });
+      if (media.length > 0) {
+        await temporaryMediaService.commitMany(currentUserId, media, {
+          transaction,
+        });
+      }
 
       const news = await News.create(dbData, { validate: true, transaction });
 

@@ -1,10 +1,6 @@
-const fs = require('node:fs/promises');
-
 const musicService = require('../services/musicService');
-const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
-const mediaStorageService = require('../services/mediaStorageService');
-const { toPublicUrl } = require('../utils/toPublicUrl');
+const { runUploadPipeline } = require('../services/uploadPipeline');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 
@@ -62,118 +58,20 @@ const musicController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadAudio: async (req, res, next) => {
-    let registered = false;
-    let audioPath = null;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
     try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Аудиофайл не предоставлен', code: 'NO_FILE' });
-      }
-
-      const mediaType = req.file.mediaType;
-      const currentUserId = Number(req.user?.id);
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['audio'].includes(mediaType)) {
-        throw createError(
-          'Разрешены только аудио',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-
-      const audioMetadata = await mediaService.getMetadata(
-        stagingPath,
-        'audio'
-      );
-
-      if (
-        !Number.isFinite(audioMetadata.duration) ||
-        audioMetadata.duration <= 0 ||
-        audioMetadata.duration > 600
-      ) {
-        throw createError(
-          'Длительность аудио не должна превышать 10 минут',
-          400,
-          'AUDIO_DURATION_EXCEEDED'
-        );
-      }
-
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      audioPath = await mediaStorageService.publish(req.file);
-
-      const audioUrl = toPublicUrl(audioPath);
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: audioUrl,
-          mediaType: 'audio',
-          fieldName: 'audioUrl',
-        },
-      ];
-
-      await temporaryMediaService.registerMany(media);
-      registered = true;
-
-      return res.status(200).json({
-        audioUrl,
-        duration: Math.max(1, Math.round(audioMetadata.duration)),
-        size: Math.max(1024, Math.round(audioMetadata.size)),
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'audioUrl',
+        allowedTypes: ['audio'],
+        maxDuration: 600,
+        durationError: 'Длительность трека не должна превышать 10 минут',
+        durationErrorCode: 'AUDIO_DURATION_EXCEEDED',
+        withMetadata: true,
       });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && audioPath) {
-        try {
-          await fs.unlink(audioPath);
-
-          console.log(
-            '[MusicController] Удалён аудиофайл после ошибки:',
-            audioPath
-          );
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[MusicController] Ошибка удаления аудиофайла после ошибки:',
-              cleanupError
-            );
-          }
-        }
-      }
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[MusicController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-      return next(error);
+      next(error);
     }
   },
-
   /**
    * Загружает обложку трека.
    *
@@ -183,95 +81,14 @@ const musicController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadCover: async (req, res, next) => {
-    let registered = false;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
-    let coverPath = null;
-
     try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: 'Файл обложки не предоставлен', code: 'NO_FILE' });
-      }
-
-      const mediaType = req.file.mediaType;
-      const currentUserId = Number(req.user?.id);
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['image'].includes(mediaType)) {
-        throw createError(
-          'Разрешены только изображения',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      coverPath = await mediaStorageService.publish(req.file);
-
-      const coverUrl = toPublicUrl(coverPath);
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: coverUrl,
-          mediaType: 'image',
-          fieldName: 'coverUrl',
-        },
-      ];
-
-      await temporaryMediaService.registerMany(media);
-      registered = true;
-
-      return res.status(200).json({ coverUrl });
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'coverUrl',
+        allowedTypes: ['image'],
+      });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && coverPath) {
-        try {
-          await fs.unlink(coverPath);
-
-          console.log(
-            '[MusicController] Удалён файл обложки после ошибки:',
-            coverPath
-          );
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[MusicController] Ошибка удаления обложки после ошибки:',
-              cleanupError
-            );
-          }
-        }
-      }
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[MusicController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-      return next(error);
+      next(error);
     }
   },
 

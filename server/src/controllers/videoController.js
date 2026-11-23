@@ -221,7 +221,7 @@ const videoController = {
       }
 
       const media = pickMediaFields(req.body, [
-        'postUrl',
+        'videoUrl',
         'previewUrl',
         'thumbnailUrl',
       ]);

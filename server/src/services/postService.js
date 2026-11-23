@@ -9,6 +9,7 @@ const {
   Comment,
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
@@ -194,20 +195,14 @@ const postService = {
       thumbnailUrl: postData.thumbnailUrl,
     });
 
-    const media = [
+    const media = pickMediaFields(
       {
-        url: postData.postUrl,
-        fieldName: 'postUrl',
+        postUrl: postData.postUrl,
+        previewUrl: postData.previewUrl,
+        thumbnailUrl: postData.thumbnailUrl,
       },
-      {
-        url: postData.previewUrl,
-        fieldName: 'previewUrl',
-      },
-      {
-        url: postData.thumbnailUrl,
-        fieldName: 'thumbnailUrl',
-      },
-    ];
+      ['postUrl', 'previewUrl', 'thumbnailUrl']
+    );
 
     const dbData = {
       text: postData.text,
@@ -222,9 +217,11 @@ const postService = {
     };
 
     return sequelize.transaction(async (transaction) => {
-      await temporaryMediaService.commitMany(currentUserId, media, {
-        transaction,
-      });
+      if (media.length > 0) {
+        await temporaryMediaService.commitMany(currentUserId, media, {
+          transaction,
+        });
+      }
 
       const post = await Post.create(dbData, { validate: true, transaction });
 

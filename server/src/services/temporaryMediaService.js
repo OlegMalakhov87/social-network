@@ -53,6 +53,9 @@ const temporaryMediaService = {
   /**
    * Проверяет владение временными медиафайлами.
    *
+   * ВАЖНО: caller должен передать только непустые URL.
+   * Фильтруйте массив через pickMediaFields() перед вызовом.
+   * Пустые URL дадут INVALID_TEMPORARY_MEDIA.
    * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {Object[]} items - Список временных медиафайлов
    * @param {Object} [options={}] - Дополнительные параметры

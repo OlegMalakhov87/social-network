@@ -9,6 +9,7 @@ const {
   UserMusicLibrary,
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
@@ -154,16 +155,10 @@ const musicService = {
    * @returns {Promise<Object>} Объект с результатом.
    */
   async createMusic(currentUserId, musicData) {
-    const media = [
-      {
-        url: musicData.audioUrl,
-        fieldName: 'audioUrl',
-      },
-      {
-        url: musicData.coverUrl,
-        fieldName: 'coverUrl',
-      },
-    ];
+    const media = pickMediaFields(
+      { audioUrl: musicData.audioUrl, coverUrl: musicData.coverUrl },
+      ['audioUrl', 'coverUrl']
+    );
 
     const dbData = {
       title: musicData.title,
@@ -181,11 +176,16 @@ const musicService = {
     };
 
     return sequelize.transaction(async (transaction) => {
-      await temporaryMediaService.commitMany(currentUserId, media, {
+      if (media.length > 0) {
+        await temporaryMediaService.commitMany(currentUserId, media, {
+          transaction,
+        });
+      }
+
+      const track = await Music.create(dbData, {
+        validate: true,
         transaction,
       });
-
-      const track = await Music.create(dbData, { validate: true, transaction });
 
       const libraryItem = await UserMusicLibrary.create(
         {

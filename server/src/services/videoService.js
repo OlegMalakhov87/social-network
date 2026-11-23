@@ -9,6 +9,7 @@ const {
   UserVideoLibrary,
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { pickMediaFields } = require('../utils/pickMediaFields');
 const temporaryMediaService = require('./temporaryMediaService');
 const {
   deleteEntityWithRelations,
@@ -148,20 +149,14 @@ const videoService = {
    * @returns {Promise<Object>} Объект с результатом.
    */
   async createVideo(currentUserId, videoData) {
-    const media = [
+    const media = pickMediaFields(
       {
-        url: videoData.videoUrl,
-        fieldName: 'videoUrl',
+        videoUrl: videoData.newsUrl,
+        previewUrl: videoData.previewUrl,
+        thumbnailUrl: videoData.thumbnailUrl,
       },
-      {
-        url: videoData.previewUrl,
-        fieldName: 'previewUrl',
-      },
-      {
-        url: videoData.thumbnailUrl,
-        fieldName: 'thumbnailUrl',
-      },
-    ];
+      ['videoUrl', 'previewUrl', 'thumbnailUrl']
+    );
 
     const dbData = {
       title: videoData.title,
@@ -178,11 +173,16 @@ const videoService = {
     };
 
     return sequelize.transaction(async (transaction) => {
-      await temporaryMediaService.commitMany(currentUserId, media, {
+      if (media.length > 0) {
+        await temporaryMediaService.commitMany(currentUserId, media, {
+          transaction,
+        });
+      }
+
+      const video = await Video.create(dbData, {
+        validate: true,
         transaction,
       });
-
-      const video = await Video.create(dbData, { validate: true, transaction });
 
       const libraryItem = await UserVideoLibrary.create(
         {
