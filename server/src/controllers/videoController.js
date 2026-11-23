@@ -1,12 +1,6 @@
-const fs = require('node:fs/promises');
-
 const videoService = require('../services/videoService');
-const videoPreviewService = require('../services/videoPreviewService');
-const mediaService = require('../services/mediaService');
 const temporaryMediaService = require('../services/temporaryMediaService');
-const mediaStorageService = require('../services/mediaStorageService');
 const { runUploadPipeline } = require('../services/uploadPipeline');
-const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 
@@ -64,154 +58,19 @@ const videoController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadVideo: async (req, res, next) => {
-    const createdFiles = [];
-    let registered = false;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
     try {
-      if (!req.file)
-        return res
-          .status(400)
-          .json({ error: 'Видеофайл не предоставлен', code: 'NO_FILE' });
-
-      const mediaType = req.file.mediaType;
-      const currentUserId = Number(req.user?.id);
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['video'].includes(mediaType)) {
-        throw createError(
-          'Разрешены только видео',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-
-      /**
-       * Проверяет видео, пока файл находится в закрытом каталоге.
-       */
-      const videoMetadata = await mediaService.getMetadata(
-        stagingPath,
-        'video'
-      );
-
-      if (
-        !Number.isFinite(videoMetadata.duration) ||
-        videoMetadata.duration <= 0 ||
-        videoMetadata.duration > 1800
-      ) {
-        throw createError(
-          'Длительность видео не должна превышать 30 минут',
-          400,
-          'VIDEO_DURATION_EXCEEDED'
-        );
-      }
-
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      const videoPath = await mediaStorageService.publish(req.file);
-
-      createdFiles.push(videoPath);
-
-      const previewPath = await videoPreviewService.generatePreview(
-        videoPath,
-        videoMetadata.duration
-      );
-
-      createdFiles.push(previewPath);
-
-      const thumbnailPath = await videoPreviewService.generateThumbnail(
-        videoPath,
-        videoMetadata.duration
-      );
-
-      createdFiles.push(thumbnailPath);
-
-      const videoUrl = toPublicUrl(videoPath);
-      const previewUrl = toPublicUrl(previewPath);
-      const thumbnailUrl = toPublicUrl(thumbnailPath);
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: videoUrl,
-          mediaType: 'video',
-          fieldName: 'videoUrl',
-        },
-        {
-          userId: currentUserId,
-          url: previewUrl,
-          mediaType: 'video',
-          fieldName: 'previewUrl',
-        },
-        {
-          userId: currentUserId,
-          url: thumbnailUrl,
-          mediaType: 'image',
-          fieldName: 'thumbnailUrl',
-        },
-      ];
-
-      await temporaryMediaService.registerMany(media);
-      registered = true;
-
-      return res.status(200).json({
-        videoUrl,
-        previewUrl,
-        thumbnailUrl,
-        duration: Math.max(1, Math.round(videoMetadata.duration)),
-        size: Math.max(1024, Math.round(videoMetadata.size)),
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'videoUrl',
+        allowedTypes: ['video'],
+        maxDuration: 1800,
+        durationError: 'Длительность видео не должна превышать 30 минут',
+        durationErrorCode: 'VIDEO_DURATION_EXCEEDED',
+        generateDerived: true,
+        withMetadata: true,
       });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && createdFiles.length > 0) {
-        await Promise.allSettled(
-          createdFiles.map(async (filePath) => {
-            try {
-              await fs.unlink(filePath);
-
-              console.log(
-                '[VideoController] Удалён файл после ошибки:',
-                filePath
-              );
-            } catch (cleanupError) {
-              if (cleanupError.code !== 'ENOENT') {
-                console.error(
-                  '[VideoController] Ошибка удаления файла после ошибки:',
-                  cleanupError
-                );
-              }
-            }
-          })
-        );
-      }
-
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[VideoController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-      return next(error);
+      next(error);
     }
   },
 

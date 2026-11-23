@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 
 const mediaService = require('./mediaService');
 const mediaStorageService = require('./mediaStorageService');
+const videoPreviewService = require('./videoPreviewService');
 const temporaryMediaService = require('./temporaryMediaService');
 const { toPublicUrl } = require('../utils/toPublicUrl');
 const { createError } = require('../utils/createError');
@@ -40,12 +41,14 @@ const validateVideoDuration = async (
  * @param {Object} file - Загруженный файл (req.file)
  * @param {number} userId - Идентификатор пользователя
  * @param {Object} options - Настройки пайплайна
- * @param {string} options.fieldName - Имя поля в TemporaryMedia и в ответе
+ * @param {string} options.fieldName - Имя поля основного файла в ответе
  * @param {string[]} options.allowedTypes - Разрешённые mediaType ('image', 'video')
  * @param {number} [options.maxDuration] - Максимальная длительность видео (секунды)
  * @param {string} [options.durationError] - Текст ошибки для превышения длительности
  * @param {string} [options.durationErrorCode] - Код ошибки для превышения длительности
- * @returns {Promise<Object>} Объект с публичным URL по ключу fieldName.
+ * @param {boolean} [options.generateDerived=false] - Генерировать preview и thumbnail для видео
+ * @param {boolean} [options.withMetadata=false] - Возвращать duration и size в ответе
+ * @returns {Promise<Object>} Объект с публичными URL и (опционально) метаданными.
  */
 const runUploadPipeline = async (file, userId, options) => {
   const {
@@ -54,6 +57,8 @@ const runUploadPipeline = async (file, userId, options) => {
     maxDuration,
     durationError = 'Длительность файла превышает допустимую',
     durationErrorCode = 'DURATION_EXCEEDED',
+    generateDerived = false,
+    withMetadata = false,
   } = options;
 
   if (!file) {
@@ -87,8 +92,9 @@ const runUploadPipeline = async (file, userId, options) => {
   try {
     // Проверка длительности — только для видео и только если задан лимит.
     // Работает на staging-пути, до публикации.
+    let videoMetadata = null;
     if (mediaType === 'video' && typeof maxDuration === 'number') {
-      await validateVideoDuration(
+      videoMetadata = await validateVideoDuration(
         stagingPath,
         maxDuration,
         durationError,
@@ -100,18 +106,65 @@ const runUploadPipeline = async (file, userId, options) => {
     createdFiles.push(mediaPath);
 
     const url = toPublicUrl(mediaPath);
+    const result = { [fieldName]: url };
+    const mediaToRegister = [{ userId, url, mediaType, fieldName }];
 
-    await temporaryMediaService.registerMany([
-      {
-        userId,
-        url,
-        mediaType,
-        fieldName,
-      },
-    ]);
+    // Derived файлы (preview + thumbnail) — только для видео.
+    if (generateDerived) {
+      if (mediaType === 'video') {
+        // Если metadata не получена на этапе валидации — читаем с диска.
+        if (!videoMetadata) {
+          videoMetadata = await mediaService.getMetadata(mediaPath, 'video');
+        }
+
+        const previewPath = await videoPreviewService.generatePreview(
+          mediaPath,
+          videoMetadata.duration
+        );
+        createdFiles.push(previewPath);
+
+        const thumbnailPath = await videoPreviewService.generateThumbnail(
+          mediaPath,
+          videoMetadata.duration
+        );
+        createdFiles.push(thumbnailPath);
+
+        const previewUrl = toPublicUrl(previewPath);
+        const thumbnailUrl = toPublicUrl(thumbnailPath);
+
+        result.previewUrl = previewUrl;
+        result.thumbnailUrl = thumbnailUrl;
+
+        mediaToRegister.push(
+          {
+            userId,
+            url: previewUrl,
+            mediaType: 'video',
+            fieldName: 'previewUrl',
+          },
+          {
+            userId,
+            url: thumbnailUrl,
+            mediaType: 'image',
+            fieldName: 'thumbnailUrl',
+          }
+        );
+      } else {
+        // Для картинки derived-файлов нет, но клиент ожидает поля.
+        result.previewUrl = null;
+        result.thumbnailUrl = null;
+      }
+    }
+
+    await temporaryMediaService.registerMany(mediaToRegister);
     registered = true;
 
-    return { [fieldName]: url };
+    if (withMetadata && videoMetadata) {
+      result.duration = Math.max(1, Math.round(videoMetadata.duration));
+      result.size = Math.max(1024, Math.round(videoMetadata.size));
+    }
+
+    return result;
   } catch (error) {
     if (!registered && createdFiles.length > 0) {
       await Promise.allSettled(

@@ -163,6 +163,9 @@ export const VideoForm = ({ initialData = {}, onClose, onSubmit }) => {
     thumbnailUpload.isUploading ||
     previewUpload.isUploading;
 
+  /**
+   * Сбрасывает форму и удаляет загруженные файлы.
+   */
   const handleCancel = async () => {
     if (isCancellingRef.current || form.isSubmitting) return;
 
