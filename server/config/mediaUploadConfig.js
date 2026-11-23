@@ -63,8 +63,6 @@ if (conflict) {
 /** Задает каталоги загрузки медиафайлов. */
 const UPLOAD_DESTINATIONS = {
   avatarUrl: 'avatars',
-  thumbnailUrl: 'videos/thumbnails',
-  coverUrl: 'music/covers',
   postUrl: {
     image: 'posts/images',
     video: 'posts/videos',
@@ -75,7 +73,9 @@ const UPLOAD_DESTINATIONS = {
   },
   videoUrl: 'videos/video',
   previewUrl: 'videos/previews',
+  thumbnailUrl: 'videos/thumbnails',
   audioUrl: 'music/tracks',
+  coverUrl: 'music/covers',
 };
 
 /** Задает допустимые MIME-типы загружаемых медиафайлов. */

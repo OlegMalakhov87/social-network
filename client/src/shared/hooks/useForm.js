@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from 'react';
  * @returns {{
  *   values: Object,
  *   errors: Object,
- *   isValid: boolean,
+ *   hasNoErrors: boolean,
  *   isSubmitting: boolean,
  *   setValue: Function,
  *   onBlur: Function,
@@ -197,7 +197,10 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
     setFieldErrors({});
   }, [initialValues]);
 
-  const isValid = useMemo(
+  /**
+   * Возвращает true, если по всем полям ещё не было ошибок.
+   */
+  const hasNoErrors = useMemo(
     () => Object.values(fieldErrors).every((e) => !e) && !isSubmitting,
     [fieldErrors, isSubmitting]
   );
@@ -205,7 +208,7 @@ export const useForm = ({ initialValues, rules = {}, onSubmit }) => {
   return {
     values,
     errors: fieldErrors,
-    isValid,
+    hasNoErrors,
     isSubmitting,
     setValue,
     onBlur: handleBlur,

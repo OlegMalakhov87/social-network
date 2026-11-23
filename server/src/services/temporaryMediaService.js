@@ -81,20 +81,33 @@ const temporaryMediaService = {
       );
     }
 
-    const mediaRecords = [];
+    if (items.length === 0) {
+      return [];
+    }
+
+    const mediaRecords = await TemporaryMedia.findAll({
+      where: {
+        userId: currentUserId,
+        [Op.or]: items.map(({ url, fieldName }) => ({ url, fieldName })),
+      },
+      ...(transaction && {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      }),
+    });
+
+    const byKey = new Map(
+      mediaRecords.map((record) => [
+        `${record.url}\u0000${record.fieldName}`,
+        record,
+      ])
+    );
+
+    const now = new Date();
+    const result = [];
 
     for (const { url, fieldName } of items) {
-      const media = await TemporaryMedia.findOne({
-        where: {
-          userId: currentUserId,
-          url,
-          fieldName,
-        },
-        ...(transaction && {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        }),
-      });
+      const media = byKey.get(`${url}\u0000${fieldName}`);
 
       if (!media) {
         throw createError(
@@ -104,7 +117,7 @@ const temporaryMediaService = {
         );
       }
 
-      if (media.expiresAt <= new Date()) {
+      if (media.expiresAt <= now) {
         throw createError(
           'Срок действия временного медиафайла истёк',
           410,
@@ -112,10 +125,10 @@ const temporaryMediaService = {
         );
       }
 
-      mediaRecords.push(media);
+      result.push(media);
     }
 
-    return mediaRecords;
+    return result;
   },
 
   /**
