@@ -243,113 +243,17 @@ const videoController = {
    * @returns {Promise<void>} Завершает ответ или передает ошибку дальше.
    */
   uploadPreview: async (req, res, next) => {
-    let registered = false;
-
-    /**
-     * Сохраняет путь временного файла до любых операций.
-     */
-    const stagingPath = req.file?.path;
-
-    let previewPath = null;
-
     try {
-      if (!req.file) {
-        return res.status(400).json({
-          error: 'Файл превью не предоставлен',
-          code: 'NO_FILE',
-        });
-      }
-
-      const mediaType = req.file.mediaType;
-      const currentUserId = Number(req.user?.id);
-
-      if (!Number.isSafeInteger(currentUserId) || currentUserId <= 0) {
-        throw createError(
-          'Некорректный идентификатор пользователя',
-          401,
-          'INVALID_USER_ID'
-        );
-      }
-
-      if (!['video'].includes(mediaType)) {
-        throw createError(
-          'Разрешены только видео',
-          400,
-          'UNSUPPORTED_MEDIA_TYPE'
-        );
-      }
-
-      /**
-       * Проверяет превью, пока файл находится в закрытом каталоге.
-       */
-      const previewMetadata = await mediaService.getMetadata(
-        stagingPath,
-        'video'
-      );
-
-      if (previewMetadata.duration > 6) {
-        throw createError(
-          'Длительность превью не должна превышать 6 секунд',
-          400,
-          'PREVIEW_DURATION_EXCEEDED'
-        );
-      }
-
-      /**
-       * Переносит файл в MEDIA_ROOT только после успешной проверки.
-       */
-      previewPath = await mediaStorageService.publish(req.file);
-
-      const previewUrl = toPublicUrl(previewPath);
-
-      const media = [
-        {
-          userId: currentUserId,
-          url: previewUrl,
-          mediaType: 'video',
-          fieldName: 'previewUrl',
-        },
-      ];
-
-      await temporaryMediaService.registerMany(media);
-      registered = true;
-
-      return res.status(200).json({ previewUrl });
+      const result = await runUploadPipeline(req.file, Number(req.user?.id), {
+        fieldName: 'previewUrl',
+        allowedTypes: ['video'],
+        maxDuration: 6,
+        durationError: 'Длительность превью не должна превышать 6 секунд',
+        durationErrorCode: 'PREVIEW_DURATION_EXCEEDED',
+      });
+      res.status(200).json(result);
     } catch (error) {
-      if (!registered && previewPath) {
-        try {
-          await fs.unlink(previewPath);
-
-          console.log(
-            '[VideoController] Удалён файл превью после ошибки:',
-            previewPath
-          );
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[VideoController] Ошибка удаления превью:',
-              cleanupError
-            );
-          }
-        }
-      }
-
-      /**
-       * Удаляет исходный файл из временного каталога, если публикация не началась.
-       */
-      if (stagingPath) {
-        try {
-          await fs.unlink(stagingPath);
-        } catch (cleanupError) {
-          if (cleanupError.code !== 'ENOENT') {
-            console.error(
-              '[VideoController] Ошибка очистки временного файла:',
-              cleanupError
-            );
-          }
-        }
-      }
-      return next(error);
+      next(error);
     }
   },
 
