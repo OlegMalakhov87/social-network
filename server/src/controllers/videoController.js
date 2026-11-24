@@ -67,6 +67,7 @@ const videoController = {
         durationErrorCode: 'VIDEO_DURATION_EXCEEDED',
         generateDerived: true,
         withMetadata: true,
+        entity: 'videos',
       });
       res.status(200).json(result);
     } catch (error) {
@@ -87,6 +88,7 @@ const videoController = {
       const result = await runUploadPipeline(req.file, Number(req.user?.id), {
         fieldName: 'thumbnailUrl',
         allowedTypes: ['image'],
+        entity: 'videos',
       });
       res.status(200).json(result);
     } catch (error) {
@@ -109,6 +111,7 @@ const videoController = {
         maxDuration: 6,
         durationError: 'Длительность превью не должна превышать 6 секунд',
         durationErrorCode: 'PREVIEW_DURATION_EXCEEDED',
+        entity: 'videos',
       });
       res.status(200).json(result);
     } catch (error) {

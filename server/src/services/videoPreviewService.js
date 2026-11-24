@@ -16,9 +16,18 @@ const videoPreviewService = {
    *
    * @param {string} videoPath - Путь к исходному видео
    * @param {number} duration - Длительность в секундах
+   * @param {string} entity - Сущность (videos|posts|news)
    * @returns {Promise<string>} Путь к созданному preview.
    */
-  async generatePreview(videoPath, duration) {
+  async generatePreview(videoPath, duration, entity) {
+    if (!entity) {
+      throw createError(
+        'Для генерации превью требуется entity',
+        400,
+        'MISSING_ENTITY'
+      );
+    }
+
     if (!videoPath) {
       throw createError('Путь к видео не указан', 400, 'VIDEO_PATH_REQUIRED');
     }
@@ -76,7 +85,8 @@ const videoPreviewService = {
 
       return await mediaStorageService.publishGeneratedFile(
         previewPath,
-        'preview'
+        'preview',
+        entity
       );
     } catch (error) {
       await fs.unlink(previewPath).catch((cleanupError) => {
@@ -100,9 +110,18 @@ const videoPreviewService = {
    *
    * @param {string} videoPath - Путь к исходному видео
    * @param {number} duration - Длительность в секундах
+   * @param {string} entity - Сущность (videos|posts|news)
    * @returns {Promise<string>} Путь к созданной обложке.
    */
-  async generateThumbnail(videoPath, duration) {
+  async generateThumbnail(videoPath, duration, entity) {
+    if (!entity) {
+      throw createError(
+        'Для генерации обложки требуется entity',
+        400,
+        'MISSING_ENTITY'
+      );
+    }
+
     if (!videoPath) {
       throw createError('Путь к видео не указан', 400, 'VIDEO_PATH_REQUIRED');
     }
@@ -145,7 +164,8 @@ const videoPreviewService = {
 
       return await mediaStorageService.publishGeneratedFile(
         thumbnailPath,
-        'thumbnail'
+        'thumbnail',
+        entity
       );
     } catch (error) {
       await fs.unlink(thumbnailPath).catch((cleanupError) => {

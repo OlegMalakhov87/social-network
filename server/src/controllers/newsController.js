@@ -89,6 +89,7 @@ const newsController = {
         durationError: 'Длительность видео не должна превышать 1 минуты',
         durationErrorCode: 'NEWS_VIDEO_DURATION_EXCEEDED',
         generateDerived: true,
+        entity: 'news',
       });
       res.status(200).json(result);
     } catch (error) {

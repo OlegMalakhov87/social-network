@@ -105,9 +105,10 @@ const mediaStorageService = {
    * Публикация медиа файла.
    *
    * @param {Object} file - Загруженный файл
+   * @param {string} entity - Сущность (videos|posts|news)
    * @returns {Promise<string>} Путь к публикации файла.
    */
-  async publish(file) {
+  async publish(file, entity = null) {
     if (!file?.path || !file.mediaType || !file.safeExtension) {
       throw createError('Файл не прошёл проверку', 400, 'MEDIA_NOT_VALIDATED');
     }
@@ -120,8 +121,21 @@ const mediaStorageService = {
 
     const config = UPLOAD_DESTINATIONS[file.fieldname];
 
-    const relativeDir =
-      typeof config === 'string' ? config : config?.[file.mediaType];
+    let relativeDir = null;
+
+    if (typeof config === 'string') {
+      relativeDir = config;
+    } else if (config) {
+      if (entity && Object.hasOwn(config, entity)) {
+        const scoped = config[entity];
+        relativeDir =
+          typeof scoped === 'string' ? scoped : scoped?.[file.mediaType];
+      }
+
+      if (!relativeDir) {
+        relativeDir = config[file.mediaType];
+      }
+    }
 
     if (!relativeDir) {
       throw createError(
@@ -159,27 +173,48 @@ const mediaStorageService = {
    *
    * @param {string} sourcePath - Путь к исходному файлу
    * @param {'preview'|'thumbnail'} type - Тип файла
+   * @param {string} entity - Сущность (videos|posts|news)
    * @returns {Promise<string>} Абсолютный путь опубликованного файла.
    */
-  async publishGeneratedFile(sourcePath, type) {
+  async publishGeneratedFile(sourcePath, type, entity) {
+    if (!entity) {
+      throw createError(
+        'Не указан entity для сгенерированного файла',
+        400,
+        'MISSING_ENTITY'
+      );
+    }
+
     const destinations = {
       preview: {
-        directory: 'videos/previews',
-        extension: '.mp4',
+        videos: { directory: 'videos/previews', extension: '.mp4' },
+        posts: { directory: 'posts/previews', extension: '.mp4' },
+        news: { directory: 'news/previews', extension: '.mp4' },
       },
       thumbnail: {
-        directory: 'videos/thumbnails',
-        extension: '.jpg',
+        videos: { directory: 'videos/thumbnails', extension: '.jpg' },
+        posts: { directory: 'posts/thumbnails', extension: '.jpg' },
+        news: { directory: 'news/thumbnails', extension: '.jpg' },
       },
     };
 
-    const destination = destinations[type];
+    const typeConfig = destinations[type];
 
-    if (!destination) {
+    if (!typeConfig) {
       throw createError(
         'Неподдерживаемый тип производного файла',
         400,
         'INVALID_GENERATED_MEDIA_TYPE'
+      );
+    }
+
+    const destination = typeConfig[entity];
+
+    if (!destination) {
+      throw createError(
+        `Нет каталога для ${type} в сущности ${entity}`,
+        400,
+        'INVALID_MEDIA_DESTINATION'
       );
     }
 

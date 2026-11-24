@@ -89,6 +89,7 @@ const postController = {
         durationError: 'Длительность видео не должна превышать 1 минуты',
         durationErrorCode: 'POST_VIDEO_DURATION_EXCEEDED',
         generateDerived: true,
+        entity: 'posts'
       });
       res.status(200).json(result);
     } catch (error) {

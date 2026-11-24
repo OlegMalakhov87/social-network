@@ -60,22 +60,40 @@ if (conflict) {
   );
 }
 
-/** Задает каталоги загрузки медиафайлов. */
+/**
+ * Задает каталоги загрузки медиафайлов.
+ *
+ * Строка — фиксированный каталог (avatar, cover, audio, video).
+ * Объект с ключами mediaType — каталог по типу (postUrl, newsUrl).
+ * Объект с ключами entity — каталог по сущности (previewUrl, thumbnailUrl).
+ */
 const UPLOAD_DESTINATIONS = {
   avatarUrl: 'avatars',
+  coverUrl: 'music/covers',
+  audioUrl: 'music/tracks',
+  videoUrl: 'videos/video',
+
   postUrl: {
     image: 'posts/images',
     video: 'posts/videos',
   },
+
   newsUrl: {
     image: 'news/images',
     video: 'news/videos',
   },
-  videoUrl: 'videos/video',
-  previewUrl: 'videos/previews',
-  thumbnailUrl: 'videos/thumbnails',
-  audioUrl: 'music/tracks',
-  coverUrl: 'music/covers',
+
+  previewUrl: {
+    videos: 'videos/previews',
+    posts: 'posts/previews',
+    news: 'news/previews',
+  },
+
+  thumbnailUrl: {
+    videos: 'videos/thumbnails',
+    posts: 'posts/thumbnails',
+    news: 'news/thumbnails',
+  },
 };
 
 /** Задает допустимые MIME-типы загружаемых медиафайлов. */

@@ -50,6 +50,7 @@ const validateDuration = async (
  * @param {string} [options.durationErrorCode] - Код ошибки для превышения длительности
  * @param {boolean} [options.generateDerived=false] - Генерировать preview и thumbnail для видео
  * @param {boolean} [options.withMetadata=false] - Возвращать duration и size в ответе
+ * @param {string} [options.entity = null] - Сущность (videos|posts|news)
  * @returns {Promise<Object>} Объект с публичными URL и (опционально) метаданными.
  */
 const runUploadPipeline = async (file, userId, options) => {
@@ -61,6 +62,7 @@ const runUploadPipeline = async (file, userId, options) => {
     durationErrorCode = 'DURATION_EXCEEDED',
     generateDerived = false,
     withMetadata = false,
+    entity = null,
   } = options;
 
   if (!file) {
@@ -85,15 +87,11 @@ const runUploadPipeline = async (file, userId, options) => {
     );
   }
 
-  // mediaStorageService.publish мутирует file.path,
-  // поэтому stagingPath нужно запомнить до вызова.
   const stagingPath = file.path;
   const createdFiles = [];
   let registered = false;
 
   try {
-    // Проверка длительности — только для видео и только если задан лимит.
-    // Работает на staging-пути, до публикации.
     let mediaMetadata = null;
     if (
       (mediaType === 'video' || mediaType === 'audio') &&
@@ -108,30 +106,38 @@ const runUploadPipeline = async (file, userId, options) => {
       );
     }
 
-    const mediaPath = await mediaStorageService.publish(file);
+    const mediaPath = await mediaStorageService.publish(file, entity);
     createdFiles.push(mediaPath);
 
     const url = toPublicUrl(mediaPath);
     const result = { [fieldName]: url };
     const mediaToRegister = [{ userId, url, mediaType, fieldName }];
 
-    // Derived файлы (preview + thumbnail) — только для видео.
+    if (generateDerived && mediaType === 'video' && !entity) {
+      throw createError(
+        'Для генерации превью требуется entity',
+        400,
+        'MISSING_ENTITY'
+      );
+    }
+
     if (generateDerived) {
       if (mediaType === 'video') {
-        // Если metadata не получена на этапе валидации — читаем с диска.
         if (!mediaMetadata) {
           mediaMetadata = await mediaService.getMetadata(mediaPath, 'video');
         }
 
         const previewPath = await videoPreviewService.generatePreview(
           mediaPath,
-          mediaMetadata.duration
+          mediaMetadata.duration,
+          entity
         );
         createdFiles.push(previewPath);
 
         const thumbnailPath = await videoPreviewService.generateThumbnail(
           mediaPath,
-          mediaMetadata.duration
+          mediaMetadata.duration,
+          entity
         );
         createdFiles.push(thumbnailPath);
 
@@ -156,7 +162,6 @@ const runUploadPipeline = async (file, userId, options) => {
           }
         );
       } else {
-        // Для картинки derived-файлов нет, но клиент ожидает поля.
         result.previewUrl = null;
         result.thumbnailUrl = null;
       }
