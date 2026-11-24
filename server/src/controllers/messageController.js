@@ -115,12 +115,11 @@ const messageController = {
   updateMessage: async (req, res, next) => {
     try {
       const { messageId } = req.params;
-      const { content } = req.body;
       const currentUserId = Number(req.user?.id);
       const result = await messageService.updateMessage(
         currentUserId,
         Number(messageId),
-        content
+        req.body
       );
       res.status(200).json(result);
     } catch (error) {

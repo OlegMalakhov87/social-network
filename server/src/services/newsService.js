@@ -325,11 +325,22 @@ const newsService = {
         thumbnailUrl: nextMedia.thumbnailUrl,
       });
 
-      Object.assign(dbUpdates, {
+      // Итоговые обновления до проверки изменений (без isEdited).
+      const finalUpdates = {
+        ...dbUpdates,
         newsUrl: nextMedia.newsUrl,
         previewUrl: nextMedia.previewUrl,
         thumbnailUrl: nextMedia.thumbnailUrl,
-        isEdited: true,
+      };
+
+      // Ставим isEdited только если что-то реально поменялось.
+      // Если пост уже был отредактирован — не сбрасываем флаг.
+      const hasChanges = Object.entries(finalUpdates).some(
+        ([field, value]) => value !== news[field]
+      );
+
+      Object.assign(dbUpdates, finalUpdates, {
+        isEdited: hasChanges || news.isEdited,
       });
 
       const mediaFields = ['newsUrl', 'previewUrl', 'thumbnailUrl'];

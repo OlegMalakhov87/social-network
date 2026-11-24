@@ -188,18 +188,11 @@ const commentService = {
    * @returns {Promise<Object>} { comment }.
    */
   async updateComment(commentId, currentUserId, updateData) {
-    const [affectedCount] = await Comment.update(
-      { text: updateData.text.trim(), isEdited: true },
-      {
-        where: {
-          id: commentId,
-          userId: currentUserId,
-        },
-        returning: true,
-      }
-    );
+    const comment = await Comment.findOne({
+      where: { id: commentId, userId: currentUserId },
+    });
 
-    if (affectedCount === 0) {
+    if (!comment) {
       throw createError(
         'Комментарий не найден или нет прав на редактирование',
         404,
@@ -207,13 +200,17 @@ const commentService = {
       );
     }
 
-    const updatedComment = await Comment.findByPk(commentId, {
+    const newText = updateData.text.trim();
+    const hasChanges = newText !== comment.text;
+
+    await comment.update({
+      text: newText,
+      isEdited: hasChanges || comment.isEdited,
+    });
+
+    const updatedComment = await Comment.findByPk(comment.id, {
       include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'avatarUrl'],
-        },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
       ],
     });
 

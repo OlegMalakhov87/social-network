@@ -275,44 +275,37 @@ const messageService = {
    *
    * @param {number} currentUserId - Идентификатор текущего пользователя
    * @param {number} messageId - Идентификатор сообщения
-   * @param {string} content - Текст сообщения
+   * @param {string} updateData - Данные обновления
    * @returns {Promise<Object>} { message }.
    */
-  async updateMessage(currentUserId, messageId, content) {
-    const msg = await Message.findByPk(messageId);
-    if (!msg)
-      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
+  async updateMessage(currentUserId, messageId, updateData) {
+    const msg = await Message.findOne({
+      where: { id: messageId, senderId: currentUserId },
+    });
 
-    if (msg.senderId !== currentUserId) {
+    if (!msg) {
       throw createError(
-        'Вы не можете редактировать это сообщение',
-        403,
-        'FORBIDDEN'
+        'Сообщение не найдено или нет прав на редактирование',
+        404,
+        'MESSAGE_NOT_FOUND_OR_FORBIDDEN'
       );
     }
 
-    const [, updatedRows] = await Message.update(
-      {
-        content: content.trim(),
-        isEdited: true,
-      },
-      {
-        where: { id: messageId },
-        returning: true,
-        plain: true,
-        include: [
-          {
-            model: User,
-            as: 'sender',
-            attributes: ['id', 'name', 'avatarUrl'],
-          },
-        ],
-      }
-    );
+    const newContent = updateData.content.trim();
+    const hasChanges = newContent !== msg.content;
 
-    return {
-      message: updatedRows.toJSON(),
-    };
+    await msg.update({
+      content: newContent,
+      isEdited: hasChanges || msg.isEdited,
+    });
+
+    const updatedMsg = await Message.findByPk(msg.id, {
+      include: [
+        { model: User, as: 'sender', attributes: ['id', 'name', 'avatarUrl'] },
+      ],
+    });
+
+    return { message: updatedMsg.toJSON() };
   },
 
   /**

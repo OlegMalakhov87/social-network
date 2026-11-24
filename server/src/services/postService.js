@@ -336,11 +336,22 @@ const postService = {
         thumbnailUrl: nextMedia.thumbnailUrl,
       });
 
-      Object.assign(dbUpdates, {
+      // Итоговые обновления до проверки изменений (без isEdited).
+      const finalUpdates = {
+        ...dbUpdates,
         postUrl: nextMedia.postUrl,
         previewUrl: nextMedia.previewUrl,
         thumbnailUrl: nextMedia.thumbnailUrl,
-        isEdited: true,
+      };
+
+      // Ставим isEdited только если что-то реально поменялось.
+      // Если пост уже был отредактирован — не сбрасываем флаг.
+      const hasChanges = Object.entries(finalUpdates).some(
+        ([field, value]) => value !== post[field]
+      );
+
+      Object.assign(dbUpdates, finalUpdates, {
+        isEdited: hasChanges || post.isEdited,
       });
 
       const mediaFields = ['postUrl', 'previewUrl', 'thumbnailUrl'];
