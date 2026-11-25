@@ -8,9 +8,10 @@ const {
   Comment,
   UserMusicLibrary,
 } = require('../../db/models');
+const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
-const temporaryMediaService = require('./temporaryMediaService');
+const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -62,7 +63,7 @@ const musicService = {
     currentUserId,
     sortKey = 'dateDesc',
   } = {}) {
-    const where = { isPublic: true };
+    const where = { isPublic: true }; // По умолчанию показываем только публичные.
 
     const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
@@ -83,22 +84,9 @@ const musicService = {
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
       { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-      {
-        model: Comment,
-        as: 'comments',
-        limit: 100,
-        order: [['createdAt', 'ASC']],
-        include: [
-          {
-            model: User,
-            as: 'author',
-            attributes: ['id', 'name', 'avatarUrl'],
-          },
-          { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-        ],
-      },
     ];
 
+    // Если есть текущий пользователь, добавляет информацию о его библиотеке.
     if (currentUserId) {
       includes.push({
         model: UserMusicLibrary,
@@ -111,6 +99,9 @@ const musicService = {
 
     const { count, rows: tracks } = await Music.findAndCountAll({
       where,
+      attributes: {
+        include: [[commentsCountLiteral('Music'), 'commentsCount']],
+      },
       include: includes,
       order: [
         [sort.field, sort.direction],
@@ -129,7 +120,7 @@ const musicService = {
         isInLibrary: !!libraryEntry,
         libraryId: libraryEntry?.id,
         playsCount: trackData?.playsCount,
-        commentsCount: trackData.comments?.length,
+        commentsCount: Number(trackData.commentsCount) || 0,
         likesCount: trackData.likes?.length,
         isLiked: trackData.likes?.some((like) => like.userId === currentUserId),
         libraryItems: undefined,

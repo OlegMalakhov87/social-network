@@ -8,9 +8,10 @@ const {
   Like,
   Comment,
 } = require('../../db/models');
+const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
-const temporaryMediaService = require('./temporaryMediaService');
+const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -84,23 +85,12 @@ const postService = {
 
     const { count, rows: posts } = await Post.findAndCountAll({
       where,
+      attributes: {
+        include: [[commentsCountLiteral('Post'), 'commentsCount']],
+      },
       include: [
         { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
         { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-        {
-          model: Comment,
-          as: 'comments',
-          limit: 100,
-          order: [['createdAt', 'ASC']],
-          include: [
-            {
-              model: User,
-              as: 'author',
-              attributes: ['id', 'name', 'avatarUrl'],
-            },
-            { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-          ],
-        },
       ],
       order: [
         [sort.field, sort.direction],
@@ -112,12 +102,15 @@ const postService = {
     });
 
     return {
-      posts: posts.map((post) => ({
-        ...post.toJSON(),
-        likesCount: post.likes?.length,
-        isLiked: post.likes?.some((like) => like.userId === currentUserId),
-        commentsCount: post.comments?.length,
-      })),
+      posts: posts.map((post) => {
+        const data = post.toJSON();
+        return {
+          ...data,
+          likesCount: post.likes?.length,
+          isLiked: post.likes?.some((like) => like.userId === currentUserId),
+          commentsCount: Number(data.commentsCount) || 0,
+        };
+      }),
       pagination: {
         totalPosts: count,
         totalPages: Math.ceil(count / limit),

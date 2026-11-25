@@ -1,9 +1,10 @@
 const { Op } = require('sequelize');
 
 const { sequelize, News, Like, Comment, User } = require('../../db/models');
+const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
-const temporaryMediaService = require('./temporaryMediaService');
+const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -86,6 +87,7 @@ const newsService = {
       where,
       attributes: {
         exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
+        include: [[commentsCountLiteral('News'), 'commentsCount']],
       },
       include: [
         {
@@ -98,24 +100,6 @@ const newsService = {
           as: 'likes',
           attributes: ['id', 'userId'],
         },
-        {
-          model: Comment,
-          as: 'comments',
-          limit: 100,
-          order: [['createdAt', 'ASC']],
-          include: [
-            {
-              model: User,
-              as: 'author',
-              attributes: ['id', 'name', 'avatarUrl'],
-            },
-            {
-              model: Like,
-              as: 'likes',
-              attributes: ['id', 'userId'],
-            },
-          ],
-        },
       ],
       order: [
         [sort.field, sort.direction],
@@ -127,12 +111,15 @@ const newsService = {
     });
 
     return {
-      news: news.map((item) => ({
-        ...item.toJSON(),
-        likesCount: item.likes?.length,
-        isLiked: item.likes?.some((like) => like.userId === currentUserId),
-        commentsCount: item.comments?.length,
-      })),
+      news: news.map((item) => {
+        const data = item.toJSON();
+        return {
+          ...data,
+          likesCount: item.likes?.length,
+          isLiked: item.likes?.some((like) => like.userId === currentUserId),
+          commentsCount: Number(data.commentsCount) || 0,
+        };
+      }),
       pagination: {
         totalNews: count,
         totalPages: Math.ceil(count / limit),

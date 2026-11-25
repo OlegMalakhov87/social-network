@@ -10,6 +10,7 @@ const {
 } = require('../../db/models');
 const { sequelize } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 
 /**
  * Ограничивает сортировку известными полями и закрывает подстановку SQL.
@@ -54,6 +55,11 @@ const userMusicLibraryService = {
           {
             model: Music,
             as: 'track',
+            attributes: {
+              include: [
+                [commentsCountLiteral('Music', 'track'), 'commentsCount'],
+              ],
+            },
             include: [
               {
                 model: User,
@@ -61,20 +67,6 @@ const userMusicLibraryService = {
                 attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-              {
-                model: Comment,
-                as: 'comments',
-                limit: 100,
-                order: [['createdAt', 'ASC']],
-                include: [
-                  {
-                    model: User,
-                    as: 'author',
-                    attributes: ['id', 'name', 'avatarUrl'],
-                  },
-                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-                ],
-              },
             ],
           },
         ],
@@ -84,9 +76,9 @@ const userMusicLibraryService = {
         distinct: true,
       });
 
+    // Форматирует ответ, объединяя данные библиотеки и треков и добавляя количество комментариев и лайков.
     const tracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
-
       return {
         ...trackData,
         isInLibrary: true,
@@ -94,7 +86,7 @@ const userMusicLibraryService = {
         isFavorite: entry.isFavorite,
         playsCount: entry.playsCount,
         libraryCreatedAt: entry.createdAt,
-        commentsCount: trackData.comments?.length,
+        commentsCount: Number(trackData.commentsCount) || 0,
         likesCount: trackData.likes?.length,
         isLiked: trackData.likes?.some((like) => like.userId === currentUserId),
       };
@@ -174,6 +166,11 @@ const userMusicLibraryService = {
             as: 'track',
             where: trackWhere,
             required: true,
+            attributes: {
+              include: [
+                [commentsCountLiteral('Music', 'track'), 'commentsCount'],
+              ],
+            },
             include: [
               {
                 model: User,
@@ -181,20 +178,6 @@ const userMusicLibraryService = {
                 attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-              {
-                model: Comment,
-                as: 'comments',
-                limit: 100,
-                order: [['createdAt', 'ASC']],
-                include: [
-                  {
-                    model: User,
-                    as: 'author',
-                    attributes: ['id', 'name', 'avatarUrl'],
-                  },
-                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-                ],
-              },
             ],
           },
         ],
@@ -204,6 +187,7 @@ const userMusicLibraryService = {
         distinct: true,
       });
 
+    // Создает Map для быстрого поиска видео в библиотеке текущего пользователя для оптимизации запросов.
     let currentUserLibraryMap = new Map();
     if (
       currentUserId &&
@@ -216,20 +200,22 @@ const userMusicLibraryService = {
         attributes: ['trackId', 'id'],
         raw: true,
       });
+      // Создает Map для быстрого поиска видео в библиотеке текущего пользователя.
       currentUserLibraryMap = new Map(myEntries.map((e) => [e.trackId, e.id]));
     }
 
     const formattedTracks = libraryEntries.map((entry) => {
       const trackData = entry.track?.toJSON() || {};
       const myLibraryId = currentUserLibraryMap.get(entry.trackId);
-
       return {
         ...trackData,
+        // Данные для кнопки текущего пользователя.
         isInLibrary: !!myLibraryId,
         libraryId: myLibraryId,
+        // Данные из библиотеки просматриваемого профиля.
         profileLibraryId: entry.id,
         playsCount: entry.playsCount,
-        commentsCount: trackData.comments?.length,
+        commentsCount: Number(trackData.commentsCount) || 0,
         likesCount: trackData.likes?.length,
         isLiked: trackData.likes?.some((like) => like.userId === currentUserId),
         libraryCreatedAt: entry.createdAt,
@@ -246,6 +232,7 @@ const userMusicLibraryService = {
       },
     };
   },
+
   /**
    * Добавляет трек в библиотеку.
    *

@@ -37,7 +37,7 @@ module.exports = {
       },
       duration: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       audioUrl: {
         type: Sequelize.STRING(500),

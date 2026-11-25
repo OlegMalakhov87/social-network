@@ -31,8 +31,9 @@ test('collectUsedFiles пропускает нераспознанные URL и 
     title: 'cleanup test',
     artist: 'test',
     size: 2048,
+    duration: 60,
     audioUrl: `/uploads/music/tracks/valid-${randomUUID()}.mp3`,
-    coverUrl: 'https://external.example.com/cover.jpg', // нераспознанный
+    coverUrl: 'https://external.example.com/cover.jpg',
     category: 'other',
     isPublic: true,
     playsCount: 0,

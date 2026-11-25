@@ -10,6 +10,7 @@ const {
 } = require('../../db/models');
 const { sequelize } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 
 // Ограничивает сортировку известными полями и закрывает подстановку SQL.
 const SORT_MAP = {
@@ -52,6 +53,11 @@ const userVideoLibraryService = {
           {
             model: Video,
             as: 'video',
+            attributes: {
+              include: [
+                [commentsCountLiteral('Video', 'video'), 'commentsCount'],
+              ],
+            },
             include: [
               {
                 model: User,
@@ -59,20 +65,6 @@ const userVideoLibraryService = {
                 attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-              {
-                model: Comment,
-                as: 'comments',
-                limit: 100,
-                order: [['createdAt', 'ASC']],
-                include: [
-                  {
-                    model: User,
-                    as: 'author',
-                    attributes: ['id', 'name', 'avatarUrl'],
-                  },
-                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-                ],
-              },
             ],
           },
         ],
@@ -94,7 +86,7 @@ const userVideoLibraryService = {
         viewsCount: entry.viewsCount,
         lastWatchedAt: entry.lastWatchedAt,
         libraryCreatedAt: entry.createdAt,
-        commentsCount: videoData.comments?.length,
+        commentsCount: Number(videoData.commentsCount) || 0,
         likesCount: videoData.likes?.length,
         isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
       };
@@ -176,6 +168,11 @@ const userVideoLibraryService = {
             as: 'video',
             where: videoWhere,
             required: true,
+            attributes: {
+              include: [
+                [commentsCountLiteral('Video', 'video'), 'commentsCount'],
+              ],
+            },
             include: [
               {
                 model: User,
@@ -183,20 +180,6 @@ const userVideoLibraryService = {
                 attributes: ['id', 'name', 'avatarUrl'],
               },
               { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-              {
-                model: Comment,
-                as: 'comments',
-                limit: 100,
-                order: [['createdAt', 'ASC']],
-                include: [
-                  {
-                    model: User,
-                    as: 'author',
-                    attributes: ['id', 'name', 'avatarUrl'],
-                  },
-                  { model: Like, as: 'likes', attributes: ['id', 'userId'] },
-                ],
-              },
             ],
           },
         ],
@@ -226,7 +209,6 @@ const userVideoLibraryService = {
     const formattedVideos = libraryEntries.map((entry) => {
       const videoData = entry.video?.toJSON() || {};
       const myLibraryId = currentUserLibraryMap.get(entry.videoId);
-
       return {
         ...videoData,
         // Данные для кнопки текущего пользователя.
@@ -235,7 +217,7 @@ const userVideoLibraryService = {
         // Данные из библиотеки просматриваемого профиля.
         profileLibraryId: entry.id,
         viewsCount: entry.viewsCount,
-        commentsCount: videoData.comments?.length,
+        commentsCount: Number(videoData.commentsCount) || 0,
         likesCount: videoData.likes?.length,
         isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
         lastWatchedAt: entry.lastWatchedAt,
