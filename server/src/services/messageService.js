@@ -215,9 +215,20 @@ const messageService = {
         { model: Like, as: 'likes', attributes: ['id', 'userId'] },
       ],
     });
+
     if (!message) {
       throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
     }
+
+    // Читать сообщение может только участник переписки.
+    // Возвращает 404 (не 403), чтобы не подтверждать существование сообщения.
+    if (
+      message.senderId !== currentUserId &&
+      message.receiverId !== currentUserId
+    ) {
+      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
+    }
+
     return {
       message: {
         ...message.toJSON(),
