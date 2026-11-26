@@ -219,3 +219,78 @@ test('DELETE /friends/:friendshipId/reject → 200 для blocked от иниц�
     await blocked.destroy();
   }
 });
+
+test('GET /friends/with-friendship-status скрывает поля приватного профиля для не-друга', async () => {
+  const owner = await User.create({
+    name: `private-owner-${randomUUID()}`,
+    email: createTestEmail(),
+    passwordHash: await bcrypt.hash('test-password', 4),
+    isPublic: false,
+    address: 'secret address',
+    job: 'secret job',
+    status: 'secret status',
+    birthDate: '2000-01-01',
+  });
+  const stranger = await createUser('stranger');
+  const token = await signToken(stranger);
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/friends/with-friendship-status?page=1&limit=100&q=private-owner`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+
+    const found = body.users.find((u) => u.id === owner.id);
+    assert.ok(found, 'Владелец должен быть в выдаче');
+    assert.equal(found.name, owner.name);
+    assert.equal(found.avatarUrl, owner.avatarUrl);
+    assert.equal(found.address, undefined);
+    assert.equal(found.job, undefined);
+    assert.equal(found.status, undefined);
+    assert.equal(found.birthDate, undefined);
+    assert.equal(found.isPublic, undefined);
+  } finally {
+    await owner.destroy();
+    await stranger.destroy();
+  }
+});
+
+test('GET /friends/with-friendship-status показывает поля приватного профиля другу', async () => {
+  const owner = await User.create({
+    name: `private-owner-${randomUUID()}`,
+    email: createTestEmail(),
+    passwordHash: await bcrypt.hash('test-password', 4),
+    isPublic: false,
+    address: 'friend-visible address',
+    job: 'friend-visible job',
+  });
+  const friend = await createUser('friend');
+  const token = await signToken(friend);
+
+  const friendship = await Friend.create({
+    userId: owner.id,
+    friendId: friend.id,
+    status: 'accepted',
+  });
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/friends/with-friendship-status?page=1&limit=100&q=private-owner`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+
+    const found = body.users.find((u) => u.id === owner.id);
+    assert.ok(found);
+    assert.equal(found.address, 'friend-visible address');
+    assert.equal(found.job, 'friend-visible job');
+    assert.equal(found.isPublic, false);
+  } finally {
+    await friendship.destroy();
+    await owner.destroy();
+    await friend.destroy();
+  }
+});

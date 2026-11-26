@@ -181,7 +181,7 @@ const messageService = {
     });
 
     const messageIds = messages.map((m) => m.id);
-    const likedIds = await fetchLikedIds(currentUserId, 'Message', commentIds);
+    const likedIds = await fetchLikedIds(currentUserId, 'Message', messageIds);
 
     return {
       messages: messages.map((message) => {
@@ -368,20 +368,17 @@ const messageService = {
     if (!msg) {
       throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
     }
-  
+
     // Скрывать сообщение может только участник переписки.
     // Возвращает 404, чтобы не подтверждать существование чужого сообщения.
-    if (
-      msg.senderId !== currentUserId &&
-      msg.receiverId !== currentUserId
-    ) {
+    if (msg.senderId !== currentUserId && msg.receiverId !== currentUserId) {
       throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
     }
-  
+
     // Своё скрытие: отправитель → deletedBySender, получатель → deletedByReceiver.
     const updateField =
       msg.senderId === currentUserId ? 'deletedBySender' : 'deletedByReceiver';
-  
+
     await msg.update({ [updateField]: true });
     return { message: `Сообщение успешно скрыто: ${messageId}` };
   },

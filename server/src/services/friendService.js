@@ -147,6 +147,7 @@ const friendService = {
         'address',
         'job',
         'status',
+        'isPublic',
       ],
       limit: limit,
       offset: (page - 1) * limit,
@@ -193,8 +194,20 @@ const friendService = {
 
     const enrichedUsers = users.map((user) => {
       const info = friendshipMap.get(user.id) || {};
+      const data = user.toJSON();
+
+      const isFriend = info.status === 'accepted';
+      const canSeeFullProfile = data.isPublic === true || isFriend;
+
+      if (!canSeeFullProfile) {
+        delete data.birthDate;
+        delete data.address;
+        delete data.job;
+        delete data.status;
+        delete data.isPublic;
+      }
       return {
-        ...user.toJSON(),
+        ...data,
         friendshipStatus: info.status,
         friendshipDirection: info.direction,
         friendshipId: info.friendshipId,
