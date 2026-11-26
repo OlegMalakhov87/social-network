@@ -108,3 +108,69 @@ test('changePassword отзывает все сессии, кроме текущ
     await user.destroy();
   }
 });
+
+test('PATCH /api/profile/change-password → 400 для пароля > 72 байт', async () => {
+  const user = await User.create({
+    name: `pw-test-${randomUUID()}`,
+    email: createTestEmail(),
+    passwordHash: await bcrypt.hash('old-password', 4),
+  });
+
+  const { sessionId } = await refreshSessionService.create(user.id);
+  const token = jwt.sign(
+    { id: user.id, sid: sessionId },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  try {
+    const response = await fetch(`${baseUrl}/api/profile/change-password`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: 'old-password',
+        newPassword: 'a'.repeat(72) + 'x', // 73 байта
+      }),
+    });
+
+    assert.equal(response.status, 400);
+  } finally {
+    await user.destroy();
+  }
+});
+
+test('PATCH /api/profile/change-password → 200 для пароля ровно 72 байта', async () => {
+  const user = await User.create({
+    name: `pw-test-${randomUUID()}`,
+    email: createTestEmail(),
+    passwordHash: await bcrypt.hash('old-password', 4),
+  });
+
+  const { sessionId } = await refreshSessionService.create(user.id);
+  const token = jwt.sign(
+    { id: user.id, sid: sessionId },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  try {
+    const response = await fetch(`${baseUrl}/api/profile/change-password`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: 'old-password',
+        newPassword: 'a'.repeat(72), // ровно 72 байта — валидно
+      }),
+    });
+
+    assert.equal(response.status, 200);
+  } finally {
+    await user.destroy();
+  }
+});

@@ -61,7 +61,7 @@ export const RegisterForm = () => {
       password: [
         required('Пароль обязателен'),
         minLength(6, 'Минимум 6 символов'),
-        maxLength(128, 'Максимум 128 символов'),
+        maxLength(72, 'Максимум 72 символа'),
       ],
       confirmPassword: [
         required('Подтвердите пароль'),

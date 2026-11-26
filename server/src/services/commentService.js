@@ -46,8 +46,8 @@ const TARGET_TYPES = {
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
-  viewsDesc: { field: 'likesCount', direction: 'DESC' },
-  viewsAsc: { field: 'likesCount', direction: 'ASC' },
+  viewsDesc: { field: likeCountLiteral('Comment'), direction: 'DESC' },
+  viewsAsc: { field: likeCountLiteral('Comment'), direction: 'ASC' },
 };
 
 const commentService = {

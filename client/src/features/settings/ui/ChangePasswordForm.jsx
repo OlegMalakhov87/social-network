@@ -42,12 +42,12 @@ export const ChangePasswordForm = () => {
       currentPassword: [
         required('Введите текущий пароль'),
         minLength(6, 'Минимум 6 символов'),
-        maxLength(128, 'Максимум 128 символов'),
+        maxLength(72, 'Максимум 72 символов'),
       ],
       newPassword: [
         required('Введите новый пароль'),
         minLength(6, 'Минимум 6 символов'),
-        maxLength(128, 'Максимум 128 символов'),
+        maxLength(72, 'Максимум 72 символов'),
       ],
       confirmPassword: [
         required('Подтвердите пароль'),

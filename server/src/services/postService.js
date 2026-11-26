@@ -25,8 +25,8 @@ const { validateMedia } = require('../utils/validateMedia');
 const SORT_MAP = {
   dateDesc: { field: 'createdAt', direction: 'DESC' },
   dateAsc: { field: 'createdAt', direction: 'ASC' },
-  viewsDesc: { field: 'likesCount', direction: 'DESC' },
-  viewsAsc: { field: 'likesCount', direction: 'ASC' },
+  viewsDesc: { field: likeCountLiteral('Post'), direction: 'DESC' },
+  viewsAsc: { field: likeCountLiteral('Post'), direction: 'ASC' },
 };
 
 /**

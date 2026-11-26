@@ -2,6 +2,34 @@ const { body } = require('express-validator');
 
 const { validateErrors } = require('../../utils/validateErrors');
 
+const BCRYPT_MAX_BYTES = 72;
+
+/**
+ * Проверяет, что пароль помещается в bcrypt-лимит 72 байта.
+ *
+ * @param {string} field - Имя поля
+ * @param {number} minChars - Минимальная длина в символах
+ * @param {string} message - Текст ошибки для пользователя
+ * @returns {import('express-validator').ValidationChain}
+ */
+const bcryptSafePassword = (field, minChars, message) =>
+  body(field)
+    .isString()
+    .withMessage(message)
+    .bail()
+    .isLength({ min: minChars })
+    .withMessage(message)
+    .bail()
+    .custom((value) => {
+      if (Buffer.byteLength(value, 'utf8') > BCRYPT_MAX_BYTES) {
+        throw new Error(
+          `Пароль не должен превышать ${BCRYPT_MAX_BYTES} байт ` +
+            '(для кириллицы это около 36 символов)'
+        );
+      }
+      return true;
+    });
+
 /**
  * Проверяет обязательную строку заданной длины.
  *
@@ -81,7 +109,7 @@ const validateRegister = [
     .isLength({ min: 5, max: 55 })
     .withMessage('Некорректный email'),
 
-  requiredText('password', 6, 128, 'Некорректная длинна пароля'),
+  bcryptSafePassword('password', 6, 'Некорректная длинна пароля'),
 
   body('gender')
     .notEmpty()
@@ -103,7 +131,7 @@ const validateLogin = [
     .isLength({ min: 5, max: 55 })
     .withMessage('Некорректный email'),
 
-  requiredText('password', 6, 128, 'Некорректная длинна пароля'),
+  bcryptSafePassword('password', 6, 'Некорректная длинна пароля'),
 
   validateErrors('Ошибка входа в систему'),
 ];
@@ -146,14 +174,13 @@ const validateUser = [
  * Проверяет текущий и новый пароль.
  */
 const validatePasswordChange = [
-  requiredText(
+  bcryptSafePassword(
     'currentPassword',
     6,
-    128,
     'Некорректная длинна текущего пароля'
   ),
 
-  requiredText('newPassword', 6, 128, 'Некорректная длинна нового пароля'),
+  bcryptSafePassword('newPassword', 6, 'Некорректная длинна нового пароля'),
 
   validateErrors('Ошибка изменения пароля'),
 ];
