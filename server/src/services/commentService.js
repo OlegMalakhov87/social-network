@@ -10,6 +10,7 @@ const {
 const { createError } = require('../utils/createError');
 const { likeCountLiteral } = require('../utils/likeCountLiteral');
 const { fetchLikedIds } = require('../utils/fetchLikedIds');
+const { assertEntityVisible } = require('../utils/assertEntityVisible');
 
 /**
  * Сопоставляет тип сущности с моделью Sequelize.
@@ -71,6 +72,14 @@ const commentService = {
     if (!target) {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
+
+    // Проверяет, что родительская сущность видна пользователю.
+    await assertEntityVisible(
+      target.model,
+      target.dbType,
+      targetId,
+      currentUserId
+    );
 
     const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
