@@ -13,6 +13,7 @@ const { createError } = require('../utils/createError');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 const { likeCountLiteral } = require('../utils/likeCountLiteral');
 const { fetchLikedIds } = require('../utils/fetchLikedIds');
+const { assertEntityVisible } = require('../utils/assertEntityVisible');
 
 /**
  * Ограничивает сортировку известными полями и закрывает подстановку SQL.
@@ -232,10 +233,8 @@ const userMusicLibraryService = {
    * @returns {Promise<Object>} Объект с результатом.
    */
   async addToMusicLibrary(currentUserId, trackId) {
-    const track = await Music.findByPk(trackId, { attributes: ['id'] });
-    if (!track) {
-      throw createError('Трек не найден', 404, 'TRACK_NOT_FOUND');
-    }
+    // Проверяет, что трек существует и виден текущему пользователю.
+    await assertEntityVisible(Music, 'Music', trackId, currentUserId);
 
     try {
       const [libraryItem, created] = await UserMusicLibrary.findOrCreate({
@@ -243,6 +242,7 @@ const userMusicLibraryService = {
         defaults: { isFavorite: false, playsCount: 0 },
       });
 
+      // Если запись не создана, выбрасывает ошибку.
       if (!created) {
         throw createError(
           'Трек уже находится в библиотеке',
@@ -257,6 +257,7 @@ const userMusicLibraryService = {
 
       return { libraryItem: itemWithMusic.toJSON() };
     } catch (error) {
+      // Если ошибка связана с уникальным ограничением, выбрасывает ошибку.
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw createError(
           'Трек уже находится в библиотеке',

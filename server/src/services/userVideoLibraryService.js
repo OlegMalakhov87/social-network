@@ -13,6 +13,7 @@ const { createError } = require('../utils/createError');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
 const { likeCountLiteral } = require('../utils/likeCountLiteral');
 const { fetchLikedIds } = require('../utils/fetchLikedIds');
+const { assertEntityVisible } = require('../utils/assertEntityVisible');
 
 /**
  * Ограничивает сортировку известными полями и закрывает подстановку SQL.
@@ -233,10 +234,8 @@ const userVideoLibraryService = {
    * @returns {Promise<Object>} Объект с результатом.
    */
   async addToVideoLibrary(currentUserId, videoId) {
-    const video = await Video.findByPk(videoId, { attributes: ['id'] });
-    if (!video) {
-      throw createError('Видео не найдено', 404, 'VIDEO_NOT_FOUND');
-    }
+    // Проверяет, что видео существует и видено текущему пользователю.
+    await assertEntityVisible(Video, 'Video', videoId, currentUserId);
 
     try {
       const [libraryItem, created] = await UserVideoLibrary.findOrCreate({
