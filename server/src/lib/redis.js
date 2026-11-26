@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const Redis = require('ioredis');
 
 /** Подключает клиент Redis и повторяет соединение после сбоя. */

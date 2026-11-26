@@ -7,6 +7,10 @@ const {
 const newsIngestionService = require('./newsIngestionService');
 const newsLlmService = require('./llm/newsLlmService');
 const { NEWS_AUTOMATION_CONFIG } = require('../../config/newsAutomationConfig');
+const { acquireLock } = require('../utils/acquireLock');
+
+const AUTOMATION_LOCK_KEY = 'news-automation:lock';
+const AUTOMATION_LOCK_TTL_SECONDS = 60 * 60; // 1 час
 
 const newsAutomationService = {
   /**
@@ -216,13 +220,39 @@ const newsAutomationService = {
   },
 
   /**
-   * Выполняет один полный цикл автоматизации: получает новых кандидатов RSS, применяет лимиты, анализирует выбранные материалы через LLM и фиксирует published, rejected или failed для каждого кандидата.
+   * Выполняет один цикл автоматизации с распределённой блокировкой.
    *
-   * Ошибка одного кандидата не останавливает обработку остальных.
+   * Защищает от параллельного запуска в нескольких инстансах сервера.
+   * Если лок уже занят — сразу выходит без работы.
+   *
+   * @returns {Promise<Object|null>} Результат или null, если лок занят.
+   */
+  async run() {
+    const release = await acquireLock(
+      AUTOMATION_LOCK_KEY,
+      AUTOMATION_LOCK_TTL_SECONDS
+    );
+
+    if (!release) {
+      console.log(
+        '[NewsAutomation] Пропуск: другой инстанс уже выполняет автоматизацию'
+      );
+      return null;
+    }
+
+    try {
+      return await this.runInternal();
+    } finally {
+      await release();
+    }
+  },
+
+  /**
+   * Внутренняя логика цикла (без блокировки).
    *
    * @returns {Promise<Object>} Результат операции.
    */
-  async run() {
+  async runInternal() {
     const bot = await this.getBotUser();
 
     const candidates = await newsIngestionService.fetchCandidates();
