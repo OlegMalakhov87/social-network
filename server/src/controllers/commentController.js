@@ -40,7 +40,11 @@ const commentController = {
   getCommentById: async (req, res, next) => {
     try {
       const { commentId } = req.params;
-      const result = await commentService.getCommentById(Number(commentId));
+      const currentUserId = Number(req.user?.id);
+      const result = await commentService.getCommentById(
+        Number(commentId),
+        currentUserId
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);

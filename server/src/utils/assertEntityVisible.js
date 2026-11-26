@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 
-const { Friend } = require('../../db/models');
+const { Post, Music, Video, News, Friend } = require('../../db/models');
 const { createError } = require('./createError');
 
 /**
@@ -11,6 +11,13 @@ const OWNER_FIELD = {
   News: 'uploadedBy',
   Video: 'uploadedBy',
   Music: 'uploadedBy',
+};
+
+const VISIBLE_MODELS = {
+  Post,
+  Music,
+  Video,
+  News,
 };
 
 /**
@@ -66,4 +73,4 @@ const assertEntityVisible = async (model, dbType, entityId, currentUserId) => {
   return entity;
 };
 
-module.exports = { assertEntityVisible };
+module.exports = { assertEntityVisible, VISIBLE_MODELS };

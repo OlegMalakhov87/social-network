@@ -10,7 +10,10 @@ const {
 const { createError } = require('../utils/createError');
 const { likeCountLiteral } = require('../utils/likeCountLiteral');
 const { fetchLikedIds } = require('../utils/fetchLikedIds');
-const { assertEntityVisible } = require('../utils/assertEntityVisible');
+const {
+  assertEntityVisible,
+  VISIBLE_MODELS,
+} = require('../utils/assertEntityVisible');
 
 /**
  * Сопоставляет тип сущности с моделью Sequelize.
@@ -132,22 +135,34 @@ const commentService = {
    * Возвращает комментарий по идентификатору для кнопки «Поделиться».
    *
    * @param {number} commentId - Идентификатор комментария
+   * @param {number} currentUserId - Идентификатор текущего пользователя
    * @returns {Promise<Object>} { comment }.
    */
-  async getCommentById(commentId) {
+  async getCommentById(commentId, currentUserId) {
     const comment = await Comment.findByPk(commentId, {
       include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'name', 'avatarUrl'],
-        },
+        { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
       ],
     });
+
     if (!comment) {
       throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
     }
-    return comment.toJSON();
+
+    const targetModel = VISIBLE_MODELS[comment.targetType];
+
+    if (!targetModel) {
+      throw createError('Комментарий не найден', 404, 'COMMENT_NOT_FOUND');
+    }
+
+    await assertEntityVisible(
+      targetModel,
+      comment.targetType,
+      comment.targetId,
+      currentUserId
+    );
+
+    return { comment: comment.toJSON() };
   },
 
   /**
