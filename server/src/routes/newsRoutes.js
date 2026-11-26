@@ -4,6 +4,9 @@ const newsController = require('../controllers/newsController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
+const {
   validateCreateNews,
 } = require('../middleware/validation/validateCreateNews');
 const {
@@ -27,6 +30,7 @@ newsRoutes.get(
   '/:newsId/shared',
   validateIdParam('newsId'),
   authMiddleware,
+  validatePagination,
   newsController.getNewsById
 );
 

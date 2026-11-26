@@ -3,6 +3,9 @@ const { Router } = require('express');
 const postController = require('../controllers/postController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
+const {
   validateCreatePost,
 } = require('../middleware/validation/validateCreatePost');
 const {
@@ -27,6 +30,7 @@ postRoutes.get(
   '/:userId',
   validateIdParam('userId'),
   authMiddleware,
+  validatePagination,
   postController.getUserPosts
 );
 

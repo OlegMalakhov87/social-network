@@ -3,6 +3,9 @@ const { Router } = require('express');
 const musicController = require('../controllers/musicController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
+const {
   validateCreateTrack,
 } = require('../middleware/validation/validateCreateTrack');
 const {
@@ -23,7 +26,12 @@ const {
 const musicRoutes = Router();
 
 // Возвращает публичную ленту и результат поиска.
-musicRoutes.get('/', authMiddleware, musicController.getMusic);
+musicRoutes.get(
+  '/',
+  authMiddleware,
+  validatePagination,
+  musicController.getMusic
+);
 
 // Создает трек.
 musicRoutes.post(

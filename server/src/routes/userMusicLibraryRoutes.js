@@ -4,6 +4,9 @@ const userMusicLibraryController = require('../controllers/userMusicLibraryContr
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
+const {
   validateFavoriteUpdate,
 } = require('../middleware/validation/validateFavoriteUpdate');
 
@@ -13,6 +16,7 @@ const userMusicLibraryRoutes = Router();
 userMusicLibraryRoutes.get(
   '/',
   authMiddleware,
+  validatePagination,
   userMusicLibraryController.getMyMusicLibrary
 );
 
@@ -21,6 +25,7 @@ userMusicLibraryRoutes.get(
   '/:userId',
   validateIdParam('userId'),
   authMiddleware,
+  validatePagination,
   userMusicLibraryController.getUserMusicLibrary
 );
 

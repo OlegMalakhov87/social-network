@@ -3,6 +3,9 @@ const { Router } = require('express');
 const userVideoLibraryController = require('../controllers/userVideoLibraryController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
 
 const userVideoLibraryRoutes = Router();
 
@@ -10,6 +13,7 @@ const userVideoLibraryRoutes = Router();
 userVideoLibraryRoutes.get(
   '/',
   authMiddleware,
+  validatePagination,
   userVideoLibraryController.getMyVideoLibrary
 );
 
@@ -18,6 +22,7 @@ userVideoLibraryRoutes.get(
   '/:userId',
   validateIdParam('userId'),
   authMiddleware,
+  validatePagination,
   userVideoLibraryController.getUserVideosLibrary
 );
 

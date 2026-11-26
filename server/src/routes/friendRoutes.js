@@ -3,6 +3,9 @@ const { Router } = require('express');
 const friendController = require('../controllers/friendController');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
+const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
 
 const friendRoutes = Router();
 
@@ -10,6 +13,7 @@ const friendRoutes = Router();
 friendRoutes.get(
   '/with-friendship-status',
   authMiddleware,
+  validatePagination,
   friendController.getUsersWithFriendshipStatus
 );
 

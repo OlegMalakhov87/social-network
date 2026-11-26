@@ -4,6 +4,9 @@ const videoController = require('../controllers/videoController');
 const { authMiddleware } = require('../middleware/auth/authMiddleware');
 const { validateIdParam } = require('../middleware/validation/paramValidation');
 const {
+  validatePagination,
+} = require('../middleware/validation/paginationValidation');
+const {
   validateCreateVideo,
 } = require('../middleware/validation/validateCreateVideo');
 const {
@@ -23,7 +26,12 @@ const {
 const videoRoutes = Router();
 
 // Возвращает публичную ленту и результат поиска.
-videoRoutes.get('/', authMiddleware, videoController.getVideos);
+videoRoutes.get(
+  '/',
+  authMiddleware,
+  validatePagination,
+  videoController.getVideos
+);
 
 // Создает видео.
 videoRoutes.post(
