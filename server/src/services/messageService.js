@@ -1,8 +1,9 @@
 const { Op, QueryTypes } = require('sequelize');
 
-const { Message, User, Like } = require('../../db/models');
+const { sequelize, Message, User, Like } = require('../../db/models');
 const { createError } = require('../utils/createError');
-const { sequelize } = require('../../db/models');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 
 const messageService = {
   /**
@@ -159,17 +160,15 @@ const messageService = {
           },
         ],
       },
+      attributes: {
+        include: [[likeCountLiteral('Message'), 'likesCount']],
+      },
       include: [
         { model: User, as: 'sender', attributes: ['id', 'name', 'avatarUrl'] },
         {
           model: User,
           as: 'receiver',
           attributes: ['id', 'name', 'avatarUrl'],
-        },
-        {
-          model: Like,
-          as: 'likes',
-          attributes: ['id', 'userId'],
         },
       ],
       order: [
@@ -181,12 +180,18 @@ const messageService = {
       distinct: true,
     });
 
+    const messageIds = messages.map((m) => m.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'Message', commentIds);
+
     return {
-      messages: messages.map((message) => ({
-        ...message.toJSON(),
-        likesCount: message.likes?.length,
-        isLiked: message.likes?.some((like) => like.userId === currentUserId),
-      })),
+      messages: messages.map((message) => {
+        const data = message.toJSON();
+        return {
+          ...data,
+          likesCount: Number(data.likesCount) || 0,
+          isLiked: likedIds.has(message.id),
+        };
+      }),
       pagination: {
         totalMessages: count,
         totalPages: Math.ceil(count / limit),

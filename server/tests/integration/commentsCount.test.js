@@ -74,7 +74,6 @@ test('GET /posts/:userId возвращает точный commentsCount без 
     isPublic: true,
   });
 
-  // Создаём 5 комментариев — если count работает, вернётся 5.
   const comments = await Promise.all(
     Array.from({ length: 5 }, (_, i) =>
       Comment.create({
@@ -143,11 +142,12 @@ test('GET /uservideolibrary возвращает commentsCount для видео
     userId: user.id,
     videoId: video.id,
     isFavorite: false,
+    lastWatchedAt: null,
     viewsCount: 0,
   });
 
   const comments = await Promise.all(
-    Array.from({ length: 3 }, (_, i) =>
+    Array.from({ length: 5 }, (_, i) =>
       Comment.create({
         userId: user.id,
         targetType: 'Video',
@@ -168,7 +168,12 @@ test('GET /uservideolibrary возвращает commentsCount для видео
 
     const found = body.videos.find((v) => v.id === video.id);
     assert.ok(found, 'Видео должно быть в библиотеке');
-    assert.equal(found.commentsCount, 3, 'Точный счётчик комментариев');
+    assert.equal(found.commentsCount, 5, 'Точный счётчик комментариев');
+    assert.equal(
+      found.comments,
+      undefined,
+      'Массив comments не должен возвращаться'
+    );
   } finally {
     for (const c of comments) await c.destroy();
     await library.destroy();
@@ -212,7 +217,7 @@ test('GET /usermusiclibrary  возвращает commentsCount для трек�
   });
 
   const comments = await Promise.all(
-    Array.from({ length: 3 }, (_, i) =>
+    Array.from({ length: 5 }, (_, i) =>
       Comment.create({
         userId: user.id,
         targetType: 'Music',
@@ -233,7 +238,12 @@ test('GET /usermusiclibrary  возвращает commentsCount для трек�
 
     const found = body.tracks.find((t) => t.id === track.id);
     assert.ok(found, 'Трек должен быть в библиотеке');
-    assert.equal(found.commentsCount, 3, 'Точный счётчик комментариев');
+    assert.equal(found.commentsCount, 5, 'Точный счётчик комментариев');
+    assert.equal(
+      found.comments,
+      undefined,
+      'Массив comments не должен возвращаться'
+    );
   } finally {
     for (const c of comments) await c.destroy();
     await library.destroy();

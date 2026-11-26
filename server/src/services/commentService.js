@@ -8,6 +8,8 @@ const {
   News,
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 
 /**
  * Сопоставляет тип сущности с моделью Sequelize.
@@ -77,16 +79,14 @@ const commentService = {
         targetType: target.dbType,
         targetId,
       },
+      attributes: {
+        include: [[likeCountLiteral('Comment'), 'likesCount']],
+      },
       include: [
         {
           model: User,
           as: 'author',
           attributes: ['id', 'name', 'avatarUrl'],
-        },
-        {
-          model: Like,
-          as: 'likes',
-          attributes: ['id', 'userId'],
         },
       ],
       order: [
@@ -98,12 +98,18 @@ const commentService = {
       distinct: true,
     });
 
+    const commentIds = comments.map((c) => c.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'Comment', commentIds);
+
     return {
-      comments: comments.map((comment) => ({
-        ...comment.toJSON(),
-        likesCount: comment.likes?.length,
-        isLiked: comment.likes?.some((like) => like.userId === currentUserId),
-      })),
+      comments: comments.map((comment) => {
+        const data = comment.toJSON();
+        return {
+          ...data,
+          likesCount: Number(data.likesCount) || 0,
+          isLiked: likedIds.has(comment.id),
+        };
+      }),
       pagination: {
         totalComments: count,
         totalPages: Math.ceil(count / limit),

@@ -12,6 +12,8 @@ const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -76,7 +78,6 @@ const videoService = {
 
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
-      { model: Like, as: 'likes', attributes: ['id', 'userId'] },
     ];
 
     // Если есть текущий пользователь, добавляет информацию о его библиотеке.
@@ -93,7 +94,10 @@ const videoService = {
     const { count, rows: videos } = await Video.findAndCountAll({
       where,
       attributes: {
-        include: [[commentsCountLiteral('Video'), 'commentsCount']],
+        include: [
+          [commentsCountLiteral('Video'), 'commentsCount'],
+          [likeCountLiteral('Video'), 'likesCount'],
+        ],
       },
       include: includes,
       order: [
@@ -105,6 +109,9 @@ const videoService = {
       distinct: true,
     });
 
+    const videoIds = videos.map((v) => v.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'Video', videoIds);
+
     const formattedVideos = videos.map((video) => {
       const videoData = video.toJSON();
       const libraryEntry = videoData.libraryItems?.[0];
@@ -114,8 +121,8 @@ const videoService = {
         libraryId: libraryEntry?.id,
         viewsCount: videoData?.viewsCount,
         commentsCount: Number(videoData.commentsCount) || 0,
-        likesCount: videoData.likes?.length,
-        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
+        likesCount: Number(videoData.likesCount) || 0,
+        isLiked: likedIds.has(video.id),
         libraryItems: undefined,
       };
     });

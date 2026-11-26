@@ -12,6 +12,8 @@ const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -86,11 +88,13 @@ const postService = {
     const { count, rows: posts } = await Post.findAndCountAll({
       where,
       attributes: {
-        include: [[commentsCountLiteral('Post'), 'commentsCount']],
+        include: [
+          [commentsCountLiteral('Post'), 'commentsCount'],
+          [likeCountLiteral('Post'), 'likesCount'],
+        ],
       },
       include: [
         { model: User, as: 'author', attributes: ['id', 'name', 'avatarUrl'] },
-        { model: Like, as: 'likes', attributes: ['id', 'userId'] },
       ],
       order: [
         [sort.field, sort.direction],
@@ -101,13 +105,16 @@ const postService = {
       distinct: true,
     });
 
+    const postIds = posts.map((p) => p.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'Post', postIds);
+
     return {
       posts: posts.map((post) => {
         const data = post.toJSON();
         return {
           ...data,
-          likesCount: post.likes?.length,
-          isLiked: post.likes?.some((like) => like.userId === currentUserId),
+          likesCount: Number(data.likesCount) || 0,
+          isLiked: likedIds.has(post.id),
           commentsCount: Number(data.commentsCount) || 0,
         };
       }),

@@ -12,6 +12,8 @@ const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -83,7 +85,6 @@ const musicService = {
 
     const includes = [
       { model: User, as: 'uploader', attributes: ['id', 'name', 'avatarUrl'] },
-      { model: Like, as: 'likes', attributes: ['id', 'userId'] },
     ];
 
     // Если есть текущий пользователь, добавляет информацию о его библиотеке.
@@ -100,7 +101,10 @@ const musicService = {
     const { count, rows: tracks } = await Music.findAndCountAll({
       where,
       attributes: {
-        include: [[commentsCountLiteral('Music'), 'commentsCount']],
+        include: [
+          [commentsCountLiteral('Music'), 'commentsCount'],
+          [likeCountLiteral('Music'), 'likesCount'],
+        ],
       },
       include: includes,
       order: [
@@ -112,6 +116,9 @@ const musicService = {
       distinct: true,
     });
 
+    const trackIds = tracks.map((t) => t.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'Music', trackIds);
+
     const formattedTracks = tracks.map((track) => {
       const trackData = track.toJSON();
       const libraryEntry = trackData.libraryItems?.[0];
@@ -121,8 +128,8 @@ const musicService = {
         libraryId: libraryEntry?.id,
         playsCount: trackData?.playsCount,
         commentsCount: Number(trackData.commentsCount) || 0,
-        likesCount: trackData.likes?.length,
-        isLiked: trackData.likes?.some((like) => like.userId === currentUserId),
+        likesCount: Number(trackData.likesCount) || 0,
+        isLiked: likedIds.has(track.id),
         libraryItems: undefined,
       };
     });

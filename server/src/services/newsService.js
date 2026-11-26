@@ -5,6 +5,8 @@ const temporaryMediaService = require('./temporaryMediaService');
 const { createError } = require('../utils/createError');
 const { pickMediaFields } = require('../utils/pickMediaFields');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 const {
   deleteEntityWithRelations,
 } = require('../utils/deleteEntityWithRelations');
@@ -60,7 +62,7 @@ const newsService = {
     q,
     currentUserId,
   } = {}) {
-    const where = {};
+    const where = {}; // По умолчанию показываем только публичные.
 
     const sort = SORT_MAP[sortKey] || SORT_MAP.dateDesc;
 
@@ -87,18 +89,16 @@ const newsService = {
       where,
       attributes: {
         exclude: ['externalUrl', 'externalId', 'archivedAt', 'origin'],
-        include: [[commentsCountLiteral('News'), 'commentsCount']],
+        include: [
+          [commentsCountLiteral('News'), 'commentsCount'],
+          [likeCountLiteral('News'), 'likesCount'],
+        ],
       },
       include: [
         {
           model: User,
           as: 'uploader',
           attributes: ['id', 'name', 'avatarUrl'],
-        },
-        {
-          model: Like,
-          as: 'likes',
-          attributes: ['id', 'userId'],
         },
       ],
       order: [
@@ -110,13 +110,16 @@ const newsService = {
       distinct: true,
     });
 
+    const newsIds = news.map((n) => n.id);
+    const likedIds = await fetchLikedIds(currentUserId, 'News', newsIds);
+
     return {
       news: news.map((item) => {
         const data = item.toJSON();
         return {
           ...data,
-          likesCount: item.likes?.length,
-          isLiked: item.likes?.some((like) => like.userId === currentUserId),
+          likesCount: Number(data.likesCount) || 0,
+          isLiked: likedIds.has(item.id),
           commentsCount: Number(data.commentsCount) || 0,
         };
       }),

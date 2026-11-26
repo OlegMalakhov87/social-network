@@ -11,8 +11,12 @@ const {
 const { sequelize } = require('../../db/models');
 const { createError } = require('../utils/createError');
 const { commentsCountLiteral } = require('../utils/commentsCountLiteral');
+const { likeCountLiteral } = require('../utils/likeCountLiteral');
+const { fetchLikedIds } = require('../utils/fetchLikedIds');
 
-// Ограничивает сортировку известными полями и закрывает подстановку SQL.
+/**
+ * Ограничивает сортировку известными полями и закрывает подстановку SQL.
+ */
 const SORT_MAP = {
   dateDesc: [['createdAt', 'DESC']],
   dateAsc: [['createdAt', 'ASC']],
@@ -39,16 +43,6 @@ const userVideoLibraryService = {
     const { count, rows: libraryEntries } =
       await UserVideoLibrary.findAndCountAll({
         where: { userId: currentUserId },
-        attributes: [
-          'id',
-          'userId',
-          'videoId',
-          'isFavorite',
-          'viewsCount',
-          'lastWatchedAt',
-          'createdAt',
-          'updatedAt',
-        ],
         include: [
           {
             model: Video,
@@ -56,6 +50,7 @@ const userVideoLibraryService = {
             attributes: {
               include: [
                 [commentsCountLiteral('Video', 'video'), 'commentsCount'],
+                [likeCountLiteral('Video', 'video'), 'likesCount'],
               ],
             },
             include: [
@@ -64,7 +59,6 @@ const userVideoLibraryService = {
                 as: 'uploader',
                 attributes: ['id', 'name', 'avatarUrl'],
               },
-              { model: Like, as: 'likes', attributes: ['id', 'userId'] },
             ],
           },
         ],
@@ -74,10 +68,12 @@ const userVideoLibraryService = {
         distinct: true,
       });
 
+    const videoIds = libraryEntries.map((entry) => entry.videoId);
+    const likedIds = await fetchLikedIds(currentUserId, 'Video', videoIds);
+
     // Форматирует ответ, объединяя данные библиотеки и видео и добавляя количество комментариев и лайков.
     const videos = libraryEntries.map((entry) => {
       const videoData = entry.video?.toJSON() || {};
-
       return {
         ...videoData,
         isInLibrary: true,
@@ -87,8 +83,8 @@ const userVideoLibraryService = {
         lastWatchedAt: entry.lastWatchedAt,
         libraryCreatedAt: entry.createdAt,
         commentsCount: Number(videoData.commentsCount) || 0,
-        likesCount: videoData.likes?.length,
-        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
+        likesCount: Number(videoData.likesCount) || 0,
+        isLiked: likedIds.has(entry.videoId),
       };
     });
 
@@ -152,16 +148,6 @@ const userVideoLibraryService = {
     const { count, rows: libraryEntries } =
       await UserVideoLibrary.findAndCountAll({
         where: { userId: profileUserId },
-        attributes: [
-          'id',
-          'userId',
-          'videoId',
-          'isFavorite',
-          'viewsCount',
-          'lastWatchedAt',
-          'createdAt',
-          'updatedAt',
-        ],
         include: [
           {
             model: Video,
@@ -171,6 +157,7 @@ const userVideoLibraryService = {
             attributes: {
               include: [
                 [commentsCountLiteral('Video', 'video'), 'commentsCount'],
+                [likeCountLiteral('Video', 'video'), 'likesCount'],
               ],
             },
             include: [
@@ -179,7 +166,6 @@ const userVideoLibraryService = {
                 as: 'uploader',
                 attributes: ['id', 'name', 'avatarUrl'],
               },
-              { model: Like, as: 'likes', attributes: ['id', 'userId'] },
             ],
           },
         ],
@@ -188,6 +174,9 @@ const userVideoLibraryService = {
         offset: (page - 1) * limit,
         distinct: true,
       });
+
+    const videoIds = libraryEntries.map((entry) => entry.videoId);
+    const likedIds = await fetchLikedIds(currentUserId, 'Video', videoIds);
 
     // Создает Map для быстрого поиска видео в библиотеке текущего пользователя для оптимизации запросов.
     let currentUserLibraryMap = new Map();
@@ -218,8 +207,8 @@ const userVideoLibraryService = {
         profileLibraryId: entry.id,
         viewsCount: entry.viewsCount,
         commentsCount: Number(videoData.commentsCount) || 0,
-        likesCount: videoData.likes?.length,
-        isLiked: videoData.likes?.some((like) => like.userId === currentUserId),
+        likesCount: Number(videoData.likesCount) || 0,
+        isLiked: likedIds.has(entry.videoId),
         lastWatchedAt: entry.lastWatchedAt,
         libraryCreatedAt: entry.createdAt,
       };

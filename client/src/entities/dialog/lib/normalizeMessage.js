@@ -22,7 +22,6 @@ export const normalizeMessages = (raw) => {
     sender: raw.sender,
     receiver: raw.receiver,
 
-    likes: raw.likes,
     likesCount: raw.likesCount ?? 0,
     isLiked: raw.isLiked ?? false,
   };
