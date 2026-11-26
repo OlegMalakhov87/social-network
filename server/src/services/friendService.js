@@ -282,15 +282,23 @@ const friendService = {
    */
   async acceptRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
-    if (!friendship)
-      throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
 
+    if (!friendship) {
+      throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
+    }
+
+    // Принимать может только получатель заявки.
     if (friendship.friendId !== currentUserId) {
-      throw createError('Вы не можете принять эту заявку', 403, 'FORBIDDEN');
+      throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
     }
 
     if (friendship.status === 'accepted') {
       throw createError('Заявка уже принята', 400, 'ALREADY_ACCEPTED');
+    }
+
+    // Принять можно только pending.
+    if (friendship.status !== 'pending') {
+      throw createError('Заявка не найдена', 404, 'REQUEST_NOT_FOUND');
     }
 
     await friendship.update({ status: 'accepted' });
@@ -311,8 +319,26 @@ const friendService = {
    */
   async rejectRequest({ currentUserId, friendshipId }) {
     const friendship = await Friend.findByPk(friendshipId);
-    if (!friendship)
+
+    if (!friendship) {
       throw createError('Запись не найдена', 404, 'REQUEST_NOT_FOUND');
+    }
+
+    const isParticipant =
+      friendship.userId === currentUserId ||
+      friendship.friendId === currentUserId;
+
+    if (!isParticipant) {
+      throw createError('Запись не найдена', 404, 'REQUEST_NOT_FOUND');
+    }
+
+    // Блокировку снимает только тот, кто её поставил.
+    if (
+      friendship.status === 'blocked' &&
+      friendship.userId !== currentUserId
+    ) {
+      throw createError('Запись не найдена', 404, 'REQUEST_NOT_FOUND');
+    }
 
     await friendship.destroy();
     return { message: `Запись успешно удалена: ${friendshipId}` };
