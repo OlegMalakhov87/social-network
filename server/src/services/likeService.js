@@ -9,6 +9,7 @@ const {
   Message,
 } = require('../../db/models');
 const { createError } = require('../utils/createError');
+const { assertLikeableAccess } = require('../utils/assertLikeableAccess');
 
 /**
  * Сопоставляет тип сущности с моделью Sequelize.
@@ -61,13 +62,7 @@ const likeService = {
       throw createError('Неверный тип сущности', 400, 'INVALID_TARGET_TYPE');
     }
 
-    const targetEntity = await target.model.findByPk(targetId, {
-      attributes: ['id'],
-    });
-
-    if (!targetEntity) {
-      throw createError('Сущность не найдена', 404, 'ENTITY_NOT_FOUND');
-    }
+    await assertLikeableAccess(target, targetId, currentUserId);
 
     try {
       const like = await Like.create({
