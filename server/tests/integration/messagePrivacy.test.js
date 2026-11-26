@@ -144,3 +144,71 @@ test('GET /messages/:id/shared → 404 для постороннего', async (
     await stranger.destroy();
   }
 });
+
+test('PATCH /messages/:id/hide → 404 для постороннего', async () => {
+  const sender = await createUser('sender');
+  const receiver = await createUser('receiver');
+  const stranger = await createUser('stranger');
+  const token = await signToken(stranger);
+
+  const msg = await Message.create({
+    senderId: sender.id,
+    receiverId: receiver.id,
+    content: 'private message',
+    isRead: false,
+    isEdited: false,
+    deletedBySender: false,
+    deletedByReceiver: false,
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}/api/messages/${msg.id}/hide`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assert.equal(response.status, 404);
+    const body = await response.json();
+    assert.equal(body.code, 'MESSAGE_NOT_FOUND');
+
+    const fresh = await Message.findByPk(msg.id);
+    assert.equal(fresh.deletedBySender, false);
+    assert.equal(fresh.deletedByReceiver, false);
+  } finally {
+    await msg.destroy();
+    await sender.destroy();
+    await receiver.destroy();
+    await stranger.destroy();
+  }
+});
+
+test('PATCH /messages/:id/hide → 200 для получателя, ставит deletedByReceiver', async () => {
+  const sender = await createUser('sender');
+  const receiver = await createUser('receiver');
+  const token = await signToken(receiver);
+
+  const msg = await Message.create({
+    senderId: sender.id,
+    receiverId: receiver.id,
+    content: 'private message',
+    isRead: false,
+    isEdited: false,
+    deletedBySender: false,
+    deletedByReceiver: false,
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}/api/messages/${msg.id}/hide`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    assert.equal(response.status, 200);
+
+    const fresh = await Message.findByPk(msg.id);
+    assert.equal(fresh.deletedBySender, false);
+    assert.equal(fresh.deletedByReceiver, true);
+  } finally {
+    await msg.destroy();
+    await sender.destroy();
+    await receiver.destroy();
+  }
+});

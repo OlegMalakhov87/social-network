@@ -365,12 +365,23 @@ const messageService = {
    */
   async hideMessage(currentUserId, messageId) {
     const msg = await Message.findByPk(messageId);
-    if (!msg)
+    if (!msg) {
       throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
-
+    }
+  
+    // Скрывать сообщение может только участник переписки.
+    // Возвращает 404, чтобы не подтверждать существование чужого сообщения.
+    if (
+      msg.senderId !== currentUserId &&
+      msg.receiverId !== currentUserId
+    ) {
+      throw createError('Сообщение не найдено', 404, 'MESSAGE_NOT_FOUND');
+    }
+  
+    // Своё скрытие: отправитель → deletedBySender, получатель → deletedByReceiver.
     const updateField =
       msg.senderId === currentUserId ? 'deletedBySender' : 'deletedByReceiver';
-
+  
     await msg.update({ [updateField]: true });
     return { message: `Сообщение успешно скрыто: ${messageId}` };
   },
